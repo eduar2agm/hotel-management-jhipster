@@ -1,0 +1,33 @@
+{
+  "annotations": {
+    "changelogDate": "20251211014120"
+  },
+  "applications": "*",
+  "clientRootFolder": "hotelApp",
+  "databaseType": "sql",
+  "fields": [
+    {
+      "fieldName": "nota",
+      "fieldType": "String"
+    }
+  ],
+  "microserviceName": "hotelApp",
+  "name": "ReservaDetalle",
+  "pagination": "pagination",
+  "relationships": [
+    {
+      "otherEntityName": "reserva",
+      "relationshipName": "reserva",
+      "relationshipSide": "left",
+      "relationshipType": "many-to-one"
+    },
+    {
+      "otherEntityField": "numero",
+      "otherEntityName": "habitacion",
+      "relationshipName": "habitacion",
+      "relationshipSide": "left",
+      "relationshipType": "many-to-one"
+    }
+  ],
+  "searchEngine": "no"
+}

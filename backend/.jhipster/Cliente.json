@@ -1,0 +1,50 @@
+{
+  "annotations": {
+    "changelogDate": "20251211014118"
+  },
+  "applications": "*",
+  "clientRootFolder": "hotelApp",
+  "databaseType": "sql",
+  "fields": [
+    {
+      "fieldName": "nombre",
+      "fieldType": "String",
+      "fieldValidateRules": ["required"]
+    },
+    {
+      "fieldName": "apellido",
+      "fieldType": "String",
+      "fieldValidateRules": ["required"]
+    },
+    {
+      "fieldName": "correo",
+      "fieldType": "String",
+      "fieldValidateRules": ["required", "unique"]
+    },
+    {
+      "fieldName": "telefono",
+      "fieldType": "String",
+      "fieldValidateRules": ["required"]
+    },
+    {
+      "fieldName": "direccion",
+      "fieldType": "String"
+    },
+    {
+      "fieldName": "tipoIdentificacion",
+      "fieldType": "TipoIdentificacion",
+      "fieldValidateRules": ["required"],
+      "fieldValues": "DNI,PASAPORTE,RUC"
+    },
+    {
+      "fieldName": "numeroIdentificacion",
+      "fieldType": "String",
+      "fieldValidateRules": ["required"]
+    }
+  ],
+  "microserviceName": "hotelApp",
+  "name": "Cliente",
+  "pagination": "pagination",
+  "relationships": [],
+  "searchEngine": "no"
+}
