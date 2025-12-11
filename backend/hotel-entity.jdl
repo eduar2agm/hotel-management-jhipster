@@ -1,0 +1,128 @@
+// -------------------- ENUMS --------------------
+enum TipoIdentificacion {
+  DNI,
+  PASAPORTE,
+  RUC
+}
+
+enum EstadoReserva {
+  PENDIENTE,
+  CONFIRMADA,
+  CANCELADA
+}
+
+enum EstadoCheckInCheckOut {
+  PENDIENTE,
+  REALIZADO,
+  RETRASADO
+}
+
+enum MetodoPago {
+  TARJETA,
+  EFECTIVO,
+  TRANSFERENCIA
+}
+
+enum EstadoPago {
+  PENDIENTE,
+  COMPLETADO,
+  RECHAZADO
+}
+
+enum CategoriaHabitacionNombre {
+  SENCILLA,
+  DOBLE,
+  SUITE
+}
+
+enum EstadoHabitacionNombre {
+  DISPONIBLE,
+  OCUPADA,
+  MANTENIMIENTO
+}
+
+// -------------------- ENTIDADES --------------------
+entity Habitacion {
+  numero String required unique
+  capacidad Integer required
+  descripcion String
+  imagen String
+}
+
+entity Cliente {
+  nombre String required
+  apellido String required
+  correo String required unique
+  telefono String required
+  direccion String
+  tipoIdentificacion TipoIdentificacion required
+  numeroIdentificacion String required
+}
+
+entity Reserva {
+  fechaReserva Instant required
+  fechaInicio Instant required
+  fechaFin Instant required
+  estado EstadoReserva required
+}
+
+entity ReservaDetalle {
+  nota String
+}
+
+entity CheckInCheckOut {
+  fechaCheckIn Instant required
+  horaCheckIn LocalTime required
+  fechaCheckOut Instant
+  horaCheckOut LocalTime
+  estado EstadoCheckInCheckOut required
+}
+
+entity Pago {
+  fechaPago Instant required
+  monto BigDecimal required
+  metodoPago MetodoPago required
+  estado EstadoPago required
+}
+
+entity CategoriaHabitacion {
+  nombre CategoriaHabitacionNombre required
+  descripcion String
+  precioBase BigDecimal required
+}
+
+entity EstadoHabitacion {
+  nombre EstadoHabitacionNombre required
+  descripcion String
+}
+
+// -------------------- RELACIONES --------------------
+relationship ManyToOne {
+  // Una habitación pertenece a una categoría
+  Habitacion{categoriaHabitacion(nombre)} to CategoriaHabitacion
+
+  // Una habitación tiene un estado actual
+  Habitacion{estadoHabitacion(nombre)} to EstadoHabitacion
+
+  // Una reserva es hecha por un cliente
+  Reserva{cliente(nombre)} to Cliente
+
+  // Un detalle pertenece a una reserva
+  ReservaDetalle{reserva} to Reserva
+
+  // Un detalle corresponde a una habitación específica
+  ReservaDetalle{habitacion(numero)} to Habitacion
+
+  // CheckIn/Out está asociado a un detalle de reserva (una habitación específica reservada)
+  CheckInCheckOut{reservaDetalle} to ReservaDetalle
+
+  // Un pago pertenece a una reserva general
+  Pago{reserva} to Reserva
+}
+
+// -------------------- CONFIGURACIÓN --------------------
+paginate Habitacion, Cliente, Reserva, ReservaDetalle, CheckInCheckOut, Pago, CategoriaHabitacion, EstadoHabitacion with pagination
+
+// Opcional: Recomendado para arquitecturas limpias
+// dto * with mapstruct
+// service * with serviceImpl
