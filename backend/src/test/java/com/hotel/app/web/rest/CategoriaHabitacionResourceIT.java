@@ -14,6 +14,8 @@ import com.hotel.app.IntegrationTest;
 import com.hotel.app.domain.CategoriaHabitacion;
 import com.hotel.app.domain.enumeration.CategoriaHabitacionNombre;
 import com.hotel.app.repository.CategoriaHabitacionRepository;
+import com.hotel.app.service.dto.CategoriaHabitacionDTO;
+import com.hotel.app.service.mapper.CategoriaHabitacionMapper;
 import jakarta.persistence.EntityManager;
 import java.math.BigDecimal;
 import java.util.Random;
@@ -56,6 +58,9 @@ class CategoriaHabitacionResourceIT {
 
     @Autowired
     private CategoriaHabitacionRepository categoriaHabitacionRepository;
+
+    @Autowired
+    private CategoriaHabitacionMapper categoriaHabitacionMapper;
 
     @Autowired
     private EntityManager em;
@@ -105,23 +110,25 @@ class CategoriaHabitacionResourceIT {
     void createCategoriaHabitacion() throws Exception {
         long databaseSizeBeforeCreate = getRepositoryCount();
         // Create the CategoriaHabitacion
-        var returnedCategoriaHabitacion = om.readValue(
+        CategoriaHabitacionDTO categoriaHabitacionDTO = categoriaHabitacionMapper.toDto(categoriaHabitacion);
+        var returnedCategoriaHabitacionDTO = om.readValue(
             restCategoriaHabitacionMockMvc
                 .perform(
                     post(ENTITY_API_URL)
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(om.writeValueAsBytes(categoriaHabitacion))
+                        .content(om.writeValueAsBytes(categoriaHabitacionDTO))
                 )
                 .andExpect(status().isCreated())
                 .andReturn()
                 .getResponse()
                 .getContentAsString(),
-            CategoriaHabitacion.class
+            CategoriaHabitacionDTO.class
         );
 
         // Validate the CategoriaHabitacion in the database
         assertIncrementedRepositoryCount(databaseSizeBeforeCreate);
+        var returnedCategoriaHabitacion = categoriaHabitacionMapper.toEntity(returnedCategoriaHabitacionDTO);
         assertCategoriaHabitacionUpdatableFieldsEquals(
             returnedCategoriaHabitacion,
             getPersistedCategoriaHabitacion(returnedCategoriaHabitacion)
@@ -135,13 +142,17 @@ class CategoriaHabitacionResourceIT {
     void createCategoriaHabitacionWithExistingId() throws Exception {
         // Create the CategoriaHabitacion with an existing ID
         categoriaHabitacion.setId(1L);
+        CategoriaHabitacionDTO categoriaHabitacionDTO = categoriaHabitacionMapper.toDto(categoriaHabitacion);
 
         long databaseSizeBeforeCreate = getRepositoryCount();
 
         // An entity with an existing ID cannot be created, so this API call must fail
         restCategoriaHabitacionMockMvc
             .perform(
-                post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(categoriaHabitacion))
+                post(ENTITY_API_URL)
+                    .with(csrf())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(om.writeValueAsBytes(categoriaHabitacionDTO))
             )
             .andExpect(status().isBadRequest());
 
@@ -157,10 +168,14 @@ class CategoriaHabitacionResourceIT {
         categoriaHabitacion.setNombre(null);
 
         // Create the CategoriaHabitacion, which fails.
+        CategoriaHabitacionDTO categoriaHabitacionDTO = categoriaHabitacionMapper.toDto(categoriaHabitacion);
 
         restCategoriaHabitacionMockMvc
             .perform(
-                post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(categoriaHabitacion))
+                post(ENTITY_API_URL)
+                    .with(csrf())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(om.writeValueAsBytes(categoriaHabitacionDTO))
             )
             .andExpect(status().isBadRequest());
 
@@ -175,10 +190,14 @@ class CategoriaHabitacionResourceIT {
         categoriaHabitacion.setPrecioBase(null);
 
         // Create the CategoriaHabitacion, which fails.
+        CategoriaHabitacionDTO categoriaHabitacionDTO = categoriaHabitacionMapper.toDto(categoriaHabitacion);
 
         restCategoriaHabitacionMockMvc
             .perform(
-                post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(categoriaHabitacion))
+                post(ENTITY_API_URL)
+                    .with(csrf())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(om.writeValueAsBytes(categoriaHabitacionDTO))
             )
             .andExpect(status().isBadRequest());
 
@@ -239,13 +258,14 @@ class CategoriaHabitacionResourceIT {
         // Disconnect from session so that the updates on updatedCategoriaHabitacion are not directly saved in db
         em.detach(updatedCategoriaHabitacion);
         updatedCategoriaHabitacion.nombre(UPDATED_NOMBRE).descripcion(UPDATED_DESCRIPCION).precioBase(UPDATED_PRECIO_BASE);
+        CategoriaHabitacionDTO categoriaHabitacionDTO = categoriaHabitacionMapper.toDto(updatedCategoriaHabitacion);
 
         restCategoriaHabitacionMockMvc
             .perform(
-                put(ENTITY_API_URL_ID, updatedCategoriaHabitacion.getId())
+                put(ENTITY_API_URL_ID, categoriaHabitacionDTO.getId())
                     .with(csrf())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(om.writeValueAsBytes(updatedCategoriaHabitacion))
+                    .content(om.writeValueAsBytes(categoriaHabitacionDTO))
             )
             .andExpect(status().isOk());
 
@@ -260,13 +280,16 @@ class CategoriaHabitacionResourceIT {
         long databaseSizeBeforeUpdate = getRepositoryCount();
         categoriaHabitacion.setId(longCount.incrementAndGet());
 
+        // Create the CategoriaHabitacion
+        CategoriaHabitacionDTO categoriaHabitacionDTO = categoriaHabitacionMapper.toDto(categoriaHabitacion);
+
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
         restCategoriaHabitacionMockMvc
             .perform(
-                put(ENTITY_API_URL_ID, categoriaHabitacion.getId())
+                put(ENTITY_API_URL_ID, categoriaHabitacionDTO.getId())
                     .with(csrf())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(om.writeValueAsBytes(categoriaHabitacion))
+                    .content(om.writeValueAsBytes(categoriaHabitacionDTO))
             )
             .andExpect(status().isBadRequest());
 
@@ -280,13 +303,16 @@ class CategoriaHabitacionResourceIT {
         long databaseSizeBeforeUpdate = getRepositoryCount();
         categoriaHabitacion.setId(longCount.incrementAndGet());
 
+        // Create the CategoriaHabitacion
+        CategoriaHabitacionDTO categoriaHabitacionDTO = categoriaHabitacionMapper.toDto(categoriaHabitacion);
+
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
         restCategoriaHabitacionMockMvc
             .perform(
                 put(ENTITY_API_URL_ID, longCount.incrementAndGet())
                     .with(csrf())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(om.writeValueAsBytes(categoriaHabitacion))
+                    .content(om.writeValueAsBytes(categoriaHabitacionDTO))
             )
             .andExpect(status().isBadRequest());
 
@@ -300,10 +326,16 @@ class CategoriaHabitacionResourceIT {
         long databaseSizeBeforeUpdate = getRepositoryCount();
         categoriaHabitacion.setId(longCount.incrementAndGet());
 
+        // Create the CategoriaHabitacion
+        CategoriaHabitacionDTO categoriaHabitacionDTO = categoriaHabitacionMapper.toDto(categoriaHabitacion);
+
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
         restCategoriaHabitacionMockMvc
             .perform(
-                put(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(categoriaHabitacion))
+                put(ENTITY_API_URL)
+                    .with(csrf())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(om.writeValueAsBytes(categoriaHabitacionDTO))
             )
             .andExpect(status().isMethodNotAllowed());
 
@@ -323,7 +355,7 @@ class CategoriaHabitacionResourceIT {
         CategoriaHabitacion partialUpdatedCategoriaHabitacion = new CategoriaHabitacion();
         partialUpdatedCategoriaHabitacion.setId(categoriaHabitacion.getId());
 
-        partialUpdatedCategoriaHabitacion.descripcion(UPDATED_DESCRIPCION).precioBase(UPDATED_PRECIO_BASE);
+        partialUpdatedCategoriaHabitacion.nombre(UPDATED_NOMBRE).descripcion(UPDATED_DESCRIPCION);
 
         restCategoriaHabitacionMockMvc
             .perform(
@@ -381,13 +413,16 @@ class CategoriaHabitacionResourceIT {
         long databaseSizeBeforeUpdate = getRepositoryCount();
         categoriaHabitacion.setId(longCount.incrementAndGet());
 
+        // Create the CategoriaHabitacion
+        CategoriaHabitacionDTO categoriaHabitacionDTO = categoriaHabitacionMapper.toDto(categoriaHabitacion);
+
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
         restCategoriaHabitacionMockMvc
             .perform(
-                patch(ENTITY_API_URL_ID, categoriaHabitacion.getId())
+                patch(ENTITY_API_URL_ID, categoriaHabitacionDTO.getId())
                     .with(csrf())
                     .contentType("application/merge-patch+json")
-                    .content(om.writeValueAsBytes(categoriaHabitacion))
+                    .content(om.writeValueAsBytes(categoriaHabitacionDTO))
             )
             .andExpect(status().isBadRequest());
 
@@ -401,13 +436,16 @@ class CategoriaHabitacionResourceIT {
         long databaseSizeBeforeUpdate = getRepositoryCount();
         categoriaHabitacion.setId(longCount.incrementAndGet());
 
+        // Create the CategoriaHabitacion
+        CategoriaHabitacionDTO categoriaHabitacionDTO = categoriaHabitacionMapper.toDto(categoriaHabitacion);
+
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
         restCategoriaHabitacionMockMvc
             .perform(
                 patch(ENTITY_API_URL_ID, longCount.incrementAndGet())
                     .with(csrf())
                     .contentType("application/merge-patch+json")
-                    .content(om.writeValueAsBytes(categoriaHabitacion))
+                    .content(om.writeValueAsBytes(categoriaHabitacionDTO))
             )
             .andExpect(status().isBadRequest());
 
@@ -421,13 +459,16 @@ class CategoriaHabitacionResourceIT {
         long databaseSizeBeforeUpdate = getRepositoryCount();
         categoriaHabitacion.setId(longCount.incrementAndGet());
 
+        // Create the CategoriaHabitacion
+        CategoriaHabitacionDTO categoriaHabitacionDTO = categoriaHabitacionMapper.toDto(categoriaHabitacion);
+
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
         restCategoriaHabitacionMockMvc
             .perform(
                 patch(ENTITY_API_URL)
                     .with(csrf())
                     .contentType("application/merge-patch+json")
-                    .content(om.writeValueAsBytes(categoriaHabitacion))
+                    .content(om.writeValueAsBytes(categoriaHabitacionDTO))
             )
             .andExpect(status().isMethodNotAllowed());
 

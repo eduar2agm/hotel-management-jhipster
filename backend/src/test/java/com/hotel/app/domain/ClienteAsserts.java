@@ -56,7 +56,8 @@ public class ClienteAsserts {
             )
             .satisfies(a ->
                 assertThat(a.getNumeroIdentificacion()).as("check numeroIdentificacion").isEqualTo(expected.getNumeroIdentificacion())
-            );
+            )
+            .satisfies(a -> assertThat(a.getKeycloakId()).as("check keycloakId").isEqualTo(expected.getKeycloakId()));
     }
 
     /**

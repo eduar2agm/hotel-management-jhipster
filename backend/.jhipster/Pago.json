@@ -5,6 +5,7 @@
   "applications": "*",
   "clientRootFolder": "hotelApp",
   "databaseType": "sql",
+  "dto": "mapstruct",
   "fields": [
     {
       "fieldName": "fechaPago",
@@ -20,7 +21,7 @@
       "fieldName": "metodoPago",
       "fieldType": "MetodoPago",
       "fieldValidateRules": ["required"],
-      "fieldValues": "TARJETA,EFECTIVO,TRANSFERENCIA"
+      "fieldValues": "TARJETA,EFECTIVO"
     },
     {
       "fieldName": "estado",
@@ -40,5 +41,6 @@
       "relationshipType": "many-to-one"
     }
   ],
-  "searchEngine": "no"
+  "searchEngine": "no",
+  "service": "serviceImpl"
 }

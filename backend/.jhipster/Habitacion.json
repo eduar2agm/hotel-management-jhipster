@@ -5,6 +5,7 @@
   "applications": "*",
   "clientRootFolder": "hotelApp",
   "databaseType": "sql",
+  "dto": "mapstruct",
   "fields": [
     {
       "fieldName": "numero",
@@ -44,5 +45,6 @@
       "relationshipType": "many-to-one"
     }
   ],
-  "searchEngine": "no"
+  "searchEngine": "no",
+  "service": "serviceImpl"
 }
