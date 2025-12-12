@@ -13,6 +13,8 @@ import com.hotel.app.IntegrationTest;
 import com.hotel.app.domain.EstadoHabitacion;
 import com.hotel.app.domain.enumeration.EstadoHabitacionNombre;
 import com.hotel.app.repository.EstadoHabitacionRepository;
+import com.hotel.app.service.dto.EstadoHabitacionDTO;
+import com.hotel.app.service.mapper.EstadoHabitacionMapper;
 import jakarta.persistence.EntityManager;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
@@ -51,6 +53,9 @@ class EstadoHabitacionResourceIT {
 
     @Autowired
     private EstadoHabitacionRepository estadoHabitacionRepository;
+
+    @Autowired
+    private EstadoHabitacionMapper estadoHabitacionMapper;
 
     @Autowired
     private EntityManager em;
@@ -100,23 +105,25 @@ class EstadoHabitacionResourceIT {
     void createEstadoHabitacion() throws Exception {
         long databaseSizeBeforeCreate = getRepositoryCount();
         // Create the EstadoHabitacion
-        var returnedEstadoHabitacion = om.readValue(
+        EstadoHabitacionDTO estadoHabitacionDTO = estadoHabitacionMapper.toDto(estadoHabitacion);
+        var returnedEstadoHabitacionDTO = om.readValue(
             restEstadoHabitacionMockMvc
                 .perform(
                     post(ENTITY_API_URL)
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(om.writeValueAsBytes(estadoHabitacion))
+                        .content(om.writeValueAsBytes(estadoHabitacionDTO))
                 )
                 .andExpect(status().isCreated())
                 .andReturn()
                 .getResponse()
                 .getContentAsString(),
-            EstadoHabitacion.class
+            EstadoHabitacionDTO.class
         );
 
         // Validate the EstadoHabitacion in the database
         assertIncrementedRepositoryCount(databaseSizeBeforeCreate);
+        var returnedEstadoHabitacion = estadoHabitacionMapper.toEntity(returnedEstadoHabitacionDTO);
         assertEstadoHabitacionUpdatableFieldsEquals(returnedEstadoHabitacion, getPersistedEstadoHabitacion(returnedEstadoHabitacion));
 
         insertedEstadoHabitacion = returnedEstadoHabitacion;
@@ -127,13 +134,14 @@ class EstadoHabitacionResourceIT {
     void createEstadoHabitacionWithExistingId() throws Exception {
         // Create the EstadoHabitacion with an existing ID
         estadoHabitacion.setId(1L);
+        EstadoHabitacionDTO estadoHabitacionDTO = estadoHabitacionMapper.toDto(estadoHabitacion);
 
         long databaseSizeBeforeCreate = getRepositoryCount();
 
         // An entity with an existing ID cannot be created, so this API call must fail
         restEstadoHabitacionMockMvc
             .perform(
-                post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(estadoHabitacion))
+                post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(estadoHabitacionDTO))
             )
             .andExpect(status().isBadRequest());
 
@@ -149,10 +157,11 @@ class EstadoHabitacionResourceIT {
         estadoHabitacion.setNombre(null);
 
         // Create the EstadoHabitacion, which fails.
+        EstadoHabitacionDTO estadoHabitacionDTO = estadoHabitacionMapper.toDto(estadoHabitacion);
 
         restEstadoHabitacionMockMvc
             .perform(
-                post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(estadoHabitacion))
+                post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(estadoHabitacionDTO))
             )
             .andExpect(status().isBadRequest());
 
@@ -211,13 +220,14 @@ class EstadoHabitacionResourceIT {
         // Disconnect from session so that the updates on updatedEstadoHabitacion are not directly saved in db
         em.detach(updatedEstadoHabitacion);
         updatedEstadoHabitacion.nombre(UPDATED_NOMBRE).descripcion(UPDATED_DESCRIPCION);
+        EstadoHabitacionDTO estadoHabitacionDTO = estadoHabitacionMapper.toDto(updatedEstadoHabitacion);
 
         restEstadoHabitacionMockMvc
             .perform(
-                put(ENTITY_API_URL_ID, updatedEstadoHabitacion.getId())
+                put(ENTITY_API_URL_ID, estadoHabitacionDTO.getId())
                     .with(csrf())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(om.writeValueAsBytes(updatedEstadoHabitacion))
+                    .content(om.writeValueAsBytes(estadoHabitacionDTO))
             )
             .andExpect(status().isOk());
 
@@ -232,13 +242,16 @@ class EstadoHabitacionResourceIT {
         long databaseSizeBeforeUpdate = getRepositoryCount();
         estadoHabitacion.setId(longCount.incrementAndGet());
 
+        // Create the EstadoHabitacion
+        EstadoHabitacionDTO estadoHabitacionDTO = estadoHabitacionMapper.toDto(estadoHabitacion);
+
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
         restEstadoHabitacionMockMvc
             .perform(
-                put(ENTITY_API_URL_ID, estadoHabitacion.getId())
+                put(ENTITY_API_URL_ID, estadoHabitacionDTO.getId())
                     .with(csrf())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(om.writeValueAsBytes(estadoHabitacion))
+                    .content(om.writeValueAsBytes(estadoHabitacionDTO))
             )
             .andExpect(status().isBadRequest());
 
@@ -252,13 +265,16 @@ class EstadoHabitacionResourceIT {
         long databaseSizeBeforeUpdate = getRepositoryCount();
         estadoHabitacion.setId(longCount.incrementAndGet());
 
+        // Create the EstadoHabitacion
+        EstadoHabitacionDTO estadoHabitacionDTO = estadoHabitacionMapper.toDto(estadoHabitacion);
+
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
         restEstadoHabitacionMockMvc
             .perform(
                 put(ENTITY_API_URL_ID, longCount.incrementAndGet())
                     .with(csrf())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(om.writeValueAsBytes(estadoHabitacion))
+                    .content(om.writeValueAsBytes(estadoHabitacionDTO))
             )
             .andExpect(status().isBadRequest());
 
@@ -272,10 +288,13 @@ class EstadoHabitacionResourceIT {
         long databaseSizeBeforeUpdate = getRepositoryCount();
         estadoHabitacion.setId(longCount.incrementAndGet());
 
+        // Create the EstadoHabitacion
+        EstadoHabitacionDTO estadoHabitacionDTO = estadoHabitacionMapper.toDto(estadoHabitacion);
+
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
         restEstadoHabitacionMockMvc
             .perform(
-                put(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(estadoHabitacion))
+                put(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(estadoHabitacionDTO))
             )
             .andExpect(status().isMethodNotAllowed());
 
@@ -351,13 +370,16 @@ class EstadoHabitacionResourceIT {
         long databaseSizeBeforeUpdate = getRepositoryCount();
         estadoHabitacion.setId(longCount.incrementAndGet());
 
+        // Create the EstadoHabitacion
+        EstadoHabitacionDTO estadoHabitacionDTO = estadoHabitacionMapper.toDto(estadoHabitacion);
+
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
         restEstadoHabitacionMockMvc
             .perform(
-                patch(ENTITY_API_URL_ID, estadoHabitacion.getId())
+                patch(ENTITY_API_URL_ID, estadoHabitacionDTO.getId())
                     .with(csrf())
                     .contentType("application/merge-patch+json")
-                    .content(om.writeValueAsBytes(estadoHabitacion))
+                    .content(om.writeValueAsBytes(estadoHabitacionDTO))
             )
             .andExpect(status().isBadRequest());
 
@@ -371,13 +393,16 @@ class EstadoHabitacionResourceIT {
         long databaseSizeBeforeUpdate = getRepositoryCount();
         estadoHabitacion.setId(longCount.incrementAndGet());
 
+        // Create the EstadoHabitacion
+        EstadoHabitacionDTO estadoHabitacionDTO = estadoHabitacionMapper.toDto(estadoHabitacion);
+
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
         restEstadoHabitacionMockMvc
             .perform(
                 patch(ENTITY_API_URL_ID, longCount.incrementAndGet())
                     .with(csrf())
                     .contentType("application/merge-patch+json")
-                    .content(om.writeValueAsBytes(estadoHabitacion))
+                    .content(om.writeValueAsBytes(estadoHabitacionDTO))
             )
             .andExpect(status().isBadRequest());
 
@@ -391,13 +416,16 @@ class EstadoHabitacionResourceIT {
         long databaseSizeBeforeUpdate = getRepositoryCount();
         estadoHabitacion.setId(longCount.incrementAndGet());
 
+        // Create the EstadoHabitacion
+        EstadoHabitacionDTO estadoHabitacionDTO = estadoHabitacionMapper.toDto(estadoHabitacion);
+
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
         restEstadoHabitacionMockMvc
             .perform(
                 patch(ENTITY_API_URL)
                     .with(csrf())
                     .contentType("application/merge-patch+json")
-                    .content(om.writeValueAsBytes(estadoHabitacion))
+                    .content(om.writeValueAsBytes(estadoHabitacionDTO))
             )
             .andExpect(status().isMethodNotAllowed());
 

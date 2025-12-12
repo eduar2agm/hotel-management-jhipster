@@ -17,7 +17,8 @@ public class ClienteTestSamples {
             .correo("correo1")
             .telefono("telefono1")
             .direccion("direccion1")
-            .numeroIdentificacion("numeroIdentificacion1");
+            .numeroIdentificacion("numeroIdentificacion1")
+            .keycloakId("keycloakId1");
     }
 
     public static Cliente getClienteSample2() {
@@ -28,7 +29,8 @@ public class ClienteTestSamples {
             .correo("correo2")
             .telefono("telefono2")
             .direccion("direccion2")
-            .numeroIdentificacion("numeroIdentificacion2");
+            .numeroIdentificacion("numeroIdentificacion2")
+            .keycloakId("keycloakId2");
     }
 
     public static Cliente getClienteRandomSampleGenerator() {
@@ -39,6 +41,7 @@ public class ClienteTestSamples {
             .correo(UUID.randomUUID().toString())
             .telefono(UUID.randomUUID().toString())
             .direccion(UUID.randomUUID().toString())
-            .numeroIdentificacion(UUID.randomUUID().toString());
+            .numeroIdentificacion(UUID.randomUUID().toString())
+            .keycloakId(UUID.randomUUID().toString());
     }
 }

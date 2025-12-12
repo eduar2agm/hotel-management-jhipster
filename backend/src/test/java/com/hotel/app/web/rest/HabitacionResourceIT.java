@@ -13,6 +13,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hotel.app.IntegrationTest;
 import com.hotel.app.domain.Habitacion;
 import com.hotel.app.repository.HabitacionRepository;
+import com.hotel.app.service.HabitacionService;
+import com.hotel.app.service.dto.HabitacionDTO;
+import com.hotel.app.service.mapper.HabitacionMapper;
 import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.Random;
@@ -69,6 +72,12 @@ class HabitacionResourceIT {
     private HabitacionRepository habitacionRepositoryMock;
 
     @Autowired
+    private HabitacionMapper habitacionMapper;
+
+    @Mock
+    private HabitacionService habitacionServiceMock;
+
+    @Autowired
     private EntityManager em;
 
     @Autowired
@@ -116,20 +125,22 @@ class HabitacionResourceIT {
     void createHabitacion() throws Exception {
         long databaseSizeBeforeCreate = getRepositoryCount();
         // Create the Habitacion
-        var returnedHabitacion = om.readValue(
+        HabitacionDTO habitacionDTO = habitacionMapper.toDto(habitacion);
+        var returnedHabitacionDTO = om.readValue(
             restHabitacionMockMvc
                 .perform(
-                    post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(habitacion))
+                    post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(habitacionDTO))
                 )
                 .andExpect(status().isCreated())
                 .andReturn()
                 .getResponse()
                 .getContentAsString(),
-            Habitacion.class
+            HabitacionDTO.class
         );
 
         // Validate the Habitacion in the database
         assertIncrementedRepositoryCount(databaseSizeBeforeCreate);
+        var returnedHabitacion = habitacionMapper.toEntity(returnedHabitacionDTO);
         assertHabitacionUpdatableFieldsEquals(returnedHabitacion, getPersistedHabitacion(returnedHabitacion));
 
         insertedHabitacion = returnedHabitacion;
@@ -140,12 +151,13 @@ class HabitacionResourceIT {
     void createHabitacionWithExistingId() throws Exception {
         // Create the Habitacion with an existing ID
         habitacion.setId(1L);
+        HabitacionDTO habitacionDTO = habitacionMapper.toDto(habitacion);
 
         long databaseSizeBeforeCreate = getRepositoryCount();
 
         // An entity with an existing ID cannot be created, so this API call must fail
         restHabitacionMockMvc
-            .perform(post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(habitacion)))
+            .perform(post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(habitacionDTO)))
             .andExpect(status().isBadRequest());
 
         // Validate the Habitacion in the database
@@ -160,9 +172,10 @@ class HabitacionResourceIT {
         habitacion.setNumero(null);
 
         // Create the Habitacion, which fails.
+        HabitacionDTO habitacionDTO = habitacionMapper.toDto(habitacion);
 
         restHabitacionMockMvc
-            .perform(post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(habitacion)))
+            .perform(post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(habitacionDTO)))
             .andExpect(status().isBadRequest());
 
         assertSameRepositoryCount(databaseSizeBeforeTest);
@@ -176,9 +189,10 @@ class HabitacionResourceIT {
         habitacion.setCapacidad(null);
 
         // Create the Habitacion, which fails.
+        HabitacionDTO habitacionDTO = habitacionMapper.toDto(habitacion);
 
         restHabitacionMockMvc
-            .perform(post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(habitacion)))
+            .perform(post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(habitacionDTO)))
             .andExpect(status().isBadRequest());
 
         assertSameRepositoryCount(databaseSizeBeforeTest);
@@ -204,16 +218,16 @@ class HabitacionResourceIT {
 
     @SuppressWarnings({ "unchecked" })
     void getAllHabitacionsWithEagerRelationshipsIsEnabled() throws Exception {
-        when(habitacionRepositoryMock.findAllWithEagerRelationships(any())).thenReturn(new PageImpl(new ArrayList<>()));
+        when(habitacionServiceMock.findAllWithEagerRelationships(any())).thenReturn(new PageImpl(new ArrayList<>()));
 
         restHabitacionMockMvc.perform(get(ENTITY_API_URL + "?eagerload=true")).andExpect(status().isOk());
 
-        verify(habitacionRepositoryMock, times(1)).findAllWithEagerRelationships(any());
+        verify(habitacionServiceMock, times(1)).findAllWithEagerRelationships(any());
     }
 
     @SuppressWarnings({ "unchecked" })
     void getAllHabitacionsWithEagerRelationshipsIsNotEnabled() throws Exception {
-        when(habitacionRepositoryMock.findAllWithEagerRelationships(any())).thenReturn(new PageImpl(new ArrayList<>()));
+        when(habitacionServiceMock.findAllWithEagerRelationships(any())).thenReturn(new PageImpl(new ArrayList<>()));
 
         restHabitacionMockMvc.perform(get(ENTITY_API_URL + "?eagerload=false")).andExpect(status().isOk());
         verify(habitacionRepositoryMock, times(1)).findAll(any(Pageable.class));
@@ -257,13 +271,14 @@ class HabitacionResourceIT {
         // Disconnect from session so that the updates on updatedHabitacion are not directly saved in db
         em.detach(updatedHabitacion);
         updatedHabitacion.numero(UPDATED_NUMERO).capacidad(UPDATED_CAPACIDAD).descripcion(UPDATED_DESCRIPCION).imagen(UPDATED_IMAGEN);
+        HabitacionDTO habitacionDTO = habitacionMapper.toDto(updatedHabitacion);
 
         restHabitacionMockMvc
             .perform(
-                put(ENTITY_API_URL_ID, updatedHabitacion.getId())
+                put(ENTITY_API_URL_ID, habitacionDTO.getId())
                     .with(csrf())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(om.writeValueAsBytes(updatedHabitacion))
+                    .content(om.writeValueAsBytes(habitacionDTO))
             )
             .andExpect(status().isOk());
 
@@ -278,13 +293,16 @@ class HabitacionResourceIT {
         long databaseSizeBeforeUpdate = getRepositoryCount();
         habitacion.setId(longCount.incrementAndGet());
 
+        // Create the Habitacion
+        HabitacionDTO habitacionDTO = habitacionMapper.toDto(habitacion);
+
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
         restHabitacionMockMvc
             .perform(
-                put(ENTITY_API_URL_ID, habitacion.getId())
+                put(ENTITY_API_URL_ID, habitacionDTO.getId())
                     .with(csrf())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(om.writeValueAsBytes(habitacion))
+                    .content(om.writeValueAsBytes(habitacionDTO))
             )
             .andExpect(status().isBadRequest());
 
@@ -298,13 +316,16 @@ class HabitacionResourceIT {
         long databaseSizeBeforeUpdate = getRepositoryCount();
         habitacion.setId(longCount.incrementAndGet());
 
+        // Create the Habitacion
+        HabitacionDTO habitacionDTO = habitacionMapper.toDto(habitacion);
+
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
         restHabitacionMockMvc
             .perform(
                 put(ENTITY_API_URL_ID, longCount.incrementAndGet())
                     .with(csrf())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(om.writeValueAsBytes(habitacion))
+                    .content(om.writeValueAsBytes(habitacionDTO))
             )
             .andExpect(status().isBadRequest());
 
@@ -318,9 +339,12 @@ class HabitacionResourceIT {
         long databaseSizeBeforeUpdate = getRepositoryCount();
         habitacion.setId(longCount.incrementAndGet());
 
+        // Create the Habitacion
+        HabitacionDTO habitacionDTO = habitacionMapper.toDto(habitacion);
+
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
         restHabitacionMockMvc
-            .perform(put(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(habitacion)))
+            .perform(put(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(habitacionDTO)))
             .andExpect(status().isMethodNotAllowed());
 
         // Validate the Habitacion in the database
@@ -338,8 +362,6 @@ class HabitacionResourceIT {
         // Update the habitacion using partial update
         Habitacion partialUpdatedHabitacion = new Habitacion();
         partialUpdatedHabitacion.setId(habitacion.getId());
-
-        partialUpdatedHabitacion.numero(UPDATED_NUMERO).descripcion(UPDATED_DESCRIPCION);
 
         restHabitacionMockMvc
             .perform(
@@ -398,13 +420,16 @@ class HabitacionResourceIT {
         long databaseSizeBeforeUpdate = getRepositoryCount();
         habitacion.setId(longCount.incrementAndGet());
 
+        // Create the Habitacion
+        HabitacionDTO habitacionDTO = habitacionMapper.toDto(habitacion);
+
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
         restHabitacionMockMvc
             .perform(
-                patch(ENTITY_API_URL_ID, habitacion.getId())
+                patch(ENTITY_API_URL_ID, habitacionDTO.getId())
                     .with(csrf())
                     .contentType("application/merge-patch+json")
-                    .content(om.writeValueAsBytes(habitacion))
+                    .content(om.writeValueAsBytes(habitacionDTO))
             )
             .andExpect(status().isBadRequest());
 
@@ -418,13 +443,16 @@ class HabitacionResourceIT {
         long databaseSizeBeforeUpdate = getRepositoryCount();
         habitacion.setId(longCount.incrementAndGet());
 
+        // Create the Habitacion
+        HabitacionDTO habitacionDTO = habitacionMapper.toDto(habitacion);
+
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
         restHabitacionMockMvc
             .perform(
                 patch(ENTITY_API_URL_ID, longCount.incrementAndGet())
                     .with(csrf())
                     .contentType("application/merge-patch+json")
-                    .content(om.writeValueAsBytes(habitacion))
+                    .content(om.writeValueAsBytes(habitacionDTO))
             )
             .andExpect(status().isBadRequest());
 
@@ -438,10 +466,13 @@ class HabitacionResourceIT {
         long databaseSizeBeforeUpdate = getRepositoryCount();
         habitacion.setId(longCount.incrementAndGet());
 
+        // Create the Habitacion
+        HabitacionDTO habitacionDTO = habitacionMapper.toDto(habitacion);
+
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
         restHabitacionMockMvc
             .perform(
-                patch(ENTITY_API_URL).with(csrf()).contentType("application/merge-patch+json").content(om.writeValueAsBytes(habitacion))
+                patch(ENTITY_API_URL).with(csrf()).contentType("application/merge-patch+json").content(om.writeValueAsBytes(habitacionDTO))
             )
             .andExpect(status().isMethodNotAllowed());
 

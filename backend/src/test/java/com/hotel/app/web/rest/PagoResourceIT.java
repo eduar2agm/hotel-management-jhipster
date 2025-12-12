@@ -15,6 +15,8 @@ import com.hotel.app.domain.Pago;
 import com.hotel.app.domain.enumeration.EstadoPago;
 import com.hotel.app.domain.enumeration.MetodoPago;
 import com.hotel.app.repository.PagoRepository;
+import com.hotel.app.service.dto.PagoDTO;
+import com.hotel.app.service.mapper.PagoMapper;
 import jakarta.persistence.EntityManager;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -64,6 +66,9 @@ class PagoResourceIT {
     private PagoRepository pagoRepository;
 
     @Autowired
+    private PagoMapper pagoMapper;
+
+    @Autowired
     private EntityManager em;
 
     @Autowired
@@ -111,18 +116,20 @@ class PagoResourceIT {
     void createPago() throws Exception {
         long databaseSizeBeforeCreate = getRepositoryCount();
         // Create the Pago
-        var returnedPago = om.readValue(
+        PagoDTO pagoDTO = pagoMapper.toDto(pago);
+        var returnedPagoDTO = om.readValue(
             restPagoMockMvc
-                .perform(post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(pago)))
+                .perform(post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(pagoDTO)))
                 .andExpect(status().isCreated())
                 .andReturn()
                 .getResponse()
                 .getContentAsString(),
-            Pago.class
+            PagoDTO.class
         );
 
         // Validate the Pago in the database
         assertIncrementedRepositoryCount(databaseSizeBeforeCreate);
+        var returnedPago = pagoMapper.toEntity(returnedPagoDTO);
         assertPagoUpdatableFieldsEquals(returnedPago, getPersistedPago(returnedPago));
 
         insertedPago = returnedPago;
@@ -133,12 +140,13 @@ class PagoResourceIT {
     void createPagoWithExistingId() throws Exception {
         // Create the Pago with an existing ID
         pago.setId(1L);
+        PagoDTO pagoDTO = pagoMapper.toDto(pago);
 
         long databaseSizeBeforeCreate = getRepositoryCount();
 
         // An entity with an existing ID cannot be created, so this API call must fail
         restPagoMockMvc
-            .perform(post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(pago)))
+            .perform(post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(pagoDTO)))
             .andExpect(status().isBadRequest());
 
         // Validate the Pago in the database
@@ -153,9 +161,10 @@ class PagoResourceIT {
         pago.setFechaPago(null);
 
         // Create the Pago, which fails.
+        PagoDTO pagoDTO = pagoMapper.toDto(pago);
 
         restPagoMockMvc
-            .perform(post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(pago)))
+            .perform(post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(pagoDTO)))
             .andExpect(status().isBadRequest());
 
         assertSameRepositoryCount(databaseSizeBeforeTest);
@@ -169,9 +178,10 @@ class PagoResourceIT {
         pago.setMonto(null);
 
         // Create the Pago, which fails.
+        PagoDTO pagoDTO = pagoMapper.toDto(pago);
 
         restPagoMockMvc
-            .perform(post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(pago)))
+            .perform(post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(pagoDTO)))
             .andExpect(status().isBadRequest());
 
         assertSameRepositoryCount(databaseSizeBeforeTest);
@@ -185,9 +195,10 @@ class PagoResourceIT {
         pago.setMetodoPago(null);
 
         // Create the Pago, which fails.
+        PagoDTO pagoDTO = pagoMapper.toDto(pago);
 
         restPagoMockMvc
-            .perform(post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(pago)))
+            .perform(post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(pagoDTO)))
             .andExpect(status().isBadRequest());
 
         assertSameRepositoryCount(databaseSizeBeforeTest);
@@ -201,9 +212,10 @@ class PagoResourceIT {
         pago.setEstado(null);
 
         // Create the Pago, which fails.
+        PagoDTO pagoDTO = pagoMapper.toDto(pago);
 
         restPagoMockMvc
-            .perform(post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(pago)))
+            .perform(post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(pagoDTO)))
             .andExpect(status().isBadRequest());
 
         assertSameRepositoryCount(databaseSizeBeforeTest);
@@ -265,13 +277,14 @@ class PagoResourceIT {
         // Disconnect from session so that the updates on updatedPago are not directly saved in db
         em.detach(updatedPago);
         updatedPago.fechaPago(UPDATED_FECHA_PAGO).monto(UPDATED_MONTO).metodoPago(UPDATED_METODO_PAGO).estado(UPDATED_ESTADO);
+        PagoDTO pagoDTO = pagoMapper.toDto(updatedPago);
 
         restPagoMockMvc
             .perform(
-                put(ENTITY_API_URL_ID, updatedPago.getId())
+                put(ENTITY_API_URL_ID, pagoDTO.getId())
                     .with(csrf())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(om.writeValueAsBytes(updatedPago))
+                    .content(om.writeValueAsBytes(pagoDTO))
             )
             .andExpect(status().isOk());
 
@@ -286,13 +299,16 @@ class PagoResourceIT {
         long databaseSizeBeforeUpdate = getRepositoryCount();
         pago.setId(longCount.incrementAndGet());
 
+        // Create the Pago
+        PagoDTO pagoDTO = pagoMapper.toDto(pago);
+
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
         restPagoMockMvc
             .perform(
-                put(ENTITY_API_URL_ID, pago.getId())
+                put(ENTITY_API_URL_ID, pagoDTO.getId())
                     .with(csrf())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(om.writeValueAsBytes(pago))
+                    .content(om.writeValueAsBytes(pagoDTO))
             )
             .andExpect(status().isBadRequest());
 
@@ -306,13 +322,16 @@ class PagoResourceIT {
         long databaseSizeBeforeUpdate = getRepositoryCount();
         pago.setId(longCount.incrementAndGet());
 
+        // Create the Pago
+        PagoDTO pagoDTO = pagoMapper.toDto(pago);
+
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
         restPagoMockMvc
             .perform(
                 put(ENTITY_API_URL_ID, longCount.incrementAndGet())
                     .with(csrf())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(om.writeValueAsBytes(pago))
+                    .content(om.writeValueAsBytes(pagoDTO))
             )
             .andExpect(status().isBadRequest());
 
@@ -326,9 +345,12 @@ class PagoResourceIT {
         long databaseSizeBeforeUpdate = getRepositoryCount();
         pago.setId(longCount.incrementAndGet());
 
+        // Create the Pago
+        PagoDTO pagoDTO = pagoMapper.toDto(pago);
+
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
         restPagoMockMvc
-            .perform(put(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(pago)))
+            .perform(put(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(pagoDTO)))
             .andExpect(status().isMethodNotAllowed());
 
         // Validate the Pago in the database
@@ -347,7 +369,7 @@ class PagoResourceIT {
         Pago partialUpdatedPago = new Pago();
         partialUpdatedPago.setId(pago.getId());
 
-        partialUpdatedPago.monto(UPDATED_MONTO).metodoPago(UPDATED_METODO_PAGO);
+        partialUpdatedPago.metodoPago(UPDATED_METODO_PAGO).estado(UPDATED_ESTADO);
 
         restPagoMockMvc
             .perform(
@@ -399,13 +421,16 @@ class PagoResourceIT {
         long databaseSizeBeforeUpdate = getRepositoryCount();
         pago.setId(longCount.incrementAndGet());
 
+        // Create the Pago
+        PagoDTO pagoDTO = pagoMapper.toDto(pago);
+
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
         restPagoMockMvc
             .perform(
-                patch(ENTITY_API_URL_ID, pago.getId())
+                patch(ENTITY_API_URL_ID, pagoDTO.getId())
                     .with(csrf())
                     .contentType("application/merge-patch+json")
-                    .content(om.writeValueAsBytes(pago))
+                    .content(om.writeValueAsBytes(pagoDTO))
             )
             .andExpect(status().isBadRequest());
 
@@ -419,13 +444,16 @@ class PagoResourceIT {
         long databaseSizeBeforeUpdate = getRepositoryCount();
         pago.setId(longCount.incrementAndGet());
 
+        // Create the Pago
+        PagoDTO pagoDTO = pagoMapper.toDto(pago);
+
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
         restPagoMockMvc
             .perform(
                 patch(ENTITY_API_URL_ID, longCount.incrementAndGet())
                     .with(csrf())
                     .contentType("application/merge-patch+json")
-                    .content(om.writeValueAsBytes(pago))
+                    .content(om.writeValueAsBytes(pagoDTO))
             )
             .andExpect(status().isBadRequest());
 
@@ -439,9 +467,12 @@ class PagoResourceIT {
         long databaseSizeBeforeUpdate = getRepositoryCount();
         pago.setId(longCount.incrementAndGet());
 
+        // Create the Pago
+        PagoDTO pagoDTO = pagoMapper.toDto(pago);
+
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
         restPagoMockMvc
-            .perform(patch(ENTITY_API_URL).with(csrf()).contentType("application/merge-patch+json").content(om.writeValueAsBytes(pago)))
+            .perform(patch(ENTITY_API_URL).with(csrf()).contentType("application/merge-patch+json").content(om.writeValueAsBytes(pagoDTO)))
             .andExpect(status().isMethodNotAllowed());
 
         // Validate the Pago in the database

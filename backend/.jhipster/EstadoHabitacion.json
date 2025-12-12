@@ -5,6 +5,7 @@
   "applications": "*",
   "clientRootFolder": "hotelApp",
   "databaseType": "sql",
+  "dto": "mapstruct",
   "fields": [
     {
       "fieldName": "nombre",
@@ -21,5 +22,6 @@
   "name": "EstadoHabitacion",
   "pagination": "pagination",
   "relationships": [],
-  "searchEngine": "no"
+  "searchEngine": "no",
+  "service": "serviceImpl"
 }

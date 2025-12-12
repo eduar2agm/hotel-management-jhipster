@@ -5,6 +5,7 @@
   "applications": "*",
   "clientRootFolder": "hotelApp",
   "databaseType": "sql",
+  "dto": "mapstruct",
   "fields": [
     {
       "fieldName": "nota",
@@ -29,5 +30,6 @@
       "relationshipType": "many-to-one"
     }
   ],
-  "searchEngine": "no"
+  "searchEngine": "no",
+  "service": "serviceImpl"
 }

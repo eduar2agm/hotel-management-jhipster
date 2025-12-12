@@ -49,6 +49,10 @@ public class Cliente implements Serializable {
     @Column(name = "numero_identificacion", nullable = false)
     private String numeroIdentificacion;
 
+    @NotNull
+    @Column(name = "keycloak_id", nullable = false)
+    private String keycloakId;
+
     // jhipster-needle-entity-add-field - JHipster will add fields here
 
     public Long getId() {
@@ -155,6 +159,19 @@ public class Cliente implements Serializable {
         this.numeroIdentificacion = numeroIdentificacion;
     }
 
+    public String getKeycloakId() {
+        return this.keycloakId;
+    }
+
+    public Cliente keycloakId(String keycloakId) {
+        this.setKeycloakId(keycloakId);
+        return this;
+    }
+
+    public void setKeycloakId(String keycloakId) {
+        this.keycloakId = keycloakId;
+    }
+
     // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
 
     @Override
@@ -186,6 +203,7 @@ public class Cliente implements Serializable {
             ", direccion='" + getDireccion() + "'" +
             ", tipoIdentificacion='" + getTipoIdentificacion() + "'" +
             ", numeroIdentificacion='" + getNumeroIdentificacion() + "'" +
+            ", keycloakId='" + getKeycloakId() + "'" +
             "}";
     }
 }

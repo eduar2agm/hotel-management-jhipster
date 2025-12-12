@@ -5,8 +5,7 @@ import com.hotel.app.domain.enumeration.EstadoCheckInCheckOut;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import java.io.Serializable;
-import java.time.Instant;
-import java.time.LocalTime;
+import java.time.ZonedDateTime;
 
 /**
  * A CheckInCheckOut.
@@ -25,18 +24,11 @@ public class CheckInCheckOut implements Serializable {
     private Long id;
 
     @NotNull
-    @Column(name = "fecha_check_in", nullable = false)
-    private Instant fechaCheckIn;
+    @Column(name = "fecha_hora_check_in", nullable = false)
+    private ZonedDateTime fechaHoraCheckIn;
 
-    @NotNull
-    @Column(name = "hora_check_in", nullable = false)
-    private LocalTime horaCheckIn;
-
-    @Column(name = "fecha_check_out")
-    private Instant fechaCheckOut;
-
-    @Column(name = "hora_check_out")
-    private LocalTime horaCheckOut;
+    @Column(name = "fecha_hora_check_out")
+    private ZonedDateTime fechaHoraCheckOut;
 
     @NotNull
     @Enumerated(EnumType.STRING)
@@ -62,56 +54,30 @@ public class CheckInCheckOut implements Serializable {
         this.id = id;
     }
 
-    public Instant getFechaCheckIn() {
-        return this.fechaCheckIn;
+    public ZonedDateTime getFechaHoraCheckIn() {
+        return this.fechaHoraCheckIn;
     }
 
-    public CheckInCheckOut fechaCheckIn(Instant fechaCheckIn) {
-        this.setFechaCheckIn(fechaCheckIn);
+    public CheckInCheckOut fechaHoraCheckIn(ZonedDateTime fechaHoraCheckIn) {
+        this.setFechaHoraCheckIn(fechaHoraCheckIn);
         return this;
     }
 
-    public void setFechaCheckIn(Instant fechaCheckIn) {
-        this.fechaCheckIn = fechaCheckIn;
+    public void setFechaHoraCheckIn(ZonedDateTime fechaHoraCheckIn) {
+        this.fechaHoraCheckIn = fechaHoraCheckIn;
     }
 
-    public LocalTime getHoraCheckIn() {
-        return this.horaCheckIn;
+    public ZonedDateTime getFechaHoraCheckOut() {
+        return this.fechaHoraCheckOut;
     }
 
-    public CheckInCheckOut horaCheckIn(LocalTime horaCheckIn) {
-        this.setHoraCheckIn(horaCheckIn);
+    public CheckInCheckOut fechaHoraCheckOut(ZonedDateTime fechaHoraCheckOut) {
+        this.setFechaHoraCheckOut(fechaHoraCheckOut);
         return this;
     }
 
-    public void setHoraCheckIn(LocalTime horaCheckIn) {
-        this.horaCheckIn = horaCheckIn;
-    }
-
-    public Instant getFechaCheckOut() {
-        return this.fechaCheckOut;
-    }
-
-    public CheckInCheckOut fechaCheckOut(Instant fechaCheckOut) {
-        this.setFechaCheckOut(fechaCheckOut);
-        return this;
-    }
-
-    public void setFechaCheckOut(Instant fechaCheckOut) {
-        this.fechaCheckOut = fechaCheckOut;
-    }
-
-    public LocalTime getHoraCheckOut() {
-        return this.horaCheckOut;
-    }
-
-    public CheckInCheckOut horaCheckOut(LocalTime horaCheckOut) {
-        this.setHoraCheckOut(horaCheckOut);
-        return this;
-    }
-
-    public void setHoraCheckOut(LocalTime horaCheckOut) {
-        this.horaCheckOut = horaCheckOut;
+    public void setFechaHoraCheckOut(ZonedDateTime fechaHoraCheckOut) {
+        this.fechaHoraCheckOut = fechaHoraCheckOut;
     }
 
     public EstadoCheckInCheckOut getEstado() {
@@ -164,10 +130,8 @@ public class CheckInCheckOut implements Serializable {
     public String toString() {
         return "CheckInCheckOut{" +
             "id=" + getId() +
-            ", fechaCheckIn='" + getFechaCheckIn() + "'" +
-            ", horaCheckIn='" + getHoraCheckIn() + "'" +
-            ", fechaCheckOut='" + getFechaCheckOut() + "'" +
-            ", horaCheckOut='" + getHoraCheckOut() + "'" +
+            ", fechaHoraCheckIn='" + getFechaHoraCheckIn() + "'" +
+            ", fechaHoraCheckOut='" + getFechaHoraCheckOut() + "'" +
             ", estado='" + getEstado() + "'" +
             "}";
     }

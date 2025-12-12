@@ -13,6 +13,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hotel.app.IntegrationTest;
 import com.hotel.app.domain.ReservaDetalle;
 import com.hotel.app.repository.ReservaDetalleRepository;
+import com.hotel.app.service.ReservaDetalleService;
+import com.hotel.app.service.dto.ReservaDetalleDTO;
+import com.hotel.app.service.mapper.ReservaDetalleMapper;
 import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.Random;
@@ -58,6 +61,12 @@ class ReservaDetalleResourceIT {
 
     @Mock
     private ReservaDetalleRepository reservaDetalleRepositoryMock;
+
+    @Autowired
+    private ReservaDetalleMapper reservaDetalleMapper;
+
+    @Mock
+    private ReservaDetalleService reservaDetalleServiceMock;
 
     @Autowired
     private EntityManager em;
@@ -107,20 +116,25 @@ class ReservaDetalleResourceIT {
     void createReservaDetalle() throws Exception {
         long databaseSizeBeforeCreate = getRepositoryCount();
         // Create the ReservaDetalle
-        var returnedReservaDetalle = om.readValue(
+        ReservaDetalleDTO reservaDetalleDTO = reservaDetalleMapper.toDto(reservaDetalle);
+        var returnedReservaDetalleDTO = om.readValue(
             restReservaDetalleMockMvc
                 .perform(
-                    post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(reservaDetalle))
+                    post(ENTITY_API_URL)
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(om.writeValueAsBytes(reservaDetalleDTO))
                 )
                 .andExpect(status().isCreated())
                 .andReturn()
                 .getResponse()
                 .getContentAsString(),
-            ReservaDetalle.class
+            ReservaDetalleDTO.class
         );
 
         // Validate the ReservaDetalle in the database
         assertIncrementedRepositoryCount(databaseSizeBeforeCreate);
+        var returnedReservaDetalle = reservaDetalleMapper.toEntity(returnedReservaDetalleDTO);
         assertReservaDetalleUpdatableFieldsEquals(returnedReservaDetalle, getPersistedReservaDetalle(returnedReservaDetalle));
 
         insertedReservaDetalle = returnedReservaDetalle;
@@ -131,13 +145,14 @@ class ReservaDetalleResourceIT {
     void createReservaDetalleWithExistingId() throws Exception {
         // Create the ReservaDetalle with an existing ID
         reservaDetalle.setId(1L);
+        ReservaDetalleDTO reservaDetalleDTO = reservaDetalleMapper.toDto(reservaDetalle);
 
         long databaseSizeBeforeCreate = getRepositoryCount();
 
         // An entity with an existing ID cannot be created, so this API call must fail
         restReservaDetalleMockMvc
             .perform(
-                post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(reservaDetalle))
+                post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(reservaDetalleDTO))
             )
             .andExpect(status().isBadRequest());
 
@@ -162,16 +177,16 @@ class ReservaDetalleResourceIT {
 
     @SuppressWarnings({ "unchecked" })
     void getAllReservaDetallesWithEagerRelationshipsIsEnabled() throws Exception {
-        when(reservaDetalleRepositoryMock.findAllWithEagerRelationships(any())).thenReturn(new PageImpl(new ArrayList<>()));
+        when(reservaDetalleServiceMock.findAllWithEagerRelationships(any())).thenReturn(new PageImpl(new ArrayList<>()));
 
         restReservaDetalleMockMvc.perform(get(ENTITY_API_URL + "?eagerload=true")).andExpect(status().isOk());
 
-        verify(reservaDetalleRepositoryMock, times(1)).findAllWithEagerRelationships(any());
+        verify(reservaDetalleServiceMock, times(1)).findAllWithEagerRelationships(any());
     }
 
     @SuppressWarnings({ "unchecked" })
     void getAllReservaDetallesWithEagerRelationshipsIsNotEnabled() throws Exception {
-        when(reservaDetalleRepositoryMock.findAllWithEagerRelationships(any())).thenReturn(new PageImpl(new ArrayList<>()));
+        when(reservaDetalleServiceMock.findAllWithEagerRelationships(any())).thenReturn(new PageImpl(new ArrayList<>()));
 
         restReservaDetalleMockMvc.perform(get(ENTITY_API_URL + "?eagerload=false")).andExpect(status().isOk());
         verify(reservaDetalleRepositoryMock, times(1)).findAll(any(Pageable.class));
@@ -212,13 +227,14 @@ class ReservaDetalleResourceIT {
         // Disconnect from session so that the updates on updatedReservaDetalle are not directly saved in db
         em.detach(updatedReservaDetalle);
         updatedReservaDetalle.nota(UPDATED_NOTA);
+        ReservaDetalleDTO reservaDetalleDTO = reservaDetalleMapper.toDto(updatedReservaDetalle);
 
         restReservaDetalleMockMvc
             .perform(
-                put(ENTITY_API_URL_ID, updatedReservaDetalle.getId())
+                put(ENTITY_API_URL_ID, reservaDetalleDTO.getId())
                     .with(csrf())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(om.writeValueAsBytes(updatedReservaDetalle))
+                    .content(om.writeValueAsBytes(reservaDetalleDTO))
             )
             .andExpect(status().isOk());
 
@@ -233,13 +249,16 @@ class ReservaDetalleResourceIT {
         long databaseSizeBeforeUpdate = getRepositoryCount();
         reservaDetalle.setId(longCount.incrementAndGet());
 
+        // Create the ReservaDetalle
+        ReservaDetalleDTO reservaDetalleDTO = reservaDetalleMapper.toDto(reservaDetalle);
+
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
         restReservaDetalleMockMvc
             .perform(
-                put(ENTITY_API_URL_ID, reservaDetalle.getId())
+                put(ENTITY_API_URL_ID, reservaDetalleDTO.getId())
                     .with(csrf())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(om.writeValueAsBytes(reservaDetalle))
+                    .content(om.writeValueAsBytes(reservaDetalleDTO))
             )
             .andExpect(status().isBadRequest());
 
@@ -253,13 +272,16 @@ class ReservaDetalleResourceIT {
         long databaseSizeBeforeUpdate = getRepositoryCount();
         reservaDetalle.setId(longCount.incrementAndGet());
 
+        // Create the ReservaDetalle
+        ReservaDetalleDTO reservaDetalleDTO = reservaDetalleMapper.toDto(reservaDetalle);
+
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
         restReservaDetalleMockMvc
             .perform(
                 put(ENTITY_API_URL_ID, longCount.incrementAndGet())
                     .with(csrf())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(om.writeValueAsBytes(reservaDetalle))
+                    .content(om.writeValueAsBytes(reservaDetalleDTO))
             )
             .andExpect(status().isBadRequest());
 
@@ -273,9 +295,14 @@ class ReservaDetalleResourceIT {
         long databaseSizeBeforeUpdate = getRepositoryCount();
         reservaDetalle.setId(longCount.incrementAndGet());
 
+        // Create the ReservaDetalle
+        ReservaDetalleDTO reservaDetalleDTO = reservaDetalleMapper.toDto(reservaDetalle);
+
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
         restReservaDetalleMockMvc
-            .perform(put(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(reservaDetalle)))
+            .perform(
+                put(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(reservaDetalleDTO))
+            )
             .andExpect(status().isMethodNotAllowed());
 
         // Validate the ReservaDetalle in the database
@@ -293,6 +320,8 @@ class ReservaDetalleResourceIT {
         // Update the reservaDetalle using partial update
         ReservaDetalle partialUpdatedReservaDetalle = new ReservaDetalle();
         partialUpdatedReservaDetalle.setId(reservaDetalle.getId());
+
+        partialUpdatedReservaDetalle.nota(UPDATED_NOTA);
 
         restReservaDetalleMockMvc
             .perform(
@@ -347,13 +376,16 @@ class ReservaDetalleResourceIT {
         long databaseSizeBeforeUpdate = getRepositoryCount();
         reservaDetalle.setId(longCount.incrementAndGet());
 
+        // Create the ReservaDetalle
+        ReservaDetalleDTO reservaDetalleDTO = reservaDetalleMapper.toDto(reservaDetalle);
+
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
         restReservaDetalleMockMvc
             .perform(
-                patch(ENTITY_API_URL_ID, reservaDetalle.getId())
+                patch(ENTITY_API_URL_ID, reservaDetalleDTO.getId())
                     .with(csrf())
                     .contentType("application/merge-patch+json")
-                    .content(om.writeValueAsBytes(reservaDetalle))
+                    .content(om.writeValueAsBytes(reservaDetalleDTO))
             )
             .andExpect(status().isBadRequest());
 
@@ -367,13 +399,16 @@ class ReservaDetalleResourceIT {
         long databaseSizeBeforeUpdate = getRepositoryCount();
         reservaDetalle.setId(longCount.incrementAndGet());
 
+        // Create the ReservaDetalle
+        ReservaDetalleDTO reservaDetalleDTO = reservaDetalleMapper.toDto(reservaDetalle);
+
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
         restReservaDetalleMockMvc
             .perform(
                 patch(ENTITY_API_URL_ID, longCount.incrementAndGet())
                     .with(csrf())
                     .contentType("application/merge-patch+json")
-                    .content(om.writeValueAsBytes(reservaDetalle))
+                    .content(om.writeValueAsBytes(reservaDetalleDTO))
             )
             .andExpect(status().isBadRequest());
 
@@ -387,10 +422,16 @@ class ReservaDetalleResourceIT {
         long databaseSizeBeforeUpdate = getRepositoryCount();
         reservaDetalle.setId(longCount.incrementAndGet());
 
+        // Create the ReservaDetalle
+        ReservaDetalleDTO reservaDetalleDTO = reservaDetalleMapper.toDto(reservaDetalle);
+
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
         restReservaDetalleMockMvc
             .perform(
-                patch(ENTITY_API_URL).with(csrf()).contentType("application/merge-patch+json").content(om.writeValueAsBytes(reservaDetalle))
+                patch(ENTITY_API_URL)
+                    .with(csrf())
+                    .contentType("application/merge-patch+json")
+                    .content(om.writeValueAsBytes(reservaDetalleDTO))
             )
             .andExpect(status().isMethodNotAllowed());
 

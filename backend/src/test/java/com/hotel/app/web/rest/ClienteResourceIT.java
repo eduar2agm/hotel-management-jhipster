@@ -13,6 +13,8 @@ import com.hotel.app.IntegrationTest;
 import com.hotel.app.domain.Cliente;
 import com.hotel.app.domain.enumeration.TipoIdentificacion;
 import com.hotel.app.repository.ClienteRepository;
+import com.hotel.app.service.dto.ClienteDTO;
+import com.hotel.app.service.mapper.ClienteMapper;
 import jakarta.persistence.EntityManager;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
@@ -55,6 +57,9 @@ class ClienteResourceIT {
     private static final String DEFAULT_NUMERO_IDENTIFICACION = "AAAAAAAAAA";
     private static final String UPDATED_NUMERO_IDENTIFICACION = "BBBBBBBBBB";
 
+    private static final String DEFAULT_KEYCLOAK_ID = "AAAAAAAAAA";
+    private static final String UPDATED_KEYCLOAK_ID = "BBBBBBBBBB";
+
     private static final String ENTITY_API_URL = "/api/clientes";
     private static final String ENTITY_API_URL_ID = ENTITY_API_URL + "/{id}";
 
@@ -66,6 +71,9 @@ class ClienteResourceIT {
 
     @Autowired
     private ClienteRepository clienteRepository;
+
+    @Autowired
+    private ClienteMapper clienteMapper;
 
     @Autowired
     private EntityManager em;
@@ -91,7 +99,8 @@ class ClienteResourceIT {
             .telefono(DEFAULT_TELEFONO)
             .direccion(DEFAULT_DIRECCION)
             .tipoIdentificacion(DEFAULT_TIPO_IDENTIFICACION)
-            .numeroIdentificacion(DEFAULT_NUMERO_IDENTIFICACION);
+            .numeroIdentificacion(DEFAULT_NUMERO_IDENTIFICACION)
+            .keycloakId(DEFAULT_KEYCLOAK_ID);
     }
 
     /**
@@ -108,7 +117,8 @@ class ClienteResourceIT {
             .telefono(UPDATED_TELEFONO)
             .direccion(UPDATED_DIRECCION)
             .tipoIdentificacion(UPDATED_TIPO_IDENTIFICACION)
-            .numeroIdentificacion(UPDATED_NUMERO_IDENTIFICACION);
+            .numeroIdentificacion(UPDATED_NUMERO_IDENTIFICACION)
+            .keycloakId(UPDATED_KEYCLOAK_ID);
     }
 
     @BeforeEach
@@ -129,18 +139,22 @@ class ClienteResourceIT {
     void createCliente() throws Exception {
         long databaseSizeBeforeCreate = getRepositoryCount();
         // Create the Cliente
-        var returnedCliente = om.readValue(
+        ClienteDTO clienteDTO = clienteMapper.toDto(cliente);
+        var returnedClienteDTO = om.readValue(
             restClienteMockMvc
-                .perform(post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(cliente)))
+                .perform(
+                    post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(clienteDTO))
+                )
                 .andExpect(status().isCreated())
                 .andReturn()
                 .getResponse()
                 .getContentAsString(),
-            Cliente.class
+            ClienteDTO.class
         );
 
         // Validate the Cliente in the database
         assertIncrementedRepositoryCount(databaseSizeBeforeCreate);
+        var returnedCliente = clienteMapper.toEntity(returnedClienteDTO);
         assertClienteUpdatableFieldsEquals(returnedCliente, getPersistedCliente(returnedCliente));
 
         insertedCliente = returnedCliente;
@@ -151,12 +165,13 @@ class ClienteResourceIT {
     void createClienteWithExistingId() throws Exception {
         // Create the Cliente with an existing ID
         cliente.setId(1L);
+        ClienteDTO clienteDTO = clienteMapper.toDto(cliente);
 
         long databaseSizeBeforeCreate = getRepositoryCount();
 
         // An entity with an existing ID cannot be created, so this API call must fail
         restClienteMockMvc
-            .perform(post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(cliente)))
+            .perform(post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(clienteDTO)))
             .andExpect(status().isBadRequest());
 
         // Validate the Cliente in the database
@@ -171,9 +186,10 @@ class ClienteResourceIT {
         cliente.setNombre(null);
 
         // Create the Cliente, which fails.
+        ClienteDTO clienteDTO = clienteMapper.toDto(cliente);
 
         restClienteMockMvc
-            .perform(post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(cliente)))
+            .perform(post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(clienteDTO)))
             .andExpect(status().isBadRequest());
 
         assertSameRepositoryCount(databaseSizeBeforeTest);
@@ -187,9 +203,10 @@ class ClienteResourceIT {
         cliente.setApellido(null);
 
         // Create the Cliente, which fails.
+        ClienteDTO clienteDTO = clienteMapper.toDto(cliente);
 
         restClienteMockMvc
-            .perform(post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(cliente)))
+            .perform(post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(clienteDTO)))
             .andExpect(status().isBadRequest());
 
         assertSameRepositoryCount(databaseSizeBeforeTest);
@@ -203,9 +220,10 @@ class ClienteResourceIT {
         cliente.setCorreo(null);
 
         // Create the Cliente, which fails.
+        ClienteDTO clienteDTO = clienteMapper.toDto(cliente);
 
         restClienteMockMvc
-            .perform(post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(cliente)))
+            .perform(post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(clienteDTO)))
             .andExpect(status().isBadRequest());
 
         assertSameRepositoryCount(databaseSizeBeforeTest);
@@ -219,9 +237,10 @@ class ClienteResourceIT {
         cliente.setTelefono(null);
 
         // Create the Cliente, which fails.
+        ClienteDTO clienteDTO = clienteMapper.toDto(cliente);
 
         restClienteMockMvc
-            .perform(post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(cliente)))
+            .perform(post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(clienteDTO)))
             .andExpect(status().isBadRequest());
 
         assertSameRepositoryCount(databaseSizeBeforeTest);
@@ -235,9 +254,10 @@ class ClienteResourceIT {
         cliente.setTipoIdentificacion(null);
 
         // Create the Cliente, which fails.
+        ClienteDTO clienteDTO = clienteMapper.toDto(cliente);
 
         restClienteMockMvc
-            .perform(post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(cliente)))
+            .perform(post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(clienteDTO)))
             .andExpect(status().isBadRequest());
 
         assertSameRepositoryCount(databaseSizeBeforeTest);
@@ -251,9 +271,27 @@ class ClienteResourceIT {
         cliente.setNumeroIdentificacion(null);
 
         // Create the Cliente, which fails.
+        ClienteDTO clienteDTO = clienteMapper.toDto(cliente);
 
         restClienteMockMvc
-            .perform(post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(cliente)))
+            .perform(post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(clienteDTO)))
+            .andExpect(status().isBadRequest());
+
+        assertSameRepositoryCount(databaseSizeBeforeTest);
+    }
+
+    @Test
+    @Transactional
+    void checkKeycloakIdIsRequired() throws Exception {
+        long databaseSizeBeforeTest = getRepositoryCount();
+        // set the field null
+        cliente.setKeycloakId(null);
+
+        // Create the Cliente, which fails.
+        ClienteDTO clienteDTO = clienteMapper.toDto(cliente);
+
+        restClienteMockMvc
+            .perform(post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(clienteDTO)))
             .andExpect(status().isBadRequest());
 
         assertSameRepositoryCount(databaseSizeBeforeTest);
@@ -277,7 +315,8 @@ class ClienteResourceIT {
             .andExpect(jsonPath("$.[*].telefono").value(hasItem(DEFAULT_TELEFONO)))
             .andExpect(jsonPath("$.[*].direccion").value(hasItem(DEFAULT_DIRECCION)))
             .andExpect(jsonPath("$.[*].tipoIdentificacion").value(hasItem(DEFAULT_TIPO_IDENTIFICACION.toString())))
-            .andExpect(jsonPath("$.[*].numeroIdentificacion").value(hasItem(DEFAULT_NUMERO_IDENTIFICACION)));
+            .andExpect(jsonPath("$.[*].numeroIdentificacion").value(hasItem(DEFAULT_NUMERO_IDENTIFICACION)))
+            .andExpect(jsonPath("$.[*].keycloakId").value(hasItem(DEFAULT_KEYCLOAK_ID)));
     }
 
     @Test
@@ -298,7 +337,8 @@ class ClienteResourceIT {
             .andExpect(jsonPath("$.telefono").value(DEFAULT_TELEFONO))
             .andExpect(jsonPath("$.direccion").value(DEFAULT_DIRECCION))
             .andExpect(jsonPath("$.tipoIdentificacion").value(DEFAULT_TIPO_IDENTIFICACION.toString()))
-            .andExpect(jsonPath("$.numeroIdentificacion").value(DEFAULT_NUMERO_IDENTIFICACION));
+            .andExpect(jsonPath("$.numeroIdentificacion").value(DEFAULT_NUMERO_IDENTIFICACION))
+            .andExpect(jsonPath("$.keycloakId").value(DEFAULT_KEYCLOAK_ID));
     }
 
     @Test
@@ -327,14 +367,16 @@ class ClienteResourceIT {
             .telefono(UPDATED_TELEFONO)
             .direccion(UPDATED_DIRECCION)
             .tipoIdentificacion(UPDATED_TIPO_IDENTIFICACION)
-            .numeroIdentificacion(UPDATED_NUMERO_IDENTIFICACION);
+            .numeroIdentificacion(UPDATED_NUMERO_IDENTIFICACION)
+            .keycloakId(UPDATED_KEYCLOAK_ID);
+        ClienteDTO clienteDTO = clienteMapper.toDto(updatedCliente);
 
         restClienteMockMvc
             .perform(
-                put(ENTITY_API_URL_ID, updatedCliente.getId())
+                put(ENTITY_API_URL_ID, clienteDTO.getId())
                     .with(csrf())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(om.writeValueAsBytes(updatedCliente))
+                    .content(om.writeValueAsBytes(clienteDTO))
             )
             .andExpect(status().isOk());
 
@@ -349,13 +391,16 @@ class ClienteResourceIT {
         long databaseSizeBeforeUpdate = getRepositoryCount();
         cliente.setId(longCount.incrementAndGet());
 
+        // Create the Cliente
+        ClienteDTO clienteDTO = clienteMapper.toDto(cliente);
+
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
         restClienteMockMvc
             .perform(
-                put(ENTITY_API_URL_ID, cliente.getId())
+                put(ENTITY_API_URL_ID, clienteDTO.getId())
                     .with(csrf())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(om.writeValueAsBytes(cliente))
+                    .content(om.writeValueAsBytes(clienteDTO))
             )
             .andExpect(status().isBadRequest());
 
@@ -369,13 +414,16 @@ class ClienteResourceIT {
         long databaseSizeBeforeUpdate = getRepositoryCount();
         cliente.setId(longCount.incrementAndGet());
 
+        // Create the Cliente
+        ClienteDTO clienteDTO = clienteMapper.toDto(cliente);
+
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
         restClienteMockMvc
             .perform(
                 put(ENTITY_API_URL_ID, longCount.incrementAndGet())
                     .with(csrf())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(om.writeValueAsBytes(cliente))
+                    .content(om.writeValueAsBytes(clienteDTO))
             )
             .andExpect(status().isBadRequest());
 
@@ -389,9 +437,12 @@ class ClienteResourceIT {
         long databaseSizeBeforeUpdate = getRepositoryCount();
         cliente.setId(longCount.incrementAndGet());
 
+        // Create the Cliente
+        ClienteDTO clienteDTO = clienteMapper.toDto(cliente);
+
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
         restClienteMockMvc
-            .perform(put(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(cliente)))
+            .perform(put(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(clienteDTO)))
             .andExpect(status().isMethodNotAllowed());
 
         // Validate the Cliente in the database
@@ -410,7 +461,7 @@ class ClienteResourceIT {
         Cliente partialUpdatedCliente = new Cliente();
         partialUpdatedCliente.setId(cliente.getId());
 
-        partialUpdatedCliente.correo(UPDATED_CORREO).direccion(UPDATED_DIRECCION).numeroIdentificacion(UPDATED_NUMERO_IDENTIFICACION);
+        partialUpdatedCliente.apellido(UPDATED_APELLIDO).correo(UPDATED_CORREO).numeroIdentificacion(UPDATED_NUMERO_IDENTIFICACION);
 
         restClienteMockMvc
             .perform(
@@ -446,7 +497,8 @@ class ClienteResourceIT {
             .telefono(UPDATED_TELEFONO)
             .direccion(UPDATED_DIRECCION)
             .tipoIdentificacion(UPDATED_TIPO_IDENTIFICACION)
-            .numeroIdentificacion(UPDATED_NUMERO_IDENTIFICACION);
+            .numeroIdentificacion(UPDATED_NUMERO_IDENTIFICACION)
+            .keycloakId(UPDATED_KEYCLOAK_ID);
 
         restClienteMockMvc
             .perform(
@@ -469,13 +521,16 @@ class ClienteResourceIT {
         long databaseSizeBeforeUpdate = getRepositoryCount();
         cliente.setId(longCount.incrementAndGet());
 
+        // Create the Cliente
+        ClienteDTO clienteDTO = clienteMapper.toDto(cliente);
+
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
         restClienteMockMvc
             .perform(
-                patch(ENTITY_API_URL_ID, cliente.getId())
+                patch(ENTITY_API_URL_ID, clienteDTO.getId())
                     .with(csrf())
                     .contentType("application/merge-patch+json")
-                    .content(om.writeValueAsBytes(cliente))
+                    .content(om.writeValueAsBytes(clienteDTO))
             )
             .andExpect(status().isBadRequest());
 
@@ -489,13 +544,16 @@ class ClienteResourceIT {
         long databaseSizeBeforeUpdate = getRepositoryCount();
         cliente.setId(longCount.incrementAndGet());
 
+        // Create the Cliente
+        ClienteDTO clienteDTO = clienteMapper.toDto(cliente);
+
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
         restClienteMockMvc
             .perform(
                 patch(ENTITY_API_URL_ID, longCount.incrementAndGet())
                     .with(csrf())
                     .contentType("application/merge-patch+json")
-                    .content(om.writeValueAsBytes(cliente))
+                    .content(om.writeValueAsBytes(clienteDTO))
             )
             .andExpect(status().isBadRequest());
 
@@ -509,9 +567,14 @@ class ClienteResourceIT {
         long databaseSizeBeforeUpdate = getRepositoryCount();
         cliente.setId(longCount.incrementAndGet());
 
+        // Create the Cliente
+        ClienteDTO clienteDTO = clienteMapper.toDto(cliente);
+
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
         restClienteMockMvc
-            .perform(patch(ENTITY_API_URL).with(csrf()).contentType("application/merge-patch+json").content(om.writeValueAsBytes(cliente)))
+            .perform(
+                patch(ENTITY_API_URL).with(csrf()).contentType("application/merge-patch+json").content(om.writeValueAsBytes(clienteDTO))
+            )
             .andExpect(status().isMethodNotAllowed());
 
         // Validate the Cliente in the database

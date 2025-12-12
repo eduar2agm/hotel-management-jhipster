@@ -1,7 +1,8 @@
 package com.hotel.app.web.rest;
 
-import com.hotel.app.domain.CategoriaHabitacion;
 import com.hotel.app.repository.CategoriaHabitacionRepository;
+import com.hotel.app.service.CategoriaHabitacionService;
+import com.hotel.app.service.dto.CategoriaHabitacionDTO;
 import com.hotel.app.web.rest.errors.BadRequestAlertException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -17,7 +18,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import tech.jhipster.web.util.HeaderUtil;
@@ -29,7 +29,6 @@ import tech.jhipster.web.util.ResponseUtil;
  */
 @RestController
 @RequestMapping("/api/categoria-habitacions")
-@Transactional
 public class CategoriaHabitacionResource {
 
     private static final Logger LOG = LoggerFactory.getLogger(CategoriaHabitacionResource.class);
@@ -39,52 +38,59 @@ public class CategoriaHabitacionResource {
     @Value("${jhipster.clientApp.name}")
     private String applicationName;
 
+    private final CategoriaHabitacionService categoriaHabitacionService;
+
     private final CategoriaHabitacionRepository categoriaHabitacionRepository;
 
-    public CategoriaHabitacionResource(CategoriaHabitacionRepository categoriaHabitacionRepository) {
+    public CategoriaHabitacionResource(
+        CategoriaHabitacionService categoriaHabitacionService,
+        CategoriaHabitacionRepository categoriaHabitacionRepository
+    ) {
+        this.categoriaHabitacionService = categoriaHabitacionService;
         this.categoriaHabitacionRepository = categoriaHabitacionRepository;
     }
 
     /**
      * {@code POST  /categoria-habitacions} : Create a new categoriaHabitacion.
      *
-     * @param categoriaHabitacion the categoriaHabitacion to create.
-     * @return the {@link ResponseEntity} with status {@code 201 (Created)} and with body the new categoriaHabitacion, or with status {@code 400 (Bad Request)} if the categoriaHabitacion has already an ID.
+     * @param categoriaHabitacionDTO the categoriaHabitacionDTO to create.
+     * @return the {@link ResponseEntity} with status {@code 201 (Created)} and with body the new categoriaHabitacionDTO, or with status {@code 400 (Bad Request)} if the categoriaHabitacion has already an ID.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PostMapping("")
-    public ResponseEntity<CategoriaHabitacion> createCategoriaHabitacion(@Valid @RequestBody CategoriaHabitacion categoriaHabitacion)
-        throws URISyntaxException {
-        LOG.debug("REST request to save CategoriaHabitacion : {}", categoriaHabitacion);
-        if (categoriaHabitacion.getId() != null) {
+    public ResponseEntity<CategoriaHabitacionDTO> createCategoriaHabitacion(
+        @Valid @RequestBody CategoriaHabitacionDTO categoriaHabitacionDTO
+    ) throws URISyntaxException {
+        LOG.debug("REST request to save CategoriaHabitacion : {}", categoriaHabitacionDTO);
+        if (categoriaHabitacionDTO.getId() != null) {
             throw new BadRequestAlertException("A new categoriaHabitacion cannot already have an ID", ENTITY_NAME, "idexists");
         }
-        categoriaHabitacion = categoriaHabitacionRepository.save(categoriaHabitacion);
-        return ResponseEntity.created(new URI("/api/categoria-habitacions/" + categoriaHabitacion.getId()))
-            .headers(HeaderUtil.createEntityCreationAlert(applicationName, false, ENTITY_NAME, categoriaHabitacion.getId().toString()))
-            .body(categoriaHabitacion);
+        categoriaHabitacionDTO = categoriaHabitacionService.save(categoriaHabitacionDTO);
+        return ResponseEntity.created(new URI("/api/categoria-habitacions/" + categoriaHabitacionDTO.getId()))
+            .headers(HeaderUtil.createEntityCreationAlert(applicationName, false, ENTITY_NAME, categoriaHabitacionDTO.getId().toString()))
+            .body(categoriaHabitacionDTO);
     }
 
     /**
      * {@code PUT  /categoria-habitacions/:id} : Updates an existing categoriaHabitacion.
      *
-     * @param id the id of the categoriaHabitacion to save.
-     * @param categoriaHabitacion the categoriaHabitacion to update.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated categoriaHabitacion,
-     * or with status {@code 400 (Bad Request)} if the categoriaHabitacion is not valid,
-     * or with status {@code 500 (Internal Server Error)} if the categoriaHabitacion couldn't be updated.
+     * @param id the id of the categoriaHabitacionDTO to save.
+     * @param categoriaHabitacionDTO the categoriaHabitacionDTO to update.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated categoriaHabitacionDTO,
+     * or with status {@code 400 (Bad Request)} if the categoriaHabitacionDTO is not valid,
+     * or with status {@code 500 (Internal Server Error)} if the categoriaHabitacionDTO couldn't be updated.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PutMapping("/{id}")
-    public ResponseEntity<CategoriaHabitacion> updateCategoriaHabitacion(
+    public ResponseEntity<CategoriaHabitacionDTO> updateCategoriaHabitacion(
         @PathVariable(value = "id", required = false) final Long id,
-        @Valid @RequestBody CategoriaHabitacion categoriaHabitacion
+        @Valid @RequestBody CategoriaHabitacionDTO categoriaHabitacionDTO
     ) throws URISyntaxException {
-        LOG.debug("REST request to update CategoriaHabitacion : {}, {}", id, categoriaHabitacion);
-        if (categoriaHabitacion.getId() == null) {
+        LOG.debug("REST request to update CategoriaHabitacion : {}, {}", id, categoriaHabitacionDTO);
+        if (categoriaHabitacionDTO.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
         }
-        if (!Objects.equals(id, categoriaHabitacion.getId())) {
+        if (!Objects.equals(id, categoriaHabitacionDTO.getId())) {
             throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
         }
 
@@ -92,33 +98,33 @@ public class CategoriaHabitacionResource {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
 
-        categoriaHabitacion = categoriaHabitacionRepository.save(categoriaHabitacion);
+        categoriaHabitacionDTO = categoriaHabitacionService.update(categoriaHabitacionDTO);
         return ResponseEntity.ok()
-            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME, categoriaHabitacion.getId().toString()))
-            .body(categoriaHabitacion);
+            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME, categoriaHabitacionDTO.getId().toString()))
+            .body(categoriaHabitacionDTO);
     }
 
     /**
      * {@code PATCH  /categoria-habitacions/:id} : Partial updates given fields of an existing categoriaHabitacion, field will ignore if it is null
      *
-     * @param id the id of the categoriaHabitacion to save.
-     * @param categoriaHabitacion the categoriaHabitacion to update.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated categoriaHabitacion,
-     * or with status {@code 400 (Bad Request)} if the categoriaHabitacion is not valid,
-     * or with status {@code 404 (Not Found)} if the categoriaHabitacion is not found,
-     * or with status {@code 500 (Internal Server Error)} if the categoriaHabitacion couldn't be updated.
+     * @param id the id of the categoriaHabitacionDTO to save.
+     * @param categoriaHabitacionDTO the categoriaHabitacionDTO to update.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated categoriaHabitacionDTO,
+     * or with status {@code 400 (Bad Request)} if the categoriaHabitacionDTO is not valid,
+     * or with status {@code 404 (Not Found)} if the categoriaHabitacionDTO is not found,
+     * or with status {@code 500 (Internal Server Error)} if the categoriaHabitacionDTO couldn't be updated.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PatchMapping(value = "/{id}", consumes = { "application/json", "application/merge-patch+json" })
-    public ResponseEntity<CategoriaHabitacion> partialUpdateCategoriaHabitacion(
+    public ResponseEntity<CategoriaHabitacionDTO> partialUpdateCategoriaHabitacion(
         @PathVariable(value = "id", required = false) final Long id,
-        @NotNull @RequestBody CategoriaHabitacion categoriaHabitacion
+        @NotNull @RequestBody CategoriaHabitacionDTO categoriaHabitacionDTO
     ) throws URISyntaxException {
-        LOG.debug("REST request to partial update CategoriaHabitacion partially : {}, {}", id, categoriaHabitacion);
-        if (categoriaHabitacion.getId() == null) {
+        LOG.debug("REST request to partial update CategoriaHabitacion partially : {}, {}", id, categoriaHabitacionDTO);
+        if (categoriaHabitacionDTO.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
         }
-        if (!Objects.equals(id, categoriaHabitacion.getId())) {
+        if (!Objects.equals(id, categoriaHabitacionDTO.getId())) {
             throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
         }
 
@@ -126,26 +132,11 @@ public class CategoriaHabitacionResource {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
 
-        Optional<CategoriaHabitacion> result = categoriaHabitacionRepository
-            .findById(categoriaHabitacion.getId())
-            .map(existingCategoriaHabitacion -> {
-                if (categoriaHabitacion.getNombre() != null) {
-                    existingCategoriaHabitacion.setNombre(categoriaHabitacion.getNombre());
-                }
-                if (categoriaHabitacion.getDescripcion() != null) {
-                    existingCategoriaHabitacion.setDescripcion(categoriaHabitacion.getDescripcion());
-                }
-                if (categoriaHabitacion.getPrecioBase() != null) {
-                    existingCategoriaHabitacion.setPrecioBase(categoriaHabitacion.getPrecioBase());
-                }
-
-                return existingCategoriaHabitacion;
-            })
-            .map(categoriaHabitacionRepository::save);
+        Optional<CategoriaHabitacionDTO> result = categoriaHabitacionService.partialUpdate(categoriaHabitacionDTO);
 
         return ResponseUtil.wrapOrNotFound(
             result,
-            HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME, categoriaHabitacion.getId().toString())
+            HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME, categoriaHabitacionDTO.getId().toString())
         );
     }
 
@@ -156,11 +147,11 @@ public class CategoriaHabitacionResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of categoriaHabitacions in body.
      */
     @GetMapping("")
-    public ResponseEntity<List<CategoriaHabitacion>> getAllCategoriaHabitacions(
+    public ResponseEntity<List<CategoriaHabitacionDTO>> getAllCategoriaHabitacions(
         @org.springdoc.core.annotations.ParameterObject Pageable pageable
     ) {
         LOG.debug("REST request to get a page of CategoriaHabitacions");
-        Page<CategoriaHabitacion> page = categoriaHabitacionRepository.findAll(pageable);
+        Page<CategoriaHabitacionDTO> page = categoriaHabitacionService.findAll(pageable);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
         return ResponseEntity.ok().headers(headers).body(page.getContent());
     }
@@ -168,26 +159,26 @@ public class CategoriaHabitacionResource {
     /**
      * {@code GET  /categoria-habitacions/:id} : get the "id" categoriaHabitacion.
      *
-     * @param id the id of the categoriaHabitacion to retrieve.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the categoriaHabitacion, or with status {@code 404 (Not Found)}.
+     * @param id the id of the categoriaHabitacionDTO to retrieve.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the categoriaHabitacionDTO, or with status {@code 404 (Not Found)}.
      */
     @GetMapping("/{id}")
-    public ResponseEntity<CategoriaHabitacion> getCategoriaHabitacion(@PathVariable("id") Long id) {
+    public ResponseEntity<CategoriaHabitacionDTO> getCategoriaHabitacion(@PathVariable("id") Long id) {
         LOG.debug("REST request to get CategoriaHabitacion : {}", id);
-        Optional<CategoriaHabitacion> categoriaHabitacion = categoriaHabitacionRepository.findById(id);
-        return ResponseUtil.wrapOrNotFound(categoriaHabitacion);
+        Optional<CategoriaHabitacionDTO> categoriaHabitacionDTO = categoriaHabitacionService.findOne(id);
+        return ResponseUtil.wrapOrNotFound(categoriaHabitacionDTO);
     }
 
     /**
      * {@code DELETE  /categoria-habitacions/:id} : delete the "id" categoriaHabitacion.
      *
-     * @param id the id of the categoriaHabitacion to delete.
+     * @param id the id of the categoriaHabitacionDTO to delete.
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCategoriaHabitacion(@PathVariable("id") Long id) {
         LOG.debug("REST request to delete CategoriaHabitacion : {}", id);
-        categoriaHabitacionRepository.deleteById(id);
+        categoriaHabitacionService.delete(id);
         return ResponseEntity.noContent()
             .headers(HeaderUtil.createEntityDeletionAlert(applicationName, false, ENTITY_NAME, id.toString()))
             .build();
