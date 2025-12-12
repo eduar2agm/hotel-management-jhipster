@@ -40,7 +40,7 @@ spring:
       indent-output: true
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
-    url: jdbc:postgresql://localhost:5432/hotelApp
+    url: jdbc:postgresql://localhost:5433/hotelApp
     username: hotelApp
     password:
     hikari:

@@ -1,7 +1,8 @@
 package com.hotel.app.web.rest;
 
-import com.hotel.app.domain.Pago;
 import com.hotel.app.repository.PagoRepository;
+import com.hotel.app.service.PagoService;
+import com.hotel.app.service.dto.PagoDTO;
 import com.hotel.app.web.rest.errors.BadRequestAlertException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -17,7 +18,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import tech.jhipster.web.util.HeaderUtil;
@@ -29,7 +29,6 @@ import tech.jhipster.web.util.ResponseUtil;
  */
 @RestController
 @RequestMapping("/api/pagos")
-@Transactional
 public class PagoResource {
 
     private static final Logger LOG = LoggerFactory.getLogger(PagoResource.class);
@@ -39,49 +38,54 @@ public class PagoResource {
     @Value("${jhipster.clientApp.name}")
     private String applicationName;
 
+    private final PagoService pagoService;
+
     private final PagoRepository pagoRepository;
 
-    public PagoResource(PagoRepository pagoRepository) {
+    public PagoResource(PagoService pagoService, PagoRepository pagoRepository) {
+        this.pagoService = pagoService;
         this.pagoRepository = pagoRepository;
     }
 
     /**
      * {@code POST  /pagos} : Create a new pago.
      *
-     * @param pago the pago to create.
-     * @return the {@link ResponseEntity} with status {@code 201 (Created)} and with body the new pago, or with status {@code 400 (Bad Request)} if the pago has already an ID.
+     * @param pagoDTO the pagoDTO to create.
+     * @return the {@link ResponseEntity} with status {@code 201 (Created)} and with body the new pagoDTO, or with status {@code 400 (Bad Request)} if the pago has already an ID.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PostMapping("")
-    public ResponseEntity<Pago> createPago(@Valid @RequestBody Pago pago) throws URISyntaxException {
-        LOG.debug("REST request to save Pago : {}", pago);
-        if (pago.getId() != null) {
+    public ResponseEntity<PagoDTO> createPago(@Valid @RequestBody PagoDTO pagoDTO) throws URISyntaxException {
+        LOG.debug("REST request to save Pago : {}", pagoDTO);
+        if (pagoDTO.getId() != null) {
             throw new BadRequestAlertException("A new pago cannot already have an ID", ENTITY_NAME, "idexists");
         }
-        pago = pagoRepository.save(pago);
-        return ResponseEntity.created(new URI("/api/pagos/" + pago.getId()))
-            .headers(HeaderUtil.createEntityCreationAlert(applicationName, false, ENTITY_NAME, pago.getId().toString()))
-            .body(pago);
+        pagoDTO = pagoService.save(pagoDTO);
+        return ResponseEntity.created(new URI("/api/pagos/" + pagoDTO.getId()))
+            .headers(HeaderUtil.createEntityCreationAlert(applicationName, false, ENTITY_NAME, pagoDTO.getId().toString()))
+            .body(pagoDTO);
     }
 
     /**
      * {@code PUT  /pagos/:id} : Updates an existing pago.
      *
-     * @param id the id of the pago to save.
-     * @param pago the pago to update.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated pago,
-     * or with status {@code 400 (Bad Request)} if the pago is not valid,
-     * or with status {@code 500 (Internal Server Error)} if the pago couldn't be updated.
+     * @param id the id of the pagoDTO to save.
+     * @param pagoDTO the pagoDTO to update.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated pagoDTO,
+     * or with status {@code 400 (Bad Request)} if the pagoDTO is not valid,
+     * or with status {@code 500 (Internal Server Error)} if the pagoDTO couldn't be updated.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PutMapping("/{id}")
-    public ResponseEntity<Pago> updatePago(@PathVariable(value = "id", required = false) final Long id, @Valid @RequestBody Pago pago)
-        throws URISyntaxException {
-        LOG.debug("REST request to update Pago : {}, {}", id, pago);
-        if (pago.getId() == null) {
+    public ResponseEntity<PagoDTO> updatePago(
+        @PathVariable(value = "id", required = false) final Long id,
+        @Valid @RequestBody PagoDTO pagoDTO
+    ) throws URISyntaxException {
+        LOG.debug("REST request to update Pago : {}, {}", id, pagoDTO);
+        if (pagoDTO.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
         }
-        if (!Objects.equals(id, pago.getId())) {
+        if (!Objects.equals(id, pagoDTO.getId())) {
             throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
         }
 
@@ -89,33 +93,33 @@ public class PagoResource {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
 
-        pago = pagoRepository.save(pago);
+        pagoDTO = pagoService.update(pagoDTO);
         return ResponseEntity.ok()
-            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME, pago.getId().toString()))
-            .body(pago);
+            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME, pagoDTO.getId().toString()))
+            .body(pagoDTO);
     }
 
     /**
      * {@code PATCH  /pagos/:id} : Partial updates given fields of an existing pago, field will ignore if it is null
      *
-     * @param id the id of the pago to save.
-     * @param pago the pago to update.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated pago,
-     * or with status {@code 400 (Bad Request)} if the pago is not valid,
-     * or with status {@code 404 (Not Found)} if the pago is not found,
-     * or with status {@code 500 (Internal Server Error)} if the pago couldn't be updated.
+     * @param id the id of the pagoDTO to save.
+     * @param pagoDTO the pagoDTO to update.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated pagoDTO,
+     * or with status {@code 400 (Bad Request)} if the pagoDTO is not valid,
+     * or with status {@code 404 (Not Found)} if the pagoDTO is not found,
+     * or with status {@code 500 (Internal Server Error)} if the pagoDTO couldn't be updated.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PatchMapping(value = "/{id}", consumes = { "application/json", "application/merge-patch+json" })
-    public ResponseEntity<Pago> partialUpdatePago(
+    public ResponseEntity<PagoDTO> partialUpdatePago(
         @PathVariable(value = "id", required = false) final Long id,
-        @NotNull @RequestBody Pago pago
+        @NotNull @RequestBody PagoDTO pagoDTO
     ) throws URISyntaxException {
-        LOG.debug("REST request to partial update Pago partially : {}, {}", id, pago);
-        if (pago.getId() == null) {
+        LOG.debug("REST request to partial update Pago partially : {}, {}", id, pagoDTO);
+        if (pagoDTO.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
         }
-        if (!Objects.equals(id, pago.getId())) {
+        if (!Objects.equals(id, pagoDTO.getId())) {
             throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
         }
 
@@ -123,29 +127,11 @@ public class PagoResource {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
 
-        Optional<Pago> result = pagoRepository
-            .findById(pago.getId())
-            .map(existingPago -> {
-                if (pago.getFechaPago() != null) {
-                    existingPago.setFechaPago(pago.getFechaPago());
-                }
-                if (pago.getMonto() != null) {
-                    existingPago.setMonto(pago.getMonto());
-                }
-                if (pago.getMetodoPago() != null) {
-                    existingPago.setMetodoPago(pago.getMetodoPago());
-                }
-                if (pago.getEstado() != null) {
-                    existingPago.setEstado(pago.getEstado());
-                }
-
-                return existingPago;
-            })
-            .map(pagoRepository::save);
+        Optional<PagoDTO> result = pagoService.partialUpdate(pagoDTO);
 
         return ResponseUtil.wrapOrNotFound(
             result,
-            HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME, pago.getId().toString())
+            HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME, pagoDTO.getId().toString())
         );
     }
 
@@ -156,9 +142,9 @@ public class PagoResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of pagos in body.
      */
     @GetMapping("")
-    public ResponseEntity<List<Pago>> getAllPagos(@org.springdoc.core.annotations.ParameterObject Pageable pageable) {
+    public ResponseEntity<List<PagoDTO>> getAllPagos(@org.springdoc.core.annotations.ParameterObject Pageable pageable) {
         LOG.debug("REST request to get a page of Pagos");
-        Page<Pago> page = pagoRepository.findAll(pageable);
+        Page<PagoDTO> page = pagoService.findAll(pageable);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
         return ResponseEntity.ok().headers(headers).body(page.getContent());
     }
@@ -166,26 +152,26 @@ public class PagoResource {
     /**
      * {@code GET  /pagos/:id} : get the "id" pago.
      *
-     * @param id the id of the pago to retrieve.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the pago, or with status {@code 404 (Not Found)}.
+     * @param id the id of the pagoDTO to retrieve.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the pagoDTO, or with status {@code 404 (Not Found)}.
      */
     @GetMapping("/{id}")
-    public ResponseEntity<Pago> getPago(@PathVariable("id") Long id) {
+    public ResponseEntity<PagoDTO> getPago(@PathVariable("id") Long id) {
         LOG.debug("REST request to get Pago : {}", id);
-        Optional<Pago> pago = pagoRepository.findById(id);
-        return ResponseUtil.wrapOrNotFound(pago);
+        Optional<PagoDTO> pagoDTO = pagoService.findOne(id);
+        return ResponseUtil.wrapOrNotFound(pagoDTO);
     }
 
     /**
      * {@code DELETE  /pagos/:id} : delete the "id" pago.
      *
-     * @param id the id of the pago to delete.
+     * @param id the id of the pagoDTO to delete.
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePago(@PathVariable("id") Long id) {
         LOG.debug("REST request to delete Pago : {}", id);
-        pagoRepository.deleteById(id);
+        pagoService.delete(id);
         return ResponseEntity.noContent()
             .headers(HeaderUtil.createEntityDeletionAlert(applicationName, false, ENTITY_NAME, id.toString()))
             .build();

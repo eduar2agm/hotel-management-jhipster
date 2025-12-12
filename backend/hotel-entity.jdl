@@ -19,8 +19,7 @@ enum EstadoCheckInCheckOut {
 
 enum MetodoPago {
   TARJETA,
-  EFECTIVO,
-  TRANSFERENCIA
+  EFECTIVO
 }
 
 enum EstadoPago {
@@ -57,6 +56,7 @@ entity Cliente {
   direccion String
   tipoIdentificacion TipoIdentificacion required
   numeroIdentificacion String required
+  keycloakId String required
 }
 
 entity Reserva {
@@ -70,11 +70,10 @@ entity ReservaDetalle {
   nota String
 }
 
+// ENTIDAD CORREGIDA
 entity CheckInCheckOut {
-  fechaCheckIn Instant required
-  horaCheckIn LocalTime required
-  fechaCheckOut Instant
-  horaCheckOut LocalTime
+  fechaHoraCheckIn ZonedDateTime required 
+  fechaHoraCheckOut ZonedDateTime
   estado EstadoCheckInCheckOut required
 }
 
@@ -96,33 +95,37 @@ entity EstadoHabitacion {
   descripcion String
 }
 
+// ===== MENSAJES DE SOPORTE =====
+entity MensajeSoporte {
+  mensaje String required
+  fechaMensaje Instant required
+  userId String required
+  userName String
+  leido Boolean required
+}
+
 // -------------------- RELACIONES --------------------
 relationship ManyToOne {
-  // Una habitación pertenece a una categoría
   Habitacion{categoriaHabitacion(nombre)} to CategoriaHabitacion
 
-  // Una habitación tiene un estado actual
   Habitacion{estadoHabitacion(nombre)} to EstadoHabitacion
 
-  // Una reserva es hecha por un cliente
   Reserva{cliente(nombre)} to Cliente
 
-  // Un detalle pertenece a una reserva
   ReservaDetalle{reserva} to Reserva
 
-  // Un detalle corresponde a una habitación específica
   ReservaDetalle{habitacion(numero)} to Habitacion
 
-  // CheckIn/Out está asociado a un detalle de reserva (una habitación específica reservada)
   CheckInCheckOut{reservaDetalle} to ReservaDetalle
 
-  // Un pago pertenece a una reserva general
   Pago{reserva} to Reserva
+
+  MensajeSoporte{reserva} to Reserva
 }
 
 // -------------------- CONFIGURACIÓN --------------------
-paginate Habitacion, Cliente, Reserva, ReservaDetalle, CheckInCheckOut, Pago, CategoriaHabitacion, EstadoHabitacion with pagination
+paginate Habitacion, Cliente, Reserva, ReservaDetalle, CheckInCheckOut, Pago,
+         CategoriaHabitacion, EstadoHabitacion, MensajeSoporte with pagination
 
-// Opcional: Recomendado para arquitecturas limpias
-// dto * with mapstruct
-// service * with serviceImpl
+dto * with mapstruct
+service * with serviceImpl

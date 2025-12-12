@@ -1,5 +1,6 @@
 package com.hotel.app.domain;
 
+import static com.hotel.app.domain.AssertUtils.zonedDataTimeSameInstant;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class CheckInCheckOutAsserts {
@@ -47,10 +48,18 @@ public class CheckInCheckOutAsserts {
     public static void assertCheckInCheckOutUpdatableFieldsEquals(CheckInCheckOut expected, CheckInCheckOut actual) {
         assertThat(actual)
             .as("Verify CheckInCheckOut relevant properties")
-            .satisfies(a -> assertThat(a.getFechaCheckIn()).as("check fechaCheckIn").isEqualTo(expected.getFechaCheckIn()))
-            .satisfies(a -> assertThat(a.getHoraCheckIn()).as("check horaCheckIn").isEqualTo(expected.getHoraCheckIn()))
-            .satisfies(a -> assertThat(a.getFechaCheckOut()).as("check fechaCheckOut").isEqualTo(expected.getFechaCheckOut()))
-            .satisfies(a -> assertThat(a.getHoraCheckOut()).as("check horaCheckOut").isEqualTo(expected.getHoraCheckOut()))
+            .satisfies(a ->
+                assertThat(a.getFechaHoraCheckIn())
+                    .as("check fechaHoraCheckIn")
+                    .usingComparator(zonedDataTimeSameInstant)
+                    .isEqualTo(expected.getFechaHoraCheckIn())
+            )
+            .satisfies(a ->
+                assertThat(a.getFechaHoraCheckOut())
+                    .as("check fechaHoraCheckOut")
+                    .usingComparator(zonedDataTimeSameInstant)
+                    .isEqualTo(expected.getFechaHoraCheckOut())
+            )
             .satisfies(a -> assertThat(a.getEstado()).as("check estado").isEqualTo(expected.getEstado()));
     }
 

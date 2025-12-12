@@ -6,5 +6,4 @@ package com.hotel.app.domain.enumeration;
 public enum MetodoPago {
     TARJETA,
     EFECTIVO,
-    TRANSFERENCIA,
 }

@@ -2,6 +2,7 @@ package com.hotel.app.web.rest;
 
 import static com.hotel.app.domain.CheckInCheckOutAsserts.*;
 import static com.hotel.app.web.rest.TestUtil.createUpdateProxyForBean;
+import static com.hotel.app.web.rest.TestUtil.sameInstant;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -13,10 +14,13 @@ import com.hotel.app.IntegrationTest;
 import com.hotel.app.domain.CheckInCheckOut;
 import com.hotel.app.domain.enumeration.EstadoCheckInCheckOut;
 import com.hotel.app.repository.CheckInCheckOutRepository;
+import com.hotel.app.service.dto.CheckInCheckOutDTO;
+import com.hotel.app.service.mapper.CheckInCheckOutMapper;
 import jakarta.persistence.EntityManager;
 import java.time.Instant;
-import java.time.LocalTime;
-import java.time.temporal.ChronoUnit;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
 import org.junit.jupiter.api.AfterEach;
@@ -37,17 +41,11 @@ import org.springframework.transaction.annotation.Transactional;
 @WithMockUser
 class CheckInCheckOutResourceIT {
 
-    private static final Instant DEFAULT_FECHA_CHECK_IN = Instant.ofEpochMilli(0L);
-    private static final Instant UPDATED_FECHA_CHECK_IN = Instant.now().truncatedTo(ChronoUnit.MILLIS);
+    private static final ZonedDateTime DEFAULT_FECHA_HORA_CHECK_IN = ZonedDateTime.ofInstant(Instant.ofEpochMilli(0L), ZoneOffset.UTC);
+    private static final ZonedDateTime UPDATED_FECHA_HORA_CHECK_IN = ZonedDateTime.now(ZoneId.systemDefault()).withNano(0);
 
-    private static final LocalTime DEFAULT_HORA_CHECK_IN = LocalTime.NOON;
-    private static final LocalTime UPDATED_HORA_CHECK_IN = LocalTime.MAX.withNano(0);
-
-    private static final Instant DEFAULT_FECHA_CHECK_OUT = Instant.ofEpochMilli(0L);
-    private static final Instant UPDATED_FECHA_CHECK_OUT = Instant.now().truncatedTo(ChronoUnit.MILLIS);
-
-    private static final LocalTime DEFAULT_HORA_CHECK_OUT = LocalTime.NOON;
-    private static final LocalTime UPDATED_HORA_CHECK_OUT = LocalTime.MAX.withNano(0);
+    private static final ZonedDateTime DEFAULT_FECHA_HORA_CHECK_OUT = ZonedDateTime.ofInstant(Instant.ofEpochMilli(0L), ZoneOffset.UTC);
+    private static final ZonedDateTime UPDATED_FECHA_HORA_CHECK_OUT = ZonedDateTime.now(ZoneId.systemDefault()).withNano(0);
 
     private static final EstadoCheckInCheckOut DEFAULT_ESTADO = EstadoCheckInCheckOut.PENDIENTE;
     private static final EstadoCheckInCheckOut UPDATED_ESTADO = EstadoCheckInCheckOut.REALIZADO;
@@ -63,6 +61,9 @@ class CheckInCheckOutResourceIT {
 
     @Autowired
     private CheckInCheckOutRepository checkInCheckOutRepository;
+
+    @Autowired
+    private CheckInCheckOutMapper checkInCheckOutMapper;
 
     @Autowired
     private EntityManager em;
@@ -82,10 +83,8 @@ class CheckInCheckOutResourceIT {
      */
     public static CheckInCheckOut createEntity() {
         return new CheckInCheckOut()
-            .fechaCheckIn(DEFAULT_FECHA_CHECK_IN)
-            .horaCheckIn(DEFAULT_HORA_CHECK_IN)
-            .fechaCheckOut(DEFAULT_FECHA_CHECK_OUT)
-            .horaCheckOut(DEFAULT_HORA_CHECK_OUT)
+            .fechaHoraCheckIn(DEFAULT_FECHA_HORA_CHECK_IN)
+            .fechaHoraCheckOut(DEFAULT_FECHA_HORA_CHECK_OUT)
             .estado(DEFAULT_ESTADO);
     }
 
@@ -97,10 +96,8 @@ class CheckInCheckOutResourceIT {
      */
     public static CheckInCheckOut createUpdatedEntity() {
         return new CheckInCheckOut()
-            .fechaCheckIn(UPDATED_FECHA_CHECK_IN)
-            .horaCheckIn(UPDATED_HORA_CHECK_IN)
-            .fechaCheckOut(UPDATED_FECHA_CHECK_OUT)
-            .horaCheckOut(UPDATED_HORA_CHECK_OUT)
+            .fechaHoraCheckIn(UPDATED_FECHA_HORA_CHECK_IN)
+            .fechaHoraCheckOut(UPDATED_FECHA_HORA_CHECK_OUT)
             .estado(UPDATED_ESTADO);
     }
 
@@ -122,20 +119,25 @@ class CheckInCheckOutResourceIT {
     void createCheckInCheckOut() throws Exception {
         long databaseSizeBeforeCreate = getRepositoryCount();
         // Create the CheckInCheckOut
-        var returnedCheckInCheckOut = om.readValue(
+        CheckInCheckOutDTO checkInCheckOutDTO = checkInCheckOutMapper.toDto(checkInCheckOut);
+        var returnedCheckInCheckOutDTO = om.readValue(
             restCheckInCheckOutMockMvc
                 .perform(
-                    post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(checkInCheckOut))
+                    post(ENTITY_API_URL)
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(om.writeValueAsBytes(checkInCheckOutDTO))
                 )
                 .andExpect(status().isCreated())
                 .andReturn()
                 .getResponse()
                 .getContentAsString(),
-            CheckInCheckOut.class
+            CheckInCheckOutDTO.class
         );
 
         // Validate the CheckInCheckOut in the database
         assertIncrementedRepositoryCount(databaseSizeBeforeCreate);
+        var returnedCheckInCheckOut = checkInCheckOutMapper.toEntity(returnedCheckInCheckOutDTO);
         assertCheckInCheckOutUpdatableFieldsEquals(returnedCheckInCheckOut, getPersistedCheckInCheckOut(returnedCheckInCheckOut));
 
         insertedCheckInCheckOut = returnedCheckInCheckOut;
@@ -146,13 +148,14 @@ class CheckInCheckOutResourceIT {
     void createCheckInCheckOutWithExistingId() throws Exception {
         // Create the CheckInCheckOut with an existing ID
         checkInCheckOut.setId(1L);
+        CheckInCheckOutDTO checkInCheckOutDTO = checkInCheckOutMapper.toDto(checkInCheckOut);
 
         long databaseSizeBeforeCreate = getRepositoryCount();
 
         // An entity with an existing ID cannot be created, so this API call must fail
         restCheckInCheckOutMockMvc
             .perform(
-                post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(checkInCheckOut))
+                post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(checkInCheckOutDTO))
             )
             .andExpect(status().isBadRequest());
 
@@ -162,34 +165,17 @@ class CheckInCheckOutResourceIT {
 
     @Test
     @Transactional
-    void checkFechaCheckInIsRequired() throws Exception {
+    void checkFechaHoraCheckInIsRequired() throws Exception {
         long databaseSizeBeforeTest = getRepositoryCount();
         // set the field null
-        checkInCheckOut.setFechaCheckIn(null);
+        checkInCheckOut.setFechaHoraCheckIn(null);
 
         // Create the CheckInCheckOut, which fails.
+        CheckInCheckOutDTO checkInCheckOutDTO = checkInCheckOutMapper.toDto(checkInCheckOut);
 
         restCheckInCheckOutMockMvc
             .perform(
-                post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(checkInCheckOut))
-            )
-            .andExpect(status().isBadRequest());
-
-        assertSameRepositoryCount(databaseSizeBeforeTest);
-    }
-
-    @Test
-    @Transactional
-    void checkHoraCheckInIsRequired() throws Exception {
-        long databaseSizeBeforeTest = getRepositoryCount();
-        // set the field null
-        checkInCheckOut.setHoraCheckIn(null);
-
-        // Create the CheckInCheckOut, which fails.
-
-        restCheckInCheckOutMockMvc
-            .perform(
-                post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(checkInCheckOut))
+                post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(checkInCheckOutDTO))
             )
             .andExpect(status().isBadRequest());
 
@@ -204,10 +190,11 @@ class CheckInCheckOutResourceIT {
         checkInCheckOut.setEstado(null);
 
         // Create the CheckInCheckOut, which fails.
+        CheckInCheckOutDTO checkInCheckOutDTO = checkInCheckOutMapper.toDto(checkInCheckOut);
 
         restCheckInCheckOutMockMvc
             .perform(
-                post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(checkInCheckOut))
+                post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(checkInCheckOutDTO))
             )
             .andExpect(status().isBadRequest());
 
@@ -226,10 +213,8 @@ class CheckInCheckOutResourceIT {
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(checkInCheckOut.getId().intValue())))
-            .andExpect(jsonPath("$.[*].fechaCheckIn").value(hasItem(DEFAULT_FECHA_CHECK_IN.toString())))
-            .andExpect(jsonPath("$.[*].horaCheckIn").value(hasItem(DEFAULT_HORA_CHECK_IN.toString())))
-            .andExpect(jsonPath("$.[*].fechaCheckOut").value(hasItem(DEFAULT_FECHA_CHECK_OUT.toString())))
-            .andExpect(jsonPath("$.[*].horaCheckOut").value(hasItem(DEFAULT_HORA_CHECK_OUT.toString())))
+            .andExpect(jsonPath("$.[*].fechaHoraCheckIn").value(hasItem(sameInstant(DEFAULT_FECHA_HORA_CHECK_IN))))
+            .andExpect(jsonPath("$.[*].fechaHoraCheckOut").value(hasItem(sameInstant(DEFAULT_FECHA_HORA_CHECK_OUT))))
             .andExpect(jsonPath("$.[*].estado").value(hasItem(DEFAULT_ESTADO.toString())));
     }
 
@@ -245,10 +230,8 @@ class CheckInCheckOutResourceIT {
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.id").value(checkInCheckOut.getId().intValue()))
-            .andExpect(jsonPath("$.fechaCheckIn").value(DEFAULT_FECHA_CHECK_IN.toString()))
-            .andExpect(jsonPath("$.horaCheckIn").value(DEFAULT_HORA_CHECK_IN.toString()))
-            .andExpect(jsonPath("$.fechaCheckOut").value(DEFAULT_FECHA_CHECK_OUT.toString()))
-            .andExpect(jsonPath("$.horaCheckOut").value(DEFAULT_HORA_CHECK_OUT.toString()))
+            .andExpect(jsonPath("$.fechaHoraCheckIn").value(sameInstant(DEFAULT_FECHA_HORA_CHECK_IN)))
+            .andExpect(jsonPath("$.fechaHoraCheckOut").value(sameInstant(DEFAULT_FECHA_HORA_CHECK_OUT)))
             .andExpect(jsonPath("$.estado").value(DEFAULT_ESTADO.toString()));
     }
 
@@ -272,18 +255,17 @@ class CheckInCheckOutResourceIT {
         // Disconnect from session so that the updates on updatedCheckInCheckOut are not directly saved in db
         em.detach(updatedCheckInCheckOut);
         updatedCheckInCheckOut
-            .fechaCheckIn(UPDATED_FECHA_CHECK_IN)
-            .horaCheckIn(UPDATED_HORA_CHECK_IN)
-            .fechaCheckOut(UPDATED_FECHA_CHECK_OUT)
-            .horaCheckOut(UPDATED_HORA_CHECK_OUT)
+            .fechaHoraCheckIn(UPDATED_FECHA_HORA_CHECK_IN)
+            .fechaHoraCheckOut(UPDATED_FECHA_HORA_CHECK_OUT)
             .estado(UPDATED_ESTADO);
+        CheckInCheckOutDTO checkInCheckOutDTO = checkInCheckOutMapper.toDto(updatedCheckInCheckOut);
 
         restCheckInCheckOutMockMvc
             .perform(
-                put(ENTITY_API_URL_ID, updatedCheckInCheckOut.getId())
+                put(ENTITY_API_URL_ID, checkInCheckOutDTO.getId())
                     .with(csrf())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(om.writeValueAsBytes(updatedCheckInCheckOut))
+                    .content(om.writeValueAsBytes(checkInCheckOutDTO))
             )
             .andExpect(status().isOk());
 
@@ -298,13 +280,16 @@ class CheckInCheckOutResourceIT {
         long databaseSizeBeforeUpdate = getRepositoryCount();
         checkInCheckOut.setId(longCount.incrementAndGet());
 
+        // Create the CheckInCheckOut
+        CheckInCheckOutDTO checkInCheckOutDTO = checkInCheckOutMapper.toDto(checkInCheckOut);
+
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
         restCheckInCheckOutMockMvc
             .perform(
-                put(ENTITY_API_URL_ID, checkInCheckOut.getId())
+                put(ENTITY_API_URL_ID, checkInCheckOutDTO.getId())
                     .with(csrf())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(om.writeValueAsBytes(checkInCheckOut))
+                    .content(om.writeValueAsBytes(checkInCheckOutDTO))
             )
             .andExpect(status().isBadRequest());
 
@@ -318,13 +303,16 @@ class CheckInCheckOutResourceIT {
         long databaseSizeBeforeUpdate = getRepositoryCount();
         checkInCheckOut.setId(longCount.incrementAndGet());
 
+        // Create the CheckInCheckOut
+        CheckInCheckOutDTO checkInCheckOutDTO = checkInCheckOutMapper.toDto(checkInCheckOut);
+
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
         restCheckInCheckOutMockMvc
             .perform(
                 put(ENTITY_API_URL_ID, longCount.incrementAndGet())
                     .with(csrf())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(om.writeValueAsBytes(checkInCheckOut))
+                    .content(om.writeValueAsBytes(checkInCheckOutDTO))
             )
             .andExpect(status().isBadRequest());
 
@@ -338,10 +326,13 @@ class CheckInCheckOutResourceIT {
         long databaseSizeBeforeUpdate = getRepositoryCount();
         checkInCheckOut.setId(longCount.incrementAndGet());
 
+        // Create the CheckInCheckOut
+        CheckInCheckOutDTO checkInCheckOutDTO = checkInCheckOutMapper.toDto(checkInCheckOut);
+
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
         restCheckInCheckOutMockMvc
             .perform(
-                put(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(checkInCheckOut))
+                put(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(checkInCheckOutDTO))
             )
             .andExpect(status().isMethodNotAllowed());
 
@@ -361,7 +352,7 @@ class CheckInCheckOutResourceIT {
         CheckInCheckOut partialUpdatedCheckInCheckOut = new CheckInCheckOut();
         partialUpdatedCheckInCheckOut.setId(checkInCheckOut.getId());
 
-        partialUpdatedCheckInCheckOut.fechaCheckOut(UPDATED_FECHA_CHECK_OUT);
+        partialUpdatedCheckInCheckOut.estado(UPDATED_ESTADO);
 
         restCheckInCheckOutMockMvc
             .perform(
@@ -394,10 +385,8 @@ class CheckInCheckOutResourceIT {
         partialUpdatedCheckInCheckOut.setId(checkInCheckOut.getId());
 
         partialUpdatedCheckInCheckOut
-            .fechaCheckIn(UPDATED_FECHA_CHECK_IN)
-            .horaCheckIn(UPDATED_HORA_CHECK_IN)
-            .fechaCheckOut(UPDATED_FECHA_CHECK_OUT)
-            .horaCheckOut(UPDATED_HORA_CHECK_OUT)
+            .fechaHoraCheckIn(UPDATED_FECHA_HORA_CHECK_IN)
+            .fechaHoraCheckOut(UPDATED_FECHA_HORA_CHECK_OUT)
             .estado(UPDATED_ESTADO);
 
         restCheckInCheckOutMockMvc
@@ -424,13 +413,16 @@ class CheckInCheckOutResourceIT {
         long databaseSizeBeforeUpdate = getRepositoryCount();
         checkInCheckOut.setId(longCount.incrementAndGet());
 
+        // Create the CheckInCheckOut
+        CheckInCheckOutDTO checkInCheckOutDTO = checkInCheckOutMapper.toDto(checkInCheckOut);
+
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
         restCheckInCheckOutMockMvc
             .perform(
-                patch(ENTITY_API_URL_ID, checkInCheckOut.getId())
+                patch(ENTITY_API_URL_ID, checkInCheckOutDTO.getId())
                     .with(csrf())
                     .contentType("application/merge-patch+json")
-                    .content(om.writeValueAsBytes(checkInCheckOut))
+                    .content(om.writeValueAsBytes(checkInCheckOutDTO))
             )
             .andExpect(status().isBadRequest());
 
@@ -444,13 +436,16 @@ class CheckInCheckOutResourceIT {
         long databaseSizeBeforeUpdate = getRepositoryCount();
         checkInCheckOut.setId(longCount.incrementAndGet());
 
+        // Create the CheckInCheckOut
+        CheckInCheckOutDTO checkInCheckOutDTO = checkInCheckOutMapper.toDto(checkInCheckOut);
+
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
         restCheckInCheckOutMockMvc
             .perform(
                 patch(ENTITY_API_URL_ID, longCount.incrementAndGet())
                     .with(csrf())
                     .contentType("application/merge-patch+json")
-                    .content(om.writeValueAsBytes(checkInCheckOut))
+                    .content(om.writeValueAsBytes(checkInCheckOutDTO))
             )
             .andExpect(status().isBadRequest());
 
@@ -464,13 +459,16 @@ class CheckInCheckOutResourceIT {
         long databaseSizeBeforeUpdate = getRepositoryCount();
         checkInCheckOut.setId(longCount.incrementAndGet());
 
+        // Create the CheckInCheckOut
+        CheckInCheckOutDTO checkInCheckOutDTO = checkInCheckOutMapper.toDto(checkInCheckOut);
+
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
         restCheckInCheckOutMockMvc
             .perform(
                 patch(ENTITY_API_URL)
                     .with(csrf())
                     .contentType("application/merge-patch+json")
-                    .content(om.writeValueAsBytes(checkInCheckOut))
+                    .content(om.writeValueAsBytes(checkInCheckOutDTO))
             )
             .andExpect(status().isMethodNotAllowed());
 

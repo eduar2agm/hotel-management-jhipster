@@ -14,16 +14,10 @@
             <column name="id" type="bigint">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="fecha_check_in" type="${datetimeType}">
+            <column name="fecha_hora_check_in" type="${datetimeType}">
                 <constraints nullable="false" />
             </column>
-            <column name="hora_check_in" type="${timeType}">
-                <constraints nullable="false" />
-            </column>
-            <column name="fecha_check_out" type="${datetimeType}">
-                <constraints nullable="true" />
-            </column>
-            <column name="hora_check_out" type="${timeType}">
+            <column name="fecha_hora_check_out" type="${datetimeType}">
                 <constraints nullable="true" />
             </column>
             <column name="estado" type="varchar(255)">
@@ -34,8 +28,8 @@
             </column>
             <!-- jhipster-needle-liquibase-add-column - JHipster will add columns here -->
         </createTable>
-        <dropDefaultValue tableName="check_in_check_out" columnName="fecha_check_in" columnDataType="${datetimeType}"/>
-        <dropDefaultValue tableName="check_in_check_out" columnName="fecha_check_out" columnDataType="${datetimeType}"/>
+        <dropDefaultValue tableName="check_in_check_out" columnName="fecha_hora_check_in" columnDataType="${datetimeType}"/>
+        <dropDefaultValue tableName="check_in_check_out" columnName="fecha_hora_check_out" columnDataType="${datetimeType}"/>
     </changeSet>
 
     <!-- jhipster-needle-liquibase-add-changeset - JHipster will add changesets here -->
@@ -55,10 +49,8 @@
                   tableName="check_in_check_out"
                   usePreparedStatements="true">
             <column name="id" type="numeric"/>
-            <column name="fecha_check_in" type="date"/>
-            <column name="hora_check_in" type="time"/>
-            <column name="fecha_check_out" type="date"/>
-            <column name="hora_check_out" type="time"/>
+            <column name="fecha_hora_check_in" type="date"/>
+            <column name="fecha_hora_check_out" type="date"/>
             <column name="estado" type="string"/>
             <!-- jhipster-needle-liquibase-add-loadcolumn - JHipster (and/or extensions) can add load columns here -->
         </loadData>

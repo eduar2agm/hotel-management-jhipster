@@ -5,6 +5,7 @@
   "applications": "*",
   "clientRootFolder": "hotelApp",
   "databaseType": "sql",
+  "dto": "mapstruct",
   "fields": [
     {
       "fieldName": "fechaReserva",
@@ -40,5 +41,6 @@
       "relationshipType": "many-to-one"
     }
   ],
-  "searchEngine": "no"
+  "searchEngine": "no",
+  "service": "serviceImpl"
 }

@@ -1,7 +1,8 @@
 package com.hotel.app.web.rest;
 
-import com.hotel.app.domain.ReservaDetalle;
 import com.hotel.app.repository.ReservaDetalleRepository;
+import com.hotel.app.service.ReservaDetalleService;
+import com.hotel.app.service.dto.ReservaDetalleDTO;
 import com.hotel.app.web.rest.errors.BadRequestAlertException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -15,7 +16,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import tech.jhipster.web.util.HeaderUtil;
@@ -27,7 +27,6 @@ import tech.jhipster.web.util.ResponseUtil;
  */
 @RestController
 @RequestMapping("/api/reserva-detalles")
-@Transactional
 public class ReservaDetalleResource {
 
     private static final Logger LOG = LoggerFactory.getLogger(ReservaDetalleResource.class);
@@ -37,51 +36,55 @@ public class ReservaDetalleResource {
     @Value("${jhipster.clientApp.name}")
     private String applicationName;
 
+    private final ReservaDetalleService reservaDetalleService;
+
     private final ReservaDetalleRepository reservaDetalleRepository;
 
-    public ReservaDetalleResource(ReservaDetalleRepository reservaDetalleRepository) {
+    public ReservaDetalleResource(ReservaDetalleService reservaDetalleService, ReservaDetalleRepository reservaDetalleRepository) {
+        this.reservaDetalleService = reservaDetalleService;
         this.reservaDetalleRepository = reservaDetalleRepository;
     }
 
     /**
      * {@code POST  /reserva-detalles} : Create a new reservaDetalle.
      *
-     * @param reservaDetalle the reservaDetalle to create.
-     * @return the {@link ResponseEntity} with status {@code 201 (Created)} and with body the new reservaDetalle, or with status {@code 400 (Bad Request)} if the reservaDetalle has already an ID.
+     * @param reservaDetalleDTO the reservaDetalleDTO to create.
+     * @return the {@link ResponseEntity} with status {@code 201 (Created)} and with body the new reservaDetalleDTO, or with status {@code 400 (Bad Request)} if the reservaDetalle has already an ID.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PostMapping("")
-    public ResponseEntity<ReservaDetalle> createReservaDetalle(@RequestBody ReservaDetalle reservaDetalle) throws URISyntaxException {
-        LOG.debug("REST request to save ReservaDetalle : {}", reservaDetalle);
-        if (reservaDetalle.getId() != null) {
+    public ResponseEntity<ReservaDetalleDTO> createReservaDetalle(@RequestBody ReservaDetalleDTO reservaDetalleDTO)
+        throws URISyntaxException {
+        LOG.debug("REST request to save ReservaDetalle : {}", reservaDetalleDTO);
+        if (reservaDetalleDTO.getId() != null) {
             throw new BadRequestAlertException("A new reservaDetalle cannot already have an ID", ENTITY_NAME, "idexists");
         }
-        reservaDetalle = reservaDetalleRepository.save(reservaDetalle);
-        return ResponseEntity.created(new URI("/api/reserva-detalles/" + reservaDetalle.getId()))
-            .headers(HeaderUtil.createEntityCreationAlert(applicationName, false, ENTITY_NAME, reservaDetalle.getId().toString()))
-            .body(reservaDetalle);
+        reservaDetalleDTO = reservaDetalleService.save(reservaDetalleDTO);
+        return ResponseEntity.created(new URI("/api/reserva-detalles/" + reservaDetalleDTO.getId()))
+            .headers(HeaderUtil.createEntityCreationAlert(applicationName, false, ENTITY_NAME, reservaDetalleDTO.getId().toString()))
+            .body(reservaDetalleDTO);
     }
 
     /**
      * {@code PUT  /reserva-detalles/:id} : Updates an existing reservaDetalle.
      *
-     * @param id the id of the reservaDetalle to save.
-     * @param reservaDetalle the reservaDetalle to update.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated reservaDetalle,
-     * or with status {@code 400 (Bad Request)} if the reservaDetalle is not valid,
-     * or with status {@code 500 (Internal Server Error)} if the reservaDetalle couldn't be updated.
+     * @param id the id of the reservaDetalleDTO to save.
+     * @param reservaDetalleDTO the reservaDetalleDTO to update.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated reservaDetalleDTO,
+     * or with status {@code 400 (Bad Request)} if the reservaDetalleDTO is not valid,
+     * or with status {@code 500 (Internal Server Error)} if the reservaDetalleDTO couldn't be updated.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PutMapping("/{id}")
-    public ResponseEntity<ReservaDetalle> updateReservaDetalle(
+    public ResponseEntity<ReservaDetalleDTO> updateReservaDetalle(
         @PathVariable(value = "id", required = false) final Long id,
-        @RequestBody ReservaDetalle reservaDetalle
+        @RequestBody ReservaDetalleDTO reservaDetalleDTO
     ) throws URISyntaxException {
-        LOG.debug("REST request to update ReservaDetalle : {}, {}", id, reservaDetalle);
-        if (reservaDetalle.getId() == null) {
+        LOG.debug("REST request to update ReservaDetalle : {}, {}", id, reservaDetalleDTO);
+        if (reservaDetalleDTO.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
         }
-        if (!Objects.equals(id, reservaDetalle.getId())) {
+        if (!Objects.equals(id, reservaDetalleDTO.getId())) {
             throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
         }
 
@@ -89,33 +92,33 @@ public class ReservaDetalleResource {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
 
-        reservaDetalle = reservaDetalleRepository.save(reservaDetalle);
+        reservaDetalleDTO = reservaDetalleService.update(reservaDetalleDTO);
         return ResponseEntity.ok()
-            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME, reservaDetalle.getId().toString()))
-            .body(reservaDetalle);
+            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME, reservaDetalleDTO.getId().toString()))
+            .body(reservaDetalleDTO);
     }
 
     /**
      * {@code PATCH  /reserva-detalles/:id} : Partial updates given fields of an existing reservaDetalle, field will ignore if it is null
      *
-     * @param id the id of the reservaDetalle to save.
-     * @param reservaDetalle the reservaDetalle to update.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated reservaDetalle,
-     * or with status {@code 400 (Bad Request)} if the reservaDetalle is not valid,
-     * or with status {@code 404 (Not Found)} if the reservaDetalle is not found,
-     * or with status {@code 500 (Internal Server Error)} if the reservaDetalle couldn't be updated.
+     * @param id the id of the reservaDetalleDTO to save.
+     * @param reservaDetalleDTO the reservaDetalleDTO to update.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated reservaDetalleDTO,
+     * or with status {@code 400 (Bad Request)} if the reservaDetalleDTO is not valid,
+     * or with status {@code 404 (Not Found)} if the reservaDetalleDTO is not found,
+     * or with status {@code 500 (Internal Server Error)} if the reservaDetalleDTO couldn't be updated.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PatchMapping(value = "/{id}", consumes = { "application/json", "application/merge-patch+json" })
-    public ResponseEntity<ReservaDetalle> partialUpdateReservaDetalle(
+    public ResponseEntity<ReservaDetalleDTO> partialUpdateReservaDetalle(
         @PathVariable(value = "id", required = false) final Long id,
-        @RequestBody ReservaDetalle reservaDetalle
+        @RequestBody ReservaDetalleDTO reservaDetalleDTO
     ) throws URISyntaxException {
-        LOG.debug("REST request to partial update ReservaDetalle partially : {}, {}", id, reservaDetalle);
-        if (reservaDetalle.getId() == null) {
+        LOG.debug("REST request to partial update ReservaDetalle partially : {}, {}", id, reservaDetalleDTO);
+        if (reservaDetalleDTO.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
         }
-        if (!Objects.equals(id, reservaDetalle.getId())) {
+        if (!Objects.equals(id, reservaDetalleDTO.getId())) {
             throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
         }
 
@@ -123,20 +126,11 @@ public class ReservaDetalleResource {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
 
-        Optional<ReservaDetalle> result = reservaDetalleRepository
-            .findById(reservaDetalle.getId())
-            .map(existingReservaDetalle -> {
-                if (reservaDetalle.getNota() != null) {
-                    existingReservaDetalle.setNota(reservaDetalle.getNota());
-                }
-
-                return existingReservaDetalle;
-            })
-            .map(reservaDetalleRepository::save);
+        Optional<ReservaDetalleDTO> result = reservaDetalleService.partialUpdate(reservaDetalleDTO);
 
         return ResponseUtil.wrapOrNotFound(
             result,
-            HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME, reservaDetalle.getId().toString())
+            HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME, reservaDetalleDTO.getId().toString())
         );
     }
 
@@ -148,16 +142,16 @@ public class ReservaDetalleResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of reservaDetalles in body.
      */
     @GetMapping("")
-    public ResponseEntity<List<ReservaDetalle>> getAllReservaDetalles(
+    public ResponseEntity<List<ReservaDetalleDTO>> getAllReservaDetalles(
         @org.springdoc.core.annotations.ParameterObject Pageable pageable,
         @RequestParam(name = "eagerload", required = false, defaultValue = "true") boolean eagerload
     ) {
         LOG.debug("REST request to get a page of ReservaDetalles");
-        Page<ReservaDetalle> page;
+        Page<ReservaDetalleDTO> page;
         if (eagerload) {
-            page = reservaDetalleRepository.findAllWithEagerRelationships(pageable);
+            page = reservaDetalleService.findAllWithEagerRelationships(pageable);
         } else {
-            page = reservaDetalleRepository.findAll(pageable);
+            page = reservaDetalleService.findAll(pageable);
         }
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
         return ResponseEntity.ok().headers(headers).body(page.getContent());
@@ -166,26 +160,26 @@ public class ReservaDetalleResource {
     /**
      * {@code GET  /reserva-detalles/:id} : get the "id" reservaDetalle.
      *
-     * @param id the id of the reservaDetalle to retrieve.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the reservaDetalle, or with status {@code 404 (Not Found)}.
+     * @param id the id of the reservaDetalleDTO to retrieve.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the reservaDetalleDTO, or with status {@code 404 (Not Found)}.
      */
     @GetMapping("/{id}")
-    public ResponseEntity<ReservaDetalle> getReservaDetalle(@PathVariable("id") Long id) {
+    public ResponseEntity<ReservaDetalleDTO> getReservaDetalle(@PathVariable("id") Long id) {
         LOG.debug("REST request to get ReservaDetalle : {}", id);
-        Optional<ReservaDetalle> reservaDetalle = reservaDetalleRepository.findOneWithEagerRelationships(id);
-        return ResponseUtil.wrapOrNotFound(reservaDetalle);
+        Optional<ReservaDetalleDTO> reservaDetalleDTO = reservaDetalleService.findOne(id);
+        return ResponseUtil.wrapOrNotFound(reservaDetalleDTO);
     }
 
     /**
      * {@code DELETE  /reserva-detalles/:id} : delete the "id" reservaDetalle.
      *
-     * @param id the id of the reservaDetalle to delete.
+     * @param id the id of the reservaDetalleDTO to delete.
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteReservaDetalle(@PathVariable("id") Long id) {
         LOG.debug("REST request to delete ReservaDetalle : {}", id);
-        reservaDetalleRepository.deleteById(id);
+        reservaDetalleService.delete(id);
         return ResponseEntity.noContent()
             .headers(HeaderUtil.createEntityDeletionAlert(applicationName, false, ENTITY_NAME, id.toString()))
             .build();
