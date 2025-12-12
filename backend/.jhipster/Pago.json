@@ -1,0 +1,44 @@
+{
+  "annotations": {
+    "changelogDate": "20251211014122"
+  },
+  "applications": "*",
+  "clientRootFolder": "hotelApp",
+  "databaseType": "sql",
+  "fields": [
+    {
+      "fieldName": "fechaPago",
+      "fieldType": "Instant",
+      "fieldValidateRules": ["required"]
+    },
+    {
+      "fieldName": "monto",
+      "fieldType": "BigDecimal",
+      "fieldValidateRules": ["required"]
+    },
+    {
+      "fieldName": "metodoPago",
+      "fieldType": "MetodoPago",
+      "fieldValidateRules": ["required"],
+      "fieldValues": "TARJETA,EFECTIVO,TRANSFERENCIA"
+    },
+    {
+      "fieldName": "estado",
+      "fieldType": "EstadoPago",
+      "fieldValidateRules": ["required"],
+      "fieldValues": "PENDIENTE,COMPLETADO,RECHAZADO"
+    }
+  ],
+  "microserviceName": "hotelApp",
+  "name": "Pago",
+  "pagination": "pagination",
+  "relationships": [
+    {
+      "otherEntityName": "reserva",
+      "relationshipName": "reserva",
+      "relationshipSide": "left",
+      "relationshipType": "many-to-one"
+    }
+  ],
+  "searchEngine": "no"
+}

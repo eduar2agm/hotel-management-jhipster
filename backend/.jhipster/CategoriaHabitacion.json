@@ -1,0 +1,30 @@
+{
+  "annotations": {
+    "changelogDate": "20251211014123"
+  },
+  "applications": "*",
+  "clientRootFolder": "hotelApp",
+  "databaseType": "sql",
+  "fields": [
+    {
+      "fieldName": "nombre",
+      "fieldType": "CategoriaHabitacionNombre",
+      "fieldValidateRules": ["required"],
+      "fieldValues": "SENCILLA,DOBLE,SUITE"
+    },
+    {
+      "fieldName": "descripcion",
+      "fieldType": "String"
+    },
+    {
+      "fieldName": "precioBase",
+      "fieldType": "BigDecimal",
+      "fieldValidateRules": ["required"]
+    }
+  ],
+  "microserviceName": "hotelApp",
+  "name": "CategoriaHabitacion",
+  "pagination": "pagination",
+  "relationships": [],
+  "searchEngine": "no"
+}

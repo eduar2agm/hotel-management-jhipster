@@ -1,0 +1,25 @@
+{
+  "annotations": {
+    "changelogDate": "20251211014124"
+  },
+  "applications": "*",
+  "clientRootFolder": "hotelApp",
+  "databaseType": "sql",
+  "fields": [
+    {
+      "fieldName": "nombre",
+      "fieldType": "EstadoHabitacionNombre",
+      "fieldValidateRules": ["required"],
+      "fieldValues": "DISPONIBLE,OCUPADA,MANTENIMIENTO"
+    },
+    {
+      "fieldName": "descripcion",
+      "fieldType": "String"
+    }
+  ],
+  "microserviceName": "hotelApp",
+  "name": "EstadoHabitacion",
+  "pagination": "pagination",
+  "relationships": [],
+  "searchEngine": "no"
+}

@@ -1,0 +1,46 @@
+{
+  "annotations": {
+    "changelogDate": "20251211014121"
+  },
+  "applications": "*",
+  "clientRootFolder": "hotelApp",
+  "databaseType": "sql",
+  "fields": [
+    {
+      "fieldName": "fechaCheckIn",
+      "fieldType": "Instant",
+      "fieldValidateRules": ["required"]
+    },
+    {
+      "fieldName": "horaCheckIn",
+      "fieldType": "LocalTime",
+      "fieldValidateRules": ["required"]
+    },
+    {
+      "fieldName": "fechaCheckOut",
+      "fieldType": "Instant"
+    },
+    {
+      "fieldName": "horaCheckOut",
+      "fieldType": "LocalTime"
+    },
+    {
+      "fieldName": "estado",
+      "fieldType": "EstadoCheckInCheckOut",
+      "fieldValidateRules": ["required"],
+      "fieldValues": "PENDIENTE,REALIZADO,RETRASADO"
+    }
+  ],
+  "microserviceName": "hotelApp",
+  "name": "CheckInCheckOut",
+  "pagination": "pagination",
+  "relationships": [
+    {
+      "otherEntityName": "reservaDetalle",
+      "relationshipName": "reservaDetalle",
+      "relationshipSide": "left",
+      "relationshipType": "many-to-one"
+    }
+  ],
+  "searchEngine": "no"
+}
