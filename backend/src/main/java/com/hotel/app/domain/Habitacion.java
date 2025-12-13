@@ -34,6 +34,10 @@ public class Habitacion implements Serializable {
     @Column(name = "imagen")
     private String imagen;
 
+    @NotNull
+    @Column(name = "activo", nullable = false)
+    private Boolean activo;
+
     @ManyToOne(fetch = FetchType.LAZY)
     private CategoriaHabitacion categoriaHabitacion;
 
@@ -107,6 +111,19 @@ public class Habitacion implements Serializable {
         this.imagen = imagen;
     }
 
+    public Boolean getActivo() {
+        return this.activo;
+    }
+
+    public Habitacion activo(Boolean activo) {
+        this.setActivo(activo);
+        return this;
+    }
+
+    public void setActivo(Boolean activo) {
+        this.activo = activo;
+    }
+
     public CategoriaHabitacion getCategoriaHabitacion() {
         return this.categoriaHabitacion;
     }
@@ -161,6 +178,7 @@ public class Habitacion implements Serializable {
             ", capacidad=" + getCapacidad() +
             ", descripcion='" + getDescripcion() + "'" +
             ", imagen='" + getImagen() + "'" +
+            ", activo='" + getActivo() + "'" +
             "}";
     }
 }

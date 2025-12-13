@@ -22,6 +22,9 @@ public class HabitacionDTO implements Serializable {
 
     private String imagen;
 
+    @NotNull
+    private Boolean activo;
+
     private CategoriaHabitacionDTO categoriaHabitacion;
 
     private EstadoHabitacionDTO estadoHabitacion;
@@ -64,6 +67,14 @@ public class HabitacionDTO implements Serializable {
 
     public void setImagen(String imagen) {
         this.imagen = imagen;
+    }
+
+    public Boolean getActivo() {
+        return activo;
+    }
+
+    public void setActivo(Boolean activo) {
+        this.activo = activo;
     }
 
     public CategoriaHabitacionDTO getCategoriaHabitacion() {
@@ -112,6 +123,7 @@ public class HabitacionDTO implements Serializable {
             ", capacidad=" + getCapacidad() +
             ", descripcion='" + getDescripcion() + "'" +
             ", imagen='" + getImagen() + "'" +
+            ", activo='" + getActivo() + "'" +
             ", categoriaHabitacion=" + getCategoriaHabitacion() +
             ", estadoHabitacion=" + getEstadoHabitacion() +
             "}";

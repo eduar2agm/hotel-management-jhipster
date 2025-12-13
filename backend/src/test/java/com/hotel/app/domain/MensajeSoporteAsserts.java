@@ -51,7 +51,8 @@ public class MensajeSoporteAsserts {
             .satisfies(a -> assertThat(a.getFechaMensaje()).as("check fechaMensaje").isEqualTo(expected.getFechaMensaje()))
             .satisfies(a -> assertThat(a.getUserId()).as("check userId").isEqualTo(expected.getUserId()))
             .satisfies(a -> assertThat(a.getUserName()).as("check userName").isEqualTo(expected.getUserName()))
-            .satisfies(a -> assertThat(a.getLeido()).as("check leido").isEqualTo(expected.getLeido()));
+            .satisfies(a -> assertThat(a.getLeido()).as("check leido").isEqualTo(expected.getLeido()))
+            .satisfies(a -> assertThat(a.getActivo()).as("check activo").isEqualTo(expected.getActivo()));
     }
 
     /**

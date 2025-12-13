@@ -42,6 +42,9 @@ class EstadoHabitacionResourceIT {
     private static final String DEFAULT_DESCRIPCION = "AAAAAAAAAA";
     private static final String UPDATED_DESCRIPCION = "BBBBBBBBBB";
 
+    private static final Boolean DEFAULT_ACTIVO = false;
+    private static final Boolean UPDATED_ACTIVO = true;
+
     private static final String ENTITY_API_URL = "/api/estado-habitacions";
     private static final String ENTITY_API_URL_ID = ENTITY_API_URL + "/{id}";
 
@@ -74,7 +77,7 @@ class EstadoHabitacionResourceIT {
      * if they test an entity which requires the current entity.
      */
     public static EstadoHabitacion createEntity() {
-        return new EstadoHabitacion().nombre(DEFAULT_NOMBRE).descripcion(DEFAULT_DESCRIPCION);
+        return new EstadoHabitacion().nombre(DEFAULT_NOMBRE).descripcion(DEFAULT_DESCRIPCION).activo(DEFAULT_ACTIVO);
     }
 
     /**
@@ -84,7 +87,7 @@ class EstadoHabitacionResourceIT {
      * if they test an entity which requires the current entity.
      */
     public static EstadoHabitacion createUpdatedEntity() {
-        return new EstadoHabitacion().nombre(UPDATED_NOMBRE).descripcion(UPDATED_DESCRIPCION);
+        return new EstadoHabitacion().nombre(UPDATED_NOMBRE).descripcion(UPDATED_DESCRIPCION).activo(UPDATED_ACTIVO);
     }
 
     @BeforeEach
@@ -170,6 +173,25 @@ class EstadoHabitacionResourceIT {
 
     @Test
     @Transactional
+    void checkActivoIsRequired() throws Exception {
+        long databaseSizeBeforeTest = getRepositoryCount();
+        // set the field null
+        estadoHabitacion.setActivo(null);
+
+        // Create the EstadoHabitacion, which fails.
+        EstadoHabitacionDTO estadoHabitacionDTO = estadoHabitacionMapper.toDto(estadoHabitacion);
+
+        restEstadoHabitacionMockMvc
+            .perform(
+                post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(estadoHabitacionDTO))
+            )
+            .andExpect(status().isBadRequest());
+
+        assertSameRepositoryCount(databaseSizeBeforeTest);
+    }
+
+    @Test
+    @Transactional
     void getAllEstadoHabitacions() throws Exception {
         // Initialize the database
         insertedEstadoHabitacion = estadoHabitacionRepository.saveAndFlush(estadoHabitacion);
@@ -181,7 +203,8 @@ class EstadoHabitacionResourceIT {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(estadoHabitacion.getId().intValue())))
             .andExpect(jsonPath("$.[*].nombre").value(hasItem(DEFAULT_NOMBRE.toString())))
-            .andExpect(jsonPath("$.[*].descripcion").value(hasItem(DEFAULT_DESCRIPCION)));
+            .andExpect(jsonPath("$.[*].descripcion").value(hasItem(DEFAULT_DESCRIPCION)))
+            .andExpect(jsonPath("$.[*].activo").value(hasItem(DEFAULT_ACTIVO)));
     }
 
     @Test
@@ -197,7 +220,8 @@ class EstadoHabitacionResourceIT {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.id").value(estadoHabitacion.getId().intValue()))
             .andExpect(jsonPath("$.nombre").value(DEFAULT_NOMBRE.toString()))
-            .andExpect(jsonPath("$.descripcion").value(DEFAULT_DESCRIPCION));
+            .andExpect(jsonPath("$.descripcion").value(DEFAULT_DESCRIPCION))
+            .andExpect(jsonPath("$.activo").value(DEFAULT_ACTIVO));
     }
 
     @Test
@@ -219,7 +243,7 @@ class EstadoHabitacionResourceIT {
         EstadoHabitacion updatedEstadoHabitacion = estadoHabitacionRepository.findById(estadoHabitacion.getId()).orElseThrow();
         // Disconnect from session so that the updates on updatedEstadoHabitacion are not directly saved in db
         em.detach(updatedEstadoHabitacion);
-        updatedEstadoHabitacion.nombre(UPDATED_NOMBRE).descripcion(UPDATED_DESCRIPCION);
+        updatedEstadoHabitacion.nombre(UPDATED_NOMBRE).descripcion(UPDATED_DESCRIPCION).activo(UPDATED_ACTIVO);
         EstadoHabitacionDTO estadoHabitacionDTO = estadoHabitacionMapper.toDto(updatedEstadoHabitacion);
 
         restEstadoHabitacionMockMvc
@@ -314,6 +338,8 @@ class EstadoHabitacionResourceIT {
         EstadoHabitacion partialUpdatedEstadoHabitacion = new EstadoHabitacion();
         partialUpdatedEstadoHabitacion.setId(estadoHabitacion.getId());
 
+        partialUpdatedEstadoHabitacion.activo(UPDATED_ACTIVO);
+
         restEstadoHabitacionMockMvc
             .perform(
                 patch(ENTITY_API_URL_ID, partialUpdatedEstadoHabitacion.getId())
@@ -344,7 +370,7 @@ class EstadoHabitacionResourceIT {
         EstadoHabitacion partialUpdatedEstadoHabitacion = new EstadoHabitacion();
         partialUpdatedEstadoHabitacion.setId(estadoHabitacion.getId());
 
-        partialUpdatedEstadoHabitacion.nombre(UPDATED_NOMBRE).descripcion(UPDATED_DESCRIPCION);
+        partialUpdatedEstadoHabitacion.nombre(UPDATED_NOMBRE).descripcion(UPDATED_DESCRIPCION).activo(UPDATED_ACTIVO);
 
         restEstadoHabitacionMockMvc
             .perform(

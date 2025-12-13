@@ -24,6 +24,11 @@
     {
       "fieldName": "imagen",
       "fieldType": "String"
+    },
+    {
+      "fieldName": "activo",
+      "fieldType": "Boolean",
+      "fieldValidateRules": ["required"]
     }
   ],
   "microserviceName": "hotelApp",
@@ -31,14 +36,12 @@
   "pagination": "pagination",
   "relationships": [
     {
-      "otherEntityField": "nombre",
       "otherEntityName": "categoriaHabitacion",
       "relationshipName": "categoriaHabitacion",
       "relationshipSide": "left",
       "relationshipType": "many-to-one"
     },
     {
-      "otherEntityField": "nombre",
       "otherEntityName": "estadoHabitacion",
       "relationshipName": "estadoHabitacion",
       "relationshipSide": "left",

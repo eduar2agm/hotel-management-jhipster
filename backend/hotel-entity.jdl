@@ -46,6 +46,7 @@ entity Habitacion {
   capacidad Integer required
   descripcion String
   imagen String
+  activo Boolean required
 }
 
 entity Cliente {
@@ -57,6 +58,7 @@ entity Cliente {
   tipoIdentificacion TipoIdentificacion required
   numeroIdentificacion String required
   keycloakId String required
+  activo Boolean required
 }
 
 entity Reserva {
@@ -64,17 +66,20 @@ entity Reserva {
   fechaInicio Instant required
   fechaFin Instant required
   estado EstadoReserva required
+  activo Boolean required
 }
 
 entity ReservaDetalle {
   nota String
+  activo Boolean required
 }
 
 // ENTIDAD CORREGIDA
 entity CheckInCheckOut {
-  fechaHoraCheckIn ZonedDateTime required 
+  fechaHoraCheckIn ZonedDateTime required
   fechaHoraCheckOut ZonedDateTime
   estado EstadoCheckInCheckOut required
+  activo Boolean required
 }
 
 entity Pago {
@@ -82,17 +87,20 @@ entity Pago {
   monto BigDecimal required
   metodoPago MetodoPago required
   estado EstadoPago required
+  activo Boolean required
 }
 
 entity CategoriaHabitacion {
   nombre CategoriaHabitacionNombre required
   descripcion String
   precioBase BigDecimal required
+  activo Boolean required
 }
 
 entity EstadoHabitacion {
   nombre EstadoHabitacionNombre required
   descripcion String
+  activo Boolean required
 }
 
 // ===== MENSAJES DE SOPORTE =====
@@ -102,13 +110,15 @@ entity MensajeSoporte {
   userId String required
   userName String
   leido Boolean required
+  activo Boolean required
 }
 
 // -------------------- RELACIONES --------------------
 relationship ManyToOne {
-  Habitacion{categoriaHabitacion(nombre)} to CategoriaHabitacion
 
-  Habitacion{estadoHabitacion(nombre)} to EstadoHabitacion
+  Habitacion{categoriaHabitacion} to CategoriaHabitacion
+
+  Habitacion{estadoHabitacion} to EstadoHabitacion
 
   Reserva{cliente(nombre)} to Cliente
 

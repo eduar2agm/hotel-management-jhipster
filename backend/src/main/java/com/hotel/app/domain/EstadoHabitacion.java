@@ -29,6 +29,10 @@ public class EstadoHabitacion implements Serializable {
     @Column(name = "descripcion")
     private String descripcion;
 
+    @NotNull
+    @Column(name = "activo", nullable = false)
+    private Boolean activo;
+
     // jhipster-needle-entity-add-field - JHipster will add fields here
 
     public Long getId() {
@@ -70,6 +74,19 @@ public class EstadoHabitacion implements Serializable {
         this.descripcion = descripcion;
     }
 
+    public Boolean getActivo() {
+        return this.activo;
+    }
+
+    public EstadoHabitacion activo(Boolean activo) {
+        this.setActivo(activo);
+        return this;
+    }
+
+    public void setActivo(Boolean activo) {
+        this.activo = activo;
+    }
+
     // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
 
     @Override
@@ -96,6 +113,7 @@ public class EstadoHabitacion implements Serializable {
             "id=" + getId() +
             ", nombre='" + getNombre() + "'" +
             ", descripcion='" + getDescripcion() + "'" +
+            ", activo='" + getActivo() + "'" +
             "}";
     }
 }

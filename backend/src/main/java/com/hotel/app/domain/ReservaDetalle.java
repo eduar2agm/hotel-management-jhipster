@@ -2,6 +2,7 @@ package com.hotel.app.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 import java.io.Serializable;
 
 /**
@@ -22,6 +23,10 @@ public class ReservaDetalle implements Serializable {
 
     @Column(name = "nota")
     private String nota;
+
+    @NotNull
+    @Column(name = "activo", nullable = false)
+    private Boolean activo;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JsonIgnoreProperties(value = { "cliente" }, allowSetters = true)
@@ -57,6 +62,19 @@ public class ReservaDetalle implements Serializable {
 
     public void setNota(String nota) {
         this.nota = nota;
+    }
+
+    public Boolean getActivo() {
+        return this.activo;
+    }
+
+    public ReservaDetalle activo(Boolean activo) {
+        this.setActivo(activo);
+        return this;
+    }
+
+    public void setActivo(Boolean activo) {
+        this.activo = activo;
     }
 
     public Reserva getReserva() {
@@ -110,6 +128,7 @@ public class ReservaDetalle implements Serializable {
         return "ReservaDetalle{" +
             "id=" + getId() +
             ", nota='" + getNota() + "'" +
+            ", activo='" + getActivo() + "'" +
             "}";
     }
 }

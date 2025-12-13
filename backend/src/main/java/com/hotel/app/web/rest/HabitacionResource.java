@@ -139,21 +139,12 @@ public class HabitacionResource {
      * {@code GET  /habitacions} : get all the habitacions.
      *
      * @param pageable the pagination information.
-     * @param eagerload flag to eager load entities from relationships (This is applicable for many-to-many).
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of habitacions in body.
      */
     @GetMapping("")
-    public ResponseEntity<List<HabitacionDTO>> getAllHabitacions(
-        @org.springdoc.core.annotations.ParameterObject Pageable pageable,
-        @RequestParam(name = "eagerload", required = false, defaultValue = "true") boolean eagerload
-    ) {
+    public ResponseEntity<List<HabitacionDTO>> getAllHabitacions(@org.springdoc.core.annotations.ParameterObject Pageable pageable) {
         LOG.debug("REST request to get a page of Habitacions");
-        Page<HabitacionDTO> page;
-        if (eagerload) {
-            page = habitacionService.findAllWithEagerRelationships(pageable);
-        } else {
-            page = habitacionService.findAll(pageable);
-        }
+        Page<HabitacionDTO> page = habitacionService.findAll(pageable);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
         return ResponseEntity.ok().headers(headers).body(page.getContent());
     }

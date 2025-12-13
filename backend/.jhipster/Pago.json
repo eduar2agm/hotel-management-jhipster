@@ -28,6 +28,11 @@
       "fieldType": "EstadoPago",
       "fieldValidateRules": ["required"],
       "fieldValues": "PENDIENTE,COMPLETADO,RECHAZADO"
+    },
+    {
+      "fieldName": "activo",
+      "fieldType": "Boolean",
+      "fieldValidateRules": ["required"]
     }
   ],
   "microserviceName": "hotelApp",

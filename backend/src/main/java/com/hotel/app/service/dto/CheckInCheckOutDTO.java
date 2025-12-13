@@ -22,6 +22,9 @@ public class CheckInCheckOutDTO implements Serializable {
     @NotNull
     private EstadoCheckInCheckOut estado;
 
+    @NotNull
+    private Boolean activo;
+
     private ReservaDetalleDTO reservaDetalle;
 
     public Long getId() {
@@ -54,6 +57,14 @@ public class CheckInCheckOutDTO implements Serializable {
 
     public void setEstado(EstadoCheckInCheckOut estado) {
         this.estado = estado;
+    }
+
+    public Boolean getActivo() {
+        return activo;
+    }
+
+    public void setActivo(Boolean activo) {
+        this.activo = activo;
     }
 
     public ReservaDetalleDTO getReservaDetalle() {
@@ -93,6 +104,7 @@ public class CheckInCheckOutDTO implements Serializable {
             ", fechaHoraCheckIn='" + getFechaHoraCheckIn() + "'" +
             ", fechaHoraCheckOut='" + getFechaHoraCheckOut() + "'" +
             ", estado='" + getEstado() + "'" +
+            ", activo='" + getActivo() + "'" +
             ", reservaDetalle=" + getReservaDetalle() +
             "}";
     }

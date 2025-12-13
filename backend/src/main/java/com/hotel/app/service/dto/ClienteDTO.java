@@ -36,6 +36,9 @@ public class ClienteDTO implements Serializable {
     @NotNull
     private String keycloakId;
 
+    @NotNull
+    private Boolean activo;
+
     public Long getId() {
         return id;
     }
@@ -108,6 +111,14 @@ public class ClienteDTO implements Serializable {
         this.keycloakId = keycloakId;
     }
 
+    public Boolean getActivo() {
+        return activo;
+    }
+
+    public void setActivo(Boolean activo) {
+        this.activo = activo;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -142,6 +153,7 @@ public class ClienteDTO implements Serializable {
             ", tipoIdentificacion='" + getTipoIdentificacion() + "'" +
             ", numeroIdentificacion='" + getNumeroIdentificacion() + "'" +
             ", keycloakId='" + getKeycloakId() + "'" +
+            ", activo='" + getActivo() + "'" +
             "}";
     }
 }

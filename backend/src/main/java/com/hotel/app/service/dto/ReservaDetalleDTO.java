@@ -1,5 +1,6 @@
 package com.hotel.app.service.dto;
 
+import jakarta.validation.constraints.*;
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -12,6 +13,9 @@ public class ReservaDetalleDTO implements Serializable {
     private Long id;
 
     private String nota;
+
+    @NotNull
+    private Boolean activo;
 
     private ReservaDTO reserva;
 
@@ -31,6 +35,14 @@ public class ReservaDetalleDTO implements Serializable {
 
     public void setNota(String nota) {
         this.nota = nota;
+    }
+
+    public Boolean getActivo() {
+        return activo;
+    }
+
+    public void setActivo(Boolean activo) {
+        this.activo = activo;
     }
 
     public ReservaDTO getReserva() {
@@ -76,6 +88,7 @@ public class ReservaDetalleDTO implements Serializable {
         return "ReservaDetalleDTO{" +
             "id=" + getId() +
             ", nota='" + getNota() + "'" +
+            ", activo='" + getActivo() + "'" +
             ", reserva=" + getReserva() +
             ", habitacion=" + getHabitacion() +
             "}";

@@ -43,6 +43,10 @@ public class Pago implements Serializable {
     @Column(name = "estado", nullable = false)
     private EstadoPago estado;
 
+    @NotNull
+    @Column(name = "activo", nullable = false)
+    private Boolean activo;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JsonIgnoreProperties(value = { "cliente" }, allowSetters = true)
     private Reserva reserva;
@@ -114,6 +118,19 @@ public class Pago implements Serializable {
         this.estado = estado;
     }
 
+    public Boolean getActivo() {
+        return this.activo;
+    }
+
+    public Pago activo(Boolean activo) {
+        this.setActivo(activo);
+        return this;
+    }
+
+    public void setActivo(Boolean activo) {
+        this.activo = activo;
+    }
+
     public Reserva getReserva() {
         return this.reserva;
     }
@@ -155,6 +172,7 @@ public class Pago implements Serializable {
             ", monto=" + getMonto() +
             ", metodoPago='" + getMetodoPago() + "'" +
             ", estado='" + getEstado() + "'" +
+            ", activo='" + getActivo() + "'" +
             "}";
     }
 }

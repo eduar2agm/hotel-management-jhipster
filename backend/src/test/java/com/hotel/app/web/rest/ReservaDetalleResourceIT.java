@@ -47,6 +47,9 @@ class ReservaDetalleResourceIT {
     private static final String DEFAULT_NOTA = "AAAAAAAAAA";
     private static final String UPDATED_NOTA = "BBBBBBBBBB";
 
+    private static final Boolean DEFAULT_ACTIVO = false;
+    private static final Boolean UPDATED_ACTIVO = true;
+
     private static final String ENTITY_API_URL = "/api/reserva-detalles";
     private static final String ENTITY_API_URL_ID = ENTITY_API_URL + "/{id}";
 
@@ -85,7 +88,7 @@ class ReservaDetalleResourceIT {
      * if they test an entity which requires the current entity.
      */
     public static ReservaDetalle createEntity() {
-        return new ReservaDetalle().nota(DEFAULT_NOTA);
+        return new ReservaDetalle().nota(DEFAULT_NOTA).activo(DEFAULT_ACTIVO);
     }
 
     /**
@@ -95,7 +98,7 @@ class ReservaDetalleResourceIT {
      * if they test an entity which requires the current entity.
      */
     public static ReservaDetalle createUpdatedEntity() {
-        return new ReservaDetalle().nota(UPDATED_NOTA);
+        return new ReservaDetalle().nota(UPDATED_NOTA).activo(UPDATED_ACTIVO);
     }
 
     @BeforeEach
@@ -162,6 +165,25 @@ class ReservaDetalleResourceIT {
 
     @Test
     @Transactional
+    void checkActivoIsRequired() throws Exception {
+        long databaseSizeBeforeTest = getRepositoryCount();
+        // set the field null
+        reservaDetalle.setActivo(null);
+
+        // Create the ReservaDetalle, which fails.
+        ReservaDetalleDTO reservaDetalleDTO = reservaDetalleMapper.toDto(reservaDetalle);
+
+        restReservaDetalleMockMvc
+            .perform(
+                post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(reservaDetalleDTO))
+            )
+            .andExpect(status().isBadRequest());
+
+        assertSameRepositoryCount(databaseSizeBeforeTest);
+    }
+
+    @Test
+    @Transactional
     void getAllReservaDetalles() throws Exception {
         // Initialize the database
         insertedReservaDetalle = reservaDetalleRepository.saveAndFlush(reservaDetalle);
@@ -172,7 +194,8 @@ class ReservaDetalleResourceIT {
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(reservaDetalle.getId().intValue())))
-            .andExpect(jsonPath("$.[*].nota").value(hasItem(DEFAULT_NOTA)));
+            .andExpect(jsonPath("$.[*].nota").value(hasItem(DEFAULT_NOTA)))
+            .andExpect(jsonPath("$.[*].activo").value(hasItem(DEFAULT_ACTIVO)));
     }
 
     @SuppressWarnings({ "unchecked" })
@@ -204,7 +227,8 @@ class ReservaDetalleResourceIT {
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.id").value(reservaDetalle.getId().intValue()))
-            .andExpect(jsonPath("$.nota").value(DEFAULT_NOTA));
+            .andExpect(jsonPath("$.nota").value(DEFAULT_NOTA))
+            .andExpect(jsonPath("$.activo").value(DEFAULT_ACTIVO));
     }
 
     @Test
@@ -226,7 +250,7 @@ class ReservaDetalleResourceIT {
         ReservaDetalle updatedReservaDetalle = reservaDetalleRepository.findById(reservaDetalle.getId()).orElseThrow();
         // Disconnect from session so that the updates on updatedReservaDetalle are not directly saved in db
         em.detach(updatedReservaDetalle);
-        updatedReservaDetalle.nota(UPDATED_NOTA);
+        updatedReservaDetalle.nota(UPDATED_NOTA).activo(UPDATED_ACTIVO);
         ReservaDetalleDTO reservaDetalleDTO = reservaDetalleMapper.toDto(updatedReservaDetalle);
 
         restReservaDetalleMockMvc
@@ -353,7 +377,7 @@ class ReservaDetalleResourceIT {
         ReservaDetalle partialUpdatedReservaDetalle = new ReservaDetalle();
         partialUpdatedReservaDetalle.setId(reservaDetalle.getId());
 
-        partialUpdatedReservaDetalle.nota(UPDATED_NOTA);
+        partialUpdatedReservaDetalle.nota(UPDATED_NOTA).activo(UPDATED_ACTIVO);
 
         restReservaDetalleMockMvc
             .perform(

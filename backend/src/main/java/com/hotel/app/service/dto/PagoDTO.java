@@ -28,6 +28,9 @@ public class PagoDTO implements Serializable {
     @NotNull
     private EstadoPago estado;
 
+    @NotNull
+    private Boolean activo;
+
     private ReservaDTO reserva;
 
     public Long getId() {
@@ -70,6 +73,14 @@ public class PagoDTO implements Serializable {
         this.estado = estado;
     }
 
+    public Boolean getActivo() {
+        return activo;
+    }
+
+    public void setActivo(Boolean activo) {
+        this.activo = activo;
+    }
+
     public ReservaDTO getReserva() {
         return reserva;
     }
@@ -108,6 +119,7 @@ public class PagoDTO implements Serializable {
             ", monto=" + getMonto() +
             ", metodoPago='" + getMetodoPago() + "'" +
             ", estado='" + getEstado() + "'" +
+            ", activo='" + getActivo() + "'" +
             ", reserva=" + getReserva() +
             "}";
     }

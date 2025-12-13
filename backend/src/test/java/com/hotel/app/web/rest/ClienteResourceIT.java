@@ -60,6 +60,9 @@ class ClienteResourceIT {
     private static final String DEFAULT_KEYCLOAK_ID = "AAAAAAAAAA";
     private static final String UPDATED_KEYCLOAK_ID = "BBBBBBBBBB";
 
+    private static final Boolean DEFAULT_ACTIVO = false;
+    private static final Boolean UPDATED_ACTIVO = true;
+
     private static final String ENTITY_API_URL = "/api/clientes";
     private static final String ENTITY_API_URL_ID = ENTITY_API_URL + "/{id}";
 
@@ -100,7 +103,8 @@ class ClienteResourceIT {
             .direccion(DEFAULT_DIRECCION)
             .tipoIdentificacion(DEFAULT_TIPO_IDENTIFICACION)
             .numeroIdentificacion(DEFAULT_NUMERO_IDENTIFICACION)
-            .keycloakId(DEFAULT_KEYCLOAK_ID);
+            .keycloakId(DEFAULT_KEYCLOAK_ID)
+            .activo(DEFAULT_ACTIVO);
     }
 
     /**
@@ -118,7 +122,8 @@ class ClienteResourceIT {
             .direccion(UPDATED_DIRECCION)
             .tipoIdentificacion(UPDATED_TIPO_IDENTIFICACION)
             .numeroIdentificacion(UPDATED_NUMERO_IDENTIFICACION)
-            .keycloakId(UPDATED_KEYCLOAK_ID);
+            .keycloakId(UPDATED_KEYCLOAK_ID)
+            .activo(UPDATED_ACTIVO);
     }
 
     @BeforeEach
@@ -299,6 +304,23 @@ class ClienteResourceIT {
 
     @Test
     @Transactional
+    void checkActivoIsRequired() throws Exception {
+        long databaseSizeBeforeTest = getRepositoryCount();
+        // set the field null
+        cliente.setActivo(null);
+
+        // Create the Cliente, which fails.
+        ClienteDTO clienteDTO = clienteMapper.toDto(cliente);
+
+        restClienteMockMvc
+            .perform(post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(clienteDTO)))
+            .andExpect(status().isBadRequest());
+
+        assertSameRepositoryCount(databaseSizeBeforeTest);
+    }
+
+    @Test
+    @Transactional
     void getAllClientes() throws Exception {
         // Initialize the database
         insertedCliente = clienteRepository.saveAndFlush(cliente);
@@ -316,7 +338,8 @@ class ClienteResourceIT {
             .andExpect(jsonPath("$.[*].direccion").value(hasItem(DEFAULT_DIRECCION)))
             .andExpect(jsonPath("$.[*].tipoIdentificacion").value(hasItem(DEFAULT_TIPO_IDENTIFICACION.toString())))
             .andExpect(jsonPath("$.[*].numeroIdentificacion").value(hasItem(DEFAULT_NUMERO_IDENTIFICACION)))
-            .andExpect(jsonPath("$.[*].keycloakId").value(hasItem(DEFAULT_KEYCLOAK_ID)));
+            .andExpect(jsonPath("$.[*].keycloakId").value(hasItem(DEFAULT_KEYCLOAK_ID)))
+            .andExpect(jsonPath("$.[*].activo").value(hasItem(DEFAULT_ACTIVO)));
     }
 
     @Test
@@ -338,7 +361,8 @@ class ClienteResourceIT {
             .andExpect(jsonPath("$.direccion").value(DEFAULT_DIRECCION))
             .andExpect(jsonPath("$.tipoIdentificacion").value(DEFAULT_TIPO_IDENTIFICACION.toString()))
             .andExpect(jsonPath("$.numeroIdentificacion").value(DEFAULT_NUMERO_IDENTIFICACION))
-            .andExpect(jsonPath("$.keycloakId").value(DEFAULT_KEYCLOAK_ID));
+            .andExpect(jsonPath("$.keycloakId").value(DEFAULT_KEYCLOAK_ID))
+            .andExpect(jsonPath("$.activo").value(DEFAULT_ACTIVO));
     }
 
     @Test
@@ -368,7 +392,8 @@ class ClienteResourceIT {
             .direccion(UPDATED_DIRECCION)
             .tipoIdentificacion(UPDATED_TIPO_IDENTIFICACION)
             .numeroIdentificacion(UPDATED_NUMERO_IDENTIFICACION)
-            .keycloakId(UPDATED_KEYCLOAK_ID);
+            .keycloakId(UPDATED_KEYCLOAK_ID)
+            .activo(UPDATED_ACTIVO);
         ClienteDTO clienteDTO = clienteMapper.toDto(updatedCliente);
 
         restClienteMockMvc
@@ -498,7 +523,8 @@ class ClienteResourceIT {
             .direccion(UPDATED_DIRECCION)
             .tipoIdentificacion(UPDATED_TIPO_IDENTIFICACION)
             .numeroIdentificacion(UPDATED_NUMERO_IDENTIFICACION)
-            .keycloakId(UPDATED_KEYCLOAK_ID);
+            .keycloakId(UPDATED_KEYCLOAK_ID)
+            .activo(UPDATED_ACTIVO);
 
         restClienteMockMvc
             .perform(

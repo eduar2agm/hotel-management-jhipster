@@ -55,7 +55,8 @@ public class CategoriaHabitacionAsserts {
                     .as("check precioBase")
                     .usingComparator(bigDecimalCompareTo)
                     .isEqualTo(expected.getPrecioBase())
-            );
+            )
+            .satisfies(a -> assertThat(a.getActivo()).as("check activo").isEqualTo(expected.getActivo()));
     }
 
     /**

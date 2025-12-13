@@ -21,6 +21,11 @@
       "fieldType": "EstadoCheckInCheckOut",
       "fieldValidateRules": ["required"],
       "fieldValues": "PENDIENTE,REALIZADO,RETRASADO"
+    },
+    {
+      "fieldName": "activo",
+      "fieldType": "Boolean",
+      "fieldValidateRules": ["required"]
     }
   ],
   "microserviceName": "hotelApp",

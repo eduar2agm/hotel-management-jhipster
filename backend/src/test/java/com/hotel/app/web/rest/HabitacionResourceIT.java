@@ -4,7 +4,6 @@ import static com.hotel.app.domain.HabitacionAsserts.*;
 import static com.hotel.app.web.rest.TestUtil.createUpdateProxyForBean;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasItem;
-import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -13,23 +12,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hotel.app.IntegrationTest;
 import com.hotel.app.domain.Habitacion;
 import com.hotel.app.repository.HabitacionRepository;
-import com.hotel.app.service.HabitacionService;
 import com.hotel.app.service.dto.HabitacionDTO;
 import com.hotel.app.service.mapper.HabitacionMapper;
 import jakarta.persistence.EntityManager;
-import java.util.ArrayList;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
@@ -39,7 +31,6 @@ import org.springframework.transaction.annotation.Transactional;
  * Integration tests for the {@link HabitacionResource} REST controller.
  */
 @IntegrationTest
-@ExtendWith(MockitoExtension.class)
 @AutoConfigureMockMvc
 @WithMockUser
 class HabitacionResourceIT {
@@ -56,6 +47,9 @@ class HabitacionResourceIT {
     private static final String DEFAULT_IMAGEN = "AAAAAAAAAA";
     private static final String UPDATED_IMAGEN = "BBBBBBBBBB";
 
+    private static final Boolean DEFAULT_ACTIVO = false;
+    private static final Boolean UPDATED_ACTIVO = true;
+
     private static final String ENTITY_API_URL = "/api/habitacions";
     private static final String ENTITY_API_URL_ID = ENTITY_API_URL + "/{id}";
 
@@ -68,14 +62,8 @@ class HabitacionResourceIT {
     @Autowired
     private HabitacionRepository habitacionRepository;
 
-    @Mock
-    private HabitacionRepository habitacionRepositoryMock;
-
     @Autowired
     private HabitacionMapper habitacionMapper;
-
-    @Mock
-    private HabitacionService habitacionServiceMock;
 
     @Autowired
     private EntityManager em;
@@ -94,7 +82,12 @@ class HabitacionResourceIT {
      * if they test an entity which requires the current entity.
      */
     public static Habitacion createEntity() {
-        return new Habitacion().numero(DEFAULT_NUMERO).capacidad(DEFAULT_CAPACIDAD).descripcion(DEFAULT_DESCRIPCION).imagen(DEFAULT_IMAGEN);
+        return new Habitacion()
+            .numero(DEFAULT_NUMERO)
+            .capacidad(DEFAULT_CAPACIDAD)
+            .descripcion(DEFAULT_DESCRIPCION)
+            .imagen(DEFAULT_IMAGEN)
+            .activo(DEFAULT_ACTIVO);
     }
 
     /**
@@ -104,7 +97,12 @@ class HabitacionResourceIT {
      * if they test an entity which requires the current entity.
      */
     public static Habitacion createUpdatedEntity() {
-        return new Habitacion().numero(UPDATED_NUMERO).capacidad(UPDATED_CAPACIDAD).descripcion(UPDATED_DESCRIPCION).imagen(UPDATED_IMAGEN);
+        return new Habitacion()
+            .numero(UPDATED_NUMERO)
+            .capacidad(UPDATED_CAPACIDAD)
+            .descripcion(UPDATED_DESCRIPCION)
+            .imagen(UPDATED_IMAGEN)
+            .activo(UPDATED_ACTIVO);
     }
 
     @BeforeEach
@@ -200,6 +198,23 @@ class HabitacionResourceIT {
 
     @Test
     @Transactional
+    void checkActivoIsRequired() throws Exception {
+        long databaseSizeBeforeTest = getRepositoryCount();
+        // set the field null
+        habitacion.setActivo(null);
+
+        // Create the Habitacion, which fails.
+        HabitacionDTO habitacionDTO = habitacionMapper.toDto(habitacion);
+
+        restHabitacionMockMvc
+            .perform(post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(habitacionDTO)))
+            .andExpect(status().isBadRequest());
+
+        assertSameRepositoryCount(databaseSizeBeforeTest);
+    }
+
+    @Test
+    @Transactional
     void getAllHabitacions() throws Exception {
         // Initialize the database
         insertedHabitacion = habitacionRepository.saveAndFlush(habitacion);
@@ -213,24 +228,8 @@ class HabitacionResourceIT {
             .andExpect(jsonPath("$.[*].numero").value(hasItem(DEFAULT_NUMERO)))
             .andExpect(jsonPath("$.[*].capacidad").value(hasItem(DEFAULT_CAPACIDAD)))
             .andExpect(jsonPath("$.[*].descripcion").value(hasItem(DEFAULT_DESCRIPCION)))
-            .andExpect(jsonPath("$.[*].imagen").value(hasItem(DEFAULT_IMAGEN)));
-    }
-
-    @SuppressWarnings({ "unchecked" })
-    void getAllHabitacionsWithEagerRelationshipsIsEnabled() throws Exception {
-        when(habitacionServiceMock.findAllWithEagerRelationships(any())).thenReturn(new PageImpl(new ArrayList<>()));
-
-        restHabitacionMockMvc.perform(get(ENTITY_API_URL + "?eagerload=true")).andExpect(status().isOk());
-
-        verify(habitacionServiceMock, times(1)).findAllWithEagerRelationships(any());
-    }
-
-    @SuppressWarnings({ "unchecked" })
-    void getAllHabitacionsWithEagerRelationshipsIsNotEnabled() throws Exception {
-        when(habitacionServiceMock.findAllWithEagerRelationships(any())).thenReturn(new PageImpl(new ArrayList<>()));
-
-        restHabitacionMockMvc.perform(get(ENTITY_API_URL + "?eagerload=false")).andExpect(status().isOk());
-        verify(habitacionRepositoryMock, times(1)).findAll(any(Pageable.class));
+            .andExpect(jsonPath("$.[*].imagen").value(hasItem(DEFAULT_IMAGEN)))
+            .andExpect(jsonPath("$.[*].activo").value(hasItem(DEFAULT_ACTIVO)));
     }
 
     @Test
@@ -248,7 +247,8 @@ class HabitacionResourceIT {
             .andExpect(jsonPath("$.numero").value(DEFAULT_NUMERO))
             .andExpect(jsonPath("$.capacidad").value(DEFAULT_CAPACIDAD))
             .andExpect(jsonPath("$.descripcion").value(DEFAULT_DESCRIPCION))
-            .andExpect(jsonPath("$.imagen").value(DEFAULT_IMAGEN));
+            .andExpect(jsonPath("$.imagen").value(DEFAULT_IMAGEN))
+            .andExpect(jsonPath("$.activo").value(DEFAULT_ACTIVO));
     }
 
     @Test
@@ -270,7 +270,12 @@ class HabitacionResourceIT {
         Habitacion updatedHabitacion = habitacionRepository.findById(habitacion.getId()).orElseThrow();
         // Disconnect from session so that the updates on updatedHabitacion are not directly saved in db
         em.detach(updatedHabitacion);
-        updatedHabitacion.numero(UPDATED_NUMERO).capacidad(UPDATED_CAPACIDAD).descripcion(UPDATED_DESCRIPCION).imagen(UPDATED_IMAGEN);
+        updatedHabitacion
+            .numero(UPDATED_NUMERO)
+            .capacidad(UPDATED_CAPACIDAD)
+            .descripcion(UPDATED_DESCRIPCION)
+            .imagen(UPDATED_IMAGEN)
+            .activo(UPDATED_ACTIVO);
         HabitacionDTO habitacionDTO = habitacionMapper.toDto(updatedHabitacion);
 
         restHabitacionMockMvc
@@ -363,6 +368,8 @@ class HabitacionResourceIT {
         Habitacion partialUpdatedHabitacion = new Habitacion();
         partialUpdatedHabitacion.setId(habitacion.getId());
 
+        partialUpdatedHabitacion.activo(UPDATED_ACTIVO);
+
         restHabitacionMockMvc
             .perform(
                 patch(ENTITY_API_URL_ID, partialUpdatedHabitacion.getId())
@@ -397,7 +404,8 @@ class HabitacionResourceIT {
             .numero(UPDATED_NUMERO)
             .capacidad(UPDATED_CAPACIDAD)
             .descripcion(UPDATED_DESCRIPCION)
-            .imagen(UPDATED_IMAGEN);
+            .imagen(UPDATED_IMAGEN)
+            .activo(UPDATED_ACTIVO);
 
         restHabitacionMockMvc
             .perform(

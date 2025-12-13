@@ -1,11 +1,11 @@
-id;nombre;descripcion
-1;MANTENIMIENTO;dazzling qua outdo
-2;MANTENIMIENTO;cash irritably
-3;OCUPADA;premeditation
-4;OCUPADA;and yahoo pace
-5;DISPONIBLE;newsletter as
-6;OCUPADA;joshingly worth disk
-7;MANTENIMIENTO;sunbeam
-8;DISPONIBLE;reorient
-9;MANTENIMIENTO;inasmuch
-10;OCUPADA;deliberately which
+id;nombre;descripcion;activo
+1;MANTENIMIENTO;dazzling qua outdo;false
+2;OCUPADA;during notwithstanding uh-huh;false
+3;OCUPADA;and yahoo pace;true
+4;OCUPADA;along;false
+5;MANTENIMIENTO;slide;false
+6;OCUPADA;eek;true
+7;MANTENIMIENTO;to exonerate;false
+8;DISPONIBLE;reorient;false
+9;DISPONIBLE;provided;false
+10;MANTENIMIENTO;who mom;false

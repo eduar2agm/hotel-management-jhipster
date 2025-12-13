@@ -39,6 +39,10 @@ public class Reserva implements Serializable {
     @Column(name = "estado", nullable = false)
     private EstadoReserva estado;
 
+    @NotNull
+    @Column(name = "activo", nullable = false)
+    private Boolean activo;
+
     @ManyToOne(fetch = FetchType.LAZY)
     private Cliente cliente;
 
@@ -109,6 +113,19 @@ public class Reserva implements Serializable {
         this.estado = estado;
     }
 
+    public Boolean getActivo() {
+        return this.activo;
+    }
+
+    public Reserva activo(Boolean activo) {
+        this.setActivo(activo);
+        return this;
+    }
+
+    public void setActivo(Boolean activo) {
+        this.activo = activo;
+    }
+
     public Cliente getCliente() {
         return this.cliente;
     }
@@ -150,6 +167,7 @@ public class Reserva implements Serializable {
             ", fechaInicio='" + getFechaInicio() + "'" +
             ", fechaFin='" + getFechaFin() + "'" +
             ", estado='" + getEstado() + "'" +
+            ", activo='" + getActivo() + "'" +
             "}";
     }
 }
