@@ -18,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import tech.jhipster.web.util.HeaderUtil;
@@ -54,6 +55,7 @@ public class CheckInCheckOutResource {
      * @return the {@link ResponseEntity} with status {@code 201 (Created)} and with body the new checkInCheckOutDTO, or with status {@code 400 (Bad Request)} if the checkInCheckOut has already an ID.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_EMPLOYEE')")
     @PostMapping("")
     public ResponseEntity<CheckInCheckOutDTO> createCheckInCheckOut(@Valid @RequestBody CheckInCheckOutDTO checkInCheckOutDTO)
         throws URISyntaxException {
@@ -77,6 +79,7 @@ public class CheckInCheckOutResource {
      * or with status {@code 500 (Internal Server Error)} if the checkInCheckOutDTO couldn't be updated.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_EMPLOYEE')")
     @PutMapping("/{id}")
     public ResponseEntity<CheckInCheckOutDTO> updateCheckInCheckOut(
         @PathVariable(value = "id", required = false) final Long id,
@@ -111,6 +114,7 @@ public class CheckInCheckOutResource {
      * or with status {@code 500 (Internal Server Error)} if the checkInCheckOutDTO couldn't be updated.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_EMPLOYEE')")
     @PatchMapping(value = "/{id}", consumes = { "application/json", "application/merge-patch+json" })
     public ResponseEntity<CheckInCheckOutDTO> partialUpdateCheckInCheckOut(
         @PathVariable(value = "id", required = false) final Long id,
@@ -142,6 +146,7 @@ public class CheckInCheckOutResource {
      * @param pageable the pagination information.
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of checkInCheckOuts in body.
      */
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_EMPLOYEE', 'ROLE_CLIENT')")
     @GetMapping("")
     public ResponseEntity<List<CheckInCheckOutDTO>> getAllCheckInCheckOuts(
         @org.springdoc.core.annotations.ParameterObject Pageable pageable
@@ -158,6 +163,7 @@ public class CheckInCheckOutResource {
      * @param id the id of the checkInCheckOutDTO to retrieve.
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the checkInCheckOutDTO, or with status {@code 404 (Not Found)}.
      */
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_EMPLOYEE', 'ROLE_CLIENT')")
     @GetMapping("/{id}")
     public ResponseEntity<CheckInCheckOutDTO> getCheckInCheckOut(@PathVariable("id") Long id) {
         LOG.debug("REST request to get CheckInCheckOut : {}", id);
@@ -171,6 +177,7 @@ public class CheckInCheckOutResource {
      * @param id the id of the checkInCheckOutDTO to delete.
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
      */
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCheckInCheckOut(@PathVariable("id") Long id) {
         LOG.debug("REST request to delete CheckInCheckOut : {}", id);

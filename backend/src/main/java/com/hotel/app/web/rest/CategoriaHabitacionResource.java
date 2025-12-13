@@ -18,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import tech.jhipster.web.util.HeaderUtil;
@@ -57,6 +58,7 @@ public class CategoriaHabitacionResource {
      * @return the {@link ResponseEntity} with status {@code 201 (Created)} and with body the new categoriaHabitacionDTO, or with status {@code 400 (Bad Request)} if the categoriaHabitacion has already an ID.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @PostMapping("")
     public ResponseEntity<CategoriaHabitacionDTO> createCategoriaHabitacion(
         @Valid @RequestBody CategoriaHabitacionDTO categoriaHabitacionDTO
@@ -81,6 +83,7 @@ public class CategoriaHabitacionResource {
      * or with status {@code 500 (Internal Server Error)} if the categoriaHabitacionDTO couldn't be updated.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<CategoriaHabitacionDTO> updateCategoriaHabitacion(
         @PathVariable(value = "id", required = false) final Long id,
@@ -115,6 +118,7 @@ public class CategoriaHabitacionResource {
      * or with status {@code 500 (Internal Server Error)} if the categoriaHabitacionDTO couldn't be updated.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_EMPLOYEE')")
     @PatchMapping(value = "/{id}", consumes = { "application/json", "application/merge-patch+json" })
     public ResponseEntity<CategoriaHabitacionDTO> partialUpdateCategoriaHabitacion(
         @PathVariable(value = "id", required = false) final Long id,
@@ -146,6 +150,7 @@ public class CategoriaHabitacionResource {
      * @param pageable the pagination information.
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of categoriaHabitacions in body.
      */
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_EMPLOYEE', 'ROLE_CLIENT')")
     @GetMapping("")
     public ResponseEntity<List<CategoriaHabitacionDTO>> getAllCategoriaHabitacions(
         @org.springdoc.core.annotations.ParameterObject Pageable pageable
@@ -162,6 +167,7 @@ public class CategoriaHabitacionResource {
      * @param id the id of the categoriaHabitacionDTO to retrieve.
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the categoriaHabitacionDTO, or with status {@code 404 (Not Found)}.
      */
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_EMPLOYEE', 'ROLE_CLIENT')")
     @GetMapping("/{id}")
     public ResponseEntity<CategoriaHabitacionDTO> getCategoriaHabitacion(@PathVariable("id") Long id) {
         LOG.debug("REST request to get CategoriaHabitacion : {}", id);
@@ -175,6 +181,7 @@ public class CategoriaHabitacionResource {
      * @param id the id of the categoriaHabitacionDTO to delete.
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
      */
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCategoriaHabitacion(@PathVariable("id") Long id) {
         LOG.debug("REST request to delete CategoriaHabitacion : {}", id);

@@ -18,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import tech.jhipster.web.util.HeaderUtil;
@@ -43,9 +44,8 @@ public class EstadoHabitacionResource {
     private final EstadoHabitacionRepository estadoHabitacionRepository;
 
     public EstadoHabitacionResource(
-        EstadoHabitacionService estadoHabitacionService,
-        EstadoHabitacionRepository estadoHabitacionRepository
-    ) {
+            EstadoHabitacionService estadoHabitacionService,
+            EstadoHabitacionRepository estadoHabitacionRepository) {
         this.estadoHabitacionService = estadoHabitacionService;
         this.estadoHabitacionRepository = estadoHabitacionRepository;
     }
@@ -54,37 +54,46 @@ public class EstadoHabitacionResource {
      * {@code POST  /estado-habitacions} : Create a new estadoHabitacion.
      *
      * @param estadoHabitacionDTO the estadoHabitacionDTO to create.
-     * @return the {@link ResponseEntity} with status {@code 201 (Created)} and with body the new estadoHabitacionDTO, or with status {@code 400 (Bad Request)} if the estadoHabitacion has already an ID.
+     * @return the {@link ResponseEntity} with status {@code 201 (Created)} and with
+     *         body the new estadoHabitacionDTO, or with status
+     *         {@code 400 (Bad Request)} if the estadoHabitacion has already an ID.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
     @PostMapping("")
-    public ResponseEntity<EstadoHabitacionDTO> createEstadoHabitacion(@Valid @RequestBody EstadoHabitacionDTO estadoHabitacionDTO)
-        throws URISyntaxException {
+    public ResponseEntity<EstadoHabitacionDTO> createEstadoHabitacion(
+            @Valid @RequestBody EstadoHabitacionDTO estadoHabitacionDTO)
+            throws URISyntaxException {
         LOG.debug("REST request to save EstadoHabitacion : {}", estadoHabitacionDTO);
         if (estadoHabitacionDTO.getId() != null) {
-            throw new BadRequestAlertException("A new estadoHabitacion cannot already have an ID", ENTITY_NAME, "idexists");
+            throw new BadRequestAlertException("A new estadoHabitacion cannot already have an ID", ENTITY_NAME,
+                    "idexists");
         }
         estadoHabitacionDTO = estadoHabitacionService.save(estadoHabitacionDTO);
         return ResponseEntity.created(new URI("/api/estado-habitacions/" + estadoHabitacionDTO.getId()))
-            .headers(HeaderUtil.createEntityCreationAlert(applicationName, false, ENTITY_NAME, estadoHabitacionDTO.getId().toString()))
-            .body(estadoHabitacionDTO);
+                .headers(HeaderUtil.createEntityCreationAlert(applicationName, false, ENTITY_NAME,
+                        estadoHabitacionDTO.getId().toString()))
+                .body(estadoHabitacionDTO);
     }
 
     /**
      * {@code PUT  /estado-habitacions/:id} : Updates an existing estadoHabitacion.
      *
-     * @param id the id of the estadoHabitacionDTO to save.
+     * @param id                  the id of the estadoHabitacionDTO to save.
      * @param estadoHabitacionDTO the estadoHabitacionDTO to update.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated estadoHabitacionDTO,
-     * or with status {@code 400 (Bad Request)} if the estadoHabitacionDTO is not valid,
-     * or with status {@code 500 (Internal Server Error)} if the estadoHabitacionDTO couldn't be updated.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body
+     *         the updated estadoHabitacionDTO,
+     *         or with status {@code 400 (Bad Request)} if the estadoHabitacionDTO
+     *         is not valid,
+     *         or with status {@code 500 (Internal Server Error)} if the
+     *         estadoHabitacionDTO couldn't be updated.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<EstadoHabitacionDTO> updateEstadoHabitacion(
-        @PathVariable(value = "id", required = false) final Long id,
-        @Valid @RequestBody EstadoHabitacionDTO estadoHabitacionDTO
-    ) throws URISyntaxException {
+            @PathVariable(value = "id", required = false) final Long id,
+            @Valid @RequestBody EstadoHabitacionDTO estadoHabitacionDTO) throws URISyntaxException {
         LOG.debug("REST request to update EstadoHabitacion : {}, {}", id, estadoHabitacionDTO);
         if (estadoHabitacionDTO.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
@@ -99,26 +108,32 @@ public class EstadoHabitacionResource {
 
         estadoHabitacionDTO = estadoHabitacionService.update(estadoHabitacionDTO);
         return ResponseEntity.ok()
-            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME, estadoHabitacionDTO.getId().toString()))
-            .body(estadoHabitacionDTO);
+                .headers(HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME,
+                        estadoHabitacionDTO.getId().toString()))
+                .body(estadoHabitacionDTO);
     }
 
     /**
-     * {@code PATCH  /estado-habitacions/:id} : Partial updates given fields of an existing estadoHabitacion, field will ignore if it is null
+     * {@code PATCH  /estado-habitacions/:id} : Partial updates given fields of an
+     * existing estadoHabitacion, field will ignore if it is null
      *
-     * @param id the id of the estadoHabitacionDTO to save.
+     * @param id                  the id of the estadoHabitacionDTO to save.
      * @param estadoHabitacionDTO the estadoHabitacionDTO to update.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated estadoHabitacionDTO,
-     * or with status {@code 400 (Bad Request)} if the estadoHabitacionDTO is not valid,
-     * or with status {@code 404 (Not Found)} if the estadoHabitacionDTO is not found,
-     * or with status {@code 500 (Internal Server Error)} if the estadoHabitacionDTO couldn't be updated.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body
+     *         the updated estadoHabitacionDTO,
+     *         or with status {@code 400 (Bad Request)} if the estadoHabitacionDTO
+     *         is not valid,
+     *         or with status {@code 404 (Not Found)} if the estadoHabitacionDTO is
+     *         not found,
+     *         or with status {@code 500 (Internal Server Error)} if the
+     *         estadoHabitacionDTO couldn't be updated.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_EMPLOYEE')")
     @PatchMapping(value = "/{id}", consumes = { "application/json", "application/merge-patch+json" })
     public ResponseEntity<EstadoHabitacionDTO> partialUpdateEstadoHabitacion(
-        @PathVariable(value = "id", required = false) final Long id,
-        @NotNull @RequestBody EstadoHabitacionDTO estadoHabitacionDTO
-    ) throws URISyntaxException {
+            @PathVariable(value = "id", required = false) final Long id,
+            @NotNull @RequestBody EstadoHabitacionDTO estadoHabitacionDTO) throws URISyntaxException {
         LOG.debug("REST request to partial update EstadoHabitacion partially : {}, {}", id, estadoHabitacionDTO);
         if (estadoHabitacionDTO.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
@@ -134,24 +149,27 @@ public class EstadoHabitacionResource {
         Optional<EstadoHabitacionDTO> result = estadoHabitacionService.partialUpdate(estadoHabitacionDTO);
 
         return ResponseUtil.wrapOrNotFound(
-            result,
-            HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME, estadoHabitacionDTO.getId().toString())
-        );
+                result,
+                HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME,
+                        estadoHabitacionDTO.getId().toString()));
     }
 
     /**
      * {@code GET  /estado-habitacions} : get all the estadoHabitacions.
      *
      * @param pageable the pagination information.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of estadoHabitacions in body.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list
+     *         of estadoHabitacions in body.
      */
+
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_EMPLOYEE', 'ROLE_CLIENT')")
     @GetMapping("")
     public ResponseEntity<List<EstadoHabitacionDTO>> getAllEstadoHabitacions(
-        @org.springdoc.core.annotations.ParameterObject Pageable pageable
-    ) {
+            @org.springdoc.core.annotations.ParameterObject Pageable pageable) {
         LOG.debug("REST request to get a page of EstadoHabitacions");
         Page<EstadoHabitacionDTO> page = estadoHabitacionService.findAll(pageable);
-        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
+        HttpHeaders headers = PaginationUtil
+                .generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
         return ResponseEntity.ok().headers(headers).body(page.getContent());
     }
 
@@ -159,8 +177,10 @@ public class EstadoHabitacionResource {
      * {@code GET  /estado-habitacions/:id} : get the "id" estadoHabitacion.
      *
      * @param id the id of the estadoHabitacionDTO to retrieve.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the estadoHabitacionDTO, or with status {@code 404 (Not Found)}.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body
+     *         the estadoHabitacionDTO, or with status {@code 404 (Not Found)}.
      */
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_EMPLOYEE', 'ROLE_CLIENT')")
     @GetMapping("/{id}")
     public ResponseEntity<EstadoHabitacionDTO> getEstadoHabitacion(@PathVariable("id") Long id) {
         LOG.debug("REST request to get EstadoHabitacion : {}", id);
@@ -174,12 +194,13 @@ public class EstadoHabitacionResource {
      * @param id the id of the estadoHabitacionDTO to delete.
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
      */
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteEstadoHabitacion(@PathVariable("id") Long id) {
         LOG.debug("REST request to delete EstadoHabitacion : {}", id);
         estadoHabitacionService.delete(id);
         return ResponseEntity.noContent()
-            .headers(HeaderUtil.createEntityDeletionAlert(applicationName, false, ENTITY_NAME, id.toString()))
-            .build();
+                .headers(HeaderUtil.createEntityDeletionAlert(applicationName, false, ENTITY_NAME, id.toString()))
+                .build();
     }
 }

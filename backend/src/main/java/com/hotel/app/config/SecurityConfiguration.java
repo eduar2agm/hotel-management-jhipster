@@ -4,7 +4,6 @@ import static org.springframework.security.config.Customizer.withDefaults;
 import static org.springframework.security.oauth2.core.oidc.StandardClaimNames.PREFERRED_USERNAME;
 
 import com.hotel.app.security.*;
-import com.hotel.app.security.SecurityUtils;
 import com.hotel.app.security.oauth2.AudienceValidator;
 import java.util.*;
 import org.springframework.core.env.Environment;
@@ -29,7 +28,7 @@ import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 import tech.jhipster.config.JHipsterProperties;
 
 @Configuration
-@EnableMethodSecurity(securedEnabled = true)
+@EnableMethodSecurity(securedEnabled = true, prePostEnabled = true)
 public class SecurityConfiguration {
 
     private final JHipsterProperties jHipsterProperties;
