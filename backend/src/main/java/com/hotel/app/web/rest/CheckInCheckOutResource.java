@@ -146,7 +146,7 @@ public class CheckInCheckOutResource {
      * @param pageable the pagination information.
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of checkInCheckOuts in body.
      */
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_EMPLOYEE')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_EMPLOYEE', 'ROLE_CLIENT')")
     @GetMapping("")
     public ResponseEntity<List<CheckInCheckOutDTO>> getAllCheckInCheckOuts(
         @org.springdoc.core.annotations.ParameterObject Pageable pageable
@@ -163,7 +163,7 @@ public class CheckInCheckOutResource {
      * @param id the id of the checkInCheckOutDTO to retrieve.
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the checkInCheckOutDTO, or with status {@code 404 (Not Found)}.
      */
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_EMPLOYEE')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_EMPLOYEE', 'ROLE_CLIENT')")
     @GetMapping("/{id}")
     public ResponseEntity<CheckInCheckOutDTO> getCheckInCheckOut(@PathVariable("id") Long id) {
         LOG.debug("REST request to get CheckInCheckOut : {}", id);

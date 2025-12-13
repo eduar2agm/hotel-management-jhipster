@@ -83,7 +83,7 @@ public class CategoriaHabitacionResource {
      * or with status {@code 500 (Internal Server Error)} if the categoriaHabitacionDTO couldn't be updated.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_EMPLOYEE')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<CategoriaHabitacionDTO> updateCategoriaHabitacion(
         @PathVariable(value = "id", required = false) final Long id,
@@ -150,7 +150,7 @@ public class CategoriaHabitacionResource {
      * @param pageable the pagination information.
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of categoriaHabitacions in body.
      */
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_EMPLOYEE')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_EMPLOYEE', 'ROLE_CLIENT')")
     @GetMapping("")
     public ResponseEntity<List<CategoriaHabitacionDTO>> getAllCategoriaHabitacions(
         @org.springdoc.core.annotations.ParameterObject Pageable pageable
@@ -167,7 +167,7 @@ public class CategoriaHabitacionResource {
      * @param id the id of the categoriaHabitacionDTO to retrieve.
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the categoriaHabitacionDTO, or with status {@code 404 (Not Found)}.
      */
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_EMPLOYEE')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_EMPLOYEE', 'ROLE_CLIENT')")
     @GetMapping("/{id}")
     public ResponseEntity<CategoriaHabitacionDTO> getCategoriaHabitacion(@PathVariable("id") Long id) {
         LOG.debug("REST request to get CategoriaHabitacion : {}", id);

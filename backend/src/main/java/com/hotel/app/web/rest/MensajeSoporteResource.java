@@ -18,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import tech.jhipster.web.util.HeaderUtil;
@@ -42,7 +43,8 @@ public class MensajeSoporteResource {
 
     private final MensajeSoporteRepository mensajeSoporteRepository;
 
-    public MensajeSoporteResource(MensajeSoporteService mensajeSoporteService, MensajeSoporteRepository mensajeSoporteRepository) {
+    public MensajeSoporteResource(MensajeSoporteService mensajeSoporteService,
+            MensajeSoporteRepository mensajeSoporteRepository) {
         this.mensajeSoporteService = mensajeSoporteService;
         this.mensajeSoporteRepository = mensajeSoporteRepository;
     }
@@ -51,37 +53,47 @@ public class MensajeSoporteResource {
      * {@code POST  /mensaje-soportes} : Create a new mensajeSoporte.
      *
      * @param mensajeSoporteDTO the mensajeSoporteDTO to create.
-     * @return the {@link ResponseEntity} with status {@code 201 (Created)} and with body the new mensajeSoporteDTO, or with status {@code 400 (Bad Request)} if the mensajeSoporte has already an ID.
+     * @return the {@link ResponseEntity} with status {@code 201 (Created)} and with
+     *         body the new mensajeSoporteDTO, or with status
+     *         {@code 400 (Bad Request)} if the mensajeSoporte has already an ID.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_EMPLOYEE', 'ROLE_CLIENT')")
     @PostMapping("")
-    public ResponseEntity<MensajeSoporteDTO> createMensajeSoporte(@Valid @RequestBody MensajeSoporteDTO mensajeSoporteDTO)
-        throws URISyntaxException {
+    public ResponseEntity<MensajeSoporteDTO> createMensajeSoporte(
+            @Valid @RequestBody MensajeSoporteDTO mensajeSoporteDTO)
+            throws URISyntaxException {
         LOG.debug("REST request to save MensajeSoporte : {}", mensajeSoporteDTO);
         if (mensajeSoporteDTO.getId() != null) {
-            throw new BadRequestAlertException("A new mensajeSoporte cannot already have an ID", ENTITY_NAME, "idexists");
+            throw new BadRequestAlertException("A new mensajeSoporte cannot already have an ID", ENTITY_NAME,
+                    "idexists");
         }
         mensajeSoporteDTO = mensajeSoporteService.save(mensajeSoporteDTO);
         return ResponseEntity.created(new URI("/api/mensaje-soportes/" + mensajeSoporteDTO.getId()))
-            .headers(HeaderUtil.createEntityCreationAlert(applicationName, false, ENTITY_NAME, mensajeSoporteDTO.getId().toString()))
-            .body(mensajeSoporteDTO);
+                .headers(HeaderUtil.createEntityCreationAlert(applicationName, false, ENTITY_NAME,
+                        mensajeSoporteDTO.getId().toString()))
+                .body(mensajeSoporteDTO);
     }
 
     /**
      * {@code PUT  /mensaje-soportes/:id} : Updates an existing mensajeSoporte.
      *
-     * @param id the id of the mensajeSoporteDTO to save.
+     * @param id                the id of the mensajeSoporteDTO to save.
      * @param mensajeSoporteDTO the mensajeSoporteDTO to update.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated mensajeSoporteDTO,
-     * or with status {@code 400 (Bad Request)} if the mensajeSoporteDTO is not valid,
-     * or with status {@code 500 (Internal Server Error)} if the mensajeSoporteDTO couldn't be updated.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body
+     *         the updated mensajeSoporteDTO,
+     *         or with status {@code 400 (Bad Request)} if the mensajeSoporteDTO is
+     *         not valid,
+     *         or with status {@code 500 (Internal Server Error)} if the
+     *         mensajeSoporteDTO couldn't be updated.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
+
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<MensajeSoporteDTO> updateMensajeSoporte(
-        @PathVariable(value = "id", required = false) final Long id,
-        @Valid @RequestBody MensajeSoporteDTO mensajeSoporteDTO
-    ) throws URISyntaxException {
+            @PathVariable(value = "id", required = false) final Long id,
+            @Valid @RequestBody MensajeSoporteDTO mensajeSoporteDTO) throws URISyntaxException {
         LOG.debug("REST request to update MensajeSoporte : {}, {}", id, mensajeSoporteDTO);
         if (mensajeSoporteDTO.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
@@ -96,26 +108,32 @@ public class MensajeSoporteResource {
 
         mensajeSoporteDTO = mensajeSoporteService.update(mensajeSoporteDTO);
         return ResponseEntity.ok()
-            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME, mensajeSoporteDTO.getId().toString()))
-            .body(mensajeSoporteDTO);
+                .headers(HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME,
+                        mensajeSoporteDTO.getId().toString()))
+                .body(mensajeSoporteDTO);
     }
 
     /**
-     * {@code PATCH  /mensaje-soportes/:id} : Partial updates given fields of an existing mensajeSoporte, field will ignore if it is null
+     * {@code PATCH  /mensaje-soportes/:id} : Partial updates given fields of an
+     * existing mensajeSoporte, field will ignore if it is null
      *
-     * @param id the id of the mensajeSoporteDTO to save.
+     * @param id                the id of the mensajeSoporteDTO to save.
      * @param mensajeSoporteDTO the mensajeSoporteDTO to update.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated mensajeSoporteDTO,
-     * or with status {@code 400 (Bad Request)} if the mensajeSoporteDTO is not valid,
-     * or with status {@code 404 (Not Found)} if the mensajeSoporteDTO is not found,
-     * or with status {@code 500 (Internal Server Error)} if the mensajeSoporteDTO couldn't be updated.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body
+     *         the updated mensajeSoporteDTO,
+     *         or with status {@code 400 (Bad Request)} if the mensajeSoporteDTO is
+     *         not valid,
+     *         or with status {@code 404 (Not Found)} if the mensajeSoporteDTO is
+     *         not found,
+     *         or with status {@code 500 (Internal Server Error)} if the
+     *         mensajeSoporteDTO couldn't be updated.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_EMPLOYEE', 'ROLE_CLIENT')")
     @PatchMapping(value = "/{id}", consumes = { "application/json", "application/merge-patch+json" })
     public ResponseEntity<MensajeSoporteDTO> partialUpdateMensajeSoporte(
-        @PathVariable(value = "id", required = false) final Long id,
-        @NotNull @RequestBody MensajeSoporteDTO mensajeSoporteDTO
-    ) throws URISyntaxException {
+            @PathVariable(value = "id", required = false) final Long id,
+            @NotNull @RequestBody MensajeSoporteDTO mensajeSoporteDTO) throws URISyntaxException {
         LOG.debug("REST request to partial update MensajeSoporte partially : {}, {}", id, mensajeSoporteDTO);
         if (mensajeSoporteDTO.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
@@ -131,24 +149,26 @@ public class MensajeSoporteResource {
         Optional<MensajeSoporteDTO> result = mensajeSoporteService.partialUpdate(mensajeSoporteDTO);
 
         return ResponseUtil.wrapOrNotFound(
-            result,
-            HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME, mensajeSoporteDTO.getId().toString())
-        );
+                result,
+                HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME,
+                        mensajeSoporteDTO.getId().toString()));
     }
 
     /**
      * {@code GET  /mensaje-soportes} : get all the mensajeSoportes.
      *
      * @param pageable the pagination information.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of mensajeSoportes in body.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list
+     *         of mensajeSoportes in body.
      */
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_EMPLOYEE', 'ROLE_CLIENT')")
     @GetMapping("")
     public ResponseEntity<List<MensajeSoporteDTO>> getAllMensajeSoportes(
-        @org.springdoc.core.annotations.ParameterObject Pageable pageable
-    ) {
+            @org.springdoc.core.annotations.ParameterObject Pageable pageable) {
         LOG.debug("REST request to get a page of MensajeSoportes");
         Page<MensajeSoporteDTO> page = mensajeSoporteService.findAll(pageable);
-        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
+        HttpHeaders headers = PaginationUtil
+                .generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
         return ResponseEntity.ok().headers(headers).body(page.getContent());
     }
 
@@ -156,8 +176,10 @@ public class MensajeSoporteResource {
      * {@code GET  /mensaje-soportes/:id} : get the "id" mensajeSoporte.
      *
      * @param id the id of the mensajeSoporteDTO to retrieve.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the mensajeSoporteDTO, or with status {@code 404 (Not Found)}.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body
+     *         the mensajeSoporteDTO, or with status {@code 404 (Not Found)}.
      */
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_EMPLOYEE', 'ROLE_CLIENT')")
     @GetMapping("/{id}")
     public ResponseEntity<MensajeSoporteDTO> getMensajeSoporte(@PathVariable("id") Long id) {
         LOG.debug("REST request to get MensajeSoporte : {}", id);
@@ -171,12 +193,13 @@ public class MensajeSoporteResource {
      * @param id the id of the mensajeSoporteDTO to delete.
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
      */
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteMensajeSoporte(@PathVariable("id") Long id) {
         LOG.debug("REST request to delete MensajeSoporte : {}", id);
         mensajeSoporteService.delete(id);
         return ResponseEntity.noContent()
-            .headers(HeaderUtil.createEntityDeletionAlert(applicationName, false, ENTITY_NAME, id.toString()))
-            .build();
+                .headers(HeaderUtil.createEntityDeletionAlert(applicationName, false, ENTITY_NAME, id.toString()))
+                .build();
     }
 }
