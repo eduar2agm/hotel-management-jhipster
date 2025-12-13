@@ -41,6 +41,10 @@ public class MensajeSoporte implements Serializable {
     @Column(name = "leido", nullable = false)
     private Boolean leido;
 
+    @NotNull
+    @Column(name = "activo", nullable = false)
+    private Boolean activo;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JsonIgnoreProperties(value = { "cliente" }, allowSetters = true)
     private Reserva reserva;
@@ -125,6 +129,19 @@ public class MensajeSoporte implements Serializable {
         this.leido = leido;
     }
 
+    public Boolean getActivo() {
+        return this.activo;
+    }
+
+    public MensajeSoporte activo(Boolean activo) {
+        this.setActivo(activo);
+        return this;
+    }
+
+    public void setActivo(Boolean activo) {
+        this.activo = activo;
+    }
+
     public Reserva getReserva() {
         return this.reserva;
     }
@@ -167,6 +184,7 @@ public class MensajeSoporte implements Serializable {
             ", userId='" + getUserId() + "'" +
             ", userName='" + getUserName() + "'" +
             ", leido='" + getLeido() + "'" +
+            ", activo='" + getActivo() + "'" +
             "}";
     }
 }

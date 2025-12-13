@@ -69,15 +69,11 @@ public class HabitacionServiceImpl implements HabitacionService {
         return habitacionRepository.findAll(pageable).map(habitacionMapper::toDto);
     }
 
-    public Page<HabitacionDTO> findAllWithEagerRelationships(Pageable pageable) {
-        return habitacionRepository.findAllWithEagerRelationships(pageable).map(habitacionMapper::toDto);
-    }
-
     @Override
     @Transactional(readOnly = true)
     public Optional<HabitacionDTO> findOne(Long id) {
         LOG.debug("Request to get Habitacion : {}", id);
-        return habitacionRepository.findOneWithEagerRelationships(id).map(habitacionMapper::toDto);
+        return habitacionRepository.findById(id).map(habitacionMapper::toDto);
     }
 
     @Override

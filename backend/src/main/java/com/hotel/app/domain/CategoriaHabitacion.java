@@ -34,6 +34,10 @@ public class CategoriaHabitacion implements Serializable {
     @Column(name = "precio_base", precision = 21, scale = 2, nullable = false)
     private BigDecimal precioBase;
 
+    @NotNull
+    @Column(name = "activo", nullable = false)
+    private Boolean activo;
+
     // jhipster-needle-entity-add-field - JHipster will add fields here
 
     public Long getId() {
@@ -88,6 +92,19 @@ public class CategoriaHabitacion implements Serializable {
         this.precioBase = precioBase;
     }
 
+    public Boolean getActivo() {
+        return this.activo;
+    }
+
+    public CategoriaHabitacion activo(Boolean activo) {
+        this.setActivo(activo);
+        return this;
+    }
+
+    public void setActivo(Boolean activo) {
+        this.activo = activo;
+    }
+
     // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
 
     @Override
@@ -115,6 +132,7 @@ public class CategoriaHabitacion implements Serializable {
             ", nombre='" + getNombre() + "'" +
             ", descripcion='" + getDescripcion() + "'" +
             ", precioBase=" + getPrecioBase() +
+            ", activo='" + getActivo() + "'" +
             "}";
     }
 }

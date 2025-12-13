@@ -50,7 +50,8 @@ public class ReservaAsserts {
             .satisfies(a -> assertThat(a.getFechaReserva()).as("check fechaReserva").isEqualTo(expected.getFechaReserva()))
             .satisfies(a -> assertThat(a.getFechaInicio()).as("check fechaInicio").isEqualTo(expected.getFechaInicio()))
             .satisfies(a -> assertThat(a.getFechaFin()).as("check fechaFin").isEqualTo(expected.getFechaFin()))
-            .satisfies(a -> assertThat(a.getEstado()).as("check estado").isEqualTo(expected.getEstado()));
+            .satisfies(a -> assertThat(a.getEstado()).as("check estado").isEqualTo(expected.getEstado()))
+            .satisfies(a -> assertThat(a.getActivo()).as("check activo").isEqualTo(expected.getActivo()));
     }
 
     /**

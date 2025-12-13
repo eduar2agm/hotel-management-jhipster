@@ -23,6 +23,9 @@
             <column name="estado" type="varchar(255)">
                 <constraints nullable="false" />
             </column>
+            <column name="activo" type="boolean">
+                <constraints nullable="false" />
+            </column>
             <column name="reserva_detalle_id" type="bigint">
                 <constraints nullable="true" />
             </column>
@@ -52,6 +55,7 @@
             <column name="fecha_hora_check_in" type="date"/>
             <column name="fecha_hora_check_out" type="date"/>
             <column name="estado" type="string"/>
+            <column name="activo" type="boolean"/>
             <!-- jhipster-needle-liquibase-add-loadcolumn - JHipster (and/or extensions) can add load columns here -->
         </loadData>
     </changeSet>

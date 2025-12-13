@@ -27,6 +27,9 @@ public class MensajeSoporteDTO implements Serializable {
     @NotNull
     private Boolean leido;
 
+    @NotNull
+    private Boolean activo;
+
     private ReservaDTO reserva;
 
     public Long getId() {
@@ -77,6 +80,14 @@ public class MensajeSoporteDTO implements Serializable {
         this.leido = leido;
     }
 
+    public Boolean getActivo() {
+        return activo;
+    }
+
+    public void setActivo(Boolean activo) {
+        this.activo = activo;
+    }
+
     public ReservaDTO getReserva() {
         return reserva;
     }
@@ -116,6 +127,7 @@ public class MensajeSoporteDTO implements Serializable {
             ", userId='" + getUserId() + "'" +
             ", userName='" + getUserName() + "'" +
             ", leido='" + getLeido() + "'" +
+            ", activo='" + getActivo() + "'" +
             ", reserva=" + getReserva() +
             "}";
     }

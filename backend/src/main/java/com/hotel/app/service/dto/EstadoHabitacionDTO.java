@@ -18,6 +18,9 @@ public class EstadoHabitacionDTO implements Serializable {
 
     private String descripcion;
 
+    @NotNull
+    private Boolean activo;
+
     public Long getId() {
         return id;
     }
@@ -40,6 +43,14 @@ public class EstadoHabitacionDTO implements Serializable {
 
     public void setDescripcion(String descripcion) {
         this.descripcion = descripcion;
+    }
+
+    public Boolean getActivo() {
+        return activo;
+    }
+
+    public void setActivo(Boolean activo) {
+        this.activo = activo;
     }
 
     @Override
@@ -70,6 +81,7 @@ public class EstadoHabitacionDTO implements Serializable {
             "id=" + getId() +
             ", nombre='" + getNombre() + "'" +
             ", descripcion='" + getDescripcion() + "'" +
+            ", activo='" + getActivo() + "'" +
             "}";
     }
 }

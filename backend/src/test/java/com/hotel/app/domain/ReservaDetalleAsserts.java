@@ -47,7 +47,8 @@ public class ReservaDetalleAsserts {
     public static void assertReservaDetalleUpdatableFieldsEquals(ReservaDetalle expected, ReservaDetalle actual) {
         assertThat(actual)
             .as("Verify ReservaDetalle relevant properties")
-            .satisfies(a -> assertThat(a.getNota()).as("check nota").isEqualTo(expected.getNota()));
+            .satisfies(a -> assertThat(a.getNota()).as("check nota").isEqualTo(expected.getNota()))
+            .satisfies(a -> assertThat(a.getActivo()).as("check activo").isEqualTo(expected.getActivo()));
     }
 
     /**

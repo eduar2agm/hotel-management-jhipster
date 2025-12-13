@@ -46,6 +46,11 @@
       "fieldName": "keycloakId",
       "fieldType": "String",
       "fieldValidateRules": ["required"]
+    },
+    {
+      "fieldName": "activo",
+      "fieldType": "Boolean",
+      "fieldValidateRules": ["required"]
     }
   ],
   "microserviceName": "hotelApp",

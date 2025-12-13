@@ -53,6 +53,9 @@ class PagoResourceIT {
     private static final EstadoPago DEFAULT_ESTADO = EstadoPago.PENDIENTE;
     private static final EstadoPago UPDATED_ESTADO = EstadoPago.COMPLETADO;
 
+    private static final Boolean DEFAULT_ACTIVO = false;
+    private static final Boolean UPDATED_ACTIVO = true;
+
     private static final String ENTITY_API_URL = "/api/pagos";
     private static final String ENTITY_API_URL_ID = ENTITY_API_URL + "/{id}";
 
@@ -85,7 +88,12 @@ class PagoResourceIT {
      * if they test an entity which requires the current entity.
      */
     public static Pago createEntity() {
-        return new Pago().fechaPago(DEFAULT_FECHA_PAGO).monto(DEFAULT_MONTO).metodoPago(DEFAULT_METODO_PAGO).estado(DEFAULT_ESTADO);
+        return new Pago()
+            .fechaPago(DEFAULT_FECHA_PAGO)
+            .monto(DEFAULT_MONTO)
+            .metodoPago(DEFAULT_METODO_PAGO)
+            .estado(DEFAULT_ESTADO)
+            .activo(DEFAULT_ACTIVO);
     }
 
     /**
@@ -95,7 +103,12 @@ class PagoResourceIT {
      * if they test an entity which requires the current entity.
      */
     public static Pago createUpdatedEntity() {
-        return new Pago().fechaPago(UPDATED_FECHA_PAGO).monto(UPDATED_MONTO).metodoPago(UPDATED_METODO_PAGO).estado(UPDATED_ESTADO);
+        return new Pago()
+            .fechaPago(UPDATED_FECHA_PAGO)
+            .monto(UPDATED_MONTO)
+            .metodoPago(UPDATED_METODO_PAGO)
+            .estado(UPDATED_ESTADO)
+            .activo(UPDATED_ACTIVO);
     }
 
     @BeforeEach
@@ -223,6 +236,23 @@ class PagoResourceIT {
 
     @Test
     @Transactional
+    void checkActivoIsRequired() throws Exception {
+        long databaseSizeBeforeTest = getRepositoryCount();
+        // set the field null
+        pago.setActivo(null);
+
+        // Create the Pago, which fails.
+        PagoDTO pagoDTO = pagoMapper.toDto(pago);
+
+        restPagoMockMvc
+            .perform(post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(pagoDTO)))
+            .andExpect(status().isBadRequest());
+
+        assertSameRepositoryCount(databaseSizeBeforeTest);
+    }
+
+    @Test
+    @Transactional
     void getAllPagos() throws Exception {
         // Initialize the database
         insertedPago = pagoRepository.saveAndFlush(pago);
@@ -236,7 +266,8 @@ class PagoResourceIT {
             .andExpect(jsonPath("$.[*].fechaPago").value(hasItem(DEFAULT_FECHA_PAGO.toString())))
             .andExpect(jsonPath("$.[*].monto").value(hasItem(sameNumber(DEFAULT_MONTO))))
             .andExpect(jsonPath("$.[*].metodoPago").value(hasItem(DEFAULT_METODO_PAGO.toString())))
-            .andExpect(jsonPath("$.[*].estado").value(hasItem(DEFAULT_ESTADO.toString())));
+            .andExpect(jsonPath("$.[*].estado").value(hasItem(DEFAULT_ESTADO.toString())))
+            .andExpect(jsonPath("$.[*].activo").value(hasItem(DEFAULT_ACTIVO)));
     }
 
     @Test
@@ -254,7 +285,8 @@ class PagoResourceIT {
             .andExpect(jsonPath("$.fechaPago").value(DEFAULT_FECHA_PAGO.toString()))
             .andExpect(jsonPath("$.monto").value(sameNumber(DEFAULT_MONTO)))
             .andExpect(jsonPath("$.metodoPago").value(DEFAULT_METODO_PAGO.toString()))
-            .andExpect(jsonPath("$.estado").value(DEFAULT_ESTADO.toString()));
+            .andExpect(jsonPath("$.estado").value(DEFAULT_ESTADO.toString()))
+            .andExpect(jsonPath("$.activo").value(DEFAULT_ACTIVO));
     }
 
     @Test
@@ -276,7 +308,12 @@ class PagoResourceIT {
         Pago updatedPago = pagoRepository.findById(pago.getId()).orElseThrow();
         // Disconnect from session so that the updates on updatedPago are not directly saved in db
         em.detach(updatedPago);
-        updatedPago.fechaPago(UPDATED_FECHA_PAGO).monto(UPDATED_MONTO).metodoPago(UPDATED_METODO_PAGO).estado(UPDATED_ESTADO);
+        updatedPago
+            .fechaPago(UPDATED_FECHA_PAGO)
+            .monto(UPDATED_MONTO)
+            .metodoPago(UPDATED_METODO_PAGO)
+            .estado(UPDATED_ESTADO)
+            .activo(UPDATED_ACTIVO);
         PagoDTO pagoDTO = pagoMapper.toDto(updatedPago);
 
         restPagoMockMvc
@@ -369,7 +406,7 @@ class PagoResourceIT {
         Pago partialUpdatedPago = new Pago();
         partialUpdatedPago.setId(pago.getId());
 
-        partialUpdatedPago.metodoPago(UPDATED_METODO_PAGO).estado(UPDATED_ESTADO);
+        partialUpdatedPago.metodoPago(UPDATED_METODO_PAGO).estado(UPDATED_ESTADO).activo(UPDATED_ACTIVO);
 
         restPagoMockMvc
             .perform(
@@ -398,7 +435,12 @@ class PagoResourceIT {
         Pago partialUpdatedPago = new Pago();
         partialUpdatedPago.setId(pago.getId());
 
-        partialUpdatedPago.fechaPago(UPDATED_FECHA_PAGO).monto(UPDATED_MONTO).metodoPago(UPDATED_METODO_PAGO).estado(UPDATED_ESTADO);
+        partialUpdatedPago
+            .fechaPago(UPDATED_FECHA_PAGO)
+            .monto(UPDATED_MONTO)
+            .metodoPago(UPDATED_METODO_PAGO)
+            .estado(UPDATED_ESTADO)
+            .activo(UPDATED_ACTIVO);
 
         restPagoMockMvc
             .perform(

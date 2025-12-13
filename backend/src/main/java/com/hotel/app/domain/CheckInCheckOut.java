@@ -35,6 +35,10 @@ public class CheckInCheckOut implements Serializable {
     @Column(name = "estado", nullable = false)
     private EstadoCheckInCheckOut estado;
 
+    @NotNull
+    @Column(name = "activo", nullable = false)
+    private Boolean activo;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JsonIgnoreProperties(value = { "reserva", "habitacion" }, allowSetters = true)
     private ReservaDetalle reservaDetalle;
@@ -93,6 +97,19 @@ public class CheckInCheckOut implements Serializable {
         this.estado = estado;
     }
 
+    public Boolean getActivo() {
+        return this.activo;
+    }
+
+    public CheckInCheckOut activo(Boolean activo) {
+        this.setActivo(activo);
+        return this;
+    }
+
+    public void setActivo(Boolean activo) {
+        this.activo = activo;
+    }
+
     public ReservaDetalle getReservaDetalle() {
         return this.reservaDetalle;
     }
@@ -133,6 +150,7 @@ public class CheckInCheckOut implements Serializable {
             ", fechaHoraCheckIn='" + getFechaHoraCheckIn() + "'" +
             ", fechaHoraCheckOut='" + getFechaHoraCheckOut() + "'" +
             ", estado='" + getEstado() + "'" +
+            ", activo='" + getActivo() + "'" +
             "}";
     }
 }

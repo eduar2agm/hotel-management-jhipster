@@ -50,6 +50,9 @@ class CheckInCheckOutResourceIT {
     private static final EstadoCheckInCheckOut DEFAULT_ESTADO = EstadoCheckInCheckOut.PENDIENTE;
     private static final EstadoCheckInCheckOut UPDATED_ESTADO = EstadoCheckInCheckOut.REALIZADO;
 
+    private static final Boolean DEFAULT_ACTIVO = false;
+    private static final Boolean UPDATED_ACTIVO = true;
+
     private static final String ENTITY_API_URL = "/api/check-in-check-outs";
     private static final String ENTITY_API_URL_ID = ENTITY_API_URL + "/{id}";
 
@@ -85,7 +88,8 @@ class CheckInCheckOutResourceIT {
         return new CheckInCheckOut()
             .fechaHoraCheckIn(DEFAULT_FECHA_HORA_CHECK_IN)
             .fechaHoraCheckOut(DEFAULT_FECHA_HORA_CHECK_OUT)
-            .estado(DEFAULT_ESTADO);
+            .estado(DEFAULT_ESTADO)
+            .activo(DEFAULT_ACTIVO);
     }
 
     /**
@@ -98,7 +102,8 @@ class CheckInCheckOutResourceIT {
         return new CheckInCheckOut()
             .fechaHoraCheckIn(UPDATED_FECHA_HORA_CHECK_IN)
             .fechaHoraCheckOut(UPDATED_FECHA_HORA_CHECK_OUT)
-            .estado(UPDATED_ESTADO);
+            .estado(UPDATED_ESTADO)
+            .activo(UPDATED_ACTIVO);
     }
 
     @BeforeEach
@@ -203,6 +208,25 @@ class CheckInCheckOutResourceIT {
 
     @Test
     @Transactional
+    void checkActivoIsRequired() throws Exception {
+        long databaseSizeBeforeTest = getRepositoryCount();
+        // set the field null
+        checkInCheckOut.setActivo(null);
+
+        // Create the CheckInCheckOut, which fails.
+        CheckInCheckOutDTO checkInCheckOutDTO = checkInCheckOutMapper.toDto(checkInCheckOut);
+
+        restCheckInCheckOutMockMvc
+            .perform(
+                post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(checkInCheckOutDTO))
+            )
+            .andExpect(status().isBadRequest());
+
+        assertSameRepositoryCount(databaseSizeBeforeTest);
+    }
+
+    @Test
+    @Transactional
     void getAllCheckInCheckOuts() throws Exception {
         // Initialize the database
         insertedCheckInCheckOut = checkInCheckOutRepository.saveAndFlush(checkInCheckOut);
@@ -215,7 +239,8 @@ class CheckInCheckOutResourceIT {
             .andExpect(jsonPath("$.[*].id").value(hasItem(checkInCheckOut.getId().intValue())))
             .andExpect(jsonPath("$.[*].fechaHoraCheckIn").value(hasItem(sameInstant(DEFAULT_FECHA_HORA_CHECK_IN))))
             .andExpect(jsonPath("$.[*].fechaHoraCheckOut").value(hasItem(sameInstant(DEFAULT_FECHA_HORA_CHECK_OUT))))
-            .andExpect(jsonPath("$.[*].estado").value(hasItem(DEFAULT_ESTADO.toString())));
+            .andExpect(jsonPath("$.[*].estado").value(hasItem(DEFAULT_ESTADO.toString())))
+            .andExpect(jsonPath("$.[*].activo").value(hasItem(DEFAULT_ACTIVO)));
     }
 
     @Test
@@ -232,7 +257,8 @@ class CheckInCheckOutResourceIT {
             .andExpect(jsonPath("$.id").value(checkInCheckOut.getId().intValue()))
             .andExpect(jsonPath("$.fechaHoraCheckIn").value(sameInstant(DEFAULT_FECHA_HORA_CHECK_IN)))
             .andExpect(jsonPath("$.fechaHoraCheckOut").value(sameInstant(DEFAULT_FECHA_HORA_CHECK_OUT)))
-            .andExpect(jsonPath("$.estado").value(DEFAULT_ESTADO.toString()));
+            .andExpect(jsonPath("$.estado").value(DEFAULT_ESTADO.toString()))
+            .andExpect(jsonPath("$.activo").value(DEFAULT_ACTIVO));
     }
 
     @Test
@@ -257,7 +283,8 @@ class CheckInCheckOutResourceIT {
         updatedCheckInCheckOut
             .fechaHoraCheckIn(UPDATED_FECHA_HORA_CHECK_IN)
             .fechaHoraCheckOut(UPDATED_FECHA_HORA_CHECK_OUT)
-            .estado(UPDATED_ESTADO);
+            .estado(UPDATED_ESTADO)
+            .activo(UPDATED_ACTIVO);
         CheckInCheckOutDTO checkInCheckOutDTO = checkInCheckOutMapper.toDto(updatedCheckInCheckOut);
 
         restCheckInCheckOutMockMvc
@@ -387,7 +414,8 @@ class CheckInCheckOutResourceIT {
         partialUpdatedCheckInCheckOut
             .fechaHoraCheckIn(UPDATED_FECHA_HORA_CHECK_IN)
             .fechaHoraCheckOut(UPDATED_FECHA_HORA_CHECK_OUT)
-            .estado(UPDATED_ESTADO);
+            .estado(UPDATED_ESTADO)
+            .activo(UPDATED_ACTIVO);
 
         restCheckInCheckOutMockMvc
             .perform(

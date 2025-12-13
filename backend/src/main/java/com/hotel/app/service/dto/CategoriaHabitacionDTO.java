@@ -22,6 +22,9 @@ public class CategoriaHabitacionDTO implements Serializable {
     @NotNull
     private BigDecimal precioBase;
 
+    @NotNull
+    private Boolean activo;
+
     public Long getId() {
         return id;
     }
@@ -54,6 +57,14 @@ public class CategoriaHabitacionDTO implements Serializable {
         this.precioBase = precioBase;
     }
 
+    public Boolean getActivo() {
+        return activo;
+    }
+
+    public void setActivo(Boolean activo) {
+        this.activo = activo;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -83,6 +94,7 @@ public class CategoriaHabitacionDTO implements Serializable {
             ", nombre='" + getNombre() + "'" +
             ", descripcion='" + getDescripcion() + "'" +
             ", precioBase=" + getPrecioBase() +
+            ", activo='" + getActivo() + "'" +
             "}";
     }
 }

@@ -26,6 +26,9 @@ public class ReservaDTO implements Serializable {
     @NotNull
     private EstadoReserva estado;
 
+    @NotNull
+    private Boolean activo;
+
     private ClienteDTO cliente;
 
     public Long getId() {
@@ -68,6 +71,14 @@ public class ReservaDTO implements Serializable {
         this.estado = estado;
     }
 
+    public Boolean getActivo() {
+        return activo;
+    }
+
+    public void setActivo(Boolean activo) {
+        this.activo = activo;
+    }
+
     public ClienteDTO getCliente() {
         return cliente;
     }
@@ -106,6 +117,7 @@ public class ReservaDTO implements Serializable {
             ", fechaInicio='" + getFechaInicio() + "'" +
             ", fechaFin='" + getFechaFin() + "'" +
             ", estado='" + getEstado() + "'" +
+            ", activo='" + getActivo() + "'" +
             ", cliente=" + getCliente() +
             "}";
     }

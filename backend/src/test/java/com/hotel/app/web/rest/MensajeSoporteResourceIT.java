@@ -52,6 +52,9 @@ class MensajeSoporteResourceIT {
     private static final Boolean DEFAULT_LEIDO = false;
     private static final Boolean UPDATED_LEIDO = true;
 
+    private static final Boolean DEFAULT_ACTIVO = false;
+    private static final Boolean UPDATED_ACTIVO = true;
+
     private static final String ENTITY_API_URL = "/api/mensaje-soportes";
     private static final String ENTITY_API_URL_ID = ENTITY_API_URL + "/{id}";
 
@@ -89,7 +92,8 @@ class MensajeSoporteResourceIT {
             .fechaMensaje(DEFAULT_FECHA_MENSAJE)
             .userId(DEFAULT_USER_ID)
             .userName(DEFAULT_USER_NAME)
-            .leido(DEFAULT_LEIDO);
+            .leido(DEFAULT_LEIDO)
+            .activo(DEFAULT_ACTIVO);
     }
 
     /**
@@ -104,7 +108,8 @@ class MensajeSoporteResourceIT {
             .fechaMensaje(UPDATED_FECHA_MENSAJE)
             .userId(UPDATED_USER_ID)
             .userName(UPDATED_USER_NAME)
-            .leido(UPDATED_LEIDO);
+            .leido(UPDATED_LEIDO)
+            .activo(UPDATED_ACTIVO);
     }
 
     @BeforeEach
@@ -247,6 +252,25 @@ class MensajeSoporteResourceIT {
 
     @Test
     @Transactional
+    void checkActivoIsRequired() throws Exception {
+        long databaseSizeBeforeTest = getRepositoryCount();
+        // set the field null
+        mensajeSoporte.setActivo(null);
+
+        // Create the MensajeSoporte, which fails.
+        MensajeSoporteDTO mensajeSoporteDTO = mensajeSoporteMapper.toDto(mensajeSoporte);
+
+        restMensajeSoporteMockMvc
+            .perform(
+                post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(mensajeSoporteDTO))
+            )
+            .andExpect(status().isBadRequest());
+
+        assertSameRepositoryCount(databaseSizeBeforeTest);
+    }
+
+    @Test
+    @Transactional
     void getAllMensajeSoportes() throws Exception {
         // Initialize the database
         insertedMensajeSoporte = mensajeSoporteRepository.saveAndFlush(mensajeSoporte);
@@ -261,7 +285,8 @@ class MensajeSoporteResourceIT {
             .andExpect(jsonPath("$.[*].fechaMensaje").value(hasItem(DEFAULT_FECHA_MENSAJE.toString())))
             .andExpect(jsonPath("$.[*].userId").value(hasItem(DEFAULT_USER_ID)))
             .andExpect(jsonPath("$.[*].userName").value(hasItem(DEFAULT_USER_NAME)))
-            .andExpect(jsonPath("$.[*].leido").value(hasItem(DEFAULT_LEIDO)));
+            .andExpect(jsonPath("$.[*].leido").value(hasItem(DEFAULT_LEIDO)))
+            .andExpect(jsonPath("$.[*].activo").value(hasItem(DEFAULT_ACTIVO)));
     }
 
     @Test
@@ -280,7 +305,8 @@ class MensajeSoporteResourceIT {
             .andExpect(jsonPath("$.fechaMensaje").value(DEFAULT_FECHA_MENSAJE.toString()))
             .andExpect(jsonPath("$.userId").value(DEFAULT_USER_ID))
             .andExpect(jsonPath("$.userName").value(DEFAULT_USER_NAME))
-            .andExpect(jsonPath("$.leido").value(DEFAULT_LEIDO));
+            .andExpect(jsonPath("$.leido").value(DEFAULT_LEIDO))
+            .andExpect(jsonPath("$.activo").value(DEFAULT_ACTIVO));
     }
 
     @Test
@@ -307,7 +333,8 @@ class MensajeSoporteResourceIT {
             .fechaMensaje(UPDATED_FECHA_MENSAJE)
             .userId(UPDATED_USER_ID)
             .userName(UPDATED_USER_NAME)
-            .leido(UPDATED_LEIDO);
+            .leido(UPDATED_LEIDO)
+            .activo(UPDATED_ACTIVO);
         MensajeSoporteDTO mensajeSoporteDTO = mensajeSoporteMapper.toDto(updatedMensajeSoporte);
 
         restMensajeSoporteMockMvc
@@ -402,11 +429,7 @@ class MensajeSoporteResourceIT {
         MensajeSoporte partialUpdatedMensajeSoporte = new MensajeSoporte();
         partialUpdatedMensajeSoporte.setId(mensajeSoporte.getId());
 
-        partialUpdatedMensajeSoporte
-            .mensaje(UPDATED_MENSAJE)
-            .fechaMensaje(UPDATED_FECHA_MENSAJE)
-            .userId(UPDATED_USER_ID)
-            .leido(UPDATED_LEIDO);
+        partialUpdatedMensajeSoporte.fechaMensaje(UPDATED_FECHA_MENSAJE).userId(UPDATED_USER_ID).activo(UPDATED_ACTIVO);
 
         restMensajeSoporteMockMvc
             .perform(
@@ -443,7 +466,8 @@ class MensajeSoporteResourceIT {
             .fechaMensaje(UPDATED_FECHA_MENSAJE)
             .userId(UPDATED_USER_ID)
             .userName(UPDATED_USER_NAME)
-            .leido(UPDATED_LEIDO);
+            .leido(UPDATED_LEIDO)
+            .activo(UPDATED_ACTIVO);
 
         restMensajeSoporteMockMvc
             .perform(
