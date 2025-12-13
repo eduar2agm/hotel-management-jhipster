@@ -17,6 +17,9 @@
             <column name="nota" type="varchar(255)">
                 <constraints nullable="true" />
             </column>
+            <column name="activo" type="boolean">
+                <constraints nullable="false" />
+            </column>
             <column name="reserva_id" type="bigint">
                 <constraints nullable="true" />
             </column>
@@ -45,6 +48,7 @@
                   usePreparedStatements="true">
             <column name="id" type="numeric"/>
             <column name="nota" type="string"/>
+            <column name="activo" type="boolean"/>
             <!-- jhipster-needle-liquibase-add-loadcolumn - JHipster (and/or extensions) can add load columns here -->
         </loadData>
     </changeSet>

@@ -50,7 +50,8 @@ public class HabitacionAsserts {
             .satisfies(a -> assertThat(a.getNumero()).as("check numero").isEqualTo(expected.getNumero()))
             .satisfies(a -> assertThat(a.getCapacidad()).as("check capacidad").isEqualTo(expected.getCapacidad()))
             .satisfies(a -> assertThat(a.getDescripcion()).as("check descripcion").isEqualTo(expected.getDescripcion()))
-            .satisfies(a -> assertThat(a.getImagen()).as("check imagen").isEqualTo(expected.getImagen()));
+            .satisfies(a -> assertThat(a.getImagen()).as("check imagen").isEqualTo(expected.getImagen()))
+            .satisfies(a -> assertThat(a.getActivo()).as("check activo").isEqualTo(expected.getActivo()));
     }
 
     /**

@@ -1,11 +1,11 @@
-id;mensaje;fecha_mensaje;user_id;user_name;leido
-1;lest;2025-12-11T12:01:52;drowse;concerning wetly plastic;false
-2;stranger whoever confirm;2025-12-11T10:48:45;analyse why;switch;true
-3;dark uh-huh whereas;2025-12-11T02:31:27;fiddle immaculate provision;yet yum diligently;false
-4;minus ouch healthily;2025-12-12T02:04:15;recovery oof;scarcely that joy;false
-5;orchid;2025-12-12T01:13:05;bar;crossly indeed;true
-6;bah;2025-12-11T18:40:44;icebreaker;blah;false
-7;major above;2025-12-11T05:22:06;eek under;when;false
-8;limp irresponsible;2025-12-12T02:09:53;weighty repentant;weep slowly eyeglasses;false
-9;pessimistic warmly gosh;2025-12-11T13:28:23;sunder adventurously incidentally;warp yippee militate;false
-10;suddenly;2025-12-11T23:06:32;before;next if;false
+id;mensaje;fecha_mensaje;user_id;user_name;leido;activo
+1;lest;2025-12-11T12:01:52;drowse;concerning wetly plastic;false;false
+2;astride nice;2025-12-11T06:16:47;sell neck;yum;true;false
+3;pleasing;2025-12-11T23:04:47;cardboard daintily;since;false;false
+4;quixotic;2025-12-11T11:39:40;reborn yet yum;warmly uh-huh;false;false
+5;probate now recovery;2025-12-11T06:11:29;papa;vastly competent casement;true;false
+6;evenly so crossly;2025-12-11T05:05:01;finally bah;ick yak besides;false;true
+7;because drive scornful;2025-12-11T13:49:06;a mmm;igloo deep mortally;true;true
+8;yowza phooey;2025-12-11T07:20:00;exotic;grim;false;false
+9;while likely gratefully;2025-12-11T23:30:55;behest sleepily;pearl serialize;true;false
+10;toothbrush oh;2025-12-11T08:05:58;whup devise;however;true;true

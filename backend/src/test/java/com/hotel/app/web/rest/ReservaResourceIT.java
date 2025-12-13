@@ -59,6 +59,9 @@ class ReservaResourceIT {
     private static final EstadoReserva DEFAULT_ESTADO = EstadoReserva.PENDIENTE;
     private static final EstadoReserva UPDATED_ESTADO = EstadoReserva.CONFIRMADA;
 
+    private static final Boolean DEFAULT_ACTIVO = false;
+    private static final Boolean UPDATED_ACTIVO = true;
+
     private static final String ENTITY_API_URL = "/api/reservas";
     private static final String ENTITY_API_URL_ID = ENTITY_API_URL + "/{id}";
 
@@ -101,7 +104,8 @@ class ReservaResourceIT {
             .fechaReserva(DEFAULT_FECHA_RESERVA)
             .fechaInicio(DEFAULT_FECHA_INICIO)
             .fechaFin(DEFAULT_FECHA_FIN)
-            .estado(DEFAULT_ESTADO);
+            .estado(DEFAULT_ESTADO)
+            .activo(DEFAULT_ACTIVO);
     }
 
     /**
@@ -115,7 +119,8 @@ class ReservaResourceIT {
             .fechaReserva(UPDATED_FECHA_RESERVA)
             .fechaInicio(UPDATED_FECHA_INICIO)
             .fechaFin(UPDATED_FECHA_FIN)
-            .estado(UPDATED_ESTADO);
+            .estado(UPDATED_ESTADO)
+            .activo(UPDATED_ACTIVO);
     }
 
     @BeforeEach
@@ -245,6 +250,23 @@ class ReservaResourceIT {
 
     @Test
     @Transactional
+    void checkActivoIsRequired() throws Exception {
+        long databaseSizeBeforeTest = getRepositoryCount();
+        // set the field null
+        reserva.setActivo(null);
+
+        // Create the Reserva, which fails.
+        ReservaDTO reservaDTO = reservaMapper.toDto(reserva);
+
+        restReservaMockMvc
+            .perform(post(ENTITY_API_URL).with(csrf()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(reservaDTO)))
+            .andExpect(status().isBadRequest());
+
+        assertSameRepositoryCount(databaseSizeBeforeTest);
+    }
+
+    @Test
+    @Transactional
     void getAllReservas() throws Exception {
         // Initialize the database
         insertedReserva = reservaRepository.saveAndFlush(reserva);
@@ -258,7 +280,8 @@ class ReservaResourceIT {
             .andExpect(jsonPath("$.[*].fechaReserva").value(hasItem(DEFAULT_FECHA_RESERVA.toString())))
             .andExpect(jsonPath("$.[*].fechaInicio").value(hasItem(DEFAULT_FECHA_INICIO.toString())))
             .andExpect(jsonPath("$.[*].fechaFin").value(hasItem(DEFAULT_FECHA_FIN.toString())))
-            .andExpect(jsonPath("$.[*].estado").value(hasItem(DEFAULT_ESTADO.toString())));
+            .andExpect(jsonPath("$.[*].estado").value(hasItem(DEFAULT_ESTADO.toString())))
+            .andExpect(jsonPath("$.[*].activo").value(hasItem(DEFAULT_ACTIVO)));
     }
 
     @SuppressWarnings({ "unchecked" })
@@ -293,7 +316,8 @@ class ReservaResourceIT {
             .andExpect(jsonPath("$.fechaReserva").value(DEFAULT_FECHA_RESERVA.toString()))
             .andExpect(jsonPath("$.fechaInicio").value(DEFAULT_FECHA_INICIO.toString()))
             .andExpect(jsonPath("$.fechaFin").value(DEFAULT_FECHA_FIN.toString()))
-            .andExpect(jsonPath("$.estado").value(DEFAULT_ESTADO.toString()));
+            .andExpect(jsonPath("$.estado").value(DEFAULT_ESTADO.toString()))
+            .andExpect(jsonPath("$.activo").value(DEFAULT_ACTIVO));
     }
 
     @Test
@@ -319,7 +343,8 @@ class ReservaResourceIT {
             .fechaReserva(UPDATED_FECHA_RESERVA)
             .fechaInicio(UPDATED_FECHA_INICIO)
             .fechaFin(UPDATED_FECHA_FIN)
-            .estado(UPDATED_ESTADO);
+            .estado(UPDATED_ESTADO)
+            .activo(UPDATED_ACTIVO);
         ReservaDTO reservaDTO = reservaMapper.toDto(updatedReserva);
 
         restReservaMockMvc
@@ -445,7 +470,8 @@ class ReservaResourceIT {
             .fechaReserva(UPDATED_FECHA_RESERVA)
             .fechaInicio(UPDATED_FECHA_INICIO)
             .fechaFin(UPDATED_FECHA_FIN)
-            .estado(UPDATED_ESTADO);
+            .estado(UPDATED_ESTADO)
+            .activo(UPDATED_ACTIVO);
 
         restReservaMockMvc
             .perform(

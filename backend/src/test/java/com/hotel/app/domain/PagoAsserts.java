@@ -51,7 +51,8 @@ public class PagoAsserts {
             .satisfies(a -> assertThat(a.getFechaPago()).as("check fechaPago").isEqualTo(expected.getFechaPago()))
             .satisfies(a -> assertThat(a.getMonto()).as("check monto").usingComparator(bigDecimalCompareTo).isEqualTo(expected.getMonto()))
             .satisfies(a -> assertThat(a.getMetodoPago()).as("check metodoPago").isEqualTo(expected.getMetodoPago()))
-            .satisfies(a -> assertThat(a.getEstado()).as("check estado").isEqualTo(expected.getEstado()));
+            .satisfies(a -> assertThat(a.getEstado()).as("check estado").isEqualTo(expected.getEstado()))
+            .satisfies(a -> assertThat(a.getActivo()).as("check activo").isEqualTo(expected.getActivo()));
     }
 
     /**

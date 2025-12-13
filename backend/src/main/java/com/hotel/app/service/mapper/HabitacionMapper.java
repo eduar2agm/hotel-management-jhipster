@@ -13,19 +13,17 @@ import org.mapstruct.*;
  */
 @Mapper(componentModel = "spring")
 public interface HabitacionMapper extends EntityMapper<HabitacionDTO, Habitacion> {
-    @Mapping(target = "categoriaHabitacion", source = "categoriaHabitacion", qualifiedByName = "categoriaHabitacionNombre")
-    @Mapping(target = "estadoHabitacion", source = "estadoHabitacion", qualifiedByName = "estadoHabitacionNombre")
+    @Mapping(target = "categoriaHabitacion", source = "categoriaHabitacion", qualifiedByName = "categoriaHabitacionId")
+    @Mapping(target = "estadoHabitacion", source = "estadoHabitacion", qualifiedByName = "estadoHabitacionId")
     HabitacionDTO toDto(Habitacion s);
 
-    @Named("categoriaHabitacionNombre")
+    @Named("categoriaHabitacionId")
     @BeanMapping(ignoreByDefault = true)
     @Mapping(target = "id", source = "id")
-    @Mapping(target = "nombre", source = "nombre")
-    CategoriaHabitacionDTO toDtoCategoriaHabitacionNombre(CategoriaHabitacion categoriaHabitacion);
+    CategoriaHabitacionDTO toDtoCategoriaHabitacionId(CategoriaHabitacion categoriaHabitacion);
 
-    @Named("estadoHabitacionNombre")
+    @Named("estadoHabitacionId")
     @BeanMapping(ignoreByDefault = true)
     @Mapping(target = "id", source = "id")
-    @Mapping(target = "nombre", source = "nombre")
-    EstadoHabitacionDTO toDtoEstadoHabitacionNombre(EstadoHabitacion estadoHabitacion);
+    EstadoHabitacionDTO toDtoEstadoHabitacionId(EstadoHabitacion estadoHabitacion);
 }

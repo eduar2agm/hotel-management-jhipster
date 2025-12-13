@@ -53,6 +53,10 @@ public class Cliente implements Serializable {
     @Column(name = "keycloak_id", nullable = false)
     private String keycloakId;
 
+    @NotNull
+    @Column(name = "activo", nullable = false)
+    private Boolean activo;
+
     // jhipster-needle-entity-add-field - JHipster will add fields here
 
     public Long getId() {
@@ -172,6 +176,19 @@ public class Cliente implements Serializable {
         this.keycloakId = keycloakId;
     }
 
+    public Boolean getActivo() {
+        return this.activo;
+    }
+
+    public Cliente activo(Boolean activo) {
+        this.setActivo(activo);
+        return this;
+    }
+
+    public void setActivo(Boolean activo) {
+        this.activo = activo;
+    }
+
     // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
 
     @Override
@@ -204,6 +221,7 @@ public class Cliente implements Serializable {
             ", tipoIdentificacion='" + getTipoIdentificacion() + "'" +
             ", numeroIdentificacion='" + getNumeroIdentificacion() + "'" +
             ", keycloakId='" + getKeycloakId() + "'" +
+            ", activo='" + getActivo() + "'" +
             "}";
     }
 }

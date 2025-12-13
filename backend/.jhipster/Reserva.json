@@ -27,6 +27,11 @@
       "fieldType": "EstadoReserva",
       "fieldValidateRules": ["required"],
       "fieldValues": "PENDIENTE,CONFIRMADA,CANCELADA"
+    },
+    {
+      "fieldName": "activo",
+      "fieldType": "Boolean",
+      "fieldValidateRules": ["required"]
     }
   ],
   "microserviceName": "hotelApp",

@@ -60,7 +60,8 @@ public class CheckInCheckOutAsserts {
                     .usingComparator(zonedDataTimeSameInstant)
                     .isEqualTo(expected.getFechaHoraCheckOut())
             )
-            .satisfies(a -> assertThat(a.getEstado()).as("check estado").isEqualTo(expected.getEstado()));
+            .satisfies(a -> assertThat(a.getEstado()).as("check estado").isEqualTo(expected.getEstado()))
+            .satisfies(a -> assertThat(a.getActivo()).as("check activo").isEqualTo(expected.getActivo()));
     }
 
     /**

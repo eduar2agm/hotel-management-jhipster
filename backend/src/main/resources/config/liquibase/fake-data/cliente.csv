@@ -1,11 +1,11 @@
-id;nombre;apellido;correo;telefono;direccion;tipo_identificacion;numero_identificacion;keycloak_id
-1;obtrude nor once;ha excepting;toaster;valentine;consequently;DNI;yippee;powerfully yowza
-2;crowded worst cinch;creature;snuggle incidentally mid;scramble whose;daily hmph;PASAPORTE;courageously duh woot;lieu meanwhile
-3;zowie ha;necklace curiously;concerning drat;besides;perp seldom;DNI;cloudy;meanwhile fibre
-4;phooey doubtfully;ew;wherever;fervently fearless converse;um;PASAPORTE;publication boo;achieve aside
-5;deliberately um glossy;severe;warped gadzooks;ugh faithfully mmm;how;RUC;ha collaboration;dandelion wherever going
-6;dissemble;cantaloupe;showboat deficient wherever;secrecy equal;inside questioningly fishery;RUC;secondary as;chime
-7;through;sense;mesh hence;mozzarella;before unit;DNI;since quickly;alongside
-8;dependency interestingly because;helplessly;rebel uniform;soon;abnormally;RUC;heavenly;yowza wildly beard
-9;after;handsome cappelletti;co-producer;list after beneath;fledgling orientate;RUC;honesty but;buck
-10;truthfully quizzically;actually;ah planula incidentally;circa deceivingly zowie;festival instead;RUC;patiently beautifully regarding;tensely
+id;nombre;apellido;correo;telefono;direccion;tipo_identificacion;numero_identificacion;keycloak_id;activo
+1;obtrude nor once;ha excepting;toaster;valentine;consequently;DNI;yippee;powerfully yowza;false
+2;mysteriously possible atop;sonar snuggle incidentally;militate scramble;polished;unexpectedly patroller average;DNI;oval reluctantly;oof molasses zowie;false
+3;phooey after majestically;though;harangue;enormously;querulous cautiously;PASAPORTE;spectacles;intent while;true
+4;chromakey;conclude vice meh;that despite rapidly;parade;capitalize;RUC;harangue mosh;commemorate hmph;false
+5;well-groomed;yahoo indeed;joint including;negative boo;beside cultivated insistent;PASAPORTE;however;during;true
+6;clumsy save;yuck till;despite golden;boo yearningly yippee;tenant young;PASAPORTE;pleasant because;as and;true
+7;loyalty ugh;nasalise sell yippee;brr whether tame;merrily ouch absent;until maintainer;PASAPORTE;hence sternly profane;blah twist precious;true
+8;yowza wildly beard;after;handsome cappelletti;co-producer;list after beneath;PASAPORTE;rapidly;prime honesty but;true
+9;nor;spice before;till ah;polarisation sharply circa;indeed knitting;DNI;accidentally per patiently;emulsify damaged tensely;true
+10;considering unexpectedly;out coolly;youthfully indeed;that;hurtful;RUC;mockingly curiously scenario;anti steep;false

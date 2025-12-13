@@ -4,6 +4,8 @@ import com.hotel.app.repository.ReservaDetalleRepository;
 import com.hotel.app.service.ReservaDetalleService;
 import com.hotel.app.service.dto.ReservaDetalleDTO;
 import com.hotel.app.web.rest.errors.BadRequestAlertException;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
@@ -53,7 +55,7 @@ public class ReservaDetalleResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PostMapping("")
-    public ResponseEntity<ReservaDetalleDTO> createReservaDetalle(@RequestBody ReservaDetalleDTO reservaDetalleDTO)
+    public ResponseEntity<ReservaDetalleDTO> createReservaDetalle(@Valid @RequestBody ReservaDetalleDTO reservaDetalleDTO)
         throws URISyntaxException {
         LOG.debug("REST request to save ReservaDetalle : {}", reservaDetalleDTO);
         if (reservaDetalleDTO.getId() != null) {
@@ -78,7 +80,7 @@ public class ReservaDetalleResource {
     @PutMapping("/{id}")
     public ResponseEntity<ReservaDetalleDTO> updateReservaDetalle(
         @PathVariable(value = "id", required = false) final Long id,
-        @RequestBody ReservaDetalleDTO reservaDetalleDTO
+        @Valid @RequestBody ReservaDetalleDTO reservaDetalleDTO
     ) throws URISyntaxException {
         LOG.debug("REST request to update ReservaDetalle : {}, {}", id, reservaDetalleDTO);
         if (reservaDetalleDTO.getId() == null) {
@@ -112,7 +114,7 @@ public class ReservaDetalleResource {
     @PatchMapping(value = "/{id}", consumes = { "application/json", "application/merge-patch+json" })
     public ResponseEntity<ReservaDetalleDTO> partialUpdateReservaDetalle(
         @PathVariable(value = "id", required = false) final Long id,
-        @RequestBody ReservaDetalleDTO reservaDetalleDTO
+        @NotNull @RequestBody ReservaDetalleDTO reservaDetalleDTO
     ) throws URISyntaxException {
         LOG.debug("REST request to partial update ReservaDetalle partially : {}, {}", id, reservaDetalleDTO);
         if (reservaDetalleDTO.getId() == null) {

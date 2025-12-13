@@ -47,6 +47,9 @@ class CategoriaHabitacionResourceIT {
     private static final BigDecimal DEFAULT_PRECIO_BASE = new BigDecimal(1);
     private static final BigDecimal UPDATED_PRECIO_BASE = new BigDecimal(2);
 
+    private static final Boolean DEFAULT_ACTIVO = false;
+    private static final Boolean UPDATED_ACTIVO = true;
+
     private static final String ENTITY_API_URL = "/api/categoria-habitacions";
     private static final String ENTITY_API_URL_ID = ENTITY_API_URL + "/{id}";
 
@@ -79,7 +82,11 @@ class CategoriaHabitacionResourceIT {
      * if they test an entity which requires the current entity.
      */
     public static CategoriaHabitacion createEntity() {
-        return new CategoriaHabitacion().nombre(DEFAULT_NOMBRE).descripcion(DEFAULT_DESCRIPCION).precioBase(DEFAULT_PRECIO_BASE);
+        return new CategoriaHabitacion()
+            .nombre(DEFAULT_NOMBRE)
+            .descripcion(DEFAULT_DESCRIPCION)
+            .precioBase(DEFAULT_PRECIO_BASE)
+            .activo(DEFAULT_ACTIVO);
     }
 
     /**
@@ -89,7 +96,11 @@ class CategoriaHabitacionResourceIT {
      * if they test an entity which requires the current entity.
      */
     public static CategoriaHabitacion createUpdatedEntity() {
-        return new CategoriaHabitacion().nombre(UPDATED_NOMBRE).descripcion(UPDATED_DESCRIPCION).precioBase(UPDATED_PRECIO_BASE);
+        return new CategoriaHabitacion()
+            .nombre(UPDATED_NOMBRE)
+            .descripcion(UPDATED_DESCRIPCION)
+            .precioBase(UPDATED_PRECIO_BASE)
+            .activo(UPDATED_ACTIVO);
     }
 
     @BeforeEach
@@ -206,6 +217,28 @@ class CategoriaHabitacionResourceIT {
 
     @Test
     @Transactional
+    void checkActivoIsRequired() throws Exception {
+        long databaseSizeBeforeTest = getRepositoryCount();
+        // set the field null
+        categoriaHabitacion.setActivo(null);
+
+        // Create the CategoriaHabitacion, which fails.
+        CategoriaHabitacionDTO categoriaHabitacionDTO = categoriaHabitacionMapper.toDto(categoriaHabitacion);
+
+        restCategoriaHabitacionMockMvc
+            .perform(
+                post(ENTITY_API_URL)
+                    .with(csrf())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(om.writeValueAsBytes(categoriaHabitacionDTO))
+            )
+            .andExpect(status().isBadRequest());
+
+        assertSameRepositoryCount(databaseSizeBeforeTest);
+    }
+
+    @Test
+    @Transactional
     void getAllCategoriaHabitacions() throws Exception {
         // Initialize the database
         insertedCategoriaHabitacion = categoriaHabitacionRepository.saveAndFlush(categoriaHabitacion);
@@ -218,7 +251,8 @@ class CategoriaHabitacionResourceIT {
             .andExpect(jsonPath("$.[*].id").value(hasItem(categoriaHabitacion.getId().intValue())))
             .andExpect(jsonPath("$.[*].nombre").value(hasItem(DEFAULT_NOMBRE.toString())))
             .andExpect(jsonPath("$.[*].descripcion").value(hasItem(DEFAULT_DESCRIPCION)))
-            .andExpect(jsonPath("$.[*].precioBase").value(hasItem(sameNumber(DEFAULT_PRECIO_BASE))));
+            .andExpect(jsonPath("$.[*].precioBase").value(hasItem(sameNumber(DEFAULT_PRECIO_BASE))))
+            .andExpect(jsonPath("$.[*].activo").value(hasItem(DEFAULT_ACTIVO)));
     }
 
     @Test
@@ -235,7 +269,8 @@ class CategoriaHabitacionResourceIT {
             .andExpect(jsonPath("$.id").value(categoriaHabitacion.getId().intValue()))
             .andExpect(jsonPath("$.nombre").value(DEFAULT_NOMBRE.toString()))
             .andExpect(jsonPath("$.descripcion").value(DEFAULT_DESCRIPCION))
-            .andExpect(jsonPath("$.precioBase").value(sameNumber(DEFAULT_PRECIO_BASE)));
+            .andExpect(jsonPath("$.precioBase").value(sameNumber(DEFAULT_PRECIO_BASE)))
+            .andExpect(jsonPath("$.activo").value(DEFAULT_ACTIVO));
     }
 
     @Test
@@ -257,7 +292,11 @@ class CategoriaHabitacionResourceIT {
         CategoriaHabitacion updatedCategoriaHabitacion = categoriaHabitacionRepository.findById(categoriaHabitacion.getId()).orElseThrow();
         // Disconnect from session so that the updates on updatedCategoriaHabitacion are not directly saved in db
         em.detach(updatedCategoriaHabitacion);
-        updatedCategoriaHabitacion.nombre(UPDATED_NOMBRE).descripcion(UPDATED_DESCRIPCION).precioBase(UPDATED_PRECIO_BASE);
+        updatedCategoriaHabitacion
+            .nombre(UPDATED_NOMBRE)
+            .descripcion(UPDATED_DESCRIPCION)
+            .precioBase(UPDATED_PRECIO_BASE)
+            .activo(UPDATED_ACTIVO);
         CategoriaHabitacionDTO categoriaHabitacionDTO = categoriaHabitacionMapper.toDto(updatedCategoriaHabitacion);
 
         restCategoriaHabitacionMockMvc
@@ -387,7 +426,11 @@ class CategoriaHabitacionResourceIT {
         CategoriaHabitacion partialUpdatedCategoriaHabitacion = new CategoriaHabitacion();
         partialUpdatedCategoriaHabitacion.setId(categoriaHabitacion.getId());
 
-        partialUpdatedCategoriaHabitacion.nombre(UPDATED_NOMBRE).descripcion(UPDATED_DESCRIPCION).precioBase(UPDATED_PRECIO_BASE);
+        partialUpdatedCategoriaHabitacion
+            .nombre(UPDATED_NOMBRE)
+            .descripcion(UPDATED_DESCRIPCION)
+            .precioBase(UPDATED_PRECIO_BASE)
+            .activo(UPDATED_ACTIVO);
 
         restCategoriaHabitacionMockMvc
             .perform(
