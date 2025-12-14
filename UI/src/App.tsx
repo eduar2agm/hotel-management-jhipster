@@ -7,6 +7,11 @@ import { Unauthorized } from './pages/Unauthorized';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { EmployeeDashboard } from './pages/employee/EmployeeDashboard';
 import { ClientReservas } from './pages/client/ClientReservas';
+import { Home } from './pages/HomePage'
+import { Habitaciones } from './pages/client/habitaciones'
+import { Reservas } from './pages/client/Reservas'
+import { Servicios } from './pages/client/Servicios'
+import { Menu } from './pages/client/Menu'
 import './App.css';
 
 function App() {
@@ -17,6 +22,11 @@ function App() {
           {/* Public Routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
+          <Route path="/home" element={<Home/>} />
+          <Route path="/habitaciones" element={<Habitaciones />} />
+          <Route path="/reservas" element={<Reservas />} />
+          <Route path="/servicios" element={<Servicios />} />
+          <Route path="/menu" element={<Menu />} />
 
           {/* Protected Routes */}
           <Route
