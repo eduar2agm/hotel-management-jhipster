@@ -23,6 +23,13 @@ public class AudienceValidator implements OAuth2TokenValidator<Jwt> {
 
     public OAuth2TokenValidatorResult validate(Jwt jwt) {
         List<String> audience = jwt.getAudience();
+
+        // If no audience claim is present, skip validation (common with Keycloak)
+        if (audience == null || audience.isEmpty()) {
+            LOG.debug("No audience claim found in token, skipping audience validation");
+            return OAuth2TokenValidatorResult.success();
+        }
+
         if (audience.stream().anyMatch(allowedAudience::contains)) {
             return OAuth2TokenValidatorResult.success();
         } else {
