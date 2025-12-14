@@ -1,35 +1,47 @@
 import { DashboardLayout } from '../../components/DashboardLayout';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { CheckCircle, LogOut, Bell } from 'lucide-react';
 
 export const EmployeeDashboard = () => {
     return (
-        <DashboardLayout title="Operaciones Diarias" role="Empleado">
-            <div style={{ marginTop: '30px', textAlign: 'left', maxWidth: '800px', margin: '30px auto' }}>
-                <div style={{ background: 'white', color: '#333', padding: '20px', borderRadius: '10px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
-                    <h3 style={{ borderBottom: '2px solid #f0f0f0', paddingBottom: '10px', marginBottom: '20px' }}>📅 Tareas Pendientes (Hoy)</h3>
-                    <ul style={{ listStyle: 'none', padding: 0 }}>
-                        <li style={{ padding: '15px', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <div>
-                                <strong style={{ display: 'block', fontSize: '1.1rem' }}>Check-in: Juan Pérez</strong>
-                                <span style={{ color: '#666', fontSize: '0.9rem' }}>Reserva #12345 • Habitación 101</span>
+        <DashboardLayout title="Operaciones Diarias">
+            <div className="grid gap-6">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>📅 Tareas Pendientes (Hoy)</CardTitle>
+                    </CardHeader>
+                    <CardContent className="grid gap-4">
+                        <div className="flex items-center justify-between border-b pb-4 last:border-0 last:pb-0">
+                            <div className="space-y-1">
+                                <p className="text-sm font-medium leading-none">Check-in: Juan Pérez</p>
+                                <p className="text-xs text-muted-foreground">Reserva #12345 • Habitación 101</p>
                             </div>
-                            <button style={{ background: '#28a745', color: 'white', border: 'none', padding: '8px 15px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>Realizar Check-in</button>
-                        </li>
-                        <li style={{ padding: '15px', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <div>
-                                <strong style={{ display: 'block', fontSize: '1.1rem' }}>Check-out: Ana Gómez</strong>
-                                <span style={{ color: '#666', fontSize: '0.9rem' }}>Reserva #12340 • Habitación 205</span>
+                            <Button size="sm" className="bg-green-600 hover:bg-green-700">
+                                <CheckCircle className="mr-2 h-4 w-4" /> Realizar Check-in
+                            </Button>
+                        </div>
+                        <div className="flex items-center justify-between border-b pb-4 last:border-0 last:pb-0">
+                            <div className="space-y-1">
+                                <p className="text-sm font-medium leading-none">Check-out: Ana Gómez</p>
+                                <p className="text-xs text-muted-foreground">Reserva #12340 • Habitación 205</p>
                             </div>
-                            <button style={{ background: '#dc3545', color: 'white', border: 'none', padding: '8px 15px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>Procesar Salida</button>
-                        </li>
-                        <li style={{ padding: '15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <div>
-                                <strong style={{ display: 'block', fontSize: '1.1rem' }}>Solicitud de Servicio</strong>
-                                <span style={{ color: '#666', fontSize: '0.9rem' }}>Habitación 304 - Toallas extra</span>
+                            <Button size="sm" variant="destructive">
+                                <LogOut className="mr-2 h-4 w-4" /> Procesar Salida
+                            </Button>
+                        </div>
+                        <div className="flex items-center justify-between">
+                            <div className="space-y-1">
+                                <p className="text-sm font-medium leading-none">Solicitud de Servicio</p>
+                                <p className="text-xs text-muted-foreground">Habitación 304 - Toallas extra</p>
                             </div>
-                            <span style={{ background: '#ffc107', padding: '5px 10px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 'bold' }}>Pendiente</span>
-                        </li>
-                    </ul>
-                </div>
+                            <Badge variant="secondary" className="gap-1">
+                                <Bell className="h-3 w-3" /> Pendiente
+                            </Badge>
+                        </div>
+                    </CardContent>
+                </Card>
             </div>
         </DashboardLayout>
     );
