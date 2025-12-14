@@ -5,46 +5,50 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { Login } from './pages/Login';
 import { Unauthorized } from './pages/Unauthorized';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
+import { AdminHabitaciones } from './pages/admin/Habitaciones';
+import { AdminClientes } from './pages/admin/Clientes';
+import { AdminReservas } from './pages/admin/ReservasAdmin';
+import { AdminReportes } from './pages/admin/Reportes';
+import { AdminConfiguracion } from './pages/admin/Configuracion';
 import { EmployeeDashboard } from './pages/employee/EmployeeDashboard';
+import { CheckIn } from './pages/employee/CheckIn';
+import { EmployeeReservas } from './pages/employee/ReservasEmployee';
 import { ClientReservas } from './pages/client/ClientReservas';
+import { NuevaReserva } from './pages/client/NuevaReserva';
+import { Perfil } from './pages/client/Perfil';
+import { Toaster } from 'sonner';
+import { AuthTokenSync } from './components/AuthTokenSync';
+import './api/axios-interceptors';
 import './App.css';
 
 function App() {
   return (
     <AuthProvider {...oidcConfig}>
+      <AuthTokenSync />
+      <Toaster position="top-right" />
       <BrowserRouter>
         <Routes>
           {/* Public Routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
 
-          {/* Protected Routes */}
-          <Route
-            path="/admin/dashboard"
-            element={
-              <ProtectedRoute requiredRoles={['ROLE_ADMIN']}>
-                <AdminDashboard />
-              </ProtectedRoute>
-            }
-          />
+          {/* Admin Routes */}
+          <Route path="/admin/dashboard" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN']}><AdminDashboard /></ProtectedRoute>} />
+          <Route path="/admin/habitaciones" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN']}><AdminHabitaciones /></ProtectedRoute>} />
+          <Route path="/admin/clientes" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN']}><AdminClientes /></ProtectedRoute>} />
+          <Route path="/admin/reservas" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN']}><AdminReservas /></ProtectedRoute>} />
+          <Route path="/admin/reportes" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN']}><AdminReportes /></ProtectedRoute>} />
+          <Route path="/admin/configuracion" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN']}><AdminConfiguracion /></ProtectedRoute>} />
 
-          <Route
-            path="/employee/dashboard"
-            element={
-              <ProtectedRoute requiredRoles={['ROLE_ADMIN', 'ROLE_EMPLOYEE']}>
-                <EmployeeDashboard />
-              </ProtectedRoute>
-            }
-          />
+          {/* Employee Routes */}
+          <Route path="/employee/dashboard" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN', 'ROLE_EMPLOYEE']}><EmployeeDashboard /></ProtectedRoute>} />
+          <Route path="/employee/checkin" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN', 'ROLE_EMPLOYEE']}><CheckIn /></ProtectedRoute>} />
+          <Route path="/employee/reservas" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN', 'ROLE_EMPLOYEE']}><EmployeeReservas /></ProtectedRoute>} />
 
-          <Route
-            path="/client/reservas"
-            element={
-              <ProtectedRoute requiredRoles={['ROLE_CLIENT']}>
-                <ClientReservas />
-              </ProtectedRoute>
-            }
-          />
+          {/* Client Routes */}
+          <Route path="/client/reservas" element={<ProtectedRoute requiredRoles={['ROLE_CLIENT']}><ClientReservas /></ProtectedRoute>} />
+          <Route path="/client/nueva-reserva" element={<ProtectedRoute requiredRoles={['ROLE_CLIENT']}><NuevaReserva /></ProtectedRoute>} />
+          <Route path="/client/perfil" element={<ProtectedRoute requiredRoles={['ROLE_CLIENT']}><Perfil /></ProtectedRoute>} />
 
           {/* Default Redirect */}
           <Route path="/" element={<Navigate to="/login" replace />} />
