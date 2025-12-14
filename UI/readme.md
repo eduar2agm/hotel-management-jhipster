@@ -71,3 +71,57 @@ export default defineConfig([
   },
 ])
 ```
+
+## Consuming Backend Endpoints
+
+This project uses `axios` configured in `src/api/axios-instance.ts` as `apiClient`.
+
+Services live in `src/services` and provide simple CRUD functions. Example usage:
+
+```ts
+import { ReservaService } from './services';
+
+// Get all reservas
+const { data: reservas } = await ReservaService.getReservas({ sort: 'id,desc' });
+
+// Create a new reserva
+const newReserva = await ReservaService.createReserva({ fechaInicio: '2025-12-15T00:00:00Z', fechaFin: '2025-12-18T00:00:00Z', fechaReserva: new Date().toISOString(), estado: 'PENDIENTE', activo: true });
+```
+
+Use `useApiClient` hook to ensure the `Authorization` header is applied with the access token.
+
+### Import pattern (naming)
+
+All services are exported as *named exports* from `src/services` (barrel) and all API types are exported as *named exports* from `src/types/api` (barrel). This keeps imports consistent and clear.
+
+Examples:
+
+- Import a service from the barrel `src/services`:
+```ts
+import { ReservaService, ClienteService } from '../services';
+
+// Usage
+const { data: reservas } = await ReservaService.getReservas({ sort: 'id,desc' });
+```
+
+- Import a single service directly (not recommended — prefer barrel):
+```ts
+import { ReservaService } from '../services/reserva.service';
+```
+
+- Import types from the barrel `src/types/api`:
+```ts
+import type { ReservaDTO, ClienteDTO } from '../types/api';
+```
+
+- Example using hook `useApiClient` and a service:
+```ts
+import { ReservaService } from '../services';
+import { useApiClient } from '../hooks/useApiClient';
+
+const api = useApiClient(); // ensures token header set
+const { data } = await ReservaService.getReservas();
+```
+
+Note: Prefer named exports for services to allow better tree-shaking and explicit imports.
+
