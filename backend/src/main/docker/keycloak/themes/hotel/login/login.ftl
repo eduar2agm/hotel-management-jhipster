@@ -19,11 +19,7 @@
 
             body, .login-pf-page, .login-pf {
 
-                background-color: #1a252f !important;
-                background-image: url('${url.resourcesPath}/img/logoH.png') !important;
-                background-size: cover !important;
-                background-position: center !important;
-                background-repeat: no-repeat !important;
+                background: linear-gradient(135deg, #1a252f 0%, #0d1217 100%) !important;
                 font-family: 'Segoe UI', sans-serif !important;
                 height: 100vh;
                 width: 100vw;
