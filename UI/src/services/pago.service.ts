@@ -1,7 +1,7 @@
 import { apiClient } from '../api/axios-instance';
 import type { PagoDTO, NewPagoDTO } from '../types/api';
 
-const base = '/api/pagos';
+const base = '/pagos';
 
 export const PagoService = {
     getPagos: (params?: Record<string, any>) => apiClient.get<PagoDTO[]>(base, { params }),

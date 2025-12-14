@@ -1,7 +1,7 @@
 import { apiClient } from '../api/axios-instance';
 import type { EstadoHabitacionDTO, NewEstadoHabitacionDTO } from '../types/api';
 
-const base = '/api/estado-habitacions';
+const base = '/estado-habitacions';
 
 export const EstadoHabitacionService = {
     getEstados: (params?: Record<string, any>) => apiClient.get<EstadoHabitacionDTO[]>(base, { params }),

@@ -1,7 +1,7 @@
 import { apiClient } from '../api/axios-instance';
 import type { MensajeSoporteDTO, NewMensajeSoporteDTO } from '../types/api';
 
-const base = '/api/mensaje-soportes';
+const base = '/mensaje-soportes';
 
 export const MensajeSoporteService = {
     getMensajes: (params?: Record<string, any>) => apiClient.get<MensajeSoporteDTO[]>(base, { params }),
