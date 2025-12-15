@@ -4,6 +4,7 @@ import type { HabitacionDTO } from './Habitacion';
 export interface ReservaDetalleDTO {
     id?: number;
     nota?: string | null;
+    precioUnitario?: number | null;
     activo: boolean;
     reserva?: ReservaDTO | null;
     habitacion?: HabitacionDTO | null;

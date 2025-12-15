@@ -4,8 +4,9 @@ export interface PagoDTO {
     id?: number;
     fechaPago: string;
     monto: string; // BigDecimal -> string
-    metodoPago?: string; // enum
-    estado?: string; // enum
+    metodoPago?: string; // enum MetodoPago
+    estado?: string; // enum EstadoPago
+    plataformaPagoId?: string | null;
     activo?: boolean;
     reserva?: ReservaDTO | null;
 }
