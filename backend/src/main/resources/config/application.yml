@@ -229,6 +229,7 @@ jhipster:
       audience:
         - account
         - api://default
+        - realm-management
 
 # jhipster-needle-add-application-yaml-document
 ---
