@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { DashboardLayout } from '../../components/DashboardLayout';
 import { ClienteService } from '../../services';
@@ -8,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Mail, Phone, Plus, Search, Pencil, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import {
     Dialog,
     DialogContent,
@@ -24,6 +26,14 @@ import {
 } from '@/components/ui/select';
 import { toast } from 'sonner';
 
+import {
+    IDENTIFICATION_TYPES,
+    validateIdentification,
+    formatIdentification,
+    IDENTIFICATION_PLACEHOLDERS,
+    TipoIdentificacion
+} from '../../utils/identification';
+
 export const AdminClientes = () => {
     const [clientes, setClientes] = useState<ClienteDTO[]>([]);
     const [loading, setLoading] = useState(false);
@@ -31,6 +41,7 @@ export const AdminClientes = () => {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [currentCliente, setCurrentCliente] = useState<Partial<ClienteDTO>>({});
     const [isEditing, setIsEditing] = useState(false);
+    const [idError, setIdError] = useState<string | null>(null);
 
     const loadClientes = async () => {
         setLoading(true);
@@ -66,21 +77,68 @@ export const AdminClientes = () => {
             apellido: '',
             correo: '',
             telefono: '',
-            tipoIdentificacion: 'DNI',
-            activo: true
+            tipoIdentificacion: 'CEDULA',
+            activo: true,
+            keycloakId: 'not-linked'
         });
+        setIdError(null);
         setIsEditing(false);
         setIsDialogOpen(true);
     };
 
     const handleEdit = (cliente: ClienteDTO) => {
         setCurrentCliente({ ...cliente });
+        setIdError(null);
         setIsEditing(true);
         setIsDialogOpen(true);
     };
 
+    const handleIdChange = (val: string) => {
+        const formatted = formatIdentification(currentCliente.tipoIdentificacion || 'DNI', val);
+
+        setCurrentCliente({ ...currentCliente, numeroIdentificacion: formatted });
+
+        if (currentCliente.tipoIdentificacion) {
+            const error = validateIdentification(currentCliente.tipoIdentificacion, formatted);
+            setIdError(error);
+        }
+    };
+
+    const handleTypeChange = (val: string) => {
+        setCurrentCliente({
+            ...currentCliente,
+            tipoIdentificacion: val as any,
+            numeroIdentificacion: ''
+        });
+        setIdError(null);
+    };
+
+    const toggleActivo = async (cliente: ClienteDTO) => {
+        if (!cliente.id) return;
+        try {
+            const updated = { ...cliente, activo: !cliente.activo };
+            await ClienteService.updateCliente(cliente.id, updated);
+            toast.success(`Cliente ${updated.activo ? 'activado' : 'desactivado'}`);
+
+            // Optimistic update
+            setClientes(clientes.map(c => c.id === cliente.id ? updated : c));
+        } catch (error) {
+            toast.error('Error al actualizar estado');
+        }
+    };
+
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (currentCliente.tipoIdentificacion && currentCliente.numeroIdentificacion) {
+            const error = validateIdentification(currentCliente.tipoIdentificacion, currentCliente.numeroIdentificacion);
+            if (error) {
+                setIdError(error);
+                toast.error(`Error en Identificación: ${error}`);
+                return;
+            }
+        }
+
         try {
             if (!currentCliente.nombre || !currentCliente.apellido || !currentCliente.correo) {
                 toast.error('Nombre, apellido y correo son obligatorios');
@@ -136,14 +194,15 @@ export const AdminClientes = () => {
                                 <TableHead>Nombre Completo</TableHead>
                                 <TableHead>Contacto</TableHead>
                                 <TableHead>Identificación</TableHead>
+                                <TableHead>Activo</TableHead>
                                 <TableHead className="text-right">Acciones</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {loading ? (
-                                <TableRow><TableCell colSpan={5} className="text-center">Cargando...</TableCell></TableRow>
+                                <TableRow><TableCell colSpan={6} className="text-center">Cargando...</TableCell></TableRow>
                             ) : filteredClientes.length === 0 ? (
-                                <TableRow><TableCell colSpan={5} className="text-center">No se encontraron clientes.</TableCell></TableRow>
+                                <TableRow><TableCell colSpan={6} className="text-center">No se encontraron clientes.</TableCell></TableRow>
                             ) : (
                                 filteredClientes.map((c) => (
                                     <TableRow key={c.id}>
@@ -157,6 +216,12 @@ export const AdminClientes = () => {
                                         </TableCell>
                                         <TableCell>
                                             {c.tipoIdentificacion}: {c.numeroIdentificacion}
+                                        </TableCell>
+                                        <TableCell>
+                                            <Switch
+                                                checked={c.activo}
+                                                onCheckedChange={() => toggleActivo(c)}
+                                            />
                                         </TableCell>
                                         <TableCell className="text-right">
                                             <div className="flex justify-end gap-2">
@@ -208,28 +273,43 @@ export const AdminClientes = () => {
                             <div className="grid gap-2">
                                 <Label>Tipo Identificación</Label>
                                 <Select
-                                    value={currentCliente.tipoIdentificacion || 'DNI'}
-                                    onValueChange={(val) => setCurrentCliente({ ...currentCliente, tipoIdentificacion: val })}
+                                    value={currentCliente.tipoIdentificacion || 'CEDULA'}
+                                    onValueChange={handleTypeChange}
                                 >
                                     <SelectTrigger>
                                         <SelectValue placeholder="Tipo" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="DNI">DNI</SelectItem>
-                                        <SelectItem value="PASAPORTE">Pasaporte</SelectItem>
-                                        <SelectItem value="CEDULA">Cédula</SelectItem>
+                                        {IDENTIFICATION_TYPES.map((type) => (
+                                            <SelectItem key={type.value} value={type.value}>
+                                                {type.label}
+                                            </SelectItem>
+                                        ))}
                                     </SelectContent>
                                 </Select>
                             </div>
                             <div className="grid gap-2">
                                 <Label>No. Identificación</Label>
-                                <Input value={currentCliente.numeroIdentificacion || ''} onChange={e => setCurrentCliente({ ...currentCliente, numeroIdentificacion: e.target.value })} />
+                                <div className="relative">
+                                    <Input
+                                        value={currentCliente.numeroIdentificacion || ''}
+                                        onChange={e => handleIdChange(e.target.value)}
+                                        className={idError ? "border-red-500" : ""}
+                                        placeholder={IDENTIFICATION_PLACEHOLDERS[currentCliente.tipoIdentificacion as TipoIdentificacion] || ''}
+                                    />
+                                    {idError && <span className="absolute text-xs text-red-500 -bottom-5 left-0">{idError}</span>}
+                                </div>
                             </div>
                         </div>
 
                         <div className="grid gap-2">
                             <Label>Dirección</Label>
                             <Input value={currentCliente.direccion || ''} onChange={e => setCurrentCliente({ ...currentCliente, direccion: e.target.value })} />
+                        </div>
+
+                        <div className="flex items-center space-x-2">
+                            <Switch id="active-mode" checked={currentCliente.activo} onCheckedChange={checked => setCurrentCliente({ ...currentCliente, activo: checked })} />
+                            <Label htmlFor="active-mode">Cliente Activo</Label>
                         </div>
 
                         <DialogFooter>
