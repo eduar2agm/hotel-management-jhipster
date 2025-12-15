@@ -10,6 +10,13 @@ import type { ClienteDTO, NewClienteDTO } from '../../types/api';
 import { toast } from 'sonner';
 import { Save, User } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+    IDENTIFICATION_TYPES,
+    validateIdentification,
+    formatIdentification,
+    IDENTIFICATION_PLACEHOLDERS,
+    TipoIdentificacion
+} from '../../utils/identification';
 
 export const Perfil = () => {
     const { user } = useAuth();
@@ -17,6 +24,7 @@ export const Perfil = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [exists, setExists] = useState(false);
+    const [idError, setIdError] = useState<string | null>(null);
 
     useEffect(() => {
         const loadProfile = async () => {
@@ -29,8 +37,23 @@ export const Perfil = () => {
                 const found = res.data.find(c => c.correo === user.email);
 
                 if (found) {
-                    setCliente(found);
-                    setExists(true);
+                    // Check if this profile needs to be linked to the current Keycloak user
+                    if ((!found.keycloakId || found.keycloakId === 'not-linked') && user.id) {
+                        try {
+                            // Link the profile
+                            const updated = { ...found, keycloakId: user.id };
+                            await ClienteService.updateCliente(found.id!, updated as ClienteDTO);
+                            setCliente(updated);
+                            setExists(true);
+                            toast.success('Perfil vinculado exitosamente a su cuenta');
+                        } catch (err) {
+                            console.error('Failed to link profile', err);
+                            toast.error('Error al vincular perfil existente');
+                        }
+                    } else {
+                        setCliente(found);
+                        setExists(true);
+                    }
                 } else {
                     setCliente({
                         nombre: user.firstName || '',
@@ -38,8 +61,9 @@ export const Perfil = () => {
                         correo: user.email,
                         telefono: '',
                         direccion: '',
-                        tipoIdentificacion: 'DNI',
-                        numeroIdentificacion: ''
+                        tipoIdentificacion: 'CEDULA',
+                        numeroIdentificacion: '',
+                        keycloakId: user.id
                     });
                     setExists(false);
                 }
@@ -56,13 +80,31 @@ export const Perfil = () => {
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Validate Identification
+        if (cliente.tipoIdentificacion && cliente.numeroIdentificacion) {
+            const error = validateIdentification(cliente.tipoIdentificacion, cliente.numeroIdentificacion);
+            if (error) {
+                setIdError(error);
+                toast.error(`Error en Identificación: ${error}`);
+                return;
+            }
+        }
+
         setIsSaving(true);
         try {
             if (exists && cliente.id) {
                 await ClienteService.updateCliente(cliente.id, cliente as ClienteDTO);
                 toast.success('Perfil actualizado correctamente');
             } else {
-                const newCliente = await ClienteService.createCliente({ ...cliente, activo: true } as NewClienteDTO);
+                const payload = {
+                    ...cliente,
+                    activo: true,
+                    // Ensure keycloakId is present
+                    keycloakId: cliente.keycloakId || user?.id
+                } as NewClienteDTO;
+
+                const newCliente = await ClienteService.createCliente(payload);
                 setCliente(newCliente.data);
                 setExists(true);
                 toast.success('Perfil creado correctamente');
@@ -73,6 +115,29 @@ export const Perfil = () => {
         } finally {
             setIsSaving(false);
         }
+    };
+
+    const handleIdChange = (val: string) => {
+        // Apply auto-formatting
+        const formatted = formatIdentification(cliente.tipoIdentificacion || 'DNI', val);
+
+        setCliente({ ...cliente, numeroIdentificacion: formatted });
+
+        // Validate with formatted value
+        if (cliente.tipoIdentificacion) {
+            const error = validateIdentification(cliente.tipoIdentificacion, formatted);
+            setIdError(error);
+        }
+    };
+
+    const handleTypeChange = (val: string) => {
+        setCliente({
+            ...cliente,
+            tipoIdentificacion: val as any,
+            // Clear ID when type changes to avoid invalid format confusion
+            numeroIdentificacion: ''
+        });
+        setIdError(null);
     };
 
     if (isLoading) return <DashboardLayout role="Cliente" title="Perfil user"><div>Cargando...</div></DashboardLayout>;
@@ -122,6 +187,7 @@ export const Perfil = () => {
                                     <Input
                                         value={cliente.telefono || ''}
                                         onChange={e => setCliente({ ...cliente, telefono: e.target.value })}
+                                        required
                                     />
                                 </div>
                                 <div className="grid gap-2">
@@ -137,30 +203,38 @@ export const Perfil = () => {
                                 <div className="grid gap-2">
                                     <Label>Tipo ID</Label>
                                     <Select
-                                        value={cliente.tipoIdentificacion || 'DNI'}
-                                        onValueChange={(val) => setCliente({ ...cliente, tipoIdentificacion: val })}
+                                        value={cliente.tipoIdentificacion || 'CEDULA'}
+                                        onValueChange={handleTypeChange}
                                     >
                                         <SelectTrigger>
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="DNI">DNI</SelectItem>
-                                            <SelectItem value="PASAPORTE">Pasaporte</SelectItem>
-                                            <SelectItem value="CEDULA">Cédula</SelectItem>
+                                            {IDENTIFICATION_TYPES.map((type) => (
+                                                <SelectItem key={type.value} value={type.value}>
+                                                    {type.label}
+                                                </SelectItem>
+                                            ))}
                                         </SelectContent>
                                     </Select>
                                 </div>
                                 <div className="grid gap-2">
                                     <Label>Número ID</Label>
-                                    <Input
-                                        value={cliente.numeroIdentificacion || ''}
-                                        onChange={e => setCliente({ ...cliente, numeroIdentificacion: e.target.value })}
-                                    />
+                                    <div className="relative">
+                                        <Input
+                                            value={cliente.numeroIdentificacion || ''}
+                                            onChange={e => handleIdChange(e.target.value)}
+                                            required
+                                            className={idError ? "border-red-500" : ""}
+                                            placeholder={IDENTIFICATION_PLACEHOLDERS[cliente.tipoIdentificacion as TipoIdentificacion] || ''}
+                                        />
+                                        {idError && <span className="absolute text-xs text-red-500 -bottom-5 left-0">{idError}</span>}
+                                    </div>
                                 </div>
                             </div>
                         </CardContent>
-                        <CardFooter className="flex justify-end">
-                            <Button type="submit" disabled={isSaving}>
+                        <CardFooter className="flex justify-end mt-4">
+                            <Button type="submit" disabled={isSaving || !!idError}>
                                 <Save className="mr-2 h-4 w-4" />
                                 {isSaving ? 'Guardando...' : 'Guardar Cambios'}
                             </Button>
