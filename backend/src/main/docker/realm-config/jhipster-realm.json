@@ -2627,6 +2627,11 @@
         "ROLE_ADMIN",
         "ROLE_USER"
       ],
+      "clientRoles": {
+        "realm-management": [
+          "realm-admin"
+        ]
+      },
       "notBefore": 0,
       "access": {
         "manage": true
