@@ -5,6 +5,7 @@ const base = '/mensaje-soportes';
 
 export const MensajeSoporteService = {
     getMensajes: (params?: Record<string, any>) => apiClient.get<MensajeSoporteDTO[]>(base, { params }),
+    getMyMensajes: (params?: Record<string, any>) => apiClient.get<MensajeSoporteDTO[]>(`${base}/my-messages`, { params }),
     getMensaje: (id: number) => apiClient.get<MensajeSoporteDTO>(`${base}/${id}`),
     createMensaje: (dto: NewMensajeSoporteDTO) => apiClient.post<MensajeSoporteDTO>(base, dto),
     updateMensaje: (id: number, dto: MensajeSoporteDTO) => apiClient.put<MensajeSoporteDTO>(`${base}/${id}`, dto),
