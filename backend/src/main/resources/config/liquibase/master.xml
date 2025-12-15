@@ -28,6 +28,8 @@
     <include file="config/liquibase/changelog/20251211014121_added_entity_constraints_CheckInCheckOut.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20251211014122_added_entity_constraints_Pago.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20251212021327_added_entity_constraints_MensajeSoporte.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20251215000000_added_remitente_to_MensajeSoporte.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20251215000001_added_destinatario_to_MensajeSoporte.xml" relativeToChangelogFile="false"/>
     <!-- jhipster-needle-liquibase-add-constraints-changelog - JHipster will add liquibase constraints changelogs here -->
     <!-- jhipster-needle-liquibase-add-incremental-changelog - JHipster will add incremental liquibase changelogs here -->
 </databaseChangeLog>
