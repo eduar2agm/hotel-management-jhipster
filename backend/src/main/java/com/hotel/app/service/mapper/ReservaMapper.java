@@ -18,5 +18,6 @@ public interface ReservaMapper extends EntityMapper<ReservaDTO, Reserva> {
     @BeanMapping(ignoreByDefault = true)
     @Mapping(target = "id", source = "id")
     @Mapping(target = "nombre", source = "nombre")
+    @Mapping(target = "apellido", source = "apellido")
     ClienteDTO toDtoClienteNombre(Cliente cliente);
 }

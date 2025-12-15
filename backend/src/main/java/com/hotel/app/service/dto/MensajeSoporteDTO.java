@@ -30,6 +30,12 @@ public class MensajeSoporteDTO implements Serializable {
     @NotNull
     private Boolean activo;
 
+    private String remitente;
+
+    private String destinatarioId;
+
+    private String destinatarioName;
+
     private ReservaDTO reserva;
 
     public Long getId() {
@@ -88,6 +94,30 @@ public class MensajeSoporteDTO implements Serializable {
         this.activo = activo;
     }
 
+    public String getRemitente() {
+        return remitente;
+    }
+
+    public void setRemitente(String remitente) {
+        this.remitente = remitente;
+    }
+
+    public String getDestinatarioId() {
+        return destinatarioId;
+    }
+
+    public void setDestinatarioId(String destinatarioId) {
+        this.destinatarioId = destinatarioId;
+    }
+
+    public String getDestinatarioName() {
+        return destinatarioName;
+    }
+
+    public void setDestinatarioName(String destinatarioName) {
+        this.destinatarioName = destinatarioName;
+    }
+
     public ReservaDTO getReserva() {
         return reserva;
     }
@@ -121,14 +151,14 @@ public class MensajeSoporteDTO implements Serializable {
     @Override
     public String toString() {
         return "MensajeSoporteDTO{" +
-            "id=" + getId() +
-            ", mensaje='" + getMensaje() + "'" +
-            ", fechaMensaje='" + getFechaMensaje() + "'" +
-            ", userId='" + getUserId() + "'" +
-            ", userName='" + getUserName() + "'" +
-            ", leido='" + getLeido() + "'" +
-            ", activo='" + getActivo() + "'" +
-            ", reserva=" + getReserva() +
-            "}";
+                "id=" + getId() +
+                ", mensaje='" + getMensaje() + "'" +
+                ", fechaMensaje='" + getFechaMensaje() + "'" +
+                ", userId='" + getUserId() + "'" +
+                ", userName='" + getUserName() + "'" +
+                ", leido='" + getLeido() + "'" +
+                ", activo='" + getActivo() + "'" +
+                ", reserva=" + getReserva() +
+                "}";
     }
 }

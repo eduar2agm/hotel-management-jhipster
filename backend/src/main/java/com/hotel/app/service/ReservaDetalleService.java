@@ -50,6 +50,15 @@ public interface ReservaDetalleService {
     Page<ReservaDetalleDTO> findAllWithEagerRelationships(Pageable pageable);
 
     /**
+     * Get all the reservaDetalles by reservaId.
+     *
+     * @param reservaId the reserva id.
+     * @param pageable  the pagination information.
+     * @return the list of entities.
+     */
+    Page<ReservaDetalleDTO> findAllByReservaId(Long reservaId, Pageable pageable);
+
+    /**
      * Get the "id" reservaDetalle.
      *
      * @param id the id of the entity.
