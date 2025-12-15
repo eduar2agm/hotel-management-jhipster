@@ -12,16 +12,24 @@ import {
 import {
     Dialog,
     DialogContent,
+    DialogDescription,
     DialogHeader,
     DialogTitle,
     DialogFooter,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { CategoriaHabitacionService } from '../../services/categoria-habitacion.service';
 import { EstadoHabitacionService } from '../../services/estado-habitacion.service';
-import { type CategoriaHabitacionDTO, type NewCategoriaHabitacionDTO } from '../../types/api/CategoriaHabitacion';
-import { type EstadoHabitacionDTO, type NewEstadoHabitacionDTO } from '../../types/api/EstadoHabitacion';
+import { type CategoriaHabitacionDTO, type NewCategoriaHabitacionDTO, type CategoriaHabitacionNombreType } from '../../types/api/CategoriaHabitacion';
+import { type EstadoHabitacionDTO, type NewEstadoHabitacionDTO, type EstadoHabitacionNombreType } from '../../types/api/EstadoHabitacion';
 import { toast } from 'sonner';
 import { Pencil, Trash2, Plus, Tag, Activity } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -238,11 +246,27 @@ export const AdminConfiguracion = () => {
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>{currentCat.id ? 'Editar' : 'Nueva'} Categoría</DialogTitle>
+                        <DialogDescription>
+                            Configure el nombre, descripción y precio base para esta categoría de habitación.
+                        </DialogDescription>
                     </DialogHeader>
                     <form onSubmit={handleSaveCategory} className="grid gap-4">
                         <div className="grid gap-2">
                             <Label>Nombre</Label>
-                            <Input value={currentCat.nombre || ''} onChange={e => setCurrentCat({ ...currentCat, nombre: e.target.value })} required />
+                            <Select
+                                value={currentCat.nombre || ''}
+                                onValueChange={(value) => setCurrentCat({ ...currentCat, nombre: value as CategoriaHabitacionNombreType })}
+                                required
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Seleccione una categoría" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="SENCILLA">SENCILLA</SelectItem>
+                                    <SelectItem value="DOBLE">DOBLE</SelectItem>
+                                    <SelectItem value="SUITE">SUITE</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
                         <div className="grid gap-2">
                             <Label>Descripción</Label>
@@ -265,11 +289,27 @@ export const AdminConfiguracion = () => {
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>{currentEst.id ? 'Editar' : 'Nuevo'} Estado</DialogTitle>
+                        <DialogDescription>
+                            Configure el nombre y descripción para este estado de habitación.
+                        </DialogDescription>
                     </DialogHeader>
                     <form onSubmit={handleSaveStatus} className="grid gap-4">
                         <div className="grid gap-2">
                             <Label>Nombre</Label>
-                            <Input value={currentEst.nombre || ''} onChange={e => setCurrentEst({ ...currentEst, nombre: e.target.value })} required />
+                            <Select
+                                value={currentEst.nombre || ''}
+                                onValueChange={(value) => setCurrentEst({ ...currentEst, nombre: value as EstadoHabitacionNombreType })}
+                                required
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Seleccione un estado" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="DISPONIBLE">DISPONIBLE</SelectItem>
+                                    <SelectItem value="OCUPADA">OCUPADA</SelectItem>
+                                    <SelectItem value="MANTENIMIENTO">MANTENIMIENTO</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
                         <div className="grid gap-2">
                             <Label>Descripción</Label>
