@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { cn } from '@/lib/utils';
-import { LayoutDashboard, BedDouble, Users, CalendarDays, FileText, Settings, UserCircle, LogOut } from 'lucide-react';
+import { LayoutDashboard, BedDouble, Users, CalendarDays, FileText, Settings, UserCircle, LogOut, MessageSquare } from 'lucide-react';
 
 export const Sidebar = () => {
     const { isAdmin, isEmployee, isClient, logout } = useAuth();
@@ -15,6 +15,7 @@ export const Sidebar = () => {
                     <NavItem to="/admin/clientes" icon={<Users size={20} />} label="Clientes" />
                     <NavItem to="/admin/reservas" icon={<CalendarDays size={20} />} label="Reservas" />
                     <NavItem to="/admin/reportes" icon={<FileText size={20} />} label="Reportes" />
+                    <NavItem to="/admin/soporte" icon={<MessageSquare size={20} />} label="Soporte" />
                     <NavItem to="/admin/configuracion" icon={<Settings size={20} />} label="Configuración" />
                 </>
             );
@@ -24,6 +25,7 @@ export const Sidebar = () => {
                     <NavItem to="/employee/dashboard" icon={<LayoutDashboard size={20} />} label="Dashboard" />
                     <NavItem to="/employee/checkin" icon={<UserCircle size={20} />} label="Check-in/Out" />
                     <NavItem to="/employee/reservas" icon={<CalendarDays size={20} />} label="Reservas" />
+                    <NavItem to="/employee/soporte" icon={<MessageSquare size={20} />} label="Mensajes" />
                 </>
             );
         } else if (isClient()) {
@@ -32,6 +34,7 @@ export const Sidebar = () => {
                     <NavItem to="/client/reservas" icon={<CalendarDays size={20} />} label="Mis Reservas" />
                     <NavItem to="/client/nueva-reserva" icon={<BedDouble size={20} />} label="Nueva Reserva" />
                     <NavItem to="/client/perfil" icon={<UserCircle size={20} />} label="Mi Perfil" />
+                    <NavItem to="/client/soporte" icon={<MessageSquare size={20} />} label="Soporte" />
                 </>
             );
         }
