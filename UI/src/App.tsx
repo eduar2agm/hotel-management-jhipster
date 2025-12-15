@@ -14,11 +14,16 @@ import { EmployeeDashboard } from './pages/employee/EmployeeDashboard';
 import { CheckIn } from './pages/employee/CheckIn';
 import { EmployeeReservas } from './pages/employee/ReservasEmployee';
 import { ClientReservas } from './pages/client/ClientReservas';
-import { NuevaReserva } from './pages/client/NuevaReserva';
 import { Perfil } from './pages/client/Perfil';
 import { Toaster } from 'sonner';
 import { AuthTokenSync } from './components/AuthTokenSync';
 import './api/axios-interceptors';
+
+import { Home } from './pages/HomePage'
+import { Habitaciones } from './pages/client/habitaciones'
+import { Reservas } from './pages/client/Reservas'
+import { Servicios } from './pages/client/Servicios'
+import { Menu } from './pages/client/Menu'
 import './App.css';
 
 function App() {
@@ -31,6 +36,7 @@ function App() {
           {/* Public Routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
+
 
           {/* Admin Routes */}
           <Route path="/admin/dashboard" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN']}><AdminDashboard /></ProtectedRoute>} />
@@ -47,9 +53,12 @@ function App() {
 
           {/* Client Routes */}
           <Route path="/client/reservas" element={<ProtectedRoute requiredRoles={['ROLE_CLIENT']}><ClientReservas /></ProtectedRoute>} />
-          <Route path="/client/nueva-reserva" element={<ProtectedRoute requiredRoles={['ROLE_CLIENT']}><NuevaReserva /></ProtectedRoute>} />
           <Route path="/client/perfil" element={<ProtectedRoute requiredRoles={['ROLE_CLIENT']}><Perfil /></ProtectedRoute>} />
-
+          <Route path="/client/home" element={<ProtectedRoute requiredRoles={['ROLE_CLIENT']}><Home /> </ProtectedRoute>} /> 
+          <Route path="/habitaciones" element={<ProtectedRoute requiredRoles={['ROLE_CLIENT']}><Habitaciones /> </ProtectedRoute>} />
+          <Route path="/reservas" element={<ProtectedRoute requiredRoles={['ROLE_CLIENT']}><Reservas /> </ProtectedRoute>} />
+          <Route path="/servicios" element={<ProtectedRoute requiredRoles={['ROLE_CLIENT']}> <Servicios /> </ProtectedRoute>} />
+          <Route path="/menu" element={<ProtectedRoute requiredRoles={['ROLE_CLIENT']}><Menu /> </ProtectedRoute>} />
           {/* Default Redirect */}
           <Route path="/" element={<Navigate to="/login" replace />} />
         </Routes>
