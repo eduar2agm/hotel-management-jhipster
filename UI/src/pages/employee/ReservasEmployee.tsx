@@ -44,7 +44,7 @@ import { type ReservaDTO } from '../../types/api/Reserva';
 import { type ClienteDTO } from '../../types/api/Cliente';
 import { type HabitacionDTO } from '../../types/api/Habitacion';
 import { toast } from 'sonner';
-import { Pencil, Plus, Edit, CalendarCheck, User, BedDouble } from 'lucide-react';
+import { Pencil, Plus, Edit, CalendarCheck, User, BedDouble, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Navbar } from '../../components/ui/Navbar';
 import { Footer } from '../../components/ui/Footer';
@@ -68,7 +68,13 @@ export const EmployeeReservas = () => {
     const [reservas, setReservas] = useState<ReservaDTO[]>([]);
     const [clientes, setClientes] = useState<ClienteDTO[]>([]);
     const [habitaciones, setHabitaciones] = useState<HabitacionDTO[]>([]);
+
     const [mapReservaHabitaciones, setMapReservaHabitaciones] = useState<Record<number, string>>({});
+
+    // Pagination State
+    const [currentPage, setCurrentPage] = useState(0);
+    const [totalItems, setTotalItems] = useState(0);
+    const itemsPerPage = 10;
 
     const [isLoading, setIsLoading] = useState(true);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -86,17 +92,20 @@ export const EmployeeReservas = () => {
         }
     });
 
-    const loadData = async () => {
+    const loadData = async (page: number) => {
         try {
             setIsLoading(true);
             const [reservasRes, clientesRes, habitacionesRes] = await Promise.all([
-                ReservaService.getReservas({ page: 0, size: 50, sort: 'id,desc' }),
+                ReservaService.getReservas({ page: page, size: itemsPerPage, sort: 'id,desc' }),
                 ClienteService.getClientes({ size: 100 }),
                 HabitacionService.getHabitacions({ 'activo.equals': true, size: 100 })
             ]);
 
             const loadedReservas = reservasRes.data;
             setReservas(loadedReservas);
+            const total = parseInt(reservasRes.headers['x-total-count'] || '0', 10);
+            setTotalItems(total);
+
             setClientes(clientesRes.data);
             setHabitaciones(habitacionesRes.data);
 
@@ -123,8 +132,8 @@ export const EmployeeReservas = () => {
     };
 
     useEffect(() => {
-        loadData();
-    }, []);
+        loadData(currentPage);
+    }, [currentPage]);
 
     useEffect(() => {
         if (!isDialogOpen) {
@@ -232,7 +241,8 @@ export const EmployeeReservas = () => {
             }
 
             setIsDialogOpen(false);
-            loadData();
+
+            loadData(currentPage);
 
         } catch (error) {
             console.error(error);
@@ -246,9 +256,9 @@ export const EmployeeReservas = () => {
 
             {/* --- HERO SECTION --- */}
             <div className="relative bg-[#0F172A] pt-32 pb-20 px-4 md:px-8 lg:px-20 overflow-hidden shadow-xl">
-                 <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-blue-900/10 to-transparent pointer-events-none"></div>
-                 
-                 <div className="relative max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-end md:items-center gap-6">
+                <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-blue-900/10 to-transparent pointer-events-none"></div>
+
+                <div className="relative max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-end md:items-center gap-6">
                     <div>
                         <span className="text-yellow-500 font-bold tracking-[0.2em] uppercase text-xs mb-3 block animate-in fade-in slide-in-from-bottom-2 duration-500">
                             Administración
@@ -260,19 +270,25 @@ export const EmployeeReservas = () => {
                             Controle y planifique las estancias. Asigne habitaciones y gestione fechas.
                         </p>
                     </div>
-                    
-                    <Button 
+
+                    <Button
                         onClick={handleCreate}
                         className="bg-yellow-600 hover:bg-yellow-700 text-white rounded-none px-6 py-6 shadow-lg transition-all border border-yellow-600/30 text-lg"
                     >
                         <Plus className="mr-2 h-5 w-5" /> Nueva Reserva
                     </Button>
-                 </div>
+                </div>
             </div>
 
             <main className="flex-grow py-12 px-4 md:px-8 lg:px-20 relative z-10">
                 <div className="max-w-6xl mx-auto -mt-16">
                     <div className="bg-white rounded-sm shadow-xl p-10 overflow-hidden border border-gray-100">
+                        <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
+                            <div>
+                                <h3 className="text-xl font-bold text-gray-800">Listado de Reservas</h3>
+                                <p className="text-sm text-gray-500">Total Registros: {totalItems}</p>
+                            </div>
+                        </div>
                         <Table>
                             <TableHeader className="bg-gray-50">
                                 <TableRow>
@@ -289,7 +305,7 @@ export const EmployeeReservas = () => {
                                     <TableRow>
                                         <TableCell colSpan={6} className="text-center py-20 text-gray-500">
                                             <div className="flex justify-center items-center gap-2">
-                                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-600"></div> 
+                                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-600"></div>
                                                 Cargando reservas...
                                             </div>
                                         </TableCell>
@@ -328,7 +344,7 @@ export const EmployeeReservas = () => {
                                             <TableCell>
                                                 <div className="flex flex-col text-xs space-y-1">
                                                     <span className="flex items-center gap-1.5 text-gray-700 font-medium">
-                                                        <CalendarCheck className="h-3 w-3 text-emerald-600" /> 
+                                                        <CalendarCheck className="h-3 w-3 text-emerald-600" />
                                                         {new Date(reserva.fechaInicio!).toLocaleDateString()}
                                                     </span>
                                                     <span className="flex items-center gap-1.5 text-gray-400 pl-4">
@@ -337,7 +353,7 @@ export const EmployeeReservas = () => {
                                                 </div>
                                             </TableCell>
                                             <TableCell>
-                                                <Badge 
+                                                <Badge
                                                     className={`
                                                         ${reserva.estado === 'CONFIRMADA' ? 'bg-green-100 text-green-700 hover:bg-green-100 border-green-200' : ''}
                                                         ${reserva.estado === 'PENDIENTE' ? 'bg-yellow-50 text-yellow-700 hover:bg-yellow-50 border-yellow-200' : ''}
@@ -349,9 +365,9 @@ export const EmployeeReservas = () => {
                                                 </Badge>
                                             </TableCell>
                                             <TableCell className="text-right">
-                                                <Button 
-                                                    variant="ghost" 
-                                                    size="sm" 
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
                                                     onClick={() => handleEdit(reserva)}
                                                     className="hover:bg-white hover:text-yellow-600 hover:border-yellow-200 border border-transparent rounded-full transition-all"
                                                 >
@@ -364,8 +380,36 @@ export const EmployeeReservas = () => {
                             </TableBody>
                         </Table>
                     </div>
+
+
+                    {/* PAGINATION */}
+                    <div className="flex items-center justify-end gap-4 mt-6">
+                        <span className="text-sm text-gray-500">
+                            Página {currentPage + 1} de {Math.max(1, Math.ceil(totalItems / itemsPerPage))}
+                        </span>
+                        <div className="flex gap-2">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
+                                disabled={currentPage === 0 || isLoading}
+                                className="bg-white border-gray-200 shadow-sm"
+                            >
+                                <ChevronLeft className="h-4 w-4" /> Anterior
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setCurrentPage(p => p + 1)}
+                                disabled={(currentPage + 1) * itemsPerPage >= totalItems || isLoading}
+                                className="bg-white border-gray-200 shadow-sm"
+                            >
+                                Siguiente <ChevronRight className="h-4 w-4" />
+                            </Button>
+                        </div>
+                    </div>
                 </div>
-            </main>
+            </main >
 
             <Footer />
 
@@ -379,7 +423,7 @@ export const EmployeeReservas = () => {
                     </DialogHeader>
                     <Form {...(form as any)}>
                         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                            
+
                             {/* --- CLIENT SELECTOR --- */}
                             <FormField
                                 control={form.control as any}
@@ -537,6 +581,6 @@ export const EmployeeReservas = () => {
                     </Form>
                 </DialogContent>
             </Dialog>
-        </div>
+        </div >
     );
 };
