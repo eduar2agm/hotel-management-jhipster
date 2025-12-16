@@ -1,6 +1,7 @@
 package com.hotel.app.web.rest;
 
 import com.hotel.app.repository.ReservaDetalleRepository;
+import com.hotel.app.repository.ReservaRepository;
 import com.hotel.app.service.ReservaDetalleService;
 import com.hotel.app.service.dto.ReservaDetalleDTO;
 import com.hotel.app.web.rest.errors.BadRequestAlertException;
@@ -43,10 +44,14 @@ public class ReservaDetalleResource {
 
     private final ReservaDetalleRepository reservaDetalleRepository;
 
+    private final ReservaRepository reservaRepository;
+
     public ReservaDetalleResource(ReservaDetalleService reservaDetalleService,
-            ReservaDetalleRepository reservaDetalleRepository) {
+            ReservaDetalleRepository reservaDetalleRepository,
+            ReservaRepository reservaRepository) {
         this.reservaDetalleService = reservaDetalleService;
         this.reservaDetalleRepository = reservaDetalleRepository;
+        this.reservaRepository = reservaRepository;
     }
 
     /**
@@ -68,6 +73,17 @@ public class ReservaDetalleResource {
             throw new BadRequestAlertException("A new reservaDetalle cannot already have an ID", ENTITY_NAME,
                     "idexists");
         }
+
+        // Validate that the parent Reserva is active
+        if (reservaDetalleDTO.getReserva() != null && reservaDetalleDTO.getReserva().getId() != null) {
+            reservaRepository.findById(reservaDetalleDTO.getReserva().getId()).ifPresent(reserva -> {
+                if (Boolean.FALSE.equals(reserva.getActivo())) {
+                    throw new BadRequestAlertException("Cannot add detail to inactive reservation", ENTITY_NAME,
+                            "inactive");
+                }
+            });
+        }
+
         reservaDetalleDTO = reservaDetalleService.save(reservaDetalleDTO);
         return ResponseEntity.created(new URI("/api/reserva-detalles/" + reservaDetalleDTO.getId()))
                 .headers(HeaderUtil.createEntityCreationAlert(applicationName, false, ENTITY_NAME,
@@ -104,6 +120,14 @@ public class ReservaDetalleResource {
         if (!reservaDetalleRepository.existsById(id)) {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
+
+        // Validate that the parent Reserva is active for the existing detail
+        reservaDetalleRepository.findById(id).ifPresent(existing -> {
+            if (existing.getReserva() != null && Boolean.FALSE.equals(existing.getReserva().getActivo())) {
+                throw new BadRequestAlertException("Cannot update detail of inactive reservation", ENTITY_NAME,
+                        "inactive");
+            }
+        });
 
         reservaDetalleDTO = reservaDetalleService.update(reservaDetalleDTO);
         return ResponseEntity.ok()
@@ -145,6 +169,14 @@ public class ReservaDetalleResource {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
 
+        // Validate that the parent Reserva is active for the existing detail
+        reservaDetalleRepository.findById(id).ifPresent(existing -> {
+            if (existing.getReserva() != null && Boolean.FALSE.equals(existing.getReserva().getActivo())) {
+                throw new BadRequestAlertException("Cannot update detail of inactive reservation", ENTITY_NAME,
+                        "inactive");
+            }
+        });
+
         Optional<ReservaDetalleDTO> result = reservaDetalleService.partialUpdate(reservaDetalleDTO);
 
         return ResponseUtil.wrapOrNotFound(
@@ -167,15 +199,27 @@ public class ReservaDetalleResource {
     public ResponseEntity<List<ReservaDetalleDTO>> getAllReservaDetalles(
             @org.springdoc.core.annotations.ParameterObject Pageable pageable,
             @RequestParam(name = "eagerload", required = false, defaultValue = "true") boolean eagerload,
-            @RequestParam(name = "reservaId.equals", required = false) Long reservaId) {
+            @RequestParam(name = "reservaId.equals", required = false) Long reservaId,
+            @RequestParam(name = "activo", required = false) Boolean activo) {
         LOG.debug("REST request to get a page of ReservaDetalles");
         Page<ReservaDetalleDTO> page;
-        if (reservaId != null) {
+        if (activo != null) {
+            page = reservaDetalleService.findByActivo(activo, pageable);
+        } else if (reservaId != null) {
+            // Validate that the requested reservation is active
+            reservaRepository.findById(reservaId).ifPresent(reserva -> {
+                if (Boolean.FALSE.equals(reserva.getActivo())) {
+                    throw new BadRequestAlertException("Cannot view details of inactive reservation", ENTITY_NAME,
+                            "inactive");
+                }
+            });
+
             page = reservaDetalleService.findAllByReservaId(reservaId, pageable);
         } else if (eagerload) {
-            page = reservaDetalleService.findAllWithEagerRelationships(pageable);
+            // Default to active=true even for eager load, since 'activo' is null here
+            page = reservaDetalleService.findByActivoWithEagerRelationships(true, pageable);
         } else {
-            page = reservaDetalleService.findAll(pageable);
+            page = reservaDetalleService.findByActivo(true, pageable);
         }
         HttpHeaders headers = PaginationUtil
                 .generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
@@ -194,6 +238,17 @@ public class ReservaDetalleResource {
     public ResponseEntity<ReservaDetalleDTO> getReservaDetalle(@PathVariable("id") Long id) {
         LOG.debug("REST request to get ReservaDetalle : {}", id);
         Optional<ReservaDetalleDTO> reservaDetalleDTO = reservaDetalleService.findOne(id);
+
+        if (reservaDetalleDTO.isPresent() && Boolean.FALSE.equals(reservaDetalleDTO.get().getActivo())) {
+            throw new BadRequestAlertException("The reservation detail is inactive", ENTITY_NAME, "inactive");
+        }
+
+        // Validate proper parent reservation status
+        if (reservaDetalleDTO.isPresent() && reservaDetalleDTO.get().getReserva() != null &&
+                Boolean.FALSE.equals(reservaDetalleDTO.get().getReserva().getActivo())) {
+            throw new BadRequestAlertException("The parent reservation is inactive", "hotelAppReserva", "inactive");
+        }
+
         return ResponseUtil.wrapOrNotFound(reservaDetalleDTO);
     }
 
