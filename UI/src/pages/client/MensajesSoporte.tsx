@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Search, MessageSquare, Clock, Send, CheckCircle2 } from 'lucide-react';
+import { Plus, Search, MessageSquare, Clock, Send, CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '../../hooks/useAuth';
@@ -23,13 +23,24 @@ export const ClientMensajesSoporte = () => {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
 
+    // Pagination
+    const [currentPage, setCurrentPage] = useState(0);
+    const [totalItems, setTotalItems] = useState(0);
+    const itemsPerPage = 5;
+
     const [currentItem, setCurrentItem] = useState<Partial<MensajeSoporteDTO>>({});
 
-    const loadData = async () => {
+    const loadData = async (page: number) => {
         setLoading(true);
         try {
-            const msgsRes = await MensajeSoporteService.getMyMensajes({ page: 0, size: 50, sort: 'fechaMensaje,desc' });
+            const msgsRes = await MensajeSoporteService.getMyMensajes({
+                page: page,
+                size: itemsPerPage,
+                sort: 'fechaMensaje,desc'
+            });
             setMensajes(msgsRes.data);
+            const total = parseInt(msgsRes.headers['x-total-count'] || '0', 10);
+            setTotalItems(total);
         } catch (error) {
             toast.error('Error al cargar mensajes');
             console.error(error);
@@ -39,8 +50,8 @@ export const ClientMensajesSoporte = () => {
     };
 
     useEffect(() => {
-        loadData();
-    }, []);
+        loadData(currentPage);
+    }, [currentPage]);
 
     const handleCreate = () => {
         setCurrentItem({
@@ -64,7 +75,8 @@ export const ClientMensajesSoporte = () => {
             await MensajeSoporteService.createMensaje(payload as any);
             toast.success('Mensaje enviado al soporte');
             setIsDialogOpen(false);
-            loadData();
+            loadData(0); // Reload first page on new message
+            setCurrentPage(0);
         } catch (error) {
             toast.error('Error al enviar mensaje');
         }
@@ -85,10 +97,10 @@ export const ClientMensajesSoporte = () => {
                 Fondo azul marino oscuro (#0f172a = slate-900) solicitado.
             */}
             <div className="relative bg-[#0F172A] pt-32 pb-20 px-4 md:px-8 lg:px-20 overflow-hidden shadow-xl">
-                 {/* Efecto de fondo sutil */}
-                 <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-blue-900/10 to-transparent pointer-events-none"></div>
-                 
-                 <div className="relative max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-end md:items-center gap-6">
+                {/* Efecto de fondo sutil */}
+                <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-blue-900/10 to-transparent pointer-events-none"></div>
+
+                <div className="relative max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-end md:items-center gap-6">
                     <div>
                         <span className="text-yellow-500 font-bold tracking-[0.2em] uppercase text-xs mb-3 block animate-in fade-in slide-in-from-bottom-2 duration-500">
                             Concierge Digital
@@ -100,7 +112,7 @@ export const ClientMensajesSoporte = () => {
                             Estamos aquí para resolver sus dudas y peticiones especiales. Su satisfacción es nuestra prioridad.
                         </p>
                     </div>
-                 </div>
+                </div>
             </div>
 
             <main className="flex-grow py-12 px-4 md:px-8 lg:px-20 relative z-10">
@@ -120,7 +132,7 @@ export const ClientMensajesSoporte = () => {
 
                         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                             <DialogTrigger asChild>
-                                <Button 
+                                <Button
                                     onClick={handleCreate}
                                     className="w-full md:w-auto bg-gray-900 hover:bg-gray-800 text-white rounded-none px-6 h-11 shadow-lg transition-all"
                                 >
@@ -175,10 +187,10 @@ export const ClientMensajesSoporte = () => {
                             <div className="grid gap-4">
                                 {filteredMensajes.map((msg) => {
                                     const isSentByUser = msg.userId === user?.id;
-                                    
+
                                     return (
-                                        <div 
-                                            key={msg.id} 
+                                        <div
+                                            key={msg.id}
                                             className={`bg-white p-6 rounded-sm border transition-all duration-300 hover:shadow-md
                                                 ${!msg.leido && !isSentByUser ? 'border-l-4 border-l-yellow-500 shadow-sm' : 'border-l-4 border-l-gray-200 border-gray-100'}
                                             `}
@@ -195,7 +207,7 @@ export const ClientMensajesSoporte = () => {
                                                                 <MessageSquare className="w-3 h-3 mr-1" /> Respuesta
                                                             </Badge>
                                                         )}
-                                                        
+
                                                         <span className="text-xs text-gray-400 flex items-center gap-1">
                                                             <Clock className="w-3 h-3" />
                                                             {new Date(msg.fechaMensaje!).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
@@ -203,7 +215,7 @@ export const ClientMensajesSoporte = () => {
                                                             {new Date(msg.fechaMensaje!).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
                                                         </span>
                                                     </div>
-                                                    
+
                                                     <p className="text-gray-700 leading-relaxed text-sm md:text-base">
                                                         {msg.mensaje}
                                                     </p>
@@ -228,6 +240,35 @@ export const ClientMensajesSoporte = () => {
                             </div>
                         )}
                     </div>
+
+                    {/* Pagination Footer */}
+                    {filteredMensajes.length > 0 && (
+                        <div className="flex items-center justify-end gap-4 mt-8">
+                            <span className="text-sm text-gray-500">
+                                Página {currentPage + 1} de {Math.max(1, Math.ceil(totalItems / itemsPerPage))}
+                            </span>
+                            <div className="flex gap-2">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
+                                    disabled={currentPage === 0 || loading}
+                                    className="bg-white border-gray-200"
+                                >
+                                    <ChevronLeft className="h-4 w-4" /> Anterior
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setCurrentPage(p => p + 1)}
+                                    disabled={(currentPage + 1) * itemsPerPage >= totalItems || loading}
+                                    className="bg-white border-gray-200"
+                                >
+                                    Siguiente <ChevronRight className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </main>
 

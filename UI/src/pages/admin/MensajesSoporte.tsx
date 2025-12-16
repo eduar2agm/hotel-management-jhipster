@@ -440,8 +440,8 @@ export const AdminMensajesSoporte = () => {
                                 return (
                                     <div key={idx} className={`flex ${isAdmin ? 'justify-end' : 'justify-start'} animate-in slide-in-from-bottom-2`}>
                                         <div className={`max-w-[80%] rounded-2xl p-3 px-4 text-sm shadow-sm ${isAdmin
-                                                ? 'bg-blue-600 text-white rounded-tr-none'
-                                                : 'bg-white text-slate-800 border border-gray-100 rounded-tl-none'
+                                            ? 'bg-blue-600 text-white rounded-tr-none'
+                                            : 'bg-white text-slate-800 border border-gray-100 rounded-tl-none'
                                             }`}>
                                             <p className="whitespace-pre-wrap leading-relaxed">{msg.mensaje}</p>
                                             <div className={`flex items-center gap-1 mt-1 text-[10px] ${isAdmin ? 'text-blue-200 justify-end' : 'text-gray-400'}`}>
