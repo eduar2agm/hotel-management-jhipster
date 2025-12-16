@@ -11,11 +11,11 @@ export const Sidebar = () => {
             return (
                 <>
                     <NavItem to="/admin/dashboard" icon={<LayoutDashboard size={20} />} label="Dashboard" />
+                    <NavItem to="/admin/soporte" icon={<MessageSquare size={20} />} label="Soporte (Mensajes)" />
                     <NavItem to="/admin/habitaciones" icon={<BedDouble size={20} />} label="Habitaciones" />
                     <NavItem to="/admin/clientes" icon={<Users size={20} />} label="Clientes" />
                     <NavItem to="/admin/reservas" icon={<CalendarDays size={20} />} label="Reservas" />
                     <NavItem to="/admin/reportes" icon={<FileText size={20} />} label="Reportes" />
-                    <NavItem to="/admin/soporte" icon={<MessageSquare size={20} />} label="Soporte" />
                     <NavItem to="/admin/configuracion" icon={<Settings size={20} />} label="Configuración" />
                 </>
             );
