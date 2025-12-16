@@ -69,4 +69,13 @@ public interface ClienteService {
      * @param id the id of the entity.
      */
     void deactivate(Long id);
+
+    /**
+     * Get all the clientes by activo status.
+     *
+     * @param activo   the active status to filter by.
+     * @param pageable the pagination information.
+     * @return the list of entities.
+     */
+    Page<ClienteDTO> findByActivo(Boolean activo, Pageable pageable);
 }
