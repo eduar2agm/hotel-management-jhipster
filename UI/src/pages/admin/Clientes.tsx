@@ -5,7 +5,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Mail, Phone, Plus, Search, Pencil, Trash2, User, UserCircle, MapPin, ShieldCheck, CheckCircle2, XCircle } from 'lucide-react';
+import { Mail, Phone, Plus, Search, Pencil, Trash2, User, UserCircle, MapPin, ShieldCheck, CheckCircle2, XCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
@@ -41,20 +41,28 @@ export const AdminClientes = () => {
     const { isAdmin, isEmployee } = useAuth();
     const [clientes, setClientes] = useState<ClienteDTO[]>([]);
     const [loading, setLoading] = useState(false);
+    const [currentPage, setCurrentPage] = useState(0);
+    const [totalItems, setTotalItems] = useState(0);
+    const itemsPerPage = 10;
     const [searchTerm, setSearchTerm] = useState('');
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [currentCliente, setCurrentCliente] = useState<Partial<ClienteDTO>>({});
     const [isEditing, setIsEditing] = useState(false);
     const [idError, setIdError] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);
-    
+
 
 
     const loadClientes = async () => {
         setLoading(true);
         try {
-            const res = await ClienteService.getClientes({ page: 0, size: 50 });
+            const res = await ClienteService.getClientes({
+                page: currentPage,
+                size: itemsPerPage
+            });
             setClientes(res.data);
+            const total = parseInt(res.headers['x-total-count'] || '0', 10);
+            setTotalItems(total);
         } catch (error) {
             toast.error('Error al cargar clientes');
         } finally {
@@ -64,7 +72,7 @@ export const AdminClientes = () => {
 
     useEffect(() => {
         loadClientes();
-    }, []);
+    }, [currentPage]);
 
     const handleDelete = async (id: number) => {
         if (!confirm('¿Está seguro de eliminar este cliente? Esta acción no se puede deshacer.')) return;
@@ -182,10 +190,10 @@ export const AdminClientes = () => {
 
             {/* HERO SECTION */}
             <div className="bg-[#0F172A] pt-32 pb-16 px-4 md:px-8 lg:px-20 shadow-xl relative overflow-hidden">
-                 <div className="absolute top-0 right-0 p-12 opacity-5 scale-150 pointer-events-none">
-                     <UserCircle className="w-96 h-96 text-white" />
-                 </div>
-                 <div className="relative max-w-7xl mx-auto z-10 flex flex-col md:flex-row justify-between items-center gap-6">
+                <div className="absolute top-0 right-0 p-12 opacity-5 scale-150 pointer-events-none">
+                    <UserCircle className="w-96 h-96 text-white" />
+                </div>
+                <div className="relative max-w-7xl mx-auto z-10 flex flex-col md:flex-row justify-between items-center gap-6">
                     <div>
                         <span className="text-yellow-500 font-bold tracking-[0.2em] uppercase text-xs mb-2 block">Administración</span>
                         <h1 className="text-3xl md:text-5xl font-black text-white tracking-tight mb-2">
@@ -196,14 +204,14 @@ export const AdminClientes = () => {
                         </p>
                     </div>
                     <div>
-                        <Button 
+                        <Button
                             onClick={handleCreate}
                             className="bg-yellow-600 hover:bg-yellow-700 text-white border-0 shadow-lg hover:shadow-yellow-600/20 transition-all rounded-sm px-6 py-6 text-sm uppercase tracking-widest font-bold"
                         >
                             <Plus className="mr-2 h-5 w-5" /> Nuevo Cliente
                         </Button>
                     </div>
-                 </div>
+                </div>
             </div>
 
             <main className="flex-grow py-10 px-4 md:px-8 lg:px-20 -mt-10 relative z-10">
@@ -314,18 +322,18 @@ export const AdminClientes = () => {
                                                 </TableCell>
                                                 <TableCell className="text-right p-4">
                                                     <div className="flex justify-end gap-2">
-                                                        <Button 
-                                                            variant="outline" 
-                                                            size="sm" 
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
                                                             className="h-8 border-gray-200 hover:border-yellow-600 hover:text-yellow-700 hover:bg-yellow-50"
                                                             onClick={() => handleEdit(c)}
                                                         >
                                                             <Pencil className="h-3.5 w-3.5 mr-1" /> Editar
                                                         </Button>
                                                         {isAdmin() && (
-                                                            <Button 
-                                                                variant="outline" 
-                                                                size="icon" 
+                                                            <Button
+                                                                variant="outline"
+                                                                size="icon"
                                                                 className="h-8 w-8 text-gray-400 hover:text-red-600 hover:bg-red-50 hover:border-red-200 border-gray-200"
                                                                 onClick={() => handleDelete(c.id!)}
                                                             >
@@ -343,6 +351,33 @@ export const AdminClientes = () => {
                     </CardContent>
                 </Card>
 
+                {/* PAGINATION */}
+                <div className="mt-4 flex items-center justify-end gap-4 max-w-7xl mx-auto px-10">
+                    <span className="text-sm text-gray-500">
+                        Página {currentPage + 1} de {Math.max(1, Math.ceil(totalItems / itemsPerPage))}
+                    </span>
+                    <div className="flex gap-2">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
+                            disabled={currentPage === 0 || loading}
+                            className="bg-white border-gray-200"
+                        >
+                            <ChevronLeft className="h-4 w-4" /> Anterior
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setCurrentPage(p => p + 1)}
+                            disabled={(currentPage + 1) * itemsPerPage >= totalItems || loading}
+                            className="bg-white border-gray-200"
+                        >
+                            Siguiente <ChevronRight className="h-4 w-4" />
+                        </Button>
+                    </div>
+                </div>
+
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                     <DialogContent className="max-w-md p-0 overflow-hidden border-0 shadow-2xl">
                         <DialogHeader className="bg-[#0F172A] text-white p-6">
@@ -354,26 +389,26 @@ export const AdminClientes = () => {
                                 Información de registro.
                             </DialogDescription>
                         </DialogHeader>
-                        
+
                         <form onSubmit={handleSave} className="p-6 bg-white overflow-y-auto max-h-[80vh]">
                             <div className="space-y-4 mb-6">
                                 <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest border-b pb-2">Datos Personales</h4>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="grid gap-2">
                                         <Label className="text-xs font-semibold">Nombre</Label>
-                                        <Input 
-                                            value={currentCliente.nombre || ''} 
-                                            onChange={e => setCurrentCliente({ ...currentCliente, nombre: e.target.value })} 
-                                            required 
+                                        <Input
+                                            value={currentCliente.nombre || ''}
+                                            onChange={e => setCurrentCliente({ ...currentCliente, nombre: e.target.value })}
+                                            required
                                             className="h-9"
                                         />
                                     </div>
                                     <div className="grid gap-2">
                                         <Label className="text-xs font-semibold">Apellido</Label>
-                                        <Input 
-                                            value={currentCliente.apellido || ''} 
-                                            onChange={e => setCurrentCliente({ ...currentCliente, apellido: e.target.value })} 
-                                            required 
+                                        <Input
+                                            value={currentCliente.apellido || ''}
+                                            onChange={e => setCurrentCliente({ ...currentCliente, apellido: e.target.value })}
+                                            required
                                             className="h-9"
                                         />
                                     </div>
@@ -416,28 +451,28 @@ export const AdminClientes = () => {
                                 <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest border-b pb-2">Contacto</h4>
                                 <div className="grid gap-2">
                                     <Label className="text-xs font-semibold">Correo Electrónico</Label>
-                                    <Input 
-                                        type="email" 
-                                        value={currentCliente.correo || ''} 
-                                        onChange={e => setCurrentCliente({ ...currentCliente, correo: e.target.value })} 
-                                        required 
+                                    <Input
+                                        type="email"
+                                        value={currentCliente.correo || ''}
+                                        onChange={e => setCurrentCliente({ ...currentCliente, correo: e.target.value })}
+                                        required
                                         className="h-9"
                                     />
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="grid gap-2">
                                         <Label className="text-xs font-semibold">Teléfono</Label>
-                                        <Input 
-                                            value={currentCliente.telefono || ''} 
-                                            onChange={e => setCurrentCliente({ ...currentCliente, telefono: e.target.value })} 
+                                        <Input
+                                            value={currentCliente.telefono || ''}
+                                            onChange={e => setCurrentCliente({ ...currentCliente, telefono: e.target.value })}
                                             className="h-9"
                                         />
                                     </div>
                                     <div className="grid gap-2">
                                         <Label className="text-xs font-semibold">Dirección</Label>
-                                        <Input 
-                                            value={currentCliente.direccion || ''} 
-                                            onChange={e => setCurrentCliente({ ...currentCliente, direccion: e.target.value })} 
+                                        <Input
+                                            value={currentCliente.direccion || ''}
+                                            onChange={e => setCurrentCliente({ ...currentCliente, direccion: e.target.value })}
                                             className="h-9"
                                         />
                                     </div>
