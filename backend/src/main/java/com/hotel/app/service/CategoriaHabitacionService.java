@@ -6,7 +6,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 /**
- * Service Interface for managing {@link com.hotel.app.domain.CategoriaHabitacion}.
+ * Service Interface for managing
+ * {@link com.hotel.app.domain.CategoriaHabitacion}.
  */
 public interface CategoriaHabitacionService {
     /**
@@ -55,4 +56,18 @@ public interface CategoriaHabitacionService {
      * @param id the id of the entity.
      */
     void delete(Long id);
+
+    /**
+     * Activate the "id" categoriaHabitacion.
+     *
+     * @param id the id of the entity.
+     */
+    void activate(Long id);
+
+    /**
+     * Deactivate the "id" categoriaHabitacion.
+     *
+     * @param id the id of the entity.
+     */
+    void deactivate(Long id);
 }
