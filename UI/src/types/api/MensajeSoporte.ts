@@ -5,7 +5,10 @@ export interface MensajeSoporteDTO {
     mensaje: string;
     fechaMensaje: string;
     userId: string;
-    userName?: string | null;
+    userName?: string;
+    destinatarioId?: string;
+    destinatarioName?: string;
+    remitente?: string;
     leido?: boolean;
     activo?: boolean;
     reserva?: ReservaDTO | null;

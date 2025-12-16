@@ -8,16 +8,13 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute = ({ children, requiredRoles }: ProtectedRouteProps) => {
-    const { isAuthenticated, isLoading, hasAnyRole, login } = useAuth();
+    const { isAuthenticated, isLoading, hasAnyRole } = useAuth();
 
     if (isLoading) {
         return <div>Cargando...</div>;
     }
 
     if (!isAuthenticated) {
-        // Optional: automatically trigger login instead of redirecting
-        // login(); 
-        // or return redirect
         return <Navigate to="/login" replace />;
     }
 

@@ -14,7 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Service Implementation for managing {@link com.hotel.app.domain.MensajeSoporte}.
+ * Service Implementation for managing
+ * {@link com.hotel.app.domain.MensajeSoporte}.
  */
 @Service
 @Transactional
@@ -26,7 +27,8 @@ public class MensajeSoporteServiceImpl implements MensajeSoporteService {
 
     private final MensajeSoporteMapper mensajeSoporteMapper;
 
-    public MensajeSoporteServiceImpl(MensajeSoporteRepository mensajeSoporteRepository, MensajeSoporteMapper mensajeSoporteMapper) {
+    public MensajeSoporteServiceImpl(MensajeSoporteRepository mensajeSoporteRepository,
+            MensajeSoporteMapper mensajeSoporteMapper) {
         this.mensajeSoporteRepository = mensajeSoporteRepository;
         this.mensajeSoporteMapper = mensajeSoporteMapper;
     }
@@ -52,14 +54,14 @@ public class MensajeSoporteServiceImpl implements MensajeSoporteService {
         LOG.debug("Request to partially update MensajeSoporte : {}", mensajeSoporteDTO);
 
         return mensajeSoporteRepository
-            .findById(mensajeSoporteDTO.getId())
-            .map(existingMensajeSoporte -> {
-                mensajeSoporteMapper.partialUpdate(existingMensajeSoporte, mensajeSoporteDTO);
+                .findById(mensajeSoporteDTO.getId())
+                .map(existingMensajeSoporte -> {
+                    mensajeSoporteMapper.partialUpdate(existingMensajeSoporte, mensajeSoporteDTO);
 
-                return existingMensajeSoporte;
-            })
-            .map(mensajeSoporteRepository::save)
-            .map(mensajeSoporteMapper::toDto);
+                    return existingMensajeSoporte;
+                })
+                .map(mensajeSoporteRepository::save)
+                .map(mensajeSoporteMapper::toDto);
     }
 
     @Override
@@ -76,9 +78,24 @@ public class MensajeSoporteServiceImpl implements MensajeSoporteService {
         return mensajeSoporteRepository.findById(id).map(mensajeSoporteMapper::toDto);
     }
 
-    @Override
     public void delete(Long id) {
         LOG.debug("Request to delete MensajeSoporte : {}", id);
         mensajeSoporteRepository.deleteById(id);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<MensajeSoporteDTO> findByUserId(String userId, Pageable pageable) {
+        LOG.debug("Request to get all MensajeSoportes by userId : {}", userId);
+        return mensajeSoporteRepository.findByUserIdOrDestinatarioIdOrNoDestinatario(userId, pageable)
+                .map(mensajeSoporteMapper::toDto);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<MensajeSoporteDTO> findByUserIdOnly(String userId, Pageable pageable) {
+        LOG.debug("Request to get MensajeSoportes by userId (clients only) : {}", userId);
+        return mensajeSoporteRepository.findByUserIdOrDestinatarioIdOnly(userId, pageable)
+                .map(mensajeSoporteMapper::toDto);
     }
 }

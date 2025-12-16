@@ -55,4 +55,23 @@ public interface MensajeSoporteService {
      * @param id the id of the entity.
      */
     void delete(Long id);
+
+    /**
+     * Get all the mensajeSoportes by userId.
+     *
+     * @param userId   the userId to filter by.
+     * @param pageable the pagination information.
+     * @return the list of entities.
+     */
+    Page<MensajeSoporteDTO> findByUserId(String userId, Pageable pageable);
+
+    /**
+     * Get all the mensajeSoportes by userId for clients (only sent/received, no
+     * unassigned).
+     *
+     * @param userId   the userId to filter by.
+     * @param pageable the pagination information.
+     * @return the list of entities.
+     */
+    Page<MensajeSoporteDTO> findByUserIdOnly(String userId, Pageable pageable);
 }

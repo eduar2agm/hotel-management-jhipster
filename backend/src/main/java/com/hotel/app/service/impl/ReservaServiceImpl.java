@@ -52,14 +52,14 @@ public class ReservaServiceImpl implements ReservaService {
         LOG.debug("Request to partially update Reserva : {}", reservaDTO);
 
         return reservaRepository
-            .findById(reservaDTO.getId())
-            .map(existingReserva -> {
-                reservaMapper.partialUpdate(existingReserva, reservaDTO);
+                .findById(reservaDTO.getId())
+                .map(existingReserva -> {
+                    reservaMapper.partialUpdate(existingReserva, reservaDTO);
 
-                return existingReserva;
-            })
-            .map(reservaRepository::save)
-            .map(reservaMapper::toDto);
+                    return existingReserva;
+                })
+                .map(reservaRepository::save)
+                .map(reservaMapper::toDto);
     }
 
     @Override
@@ -84,5 +84,12 @@ public class ReservaServiceImpl implements ReservaService {
     public void delete(Long id) {
         LOG.debug("Request to delete Reserva : {}", id);
         reservaRepository.deleteById(id);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ReservaDTO> findAllByClienteId(Long clienteId, Pageable pageable) {
+        LOG.debug("Request to get Reservas by Client ID : {}", clienteId);
+        return reservaRepository.findByClienteId(clienteId, pageable).map(reservaMapper::toDto);
     }
 }

@@ -45,6 +45,15 @@ public class MensajeSoporte implements Serializable {
     @Column(name = "activo", nullable = false)
     private Boolean activo;
 
+    @Column(name = "remitente")
+    private String remitente;
+
+    @Column(name = "destinatario_id")
+    private String destinatarioId;
+
+    @Column(name = "destinatario_name")
+    private String destinatarioName;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JsonIgnoreProperties(value = { "cliente" }, allowSetters = true)
     private Reserva reserva;
@@ -142,6 +151,45 @@ public class MensajeSoporte implements Serializable {
         this.activo = activo;
     }
 
+    public String getRemitente() {
+        return this.remitente;
+    }
+
+    public MensajeSoporte remitente(String remitente) {
+        this.setRemitente(remitente);
+        return this;
+    }
+
+    public void setRemitente(String remitente) {
+        this.remitente = remitente;
+    }
+
+    public String getDestinatarioId() {
+        return this.destinatarioId;
+    }
+
+    public MensajeSoporte destinatarioId(String destinatarioId) {
+        this.setDestinatarioId(destinatarioId);
+        return this;
+    }
+
+    public void setDestinatarioId(String destinatarioId) {
+        this.destinatarioId = destinatarioId;
+    }
+
+    public String getDestinatarioName() {
+        return this.destinatarioName;
+    }
+
+    public MensajeSoporte destinatarioName(String destinatarioName) {
+        this.setDestinatarioName(destinatarioName);
+        return this;
+    }
+
+    public void setDestinatarioName(String destinatarioName) {
+        this.destinatarioName = destinatarioName;
+    }
+
     public Reserva getReserva() {
         return this.reserva;
     }
@@ -155,7 +203,8 @@ public class MensajeSoporte implements Serializable {
         return this;
     }
 
-    // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
+    // jhipster-needle-entity-add-getters-setters - JHipster will add getters and
+    // setters here
 
     @Override
     public boolean equals(Object o) {
@@ -170,7 +219,8 @@ public class MensajeSoporte implements Serializable {
 
     @Override
     public int hashCode() {
-        // see https://vladmihalcea.com/how-to-implement-equals-and-hashcode-using-the-jpa-entity-identifier/
+        // see
+        // https://vladmihalcea.com/how-to-implement-equals-and-hashcode-using-the-jpa-entity-identifier/
         return getClass().hashCode();
     }
 
@@ -178,13 +228,13 @@ public class MensajeSoporte implements Serializable {
     @Override
     public String toString() {
         return "MensajeSoporte{" +
-            "id=" + getId() +
-            ", mensaje='" + getMensaje() + "'" +
-            ", fechaMensaje='" + getFechaMensaje() + "'" +
-            ", userId='" + getUserId() + "'" +
-            ", userName='" + getUserName() + "'" +
-            ", leido='" + getLeido() + "'" +
-            ", activo='" + getActivo() + "'" +
-            "}";
+                "id=" + getId() +
+                ", mensaje='" + getMensaje() + "'" +
+                ", fechaMensaje='" + getFechaMensaje() + "'" +
+                ", userId='" + getUserId() + "'" +
+                ", userName='" + getUserName() + "'" +
+                ", leido='" + getLeido() + "'" +
+                ", activo='" + getActivo() + "'" +
+                "}";
     }
 }

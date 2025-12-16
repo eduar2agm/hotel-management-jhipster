@@ -129,18 +129,6 @@ export const Menu = () => {
             ))}
         </div>
       </div>
-
-      {/* --- CTA RESERVA MESA --- */}
-      <section className="bg-gray-900 py-16 px-6 text-center">
-        <h2 className="text-2xl font-bold text-white mb-4">¿Deseas una experiencia inolvidable?</h2>
-        <p className="text-gray-400 mb-8">
-            Las mesas se asignan por orden de llegada, pero recomendamos reservar para grupos grandes.
-        </p>
-        <button className="border-2 border-yellow-500 text-yellow-500 px-8 py-3 uppercase tracking-widest text-sm font-bold hover:bg-yellow-500 hover:text-white transition-all">
-            Reservar Mesa
-        </button>
-      </section>
-
       <Footer />
     </div>
   );

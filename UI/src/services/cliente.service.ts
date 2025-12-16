@@ -1,7 +1,7 @@
 import { apiClient } from '../api/axios-instance';
 import type { ClienteDTO, NewClienteDTO } from '../types/api';
 
-const base = '/api/clientes';
+const base = '/clientes';
 
 export const ClienteService = {
     getClientes: (params?: Record<string, any>) => apiClient.get<ClienteDTO[]>(base, { params }),

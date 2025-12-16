@@ -5,7 +5,9 @@ import com.hotel.app.service.dto.EstadoHabitacionDTO;
 import org.mapstruct.*;
 
 /**
- * Mapper for the entity {@link EstadoHabitacion} and its DTO {@link EstadoHabitacionDTO}.
+ * Mapper for the entity {@link EstadoHabitacion} and its DTO
+ * {@link EstadoHabitacionDTO}.
  */
 @Mapper(componentModel = "spring")
-public interface EstadoHabitacionMapper extends EntityMapper<EstadoHabitacionDTO, EstadoHabitacion> {}
+public interface EstadoHabitacionMapper extends EntityMapper<EstadoHabitacionDTO, EstadoHabitacion> {
+}

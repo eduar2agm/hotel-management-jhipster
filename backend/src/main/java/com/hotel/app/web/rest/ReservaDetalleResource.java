@@ -166,10 +166,13 @@ public class ReservaDetalleResource {
     @GetMapping("")
     public ResponseEntity<List<ReservaDetalleDTO>> getAllReservaDetalles(
             @org.springdoc.core.annotations.ParameterObject Pageable pageable,
-            @RequestParam(name = "eagerload", required = false, defaultValue = "true") boolean eagerload) {
+            @RequestParam(name = "eagerload", required = false, defaultValue = "true") boolean eagerload,
+            @RequestParam(name = "reservaId.equals", required = false) Long reservaId) {
         LOG.debug("REST request to get a page of ReservaDetalles");
         Page<ReservaDetalleDTO> page;
-        if (eagerload) {
+        if (reservaId != null) {
+            page = reservaDetalleService.findAllByReservaId(reservaId, pageable);
+        } else if (eagerload) {
             page = reservaDetalleService.findAllWithEagerRelationships(pageable);
         } else {
             page = reservaDetalleService.findAll(pageable);
