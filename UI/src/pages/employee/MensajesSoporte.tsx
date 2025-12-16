@@ -403,127 +403,127 @@ export const EmployeeMensajesSoporte = () => {
 
             </main >
 
-    <Footer />
+            <Footer />
 
-{/* --- CHAT DIALOG --- */ }
-<Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-    <DialogContent className="sm:max-w-[700px] p-0 overflow-hidden flex flex-col h-[600px] gap-0">
+            {/* --- CHAT DIALOG --- */}
+            <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+                <DialogContent className="sm:max-w-[700px] p-0 overflow-hidden flex flex-col h-[600px] gap-0">
 
-        {/* Header */}
-        <DialogHeader className="p-4 bg-white border-b border-gray-100 flex-shrink-0 z-10 shadow-sm flex-row items-center justify-between space-y-0">
-            <div className="flex items-center gap-3">
-                <div className="bg-blue-50 p-2 rounded-full text-blue-600">
-                    <User className="h-5 w-5" />
-                </div>
-                <div className="flex flex-col">
-                    <span className="text-lg font-bold text-slate-900 leading-tight">
-                        {currentConversation?.otherPartyName}
-                    </span>
-                    <span className="text-xs text-green-600 font-medium flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
-                        En línea
-                    </span>
-                </div>
-            </div>
-        </DialogHeader>
-
-        {/* Chat Messages */}
-        <div className="flex-1 overflow-y-auto p-6 bg-slate-50 space-y-4">
-            {currentConversation?.messages.map((msg, idx) => {
-                const isMe = msg.userId === user?.id;
-                return (
-                    <div key={idx} className={`flex ${isMe ? 'justify-end' : 'justify-start'} animate-in slide-in-from-bottom-2`}>
-                        <div className={`max-w-[80%] rounded-2xl p-3 px-4 text-sm shadow-sm ${isMe
-                            ? 'bg-blue-600 text-white rounded-tr-none'
-                            : 'bg-white text-slate-800 border border-gray-100 rounded-tl-none'
-                            }`}>
-                            <p className="whitespace-pre-wrap leading-relaxed">{msg.mensaje}</p>
-                            <div className={`flex items-center gap-1 mt-1 text-[10px] ${isMe ? 'text-blue-200 justify-end' : 'text-gray-400'}`}>
-                                {new Date(msg.fechaMensaje).toLocaleDateString()} {new Date(msg.fechaMensaje).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                {isMe && msg.leido && <CheckCircle2 className="h-3 w-3 ml-1" />}
+                    {/* Header */}
+                    <DialogHeader className="p-4 bg-white border-b border-gray-100 flex-shrink-0 z-10 shadow-sm flex-row items-center justify-between space-y-0">
+                        <div className="flex items-center gap-3">
+                            <div className="bg-blue-50 p-2 rounded-full text-blue-600">
+                                <User className="h-5 w-5" />
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="text-lg font-bold text-slate-900 leading-tight">
+                                    {currentConversation?.otherPartyName}
+                                </span>
+                                <span className="text-xs text-green-600 font-medium flex items-center gap-1">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                                    En línea
+                                </span>
                             </div>
                         </div>
-                    </div>
-                );
-            })
-            }
-            {/* Empty State if needed */}
-            {(!currentConversation?.messages || currentConversation.messages.length === 0) && (
-                <div className="text-center text-gray-400 mt-10">Sin mensajes. Saluda!</div>
-            )}
-            <div ref={chatEndRef} />
-        </div>
+                    </DialogHeader>
 
-        {/* Reply Area */}
-        <div className="p-4 bg-white border-t border-gray-100 flex-shrink-0">
-            <form
-                onSubmit={(e) => {
-                    e.preventDefault();
-                    handleSendReply();
-                }}
-                className="flex gap-3 items-end"
-            >
-                <Textarea
-                    value={replyText}
-                    onChange={(e) => setReplyText(e.target.value)}
-                    className="min-h-[50px] max-h-[120px] bg-gray-50 border-gray-200 resize-none focus:bg-white transition-all"
-                    placeholder="Escribe tu mensaje..."
-                    onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                            e.preventDefault();
-                            handleSendReply();
+                    {/* Chat Messages */}
+                    <div className="flex-1 overflow-y-auto p-6 bg-slate-50 space-y-4">
+                        {currentConversation?.messages.map((msg, idx) => {
+                            const isMe = msg.userId === user?.id;
+                            return (
+                                <div key={idx} className={`flex ${isMe ? 'justify-end' : 'justify-start'} animate-in slide-in-from-bottom-2`}>
+                                    <div className={`max-w-[80%] rounded-2xl p-3 px-4 text-sm shadow-sm ${isMe
+                                        ? 'bg-blue-600 text-white rounded-tr-none'
+                                        : 'bg-white text-slate-800 border border-gray-100 rounded-tl-none'
+                                        }`}>
+                                        <p className="whitespace-pre-wrap leading-relaxed">{msg.mensaje}</p>
+                                        <div className={`flex items-center gap-1 mt-1 text-[10px] ${isMe ? 'text-blue-200 justify-end' : 'text-gray-400'}`}>
+                                            {new Date(msg.fechaMensaje).toLocaleDateString()} {new Date(msg.fechaMensaje).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            {isMe && msg.leido && <CheckCircle2 className="h-3 w-3 ml-1" />}
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })
                         }
-                    }}
-                />
-                <Button type="submit" size="icon" className="h-11 w-11 bg-slate-900 hover:bg-slate-800 text-white rounded-lg flex-shrink-0" disabled={!replyText.trim()}>
-                    <Send className="h-5 w-5" />
-                </Button>
-            </form>
-        </div>
-    </DialogContent>
-</Dialog>
+                        {/* Empty State if needed */}
+                        {(!currentConversation?.messages || currentConversation.messages.length === 0) && (
+                            <div className="text-center text-gray-400 mt-10">Sin mensajes. Saluda!</div>
+                        )}
+                        <div ref={chatEndRef} />
+                    </div>
 
-{/* --- CREATE NEW CONVERSATION DIALOG --- */ }
-<Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-    <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-            <DialogTitle>Nueva Conversación</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-4 pt-4">
-            <div className="grid gap-2">
-                <Label>Seleccionar Cliente</Label>
-                <Select
-                    value={newMsgState.destinatarioId || undefined}
-                    onValueChange={(val) => {
-                        const c = clientes.find(cl => cl.keycloakId === val);
-                        setNewMsgState(prev => ({ ...prev, destinatarioId: val, destinatarioName: c ? `${c.nombre} ${c.apellido}` : undefined }));
-                    }}
-                >
-                    <SelectTrigger><SelectValue placeholder="Buscar cliente..." /></SelectTrigger>
-                    <SelectContent>
-                        {clientes.map(c => (
-                            <SelectItem key={c.id} value={c.keycloakId || String(c.id)}>
-                                {c.nombre} {c.apellido}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-            </div>
-            <div className="grid gap-2">
-                <Label>Mensaje Inicial</Label>
-                <Textarea
-                    value={newMsgState.mensaje || ''}
-                    onChange={e => setNewMsgState({ ...newMsgState, mensaje: e.target.value })}
-                    rows={4}
-                />
-            </div>
-            <DialogFooter>
-                <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>Cancelar</Button>
-                <Button onClick={sendNewMessage}>Enviar</Button>
-            </DialogFooter>
-        </div>
-    </DialogContent>
-</Dialog>
+                    {/* Reply Area */}
+                    <div className="p-4 bg-white border-t border-gray-100 flex-shrink-0">
+                        <form
+                            onSubmit={(e) => {
+                                e.preventDefault();
+                                handleSendReply();
+                            }}
+                            className="flex gap-3 items-end"
+                        >
+                            <Textarea
+                                value={replyText}
+                                onChange={(e) => setReplyText(e.target.value)}
+                                className="min-h-[50px] max-h-[120px] bg-gray-50 border-gray-200 resize-none focus:bg-white transition-all"
+                                placeholder="Escribe tu mensaje..."
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' && !e.shiftKey) {
+                                        e.preventDefault();
+                                        handleSendReply();
+                                    }
+                                }}
+                            />
+                            <Button type="submit" size="icon" className="h-11 w-11 bg-slate-900 hover:bg-slate-800 text-white rounded-lg flex-shrink-0" disabled={!replyText.trim()}>
+                                <Send className="h-5 w-5" />
+                            </Button>
+                        </form>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            {/* --- CREATE NEW CONVERSATION DIALOG --- */}
+            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+                <DialogContent className="sm:max-w-[500px]">
+                    <DialogHeader>
+                        <DialogTitle>Nueva Conversación</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 pt-4">
+                        <div className="grid gap-2">
+                            <Label>Seleccionar Cliente</Label>
+                            <Select
+                                value={newMsgState.destinatarioId || undefined}
+                                onValueChange={(val) => {
+                                    const c = clientes.find(cl => cl.keycloakId === val);
+                                    setNewMsgState(prev => ({ ...prev, destinatarioId: val, destinatarioName: c ? `${c.nombre} ${c.apellido}` : undefined }));
+                                }}
+                            >
+                                <SelectTrigger><SelectValue placeholder="Buscar cliente..." /></SelectTrigger>
+                                <SelectContent>
+                                    {clientes.map(c => (
+                                        <SelectItem key={c.id} value={c.keycloakId || String(c.id)}>
+                                            {c.nombre} {c.apellido}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Mensaje Inicial</Label>
+                            <Textarea
+                                value={newMsgState.mensaje || ''}
+                                onChange={e => setNewMsgState({ ...newMsgState, mensaje: e.target.value })}
+                                rows={4}
+                            />
+                        </div>
+                        <DialogFooter>
+                            <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>Cancelar</Button>
+                            <Button onClick={sendNewMessage}>Enviar</Button>
+                        </DialogFooter>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div >
     );
 };

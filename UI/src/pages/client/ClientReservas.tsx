@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CalendarDays, Plus, Bed, MapPin, CreditCard } from 'lucide-react'; // Agregué iconos estéticos
+import { CalendarDays, Plus, Bed, MapPin, CreditCard, ChevronLeft, ChevronRight } from 'lucide-react'; // Agregué iconos estéticos
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { ClienteService, ReservaService, ReservaDetalleService } from '../../services';
@@ -18,6 +18,11 @@ export const ClientReservas = () => {
     const [reservas, setReservas] = useState<ReservaDTO[]>([]);
     const [reservaDetallesMap, setReservaDetallesMap] = useState<Record<number, ReservaDetalleDTO[]>>({});
 
+    // Pagination
+    const [currentPage, setCurrentPage] = useState(0);
+    const [totalItems, setTotalItems] = useState(0);
+    const itemsPerPage = 5; // Mostrar pocas por página para mejor UX en móvil
+
     // --- LOGICA ORIGINAL (INTACTA) ---
     useEffect(() => {
         const loadMyReservas = async () => {
@@ -31,18 +36,30 @@ export const ClientReservas = () => {
 
                 if (!me || !me.id) {
                     setLoading(false);
-                    return; 
+                    return;
                 }
 
-                // 2. Fetch all reservations
+                // 2. Fetch PAGINATED reservations
                 let myReservas: ReservaDTO[] = [];
                 try {
-                    const filteredRes = await ReservaService.getReservas({ 'clienteId.equals': me.id, size: 100, sort: 'id,desc' });
+                    const filteredRes = await ReservaService.getReservas({
+                        'clienteId.equals': me.id,
+                        page: currentPage,
+                        size: itemsPerPage,
+                        sort: 'id,desc'
+                    });
                     myReservas = filteredRes.data;
+                    const total = parseInt(filteredRes.headers['x-total-count'] || '0', 10);
+                    setTotalItems(total);
                 } catch (e) {
+                    // Fallback (mantiene lógica legado pero intenta paginar localmente si falla filtro)
                     const all = await ReservaService.getReservas({ size: 1000 });
-                    myReservas = all.data.filter(r => r.cliente?.id === me.id);
-                    myReservas.sort((a, b) => new Date(b.fechaInicio!).getTime() - new Date(a.fechaInicio!).getTime());
+                    const allMyReservas = all.data.filter(r => r.cliente?.id === me.id);
+                    allMyReservas.sort((a, b) => new Date(b.fechaInicio!).getTime() - new Date(a.fechaInicio!).getTime());
+
+                    setTotalItems(allMyReservas.length);
+                    const start = currentPage * itemsPerPage;
+                    myReservas = allMyReservas.slice(start, start + itemsPerPage);
                 }
 
                 setReservas(myReservas);
@@ -71,7 +88,7 @@ export const ClientReservas = () => {
         };
 
         loadMyReservas();
-    }, [user]);
+    }, [user, currentPage]);
 
     const getStatusColor = (status?: string | null) => {
         switch (status) {
@@ -96,10 +113,10 @@ export const ClientReservas = () => {
                 Fondo azul marino oscuro (#0f172a = slate-900) solicitado.
             */}
             <div className="relative bg-[#0F172A] pt-32 pb-20 px-4 md:px-8 lg:px-20 overflow-hidden shadow-xl">
-                 {/* Efecto de fondo sutil */}
-                 <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-blue-900/10 to-transparent pointer-events-none"></div>
-                 
-                 <div className="relative max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-end md:items-center gap-6">
+                {/* Efecto de fondo sutil */}
+                <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-blue-900/10 to-transparent pointer-events-none"></div>
+
+                <div className="relative max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-end md:items-center gap-6">
                     <div>
                         <span className="text-yellow-500 font-bold tracking-[0.2em] uppercase text-xs mb-3 block animate-in fade-in slide-in-from-bottom-2 duration-500">
                             Historial de Viajes
@@ -111,13 +128,13 @@ export const ClientReservas = () => {
                             Gestiona tus experiencias pasadas y futuras con nosotros. Tu historial completo de confort y lujo.
                         </p>
                     </div>
-                    
+
                     <Link to="/client/nueva-reserva" className="w-full md:w-auto">
                         <Button className="w-full md:w-auto bg-yellow-600 hover:bg-yellow-700 text-white rounded-none px-8 py-6 text-md font-bold transition-all duration-300 shadow-lg hover:shadow-yellow-900/20 border border-yellow-600/30">
                             <Plus className="mr-2 h-5 w-5" /> Nueva reserva
                         </Button>
                     </Link>
-                 </div>
+                </div>
             </div>
 
             <main className="flex-grow py-12 px-4 md:px-8 lg:px-20 relative z-10">
@@ -152,10 +169,10 @@ export const ClientReservas = () => {
                         <div className="space-y-8">
                             {reservas.map(reserva => {
                                 const details = reservaDetallesMap[reserva.id!] || [];
-                                
+
                                 return (
-                                    <div 
-                                        key={reserva.id} 
+                                    <div
+                                        key={reserva.id}
                                         className="bg-white group hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden rounded-sm"
                                     >
                                         {/* Header de la Tarjeta */}
@@ -176,7 +193,7 @@ export const ClientReservas = () => {
 
                                         <div className="p-6 md:p-8">
                                             <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
-                                                
+
                                                 {/* Columna Izquierda: Fechas */}
                                                 <div className="flex-shrink-0 lg:w-1/3 grid grid-cols-2 gap-4 lg:border-r lg:border-gray-100 lg:pr-8">
                                                     <div className="space-y-2">
@@ -190,7 +207,7 @@ export const ClientReservas = () => {
                                                             {reserva.fechaInicio ? new Date(reserva.fechaInicio).getFullYear() : ''}
                                                         </span>
                                                     </div>
-                                                    
+
                                                     <div className="space-y-2">
                                                         <span className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1">
                                                             <CalendarDays className="w-3 h-3" /> Salida
@@ -202,7 +219,7 @@ export const ClientReservas = () => {
                                                             {reserva.fechaFin ? new Date(reserva.fechaFin).getFullYear() : ''}
                                                         </span>
                                                     </div>
-                                                    
+
                                                     <div className="col-span-2 pt-4 border-t border-gray-50 mt-2">
                                                         <div className="flex items-center text-gray-500 text-sm">
                                                             <MapPin className="w-4 h-4 mr-2 text-yellow-600" />
@@ -214,10 +231,10 @@ export const ClientReservas = () => {
                                                 {/* Columna Derecha: Detalles Habitaciones */}
                                                 <div className="flex-grow">
                                                     <h4 className="text-sm font-bold text-gray-900 mb-4 uppercase tracking-widest flex items-center gap-2">
-                                                        <Bed className="h-4 w-4 text-yellow-600" /> 
+                                                        <Bed className="h-4 w-4 text-yellow-600" />
                                                         Detalles de Alojamiento
                                                     </h4>
-                                                    
+
                                                     <div className="space-y-3">
                                                         {details.length > 0 ? (
                                                             details.map(det => (
@@ -260,9 +277,38 @@ export const ClientReservas = () => {
                             })}
                         </div>
                     )}
+
+                    {/* PAGINATION FOOTER */}
+                    {reservas.length > 0 && (
+                        <div className="flex items-center justify-end gap-4 mt-8 pb-8">
+                            <span className="text-sm text-gray-500">
+                                Página {currentPage + 1} de {Math.max(1, Math.ceil(totalItems / itemsPerPage))}
+                            </span>
+                            <div className="flex gap-2">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
+                                    disabled={currentPage === 0 || loading}
+                                    className="bg-white border-gray-200 hover:bg-yellow-50 hover:text-yellow-700"
+                                >
+                                    <ChevronLeft className="h-4 w-4" /> Anterior
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setCurrentPage(p => p + 1)}
+                                    disabled={(currentPage + 1) * itemsPerPage >= totalItems || loading}
+                                    className="bg-white border-gray-200 hover:bg-yellow-50 hover:text-yellow-700"
+                                >
+                                    Siguiente <ChevronRight className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </main>
-            
+
             <Footer />
         </div>
     );
