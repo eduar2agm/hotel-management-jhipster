@@ -37,4 +37,12 @@ public interface ReservaDetalleRepository extends JpaRepository<ReservaDetalle, 
 
     @Query("select reservaDetalle from ReservaDetalle reservaDetalle left join fetch reservaDetalle.habitacion h left join fetch h.categoriaHabitacion where reservaDetalle.reserva.id = :reservaId")
     Page<ReservaDetalle> findAllByReservaId(@Param("reservaId") Long reservaId, Pageable pageable);
+
+    Page<ReservaDetalle> findByActivo(Boolean activo, Pageable pageable);
+
+    @Query("select reservaDetalle from ReservaDetalle reservaDetalle where reservaDetalle.reserva.id = :reservaId")
+    List<ReservaDetalle> findAllByReservaId(@Param("reservaId") Long reservaId);
+
+    @Query(value = "select reservaDetalle from ReservaDetalle reservaDetalle left join fetch reservaDetalle.habitacion h left join fetch h.categoriaHabitacion where reservaDetalle.activo = :activo", countQuery = "select count(reservaDetalle) from ReservaDetalle reservaDetalle where reservaDetalle.activo = :activo")
+    Page<ReservaDetalle> findByActivoWithEagerRelationships(@Param("activo") Boolean activo, Pageable pageable);
 }
