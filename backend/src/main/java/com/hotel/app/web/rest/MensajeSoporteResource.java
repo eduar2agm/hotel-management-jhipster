@@ -247,4 +247,34 @@ public class MensajeSoporteResource {
                 .headers(HeaderUtil.createEntityDeletionAlert(applicationName, false, ENTITY_NAME, id.toString()))
                 .build();
     }
+
+    /**
+     * {@code PUT  /mensaje-soportes/:id/activate} : activate the "id"
+     * mensajeSoporte.
+     *
+     * @param id the id of the mensajeSoporteDTO to activate.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)}.
+     */
+    @PutMapping("/{id}/activate")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
+    public ResponseEntity<Void> activateMensajeSoporte(@PathVariable Long id) {
+        LOG.debug("REST request to activate MensajeSoporte : {}", id);
+        mensajeSoporteService.activate(id);
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * {@code PUT  /mensaje-soportes/:id/deactivate} : deactivate the "id"
+     * mensajeSoporte.
+     *
+     * @param id the id of the mensajeSoporteDTO to deactivate.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)}.
+     */
+    @PutMapping("/{id}/deactivate")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
+    public ResponseEntity<Void> deactivateMensajeSoporte(@PathVariable Long id) {
+        LOG.debug("REST request to deactivate MensajeSoporte : {}", id);
+        mensajeSoporteService.deactivate(id);
+        return ResponseEntity.ok().build();
+    }
 }
