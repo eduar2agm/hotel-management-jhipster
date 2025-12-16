@@ -23,6 +23,7 @@ export const Sidebar = () => {
             return (
                 <>
                     <NavItem to="/employee/dashboard" icon={<LayoutDashboard size={20} />} label="Dashboard" />
+                    <NavItem to="/employee/clientes" icon={<Users size={20} />} label="Clientes" />
                     <NavItem to="/employee/checkin" icon={<UserCircle size={20} />} label="Check-in/Out" />
                     <NavItem to="/employee/reservas" icon={<CalendarDays size={20} />} label="Reservas" />
                     <NavItem to="/employee/soporte" icon={<MessageSquare size={20} />} label="Mensajes" />
