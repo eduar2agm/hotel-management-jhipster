@@ -120,4 +120,11 @@ public class MensajeSoporteServiceImpl implements MensajeSoporteService {
                     mensajeSoporteRepository.save(mensajeSoporte);
                 });
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<MensajeSoporteDTO> findByActivo(Boolean activo, Pageable pageable) {
+        LOG.debug("Request to get MensajeSoportes by activo : {}", activo);
+        return mensajeSoporteRepository.findByActivo(activo, pageable).map(mensajeSoporteMapper::toDto);
+    }
 }
