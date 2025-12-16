@@ -1,15 +1,15 @@
 import { Link } from 'react-router-dom';
-import { useAuth } from '../../hooks/useAuth'; 
+import { useAuth } from '../../hooks/useAuth';
 import logo from '../../assets/logoN.png';
 
 export const Navbar = () => {
   const { isAuthenticated, login, logout, user, isClient, isEmployee, isAdmin } = useAuth();
 
   return (
-    <nav className="absolute top-0 left-0 w-full z-50 flex bg-black/50 backdrop-blur-sm justify-between items-center px-6 py-4 text-white">
-      
-      <div className="text-xl font-bold tracking-wide flex items-center gap-2">
-        <img src={logo} alt="Logo" title="Hotel Management" className="w-8 h-8" /> 
+    <nav className="absolute top-0 left-0 w-full z-50 flex bg-black/50 backdrop-blur-sm justify-between items-center px-10 py-6 text-white">
+
+      <div className="text-xl font-bold tracking-wide flex items-center gap-3">
+        <img src={logo} alt="Logo" title="Hotel Management" className="w-10 h-10" />
         <span>Hotel Management</span>
       </div>
 
@@ -18,14 +18,14 @@ export const Navbar = () => {
         
         {isAuthenticated && isClient() && (
           <>
-          <Link to="/HomePage" className="hover:text-yellow-400 transition-colors">Home</Link>
-          <Link to="/client/reservas" className="hover:text-yellow-400 transition-colors">Reservas</Link>
-          <Link to="/client/perfil" className="hover:text-yellow-400 transition-colors">Mi perfil</Link>
-          <Link to="/client/soporte" className="hover:text-yellow-400 transition-colors">Soporte</Link>
-          <Link to="/client/servicos" className="hover:text-yellow-400 transition-colors">Servicios</Link>
+            <Link to="/HomePage" className="hover:text-yellow-400 transition-colors">Home</Link>
+            <Link to="/client/reservas" className="hover:text-yellow-400 transition-colors">Reservas</Link>
+            <Link to="/client/perfil" className="hover:text-yellow-400 transition-colors">Mi perfil</Link>
+            <Link to="/client/soporte" className="hover:text-yellow-400 transition-colors">Soporte</Link>
+            <Link to="/client/servicos" className="hover:text-yellow-400 transition-colors">Servicios</Link>
           </>
         )}
-         {isAuthenticated && isEmployee() && (
+        {isAuthenticated && isEmployee() && (
           <>
             <Link to="/employee/dashboard" className="hover:text-yellow-400 transition-colors">Dashboard</Link>
             <Link to="/employee/clientes" className="hover:text-yellow-400 transition-colors">Clientes</Link>
@@ -33,8 +33,8 @@ export const Navbar = () => {
             <Link to="/employee/reservas" className="hover:text-yellow-400 transition-colors">Reservas</Link>
             <Link to="/employee/soporte" className="hover:text-yellow-400 transition-colors">Soporte</Link>
           </>
-         )}
-         {isAuthenticated && isAdmin() && (
+        )}
+        {isAuthenticated && isAdmin() && (
           <>
             <Link to="/admin/dashboard" className="hover:text-yellow-400 transition-colors">Dashboard</Link>
             <Link to="/admin/habitaciones" className="hover:text-yellow-400 transition-colors">Habitaciones</Link>
@@ -44,7 +44,7 @@ export const Navbar = () => {
             <Link to="/admin/soporte" className="hover:text-yellow-400 transition-colors">Soporte</Link>
             <Link to="/admin/configuracion" className="hover:text-yellow-400 transition-colors">Configuración</Link>
           </>
-         )}
+        )}
       </div>
 
       {/* Botón Login / Logout */}
@@ -64,9 +64,9 @@ export const Navbar = () => {
              </button>
           </div>
         ) : (
-  
-          <button 
-            onClick={() => login()} 
+
+          <button
+            onClick={() => login()}
             className="border border-white px-6 py-2 text-sm uppercase font-bold hover:bg-white hover:text-black transition-all"
           >
             Login
