@@ -1,62 +1,37 @@
 // -------------------- ENUMS --------------------
-enum TipoIdentificacion {
-  DNI,
-  PASAPORTE,
-  RUC
+
+enum Remitente {
+  CLIENTE,
+  ADMINISTRATIVO,
+  SISTEMA
 }
 
-enum EstadoReserva {
-  PENDIENTE,
-  CONFIRMADA,
-  CANCELADA
-}
-
-enum EstadoCheckInCheckOut {
-  PENDIENTE,
-  REALIZADO,
-  RETRASADO
-}
-
-enum MetodoPago {
-  TARJETA,
-  EFECTIVO
-}
-
-enum EstadoPago {
-  PENDIENTE,
-  COMPLETADO,
-  RECHAZADO
-}
-
-enum CategoriaHabitacionNombre {
-  SENCILLA,
-  DOBLE,
-  SUITE
-}
-
-enum EstadoHabitacionNombre {
-  DISPONIBLE,
-  OCUPADA,
-  MANTENIMIENTO
-}
+enum TipoIdentificacion { DNI, PASAPORTE, RUC }
+enum EstadoReserva { PENDIENTE, CONFIRMADA, CANCELADA }
+enum EstadoCheckInCheckOut { PENDIENTE, REALIZADO, RETRASADO }
+enum MetodoPago { TARJETA, EFECTIVO }
+enum EstadoPago { PENDIENTE, COMPLETADO, RECHAZADO, REEMBOLSADO }
+enum CategoriaHabitacionNombre { SENCILLA, DOBLE, SUITE }
+enum EstadoHabitacionNombre { DISPONIBLE, OCUPADA, MANTENIMIENTO, LIMPIEZA }
 
 // -------------------- ENTIDADES --------------------
+
 entity Habitacion {
-  numero String required unique
-  capacidad Integer required
-  descripcion String
-  imagen String
+  numero String required unique maxlength(10)
+  capacidad Integer required min(1)
+  descripcion String maxlength(1000)
+  imagen String maxlength(2000)
   activo Boolean required
 }
 
 entity Cliente {
-  nombre String required
-  apellido String required
-  correo String required unique
-  telefono String required
-  direccion String
+  nombre String required maxlength(50)
+  apellido String required maxlength(50)
+  correo String required unique pattern(/^[^@\s]+@[^@\s]+\.[^@\s]+$/)
+  telefono String required maxlength(20)
+  direccion String maxlength(100)
   tipoIdentificacion TipoIdentificacion required
-  numeroIdentificacion String required
+  numeroIdentificacion String required maxlength(20)
   keycloakId String required
   activo Boolean required
 }
@@ -66,19 +41,21 @@ entity Reserva {
   fechaInicio Instant required
   fechaFin Instant required
   estado EstadoReserva required
+  totalCalculado BigDecimal required
   activo Boolean required
 }
 
 entity ReservaDetalle {
-  nota String
+  nota String maxlength(500)
+  precioUnitario BigDecimal required
   activo Boolean required
 }
 
-// ENTIDAD CORREGIDA
 entity CheckInCheckOut {
   fechaHoraCheckIn ZonedDateTime required
   fechaHoraCheckOut ZonedDateTime
   estado EstadoCheckInCheckOut required
+  comentarios String maxlength(500)
   activo Boolean required
 }
 
@@ -87,13 +64,15 @@ entity Pago {
   monto BigDecimal required
   metodoPago MetodoPago required
   estado EstadoPago required
+  // INTEGRACIÓN STRIPE: Vital para rastrear el dinero
+  plataformaPagoId String unique
   activo Boolean required
 }
 
 entity CategoriaHabitacion {
   nombre CategoriaHabitacionNombre required
-  descripcion String
-  precioBase BigDecimal required
+  descripcion String maxlength(500)
+  precioBase BigDecimal required min(0)
   activo Boolean required
 }
 
@@ -105,37 +84,29 @@ entity EstadoHabitacion {
 
 // ===== MENSAJES DE SOPORTE =====
 entity MensajeSoporte {
-  mensaje String required
+  mensaje String required maxlength(2000)
   fechaMensaje Instant required
-  userId String required
-  userName String
+  remitente Remitente required // Cliente o Administrativo
   leido Boolean required
   activo Boolean required
+  // Eliminamos userId/userName redundantes, usamos la relación con Reserva->Cliente
 }
 
 // -------------------- RELACIONES --------------------
 relationship ManyToOne {
-
-  Habitacion{categoriaHabitacion} to CategoriaHabitacion
-
-  Habitacion{estadoHabitacion} to EstadoHabitacion
-
+  Habitacion{categoriaHabitacion(nombre)} to CategoriaHabitacion
+  Habitacion{estadoHabitacion(nombre)} to EstadoHabitacion
   Reserva{cliente(nombre)} to Cliente
-
   ReservaDetalle{reserva} to Reserva
-
   ReservaDetalle{habitacion(numero)} to Habitacion
-
   CheckInCheckOut{reservaDetalle} to ReservaDetalle
-
   Pago{reserva} to Reserva
 
-  MensajeSoporte{reserva} to Reserva
+  // Relacionamos el mensaje con la reserva para dar contexto
+  MensajeSoporte{reserva(numero)} to Reserva
 }
 
 // -------------------- CONFIGURACIÓN --------------------
-paginate Habitacion, Cliente, Reserva, ReservaDetalle, CheckInCheckOut, Pago,
-         CategoriaHabitacion, EstadoHabitacion, MensajeSoporte with pagination
-
+paginate * with pagination
 dto * with mapstruct
 service * with serviceImpl
