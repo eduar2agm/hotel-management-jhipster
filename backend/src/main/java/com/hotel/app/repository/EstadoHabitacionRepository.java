@@ -1,6 +1,8 @@
 package com.hotel.app.repository;
 
 import com.hotel.app.domain.EstadoHabitacion;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.stereotype.Repository;
 
@@ -9,4 +11,6 @@ import org.springframework.stereotype.Repository;
  */
 @SuppressWarnings("unused")
 @Repository
-public interface EstadoHabitacionRepository extends JpaRepository<EstadoHabitacion, Long> {}
+public interface EstadoHabitacionRepository extends JpaRepository<EstadoHabitacion, Long> {
+    Page<EstadoHabitacion> findByActivo(Boolean activo, Pageable pageable);
+}
