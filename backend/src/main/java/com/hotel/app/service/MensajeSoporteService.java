@@ -74,4 +74,18 @@ public interface MensajeSoporteService {
      * @return the list of entities.
      */
     Page<MensajeSoporteDTO> findByUserIdOnly(String userId, Pageable pageable);
+
+    /**
+     * Activate the "id" mensajeSoporte.
+     *
+     * @param id the id of the entity.
+     */
+    void activate(Long id);
+
+    /**
+     * Deactivate the "id" mensajeSoporte.
+     *
+     * @param id the id of the entity.
+     */
+    void deactivate(Long id);
 }
