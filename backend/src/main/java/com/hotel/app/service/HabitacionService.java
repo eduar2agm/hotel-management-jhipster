@@ -55,4 +55,18 @@ public interface HabitacionService {
      * @param id the id of the entity.
      */
     void delete(Long id);
+
+    /**
+     * Activate the "id" habitacion.
+     *
+     * @param id the id of the entity.
+     */
+    void activate(Long id);
+
+    /**
+     * Deactivate the "id" habitacion.
+     *
+     * @param id the id of the entity.
+     */
+    void deactivate(Long id);
 }
