@@ -204,33 +204,4 @@ public class EstadoHabitacionResource {
                 .build();
     }
 
-    /**
-     * {@code PUT  /estado-habitacions/:id/activate} : activate the "id"
-     * estadoHabitacion.
-     *
-     * @param id the id of the estadoHabitacionDTO to activate.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)}.
-     */
-    @PutMapping("/{id}/activate")
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
-    public ResponseEntity<Void> activateEstadoHabitacion(@PathVariable Long id) {
-        LOG.debug("REST request to activate EstadoHabitacion : {}", id);
-        estadoHabitacionService.activate(id);
-        return ResponseEntity.ok().build();
-    }
-
-    /**
-     * {@code PUT  /estado-habitacions/:id/deactivate} : deactivate the "id"
-     * estadoHabitacion.
-     *
-     * @param id the id of the estadoHabitacionDTO to deactivate.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)}.
-     */
-    @PutMapping("/{id}/deactivate")
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
-    public ResponseEntity<Void> deactivateEstadoHabitacion(@PathVariable Long id) {
-        LOG.debug("REST request to deactivate EstadoHabitacion : {}", id);
-        estadoHabitacionService.deactivate(id);
-        return ResponseEntity.ok().build();
-    }
 }
