@@ -94,4 +94,19 @@ public class ReservaDetalleServiceImpl implements ReservaDetalleService {
         LOG.debug("Request to delete ReservaDetalle : {}", id);
         reservaDetalleRepository.deleteById(id);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ReservaDetalleDTO> findByActivo(Boolean activo, Pageable pageable) {
+        LOG.debug("Request to get ReservaDetalles by activo : {}", activo);
+        return reservaDetalleRepository.findByActivo(activo, pageable).map(reservaDetalleMapper::toDto);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ReservaDetalleDTO> findByActivoWithEagerRelationships(Boolean activo, Pageable pageable) {
+        LOG.debug("Request to get ReservaDetalles by activo with eager relationships: {}", activo);
+        return reservaDetalleRepository.findByActivoWithEagerRelationships(activo, pageable)
+                .map(reservaDetalleMapper::toDto);
+    }
 }
