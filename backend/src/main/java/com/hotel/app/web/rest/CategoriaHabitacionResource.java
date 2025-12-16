@@ -108,6 +108,13 @@ public class CategoriaHabitacionResource {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
 
+        // Check if the entity is active
+        categoriaHabitacionRepository.findById(id).ifPresent(existing -> {
+            if (Boolean.FALSE.equals(existing.getActivo())) {
+                throw new BadRequestAlertException("Cannot update inactive entity", ENTITY_NAME, "inactive");
+            }
+        });
+
         categoriaHabitacionDTO = categoriaHabitacionService.update(categoriaHabitacionDTO);
         return ResponseEntity.ok()
                 .headers(HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME,
@@ -148,6 +155,13 @@ public class CategoriaHabitacionResource {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
 
+        // Check if the entity is active
+        categoriaHabitacionRepository.findById(id).ifPresent(existing -> {
+            if (Boolean.FALSE.equals(existing.getActivo())) {
+                throw new BadRequestAlertException("Cannot update inactive entity", ENTITY_NAME, "inactive");
+            }
+        });
+
         Optional<CategoriaHabitacionDTO> result = categoriaHabitacionService.partialUpdate(categoriaHabitacionDTO);
 
         return ResponseUtil.wrapOrNotFound(
@@ -163,7 +177,6 @@ public class CategoriaHabitacionResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list
      *         of categoriaHabitacions in body.
      */
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_EMPLOYEE', 'ROLE_CLIENT')")
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_EMPLOYEE', 'ROLE_CLIENT')")
     @GetMapping("")
     public ResponseEntity<List<CategoriaHabitacionDTO>> getAllCategoriaHabitacions(
@@ -194,6 +207,25 @@ public class CategoriaHabitacionResource {
         LOG.debug("REST request to get CategoriaHabitacion : {}", id);
         Optional<CategoriaHabitacionDTO> categoriaHabitacionDTO = categoriaHabitacionService.findOne(id);
         return ResponseUtil.wrapOrNotFound(categoriaHabitacionDTO);
+    }
+
+    /**
+     * {@code GET  /categoria-habitacions/inactive} : get all the inactive
+     * categoriaHabitacions.
+     *
+     * @param pageable the pagination information.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list
+     *         of categoriaHabitacions in body.
+     */
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_EMPLOYEE')")
+    @GetMapping("/inactive")
+    public ResponseEntity<List<CategoriaHabitacionDTO>> getInactiveCategoriaHabitacions(
+            @org.springdoc.core.annotations.ParameterObject Pageable pageable) {
+        LOG.debug("REST request to get a page of inactive CategoriaHabitacions");
+        Page<CategoriaHabitacionDTO> page = categoriaHabitacionService.findByActivo(false, pageable);
+        HttpHeaders headers = PaginationUtil
+                .generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
+        return ResponseEntity.ok().headers(headers).body(page.getContent());
     }
 
     /**
