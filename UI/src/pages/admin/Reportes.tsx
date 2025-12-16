@@ -7,21 +7,23 @@ import { PagoService } from '../../services/pago.service';
 import { ReservaService } from '../../services/reserva.service';
 import { ClienteService } from '../../services/cliente.service';
 import { type PagoDTO, type ReservaDTO, type ClienteDTO } from '../../types/api';
-import { 
-    DollarSign, 
-    Users, 
-    CalendarCheck, 
-    TrendingUp, 
-    FileSpreadsheet, 
-    FileText, 
+import {
+    DollarSign,
+    Users,
+    CalendarCheck,
+    TrendingUp,
+    FileSpreadsheet,
+    FileText,
     Activity,
-    CreditCard
+    CreditCard,
+    ChevronLeft,
+    ChevronRight,
 } from 'lucide-react';
-import { 
-    XAxis, 
-    YAxis, 
-    CartesianGrid, 
-    Tooltip, 
+import {
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
     ResponsiveContainer,
     AreaChart,
     Area,
@@ -47,6 +49,10 @@ export const AdminReportes = () => {
     const [monthlyData, setMonthlyData] = useState<any[]>([]);
     const [statusData, setStatusData] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+
+    // Pagination for Transactions List
+    const [currentPage, setCurrentPage] = useState(0);
+    const itemsPerPage = 10;
 
     useEffect(() => {
         loadData();
@@ -103,11 +109,11 @@ export const AdminReportes = () => {
         const monthly = last6Months.map(date => {
             const monthKey = date.toISOString().slice(0, 7); // YYYY-MM
             const monthName = date.toLocaleDateString('es-ES', { month: 'short' });
-            
+
             const income = pagos
                 .filter(p => p.fechaPago?.startsWith(monthKey))
                 .reduce((acc, curr) => acc + Number(curr.monto || 0), 0);
-            
+
             const count = reservas
                 .filter(r => r.fechaInicio?.startsWith(monthKey))
                 .length;
@@ -129,12 +135,12 @@ export const AdminReportes = () => {
 
     const exportToPDF = () => {
         const doc = new jsPDF();
-        
+
         // Header
         doc.setFontSize(20);
         doc.setTextColor(15, 23, 42); // Dark Navy
         doc.text('Reporte General - Hotel Management', 14, 22);
-        
+
         doc.setFontSize(10);
         doc.setTextColor(100);
         doc.text(`Generado: ${new Date().toLocaleString()}`, 14, 30);
@@ -143,7 +149,7 @@ export const AdminReportes = () => {
         doc.setFontSize(12);
         doc.setTextColor(0);
         doc.text('Resumen Financiero y Operativo', 14, 45);
-        
+
         const statsData = [
             ['Ingresos Totales', `$${stats.income.toLocaleString()}`],
             ['Total Reservas', stats.reservations.toString()],
@@ -228,10 +234,10 @@ export const AdminReportes = () => {
 
             {/* HERO SECTION */}
             <div className="bg-[#0F172A] pt-32 pb-20 px-4 md:px-8 lg:px-20 relative overflow-hidden shadow-xl">
-                 <div className="absolute top-0 right-0 p-12 opacity-5 scale-150 pointer-events-none">
-                     <Activity className="w-96 h-96 text-white" />
-                 </div>
-                 <div className="relative max-w-7xl mx-auto z-10 flex flex-col md:flex-row justify-between items-center gap-6">
+                <div className="absolute top-0 right-0 p-12 opacity-5 scale-150 pointer-events-none">
+                    <Activity className="w-96 h-96 text-white" />
+                </div>
+                <div className="relative max-w-7xl mx-auto z-10 flex flex-col md:flex-row justify-between items-center gap-6">
                     <div>
                         <span className="text-yellow-500 font-bold tracking-[0.2em] uppercase text-xs mb-2 block">Administración</span>
                         <h1 className="text-3xl md:text-5xl font-black text-white tracking-tight mb-2">
@@ -242,25 +248,25 @@ export const AdminReportes = () => {
                         </p>
                     </div>
                     <div className="flex gap-3">
-                        <Button 
+                        <Button
                             onClick={exportToPDF}
                             className="bg-red-600 hover:bg-red-700 text-white border-0 shadow-lg transition-all rounded-sm h-12 px-6 uppercase tracking-wider font-bold text-xs"
                         >
                             <FileText className="mr-2 h-4 w-4" /> Exportar PDF
                         </Button>
-                        <Button 
+                        <Button
                             onClick={exportToExcel}
                             className="bg-green-600 hover:bg-green-700 text-white border-0 shadow-lg transition-all rounded-sm h-12 px-6 uppercase tracking-wider font-bold text-xs"
                         >
                             <FileSpreadsheet className="mr-2 h-4 w-4" /> Exportar Excel
                         </Button>
                     </div>
-                 </div>
+                </div>
             </div>
 
             <main className="flex-grow py-5 px-4 md:px-8 lg:px-20 -mt-10 relative z-10">
                 <div className="max-w-7xl mx-auto space-y-6">
-                    
+
                     {/* STATS GRID */}
                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
                         <Card className="bg-white border-none shadow-lg border-l-4 border-l-green-500">
@@ -287,7 +293,7 @@ export const AdminReportes = () => {
                                 <p className="text-xs text-gray-400 mt-1">Total de reservas</p>
                             </CardContent>
                         </Card>
-                         <Card className="bg-white border-none shadow-lg border-l-4 border-l-purple-500">
+                        <Card className="bg-white border-none shadow-lg border-l-4 border-l-purple-500">
                             <CardContent className="p-6">
                                 <div className="flex items-center justify-between space-y-0 pb-2">
                                     <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Clientes</p>
@@ -325,13 +331,13 @@ export const AdminReportes = () => {
                                     <AreaChart data={monthlyData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                                         <defs>
                                             <linearGradient id="colorIngresos" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor="#10B981" stopOpacity={0.8}/>
-                                                <stop offset="95%" stopColor="#10B981" stopOpacity={0}/>
+                                                <stop offset="5%" stopColor="#10B981" stopOpacity={0.8} />
+                                                <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
                                             </linearGradient>
                                         </defs>
                                         <XAxis dataKey="name" fontSize={12} tickLine={false} axisLine={false} />
                                         <YAxis fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `$${value}`} />
-                                        <Tooltip 
+                                        <Tooltip
                                             contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                                             itemStyle={{ color: '#10B981' }}
                                         />
@@ -382,17 +388,18 @@ export const AdminReportes = () => {
                     {/* RECENT PAYMENTS LIST */}
                     <Card className="bg-white shadow-lg border-none">
                         <CardHeader>
-                             <div className="flex items-center justify-between">
+                            <div className="flex items-center justify-between">
                                 <div>
                                     <CardTitle className="text-gray-800 font-bold">Transacciones Recientes</CardTitle>
-                                    <CardDescription>Últimos 5 pagos registrados.</CardDescription>
+                                    <CardDescription>
+                                        Mostrando {currentPage * itemsPerPage + 1} - {Math.min((currentPage + 1) * itemsPerPage, pagos.length)} de {pagos.length} transacciones
+                                    </CardDescription>
                                 </div>
-                                <Button variant="outline" size="sm" className="hidden">Ver Todo</Button>
-                             </div>
+                            </div>
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-4">
-                                {pagos.slice(0, 5).map((pago) => (
+                                {pagos.slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage).map((pago) => (
                                     <div key={pago.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-100 hover:border-yellow-200 transition-colors">
                                         <div className="flex items-center gap-4">
                                             <div className="bg-green-100 p-2 rounded-full">
@@ -412,6 +419,31 @@ export const AdminReportes = () => {
                                 {pagos.length === 0 && <p className="text-center text-gray-400 py-8">No hay transacciones recientes.</p>}
                             </div>
                         </CardContent>
+                        <div className="flex items-center justify-end gap-4 px-6 pb-6 border-t pt-4">
+                            <span className="text-sm text-gray-500">
+                                Página {currentPage + 1} de {Math.max(1, Math.ceil(pagos.length / itemsPerPage))}
+                            </span>
+                            <div className="flex gap-2">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
+                                    disabled={currentPage === 0}
+                                    className="bg-white border-gray-200"
+                                >
+                                    <ChevronLeft className="h-4 w-4" /> Anterior
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setCurrentPage(p => Math.min(Math.ceil(pagos.length / itemsPerPage) - 1, p + 1))}
+                                    disabled={currentPage >= Math.ceil(pagos.length / itemsPerPage) - 1}
+                                    className="bg-white border-gray-200"
+                                >
+                                    Siguiente <ChevronRight className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        </div>
                     </Card>
 
                 </div>
