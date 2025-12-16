@@ -189,7 +189,7 @@ public class HabitacionResource {
      * @param id the id of the habitacionDTO to delete.
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
      */
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteHabitacion(@PathVariable("id") Long id) {
         LOG.debug("REST request to delete Habitacion : {}", id);
@@ -197,5 +197,33 @@ public class HabitacionResource {
         return ResponseEntity.noContent()
                 .headers(HeaderUtil.createEntityDeletionAlert(applicationName, false, ENTITY_NAME, id.toString()))
                 .build();
+    }
+
+    /**
+     * {@code PUT  /habitacions/:id/activate} : activate the "id" habitacion.
+     *
+     * @param id the id of the habitacionDTO to activate.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)}.
+     */
+    @PutMapping("/{id}/activate")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
+    public ResponseEntity<Void> activateHabitacion(@PathVariable Long id) {
+        LOG.debug("REST request to activate Habitacion : {}", id);
+        habitacionService.activate(id);
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * {@code PUT  /habitacions/:id/deactivate} : deactivate the "id" habitacion.
+     *
+     * @param id the id of the habitacionDTO to deactivate.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)}.
+     */
+    @PutMapping("/{id}/deactivate")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
+    public ResponseEntity<Void> deactivateHabitacion(@PathVariable Long id) {
+        LOG.debug("REST request to deactivate Habitacion : {}", id);
+        habitacionService.deactivate(id);
+        return ResponseEntity.ok().build();
     }
 }
