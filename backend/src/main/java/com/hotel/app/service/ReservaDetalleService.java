@@ -72,4 +72,23 @@ public interface ReservaDetalleService {
      * @param id the id of the entity.
      */
     void delete(Long id);
+
+    /**
+     * Get all the reservaDetalles by activo status.
+     *
+     * @param activo   the active status to filter by.
+     * @param pageable the pagination information.
+     * @return the list of entities.
+     */
+    Page<ReservaDetalleDTO> findByActivo(Boolean activo, Pageable pageable);
+
+    /**
+     * Get all the reservaDetalles by activo status with eager load of many-to-many
+     * relationships.
+     *
+     * @param activo   the active status to filter by.
+     * @param pageable the pagination information.
+     * @return the list of entities.
+     */
+    Page<ReservaDetalleDTO> findByActivoWithEagerRelationships(Boolean activo, Pageable pageable);
 }
