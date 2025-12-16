@@ -88,9 +88,18 @@ public class ReservaServiceImpl implements ReservaService {
     }
 
     @Override
+    @Transactional
     public void delete(Long id) {
-        LOG.debug("Request to delete Reserva : {}", id);
+        LOG.debug("Request to delete Reserva with all associated details: {}", id);
+
+        List<ReservaDetalle> detalles = reservaDetalleRepository.findAllByReservaId(id);
+        if (!detalles.isEmpty()) {
+            reservaDetalleRepository.deleteAll(detalles);
+            LOG.info("Deleted {} details for Reserva ID: {}", detalles.size(), id);
+        }
+
         reservaRepository.deleteById(id);
+        LOG.info("Reserva ID: {} deleted successfully with cascade", id);
     }
 
     @Override
