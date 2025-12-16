@@ -2,7 +2,7 @@ import { Navbar } from '../components/ui/Navbar';
 import { HeroSection } from '../components/ui/HeroSection';
 import { RoomCard } from '../components/ui/RoomCard';
 import { Footer } from '../components/ui/Footer';
-import { useHabitaciones } from '../hooks/useHabitaciones'; 
+import { useHabitaciones } from '../hooks/useHabitaciones';
 
 export const Home = () => {
   // 1. Usar el hook para obtener datos reales
@@ -39,32 +39,25 @@ export const Home = () => {
         {!loading && !error && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 container mx-auto">
             {habitaciones.map((hab) => {
-              // Lógica de Mapeo: Backend -> Frontend Card
               // Si no tiene imagen, usamos una por defecto para que no se vea roto
               const imagenPorDefecto = "https://images.unsplash.com/photo-1566665797739-1674de7a421a?auto=format&fit=crop&q=80&w=800";
-              
-              // El precio viene como string en el DTO ("150.00"), lo convertimos a número
-              const precioNumerico = parseFloat(hab.categoriaHabitacion?.precioBase || "0");
-              
-              // El título será el nombre de la categoría (ej: "Suite") o el número de habitación
-              const tituloCard = hab.categoriaHabitacion?.nombre || `Habitación ${hab.numero}`;
+              const habWithImage = {
+                ...hab,
+                imagen: hab.imagen || imagenPorDefecto
+              };
 
               return (
-                <RoomCard 
+                <RoomCard
                   key={hab.id}
-                  titulo={tituloCard}
-                  precio={precioNumerico}
-                  capacidad={hab.capacidad}
-                  imagen={hab.imagen || imagenPorDefecto}
-                  descripcion={hab.descripcion || "Disfruta de una estancia inolvidable con todas las comodidades."}
+                  habitacion={habWithImage}
                 />
               );
             })}
           </div>
         )}
-        
+
         {!loading && habitaciones.length === 0 && (
-           <div className="text-center text-gray-500">No hay habitaciones disponibles en este momento.</div>
+          <div className="text-center text-gray-500">No hay habitaciones disponibles en este momento.</div>
         )}
 
       </section>
