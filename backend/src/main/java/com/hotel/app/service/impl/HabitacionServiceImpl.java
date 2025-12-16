@@ -103,4 +103,11 @@ public class HabitacionServiceImpl implements HabitacionService {
                     habitacionRepository.save(habitacion);
                 });
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<HabitacionDTO> findByActivo(Boolean activo, Pageable pageable) {
+        LOG.debug("Request to get Habitacions by activo : {}", activo);
+        return habitacionRepository.findByActivo(activo, pageable).map(habitacionMapper::toDto);
+    }
 }
