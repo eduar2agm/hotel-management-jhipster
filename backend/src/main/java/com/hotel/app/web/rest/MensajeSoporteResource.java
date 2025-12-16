@@ -185,7 +185,7 @@ public class MensajeSoporteResource {
         if (activo != null) {
             page = mensajeSoporteService.findByActivo(activo, pageable);
         } else {
-            page = mensajeSoporteService.findAll(pageable);
+            page = mensajeSoporteService.findByActivo(true, pageable);
         }
         HttpHeaders headers = PaginationUtil
                 .generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
@@ -268,6 +268,11 @@ public class MensajeSoporteResource {
     public ResponseEntity<MensajeSoporteDTO> getMensajeSoporte(@PathVariable("id") Long id) {
         LOG.debug("REST request to get MensajeSoporte : {}", id);
         Optional<MensajeSoporteDTO> mensajeSoporteDTO = mensajeSoporteService.findOne(id);
+
+        if (mensajeSoporteDTO.isPresent() && Boolean.FALSE.equals(mensajeSoporteDTO.get().getActivo())) {
+            throw new BadRequestAlertException("The support message is inactive", ENTITY_NAME, "inactive");
+        }
+
         return ResponseUtil.wrapOrNotFound(mensajeSoporteDTO);
     }
 
