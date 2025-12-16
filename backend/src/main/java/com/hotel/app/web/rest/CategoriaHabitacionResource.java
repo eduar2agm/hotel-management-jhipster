@@ -164,11 +164,18 @@ public class CategoriaHabitacionResource {
      *         of categoriaHabitacions in body.
      */
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_EMPLOYEE', 'ROLE_CLIENT')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_EMPLOYEE', 'ROLE_CLIENT')")
     @GetMapping("")
     public ResponseEntity<List<CategoriaHabitacionDTO>> getAllCategoriaHabitacions(
-            @org.springdoc.core.annotations.ParameterObject Pageable pageable) {
+            @org.springdoc.core.annotations.ParameterObject Pageable pageable,
+            @RequestParam(name = "activo", required = false) Boolean activo) {
         LOG.debug("REST request to get a page of CategoriaHabitacions");
-        Page<CategoriaHabitacionDTO> page = categoriaHabitacionService.findAll(pageable);
+        Page<CategoriaHabitacionDTO> page;
+        if (activo != null) {
+            page = categoriaHabitacionService.findByActivo(activo, pageable);
+        } else {
+            page = categoriaHabitacionService.findAll(pageable);
+        }
         HttpHeaders headers = PaginationUtil
                 .generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
         return ResponseEntity.ok().headers(headers).body(page.getContent());
