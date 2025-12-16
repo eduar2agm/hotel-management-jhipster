@@ -18,7 +18,7 @@ export const Navbar = () => {
         
         {isAuthenticated && isClient() && (
           <>
-            <Link to="/HomePage" className="hover:text-yellow-400 transition-colors">Home</Link>
+            <Link to="/" className="hover:text-yellow-400 transition-colors">Home</Link>
             <Link to="/client/reservas" className="hover:text-yellow-400 transition-colors">Reservas</Link>
             <Link to="/client/perfil" className="hover:text-yellow-400 transition-colors">Mi perfil</Link>
             <Link to="/client/soporte" className="hover:text-yellow-400 transition-colors">Soporte</Link>
@@ -27,6 +27,7 @@ export const Navbar = () => {
         )}
         {isAuthenticated && isEmployee() && (
           <>
+            <Link to="/" className="hover:text-yellow-400 transition-colors">Home</Link>
             <Link to="/employee/dashboard" className="hover:text-yellow-400 transition-colors">Dashboard</Link>
             <Link to="/employee/clientes" className="hover:text-yellow-400 transition-colors">Clientes</Link>
             <Link to="/employee/checkin" className="hover:text-yellow-400 transition-colors">Check-in/Out</Link>
@@ -36,6 +37,7 @@ export const Navbar = () => {
         )}
         {isAuthenticated && isAdmin() && (
           <>
+            <Link to="/" className="hover:text-yellow-400 transition-colors">Home</Link>
             <Link to="/admin/dashboard" className="hover:text-yellow-400 transition-colors">Dashboard</Link>
             <Link to="/admin/habitaciones" className="hover:text-yellow-400 transition-colors">Habitaciones</Link>
             <Link to="/admin/clientes" className="hover:text-yellow-400 transition-colors">clientes</Link>
