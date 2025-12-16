@@ -38,11 +38,10 @@ function App() {
       <BrowserRouter>
         <Routes>
           {/* Public Routes */}
+          <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
           <Route path="/HomePage" element={<Home />} />
-
-          {/* Admin Routes */}
           <Route path="/admin/dashboard" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN']}><AdminDashboard /></ProtectedRoute>} />
           <Route path="/admin/habitaciones" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN']}><AdminHabitaciones /></ProtectedRoute>} />
           <Route path="/admin/clientes" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN']}><AdminClientes /></ProtectedRoute>} />
@@ -73,8 +72,8 @@ function App() {
           <Route path="/client/servicos" element={<ProtectedRoute requiredRoles={['ROLE_CLIENT']}><Servicios /></ProtectedRoute>} />
           <Route path="/client/menu" element={<ProtectedRoute requiredRoles={['ROLE_CLIENT']}><Menu /></ProtectedRoute>} />
 
-          {/* Default Redirect */}
-          <Route path="/" element={<Navigate to="/login" replace />} />
+          {/* Catch all - Redirect to Home */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
