@@ -5,100 +5,72 @@
         <style>
             @import url('https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap');
 
-            /* Reset y Estilos Globales */
-            body {
+            /* --- 1. FONDO Y ESTRUCTURA BASE --- */
+            html, body {
+                height: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
                 background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important;
-                min-height: 100vh;
-                display: flex;
-                align-items: center;
-                justify-content: center;
                 font-family: 'Lato', sans-serif;
-                margin: 0;
                 color: #e2e8f0;
+                overflow: hidden;
+                position: relative;
             }
 
-            /* Forzar que el contenedor de Keycloak ocupe todo para centrar */
-            #kc-header, #kc-content, #kc-container-wrapper {
-                width: 100%;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                border: none;
+            /* --- 2. ELIMINAR INTERFERENCIAS DE KEYCLOAK --- */
+            #kc-header, #kc-header-wrapper { display: none !important; }
+            
+            #kc-page-container, #kc-content, #kc-content-wrapper, .card-pf, #kc-container-wrapper {
+                background: transparent !important;
+                box-shadow: none !important;
+                border: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                width: auto !important;
+                height: auto !important;
+                position: static !important;
             }
 
-            /* Tarjeta Flotante */
+            /* --- 3. TARJETA FLOTANTE (Centrado Matemático) --- */
             .login-card {
+                position: absolute;
+                top: 64%;
+                left: 50%;
+                /* TRUCO: -50% X, -65% Y para subirla visualmente */
+                transform: translate(-50%, -65%);
+                
+                width: 100%;
+                max-width: 420px; /* Ancho solicitado */
+                
                 background: rgba(30, 41, 59, 0.75);
                 backdrop-filter: blur(12px);
                 -webkit-backdrop-filter: blur(12px);
                 border: 1px solid rgba(212, 175, 55, 0.2);
                 border-radius: 8px;
-                padding: 25px;
+                padding: 25px 45px;
                 box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
-                width: 100%;
-                position: relative;
-                z-index: 10;
-                margin: 20px;
+                z-index: 100;
             }
 
-            /* Tipografía y Header */
-            .card-header { text-align: center; margin-bottom: 2.5rem; }
+            /* --- 4. ESTILOS INTERNOS --- */
+            .card-header { text-align: center; margin-bottom: 1.5rem; }
+            .hotel-logo { max-height: 60px; margin-bottom: 5px; filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.3)); }
+            .hotel-title { font-family: 'Playfair Display', serif; color: #D4AF37; font-size: 2rem; margin: 0; }
+            .hotel-subtitle { font-family: 'Lato', sans-serif; color: #94a3b8; text-transform: lowercase; font-size: 0.8rem; letter-spacing: 3px; margin-top: 5px; }
+
+            .form-group { margin-bottom: 1rem; }
             
-            .hotel-logo {
-                max-height: 90px;
-                margin-bottom: 10px;
-                filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.3));
-            }
-
-            .hotel-title {
-                font-family: 'Playfair Display', serif;
-                color: #D4AF37;
-                font-size: 2.2rem;
-                margin: 0;
-                font-weight: 400;
-                letter-spacing: 1px;
-            }
-
-            .hotel-subtitle {
-                font-family: 'Lato', sans-serif;
-                color: #94a3b8;
-                text-transform: lowercase;
-                font-size: 0.8rem;
-                letter-spacing: 3px;
-                margin-top: 8px;
-            }
-
-            /* Inputs y Formularios */
-            .form-group { margin-bottom: 5%; }
-            
-            label {
-                display: block;
-                color: #cbd5e1;
-                font-size: 100%;
-                margin-bottom: 1%;
-                font-weight: 300;
-            }
+            label { display: block; color: #cbd5e1; font-size: 0.9rem; margin-bottom: 0.3rem; font-weight: 300; }
 
             input[type="text"], input[type="password"], input[type="email"] {
-                width: 100%;
-                box-sizing: border-box;
+                width: 100%; box-sizing: border-box;
                 padding: 10px 14px;
-                background: rgba(15, 23, 42, 0.6);
-                border: 1px solid #475569;
-                border-radius: 4px;
-                color: #fff;
-                font-size: 1rem;
+                background: rgba(15, 23, 42, 0.6); border: 1px solid #475569;
+                border-radius: 4px; color: #fff; font-size: 1rem;
                 transition: all 0.3s ease;
             }
+            input:focus { outline: none; border-color: #D4AF37; background: rgba(15, 23, 42, 0.9); box-shadow: 0 0 15px rgba(212, 175, 55, 0.15); }
 
-            input:focus {
-                outline: none;
-                border-color: #D4AF37;
-                background: rgba(15, 23, 42, 0.9);
-                box-shadow: 0 0 15px rgba(212, 175, 55, 0.15);
-            }
-
-            /* Icono Ojo Password */
             .password-container { position: relative; display: flex; align-items: center; }
             .toggle-icon {
                 position: absolute; right: 12px; background: none; border: none;
@@ -107,45 +79,33 @@
             }
             .toggle-icon:hover { color: #D4AF37; }
 
-            /* Checkbox y Links */
             .form-options {
                 display: flex; justify-content: space-between; align-items: center;
-                margin-bottom: 2rem; font-size: 0.9rem;
+                margin-bottom: 1.5rem; font-size: 0.9rem;
             }
             .checkbox-wrapper { display: flex; align-items: center; gap: 8px; color: #cbd5e1; }
             .link { color: #D4AF37; text-decoration: none; transition: color 0.2s; }
             .link:hover { color: #fceabb; text-decoration: underline; }
 
-            /* Botón Principal */
             .btn-primary {
                 width: 100%; padding: 10px;
                 background: linear-gradient(45deg, #b8952b, #D4AF37);
-                border: none; border-radius: 4px;
-                color: #0f172a; font-weight: 700; font-size: 1rem;
+                border: none; border-radius: 4px; color: #0f172a; font-weight: 700; font-size: 1rem;
                 cursor: pointer; text-transform: uppercase; letter-spacing: 1px;
                 transition: transform 0.2s, box-shadow 0.2s;
             }
-            .btn-primary:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 8px 20px rgba(212, 175, 55, 0.3);
-            }
+            .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(212, 175, 55, 0.3); }
 
-            /* Footer */
-            .card-footer {
-                margin-top: 2rem; text-align: center; font-size: 0.9rem;
-                color: #94a3b8; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1.5rem;
-            }
+            .card-footer { margin-top: 1.5rem; text-align: center; font-size: 0.9rem; color: #94a3b8; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1rem; }
 
-            /* Responsive */
             @media (max-width: 480px) {
-                .login-card { padding: 30px 20px; }
-                .hotel-title { font-size: 1.8rem; }
+                .login-card { width: 90%; max-width: none; }
             }
         </style>
         <span class="sr-only">Login</span>
 
     <#elseif section = "form">
-        <div class="login-card" style="max-width: 420px;">
+        <div class="login-card">
             
             <div class="card-header">
                 <img src="${url.resourcesPath}/img/logoN.png" alt="Hotel Management" class="hotel-logo" />

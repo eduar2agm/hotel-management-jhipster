@@ -5,62 +5,70 @@
         <style>
             @import url('https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap');
 
-            body {
+            /* --- 1. FONDO Y ESTRUCTURA BASE --- */
+            html, body {
+                height: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
                 background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important;
-                min-height: 80vh;
-                display: flex;
-                align-items: center;
-                justify-content: center;
                 font-family: 'Lato', sans-serif;
-                margin: 0;
                 color: #e2e8f0;
-                /* Prevenir scroll en pantallas pequeñas si es posible */
-                overflow-x: hidden; 
+                overflow: hidden; /* Evita scrollbars innecesarios */
+                position: relative; /* Referencia para el centrado absoluto */
             }
 
-            #kc-header, #kc-content, #kc-container-wrapper {
-                width: 100%; display: flex; justify-content: center; align-items: center; border: none;
+            /* --- 2. ELIMINAR INTERFERENCIAS DE KEYCLOAK --- */
+            #kc-header, #kc-header-wrapper { display: none !important; }
+            
+            #kc-page-container, #kc-content, #kc-content-wrapper, .card-pf, #kc-container-wrapper {
+                background: transparent !important;
+                box-shadow: none !important;
+                border: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                width: auto !important;
+                height: auto !important;
+                position: static !important; /* Desactivamos el layout de Keycloak */
             }
 
+            /* --- 3. TARJETA FLOTANTE (Centrado Matemático) --- */
             .login-card {
+                position: absolute; /* Flotamos la tarjeta libremente */
+                top: 64%;
+                left: 50%;
+                /* TRUCO: -50% en X centra horizontalmente. -65% en Y centra y SUBE la tarjeta */
+                transform: translate(-50%, -65%); 
+                
+                width: 100%;
+                max-width: 450px; /* Tu ancho solicitado */
+                
                 background: rgba(30, 41, 59, 0.75);
                 backdrop-filter: blur(12px);
                 -webkit-backdrop-filter: blur(12px);
                 border: 1px solid rgba(212, 175, 55, 0.2);
                 border-radius: 8px;
-                /* RECORTE: Padding reducido de 30px a 20px */
-                padding: 20px 25px; 
-                box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
-                width: 100%; 
-                position: relative;
-                z-index: 10;
-                margin: 10px;
+                padding: 25px 40px; 
+                box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
+                z-index: 100;
             }
 
-            /* RECORTE: Márgenes reducidos */
+            /* --- 4. ESTILOS INTERNOS --- */
             .card-header { text-align: center; margin-bottom: 1rem; }
-            /* RECORTE: Logo más pequeño */
-            .hotel-logo { max-height: 55px; margin-bottom: 8px; filter: drop-shadow(0 0 6px rgba(212, 175, 55, 0.3)); }
-            /* RECORTE: Título más pequeño */
-            .hotel-title { font-family: 'Playfair Display', serif; color: #D4AF37; font-size: 1.5rem; margin: 0; }
+            .hotel-logo { max-height: 50px; margin-bottom: 5px; filter: drop-shadow(0 0 6px rgba(212, 175, 55, 0.3)); }
+            .hotel-title { font-family: 'Playfair Display', serif; color: #D4AF37; font-size: 1.6rem; margin: 0; }
             .hotel-subtitle { font-family: 'Lato', sans-serif; color: #94a3b8; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 1.5px; margin-top: 2px; }
 
-            .form-row { display: flex; gap: 10px; }
+            .form-row { display: flex; gap: 15px; }
             .form-row .form-group { flex: 1; }
-            /* RECORTE: Menos espacio entre inputs */
-            .form-group { margin-bottom: 0.8rem; }
+            .form-group { margin-bottom: 0.6rem; }
 
-            /* RECORTE: Fuente de labels más pequeña */
-            label { display: block; color: #cbd5e1; font-size: 0.75rem; margin-bottom: 0.3rem; font-weight: 300; }
+            label { display: block; color: #cbd5e1; font-size: 0.75rem; margin-bottom: 0.2rem; font-weight: 300; }
             
             input[type="text"], input[type="password"], input[type="email"] {
                 width: 100%; box-sizing: border-box; 
-                /* RECORTE: Input más delgado */
                 padding: 8px 10px;
                 background: rgba(15, 23, 42, 0.6); border: 1px solid #475569;
-                border-radius: 4px; color: #fff; 
-                /* RECORTE: Letra dentro del input más pequeña */
-                font-size: 0.85rem; 
+                border-radius: 4px; color: #fff; font-size: 0.85rem; 
                 transition: all 0.3s ease;
             }
             input:focus { outline: none; border-color: #D4AF37; background: rgba(15, 23, 42, 0.9); box-shadow: 0 0 8px rgba(212, 175, 55, 0.15); }
@@ -74,18 +82,19 @@
             }
             .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3); }
 
-            .card-footer { margin-top: 1rem; text-align: center; font-size: 0.8rem; color: #94a3b8; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 0.8rem; }
+            .card-footer { margin-top: 0.8rem; text-align: center; font-size: 0.8rem; color: #94a3b8; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 0.8rem; }
             .link { color: #D4AF37; text-decoration: none; }
             .link:hover { color: #fceabb; text-decoration: underline; }
 
-            @media (max-width: 400px) {
+            @media (max-width: 500px) {
+                .login-card { width: 90%; max-width: none; }
                 .form-row { flex-direction: column; gap: 0; }
             }
         </style>
         <span class="sr-only">${msg("registerTitle")}</span>
 
     <#elseif section = "form">
-        <div class="login-card" style="max-width: 380px;"> 
+        <div class="login-card"> 
             <div class="card-header">
                 <img src="${url.resourcesPath}/img/logoN.png" alt="Royal Hotel" class="hotel-logo" />
                 <h1 class="hotel-title">Bienvenido</h1>
@@ -137,7 +146,7 @@
             </form>
 
             <div class="card-footer">
-                <span>¿Ya eres miembro? <a href="${url.loginUrl}" class="link">${msg("backToLogin")}</a></span>
+                <span>¿Ya es miembro? <a href="${url.loginUrl}" class="link">${msg("backToLogin")}</a></span>
             </div>
         </div>
     </#if>
