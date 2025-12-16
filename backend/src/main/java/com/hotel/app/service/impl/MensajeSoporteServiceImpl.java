@@ -98,4 +98,26 @@ public class MensajeSoporteServiceImpl implements MensajeSoporteService {
         return mensajeSoporteRepository.findByUserIdOrDestinatarioIdOnly(userId, pageable)
                 .map(mensajeSoporteMapper::toDto);
     }
+
+    @Override
+    public void activate(Long id) {
+        LOG.debug("Request to activate MensajeSoporte : {}", id);
+        mensajeSoporteRepository
+                .findById(id)
+                .ifPresent(mensajeSoporte -> {
+                    mensajeSoporte.setActivo(true);
+                    mensajeSoporteRepository.save(mensajeSoporte);
+                });
+    }
+
+    @Override
+    public void deactivate(Long id) {
+        LOG.debug("Request to deactivate MensajeSoporte : {}", id);
+        mensajeSoporteRepository
+                .findById(id)
+                .ifPresent(mensajeSoporte -> {
+                    mensajeSoporte.setActivo(false);
+                    mensajeSoporteRepository.save(mensajeSoporte);
+                });
+    }
 }
