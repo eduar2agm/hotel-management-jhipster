@@ -160,9 +160,33 @@ public class HabitacionResource {
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_EMPLOYEE', 'ROLE_CLIENT')")
     @GetMapping("")
     public ResponseEntity<List<HabitacionDTO>> getAllHabitacions(
-            @org.springdoc.core.annotations.ParameterObject Pageable pageable) {
+            @org.springdoc.core.annotations.ParameterObject Pageable pageable,
+            @RequestParam(name = "activo", required = false) Boolean activo) {
         LOG.debug("REST request to get a page of Habitacions");
-        Page<HabitacionDTO> page = habitacionService.findAll(pageable);
+        Page<HabitacionDTO> page;
+        if (activo != null) {
+            page = habitacionService.findByActivo(activo, pageable);
+        } else {
+            page = habitacionService.findAll(pageable);
+        }
+        HttpHeaders headers = PaginationUtil
+                .generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
+        return ResponseEntity.ok().headers(headers).body(page.getContent());
+    }
+
+    /**
+     * {@code GET  /habitacions/inactive} : get all the inactive habitacions.
+     *
+     * @param pageable the pagination information.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list
+     *         of habitacions in body.
+     */
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_EMPLOYEE')")
+    @GetMapping("/inactive")
+    public ResponseEntity<List<HabitacionDTO>> getInactiveHabitacions(
+            @org.springdoc.core.annotations.ParameterObject Pageable pageable) {
+        LOG.debug("REST request to get a page of inactive Habitacions");
+        Page<HabitacionDTO> page = habitacionService.findByActivo(false, pageable);
         HttpHeaders headers = PaginationUtil
                 .generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
         return ResponseEntity.ok().headers(headers).body(page.getContent());
