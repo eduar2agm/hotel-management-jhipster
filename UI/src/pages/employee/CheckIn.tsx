@@ -1,6 +1,4 @@
-
 import { useState } from 'react';
-import { DashboardLayout } from '../../components/DashboardLayout';
 import { ReservaService, ReservaDetalleService, CheckInCheckOutService, EstadoHabitacionService, HabitacionService } from '../../services';
 import type { ReservaDTO, ReservaDetalleDTO, CheckInCheckOutDTO } from '../../types/api';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -8,9 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Search, LogIn, LogOut, CheckCircle, Clock } from 'lucide-react';
+import { Search, LogIn, LogOut, CheckCircle, Clock, User, Calendar, BedDouble, ArrowRight, XCircle, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { EstadoCheckInCheckOut } from '../../types/enums';
+import { Navbar } from '../../components/ui/Navbar';
+import { Footer } from '../../components/ui/Footer';
 import {
     Dialog,
     DialogContent,
@@ -21,6 +21,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 
 export const CheckIn = () => {
+    // --- STATE ---
     const [searchTerm, setSearchTerm] = useState('');
     const [reservas, setReservas] = useState<ReservaDTO[]>([]);
     const [selectedReserva, setSelectedReserva] = useState<ReservaDTO | null>(null);
@@ -34,6 +35,7 @@ export const CheckIn = () => {
     const [selectedDetalle, setSelectedDetalle] = useState<ReservaDetalleDTO | null>(null);
     const [comentarios, setComentarios] = useState('');
 
+    // --- LOGIC ---
     const handleSearch = async () => {
         if (!searchTerm) return;
         setLoading(true);
@@ -48,13 +50,10 @@ export const CheckIn = () => {
                     const r = await ReservaService.getReserva(Number(searchTerm));
                     res = { data: [r.data] };
                 } catch {
-                    // Fallback if 404
                     res = { data: [] };
                 }
             } else {
-                // Search by client name logic would go here if backend supported filtering by client name on reservation resource
-                // For now, we fetch all active reservations and filter client side (not efficient but functional for demo)
-                // Ideally: ReservaService.getReservas({ 'clienteId.specified': true ... })
+                // Client-side filtering as fallback
                 const all = await ReservaService.getReservas({ size: 100 });
                 const filtered = all.data.filter(r =>
                     r.cliente?.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -84,9 +83,7 @@ export const CheckIn = () => {
 
             // Fetch existing CheckIns for these details
             if (detailsRes.data.length > 0) {
-                // Determine IDs
                 const ids = detailsRes.data.map(d => d.id).join(',');
-                // JHipster default filtering support '.in'
                 const checkInsRes = await CheckInCheckOutService.getAll({ 'reservaDetalleId.in': ids });
                 setCheckIns(checkInsRes.data);
             } else {
@@ -110,14 +107,12 @@ export const CheckIn = () => {
         if (!selectedDetalle || !actionType || !selectedDetalle.habitacion?.id) return;
 
         try {
-            // Fetch Statuses
             const estadosRes = await EstadoHabitacionService.getEstados();
             const estados = estadosRes.data;
             const estadoOcupada = estados.find(e => e.nombre === 'OCUPADA');
             const estadoLimpieza = estados.find(e => e.nombre === 'LIMPIEZA') ?? estados.find(e => e.nombre === 'DISPONIBLE');
 
             if (actionType === 'CHECK_IN') {
-                // Create CheckIn Record
                 await CheckInCheckOutService.create({
                     fechaHoraCheckIn: new Date().toISOString(),
                     estado: EstadoCheckInCheckOut.REALIZADO,
@@ -126,7 +121,6 @@ export const CheckIn = () => {
                     reservaDetalle: selectedDetalle
                 });
 
-                // Update Room Status to OCUPADA
                 if (estadoOcupada && selectedDetalle.habitacion.id) {
                     await HabitacionService.partialUpdateHabitacion(selectedDetalle.habitacion.id, {
                         id: selectedDetalle.habitacion.id,
@@ -136,18 +130,15 @@ export const CheckIn = () => {
                 toast.success('Check-In Realizado con éxito');
 
             } else {
-                // CHECK_OUT
-                // Find the existing checkin record
                 const existing = checkIns.find(c => c.reservaDetalle?.id === selectedDetalle.id);
                 if (existing && existing.id) {
                     await CheckInCheckOutService.partialUpdate(existing.id, {
                         id: existing.id,
                         fechaHoraCheckOut: new Date().toISOString(),
-                        estado: EstadoCheckInCheckOut.REALIZADO, // Ensure matches enum
+                        estado: EstadoCheckInCheckOut.REALIZADO,
                         comentarios: existing.comentarios + (comentarios ? ` | Out: ${comentarios}` : '')
                     });
 
-                    // Update Room Status to LIMPIEZA
                     if (estadoLimpieza && selectedDetalle.habitacion.id) {
                         await HabitacionService.partialUpdateHabitacion(selectedDetalle.habitacion.id, {
                             id: selectedDetalle.habitacion.id,
@@ -158,7 +149,6 @@ export const CheckIn = () => {
                 }
             }
             setIsDialogOpen(false);
-            // Reload
             handleSelectReserva(selectedReserva!);
         } catch (error) {
             console.error(error);
@@ -175,125 +165,250 @@ export const CheckIn = () => {
     };
 
     return (
-        <DashboardLayout title="Recepción: Check-In / Check-Out" role="Empleado">
-            <div className="grid gap-6">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Búsqueda de Reservas</CardTitle>
-                        <CardDescription>Ingrese ID de reserva o nombre del cliente</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="flex gap-2">
-                            <Input
-                                placeholder="ID Reserva o Nombre Cliente..."
-                                value={searchTerm}
-                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
-                                onKeyDown={(e: React.KeyboardEvent) => e.key === 'Enter' && handleSearch()}
-                            />
-                            <Button onClick={handleSearch} disabled={loading}>
-                                <Search className="mr-2 h-4 w-4" /> Buscar
-                            </Button>
-                        </div>
+        <div className="font-sans text-gray-900 bg-gray-50 min-h-screen flex flex-col">
+            <Navbar />
 
-                        {reservas.length > 0 && !selectedReserva && (
-                            <div className="mt-4 grid gap-2">
-                                <Label>Resultados ({reservas.length}) - Seleccione una reserva:</Label>
-                                {reservas.map(r => (
-                                    <Button key={r.id} variant="outline" className="justify-start" onClick={() => handleSelectReserva(r)}>
-                                        Reserva #{r.id} - {r.cliente?.nombre} ({new Date(r.fechaInicio!).toLocaleDateString()})
-                                    </Button>
-                                ))}
-                            </div>
-                        )}
-                    </CardContent>
-                </Card>
-
-                {selectedReserva && (
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Gestión de Habitaciones - Reserva #{selectedReserva.id}</CardTitle>
-                            <CardDescription>
-                                Cliente: {selectedReserva.cliente?.nombre} |
-                                Entrada: {new Date(selectedReserva.fechaInicio!).toLocaleDateString()} |
-                                Salida: {new Date(selectedReserva.fechaFin!).toLocaleDateString()}
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="space-y-4">
-                                {detalles.map(det => {
-                                    const status = det.id ? getStatusForDetalle(det.id) : 'UNKNOWN';
-                                    return (
-                                        <div key={det.id} className="flex items-center justify-between p-4 border rounded-lg bg-card">
-                                            <div className="flex flex-col">
-                                                <span className="font-bold text-lg">Habitación {det.habitacion?.numero}</span>
-                                                <span className="text-sm text-muted-foreground">{det.habitacion?.categoriaHabitacion?.nombre}</span>
-                                            </div>
-
-                                            <div className="flex items-center gap-4">
-                                                {status === 'PENDIENTE' && (
-                                                    <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
-                                                        Pendiente Check-In
-                                                    </Badge>
-                                                )}
-                                                {status === 'CHECKED_IN' && (
-                                                    <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border-green-200">
-                                                        <CheckCircle className="w-3 h-3 mr-1" /> En Estadía
-                                                    </Badge>
-                                                )}
-                                                {status === 'CHECKED_OUT' && (
-                                                    <Badge variant="secondary">
-                                                        <Clock className="w-3 h-3 mr-1" /> Finalizado
-                                                    </Badge>
-                                                )}
-
-                                                <div className="flex gap-2">
-                                                    {status === 'PENDIENTE' && (
-                                                        <Button size="sm" onClick={() => initiateAction('CHECK_IN', det)}>
-                                                            <LogIn className="mr-2 h-4 w-4" /> Check-In
-                                                        </Button>
-                                                    )}
-                                                    {status === 'CHECKED_IN' && (
-                                                        <Button size="sm" variant="destructive" onClick={() => initiateAction('CHECK_OUT', det)}>
-                                                            <LogOut className="mr-2 h-4 w-4" /> Check-Out
-                                                        </Button>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                                {detalles.length === 0 && (
-                                    <div className="text-center text-muted-foreground py-8">
-                                        No se encontraron detalles de habitaciones para esta reserva. Error de integridad de datos.
-                                    </div>
-                                )}
-                            </div>
-                        </CardContent>
-                    </Card>
-                )}
+            {/* --- HERO SECTION --- */}
+            <div className="relative bg-[#0F172A] pt-32 pb-20 px-4 md:px-8 lg:px-20 overflow-hidden shadow-xl">
+                 <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-blue-900/10 to-transparent pointer-events-none"></div>
+                 <div className="relative max-w-6xl mx-auto">
+                    <span className="text-yellow-500 font-bold tracking-[0.2em] uppercase text-xs mb-3 block animate-in fade-in slide-in-from-bottom-2 duration-500">
+                        Gestión de Huéspedes
+                    </span>
+                    <h2 className="text-4xl md:text-5xl font-black text-white tracking-tight mb-4">
+                        Recepción y Check-In
+                    </h2>
+                    <p className="text-slate-400 font-light text-lg max-w-xl leading-relaxed">
+                        Administre la entrada y salida de huéspedes. Verifique identidades y asigne llaves.
+                    </p>
+                 </div>
             </div>
 
+            <main className="flex-grow py-12 px-4 md:px-8 lg:px-20 relative z-10">
+                <div className="max-w-4xl mx-auto -mt-16 space-y-8">
+
+                    {/* --- SEARCH CARD --- */}
+                    <Card className="border-none shadow-xl rounded-sm overflow-hidden bg-white">
+                        <CardHeader className="bg-slate-50 border-b border-gray-100 pb-6 pt-6">
+                            <CardTitle className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                                <Search className="w-5 h-5 text-yellow-600" /> Buscar Reserva
+                            </CardTitle>
+                            <CardDescription className="text-gray-500">
+                                Ingrese el número de reserva o el nombre del titular para comenzar el proceso.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="p-6 bg-white">
+                            <div className="flex flex-col md:flex-row gap-4 items-end">
+                                <div className="grid w-full gap-2">
+                                    <Label htmlFor="search" className="font-semibold text-gray-700">ID Reserva / Nombre Cliente</Label>
+                                    <div className="relative">
+                                        <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                                        <Input
+                                            id="search"
+                                            className="pl-9 h-12 bg-gray-50 border-gray-200 focus:border-yellow-500 focus:ring-yellow-500/20"
+                                            placeholder="Ej. 1045 o Juan Pérez..."
+                                            value={searchTerm}
+                                            onChange={(e) => setSearchTerm(e.target.value)}
+                                            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                                        />
+                                    </div>
+                                </div>
+                                <Button 
+                                    onClick={handleSearch} 
+                                    disabled={loading}
+                                    className="h-12 px-8 bg-slate-900 hover:bg-slate-800 text-white font-bold tracking-wide transition-all shadow-md"
+                                >
+                                    {loading ? <span className="animate-pulse">Buscando...</span> : 'BUSCAR'}
+                                </Button>
+                            </div>
+
+                            {/* --- SEARCH RESULTS --- */}
+                            {reservas.length > 0 && !selectedReserva && (
+                                <div className="mt-8 animate-in fade-in slide-in-from-top-4 duration-500">
+                                    <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">Resultados Encontrados ({reservas.length})</h3>
+                                    <div className="grid gap-3">
+                                        {reservas.map(r => (
+                                            <div 
+                                                key={r.id} 
+                                                onClick={() => handleSelectReserva(r)}
+                                                className="group p-4 rounded-lg border border-gray-100 bg-white hover:border-yellow-400 hover:shadow-md cursor-pointer transition-all flex items-center justify-between"
+                                            >
+                                                <div className="flex items-center gap-4">
+                                                    <div className="bg-blue-50 p-3 rounded-full group-hover:bg-yellow-50 transition-colors">
+                                                        <User className="w-5 h-5 text-blue-600 group-hover:text-yellow-600" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-bold text-gray-900 text-lg">
+                                                            {r.cliente?.nombre} {r.cliente?.apellido}
+                                                        </p>
+                                                        <p className="text-sm text-gray-500 flex items-center gap-2">
+                                                            <span className="font-mono text-xs bg-slate-100 px-2 py-0.5 rounded text-slate-600">ID: #{r.id}</span>
+                                                            <span>•</span>
+                                                            <Calendar className="w-3 h-3" /> {new Date(r.fechaInicio!).toLocaleDateString()}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <ArrowRight className="w-5 h-5 text-gray-300 group-hover:text-yellow-500 group-hover:translate-x-1 transition-all" />
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {reservas.length === 0 && searchTerm && !loading && (
+                                <div className="mt-8 p-8 text-center bg-gray-50 rounded-lg border border-dashed border-gray-200">
+                                    <XCircle className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+                                    <p className="text-gray-500 font-medium">No se encontraron reservas con ese criterio.</p>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+
+                    {/* --- DETAILS & ACTIONS SECTION --- */}
+                    {selectedReserva && (
+                         <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
+                            <div className="bg-slate-900 text-white p-6 rounded-t-sm shadow-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                                <div>
+                                    <div className="flex items-center gap-3 mb-2">
+                                        <Badge variant="outline" className="text-yellow-400 border-yellow-400/30 bg-yellow-400/10">
+                                            Reserva #{selectedReserva.id}
+                                        </Badge>
+                                        <span className={`text-xs font-bold px-2 py-0.5 rounded ${selectedReserva.estado === 'CONFIRMADA' ? 'bg-green-500/20 text-green-400' : 'bg-gray-700 text-gray-300'}`}>
+                                            {selectedReserva.estado}
+                                        </span>
+                                    </div>
+                                    <h2 className="text-2xl font-black tracking-tight flex items-center gap-2">
+                                        {selectedReserva.cliente?.nombre} <span className="font-light text-slate-400">/ Estancia</span>
+                                    </h2>
+                                </div>
+                                <div className="text-right flex gap-6 text-sm text-slate-300">
+                                    <div>
+                                        <p className="text-slate-500 uppercase text-[10px] tracking-widest font-bold">Entrada</p>
+                                        <p className="font-mono text-white">{new Date(selectedReserva.fechaInicio!).toLocaleDateString()}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-slate-500 uppercase text-[10px] tracking-widest font-bold">Salida</p>
+                                        <p className="font-mono text-white">{new Date(selectedReserva.fechaFin!).toLocaleDateString()}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <Card className="rounded-t-none rounded-b-sm border-t-0 shadow-xl">
+                                <CardContent className="p-0">
+                                    <div className="bg-gray-50 px-6 py-4 border-b border-gray-100">
+                                        <h3 className="text-sm font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                                            <BedDouble className="w-4 h-4" /> Habitaciones Asignadas
+                                        </h3>
+                                    </div>
+                                    <div className="divide-y divide-gray-100">
+                                        {detalles.map(det => {
+                                            const status = det.id ? getStatusForDetalle(det.id) : 'UNKNOWN';
+                                            return (
+                                                <div key={det.id} className="p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 hover:bg-slate-50 transition-colors group">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="h-12 w-12 bg-white border border-gray-200 shadow-sm rounded flex items-center justify-center font-black text-xl text-slate-700 group-hover:border-yellow-400 group-hover:text-yellow-600 transition-colors">
+                                                            {det.habitacion?.numero}
+                                                        </div>
+                                                        <div>
+                                                            <p className="font-bold text-gray-900">{det.habitacion?.categoriaHabitacion?.nombre || 'Habitación Suite'}</p>
+                                                            <p className="text-sm text-gray-500">Capacidad para {det.habitacion?.capacidad || 2} personas</p>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="flex items-center gap-6">
+                                                        {status === 'PENDIENTE' && (
+                                                            <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200 px-3 py-1">
+                                                                <Clock className="w-3 h-3 mr-2" /> Pendiente Check-In
+                                                            </Badge>
+                                                        )}
+                                                        {status === 'CHECKED_IN' && (
+                                                            <Badge className="bg-emerald-100 text-emerald-700 border border-emerald-200 px-3 py-1 hover:bg-emerald-100">
+                                                                <CheckCircle className="w-3 h-3 mr-2" /> En Casa
+                                                            </Badge>
+                                                        )}
+                                                        {status === 'CHECKED_OUT' && (
+                                                            <Badge variant="secondary" className="bg-gray-100 text-gray-500 border border-gray-200 px-3 py-1">
+                                                                <LogOut className="w-3 h-3 mr-2" /> Finalizado
+                                                            </Badge>
+                                                        )}
+
+                                                        <div className="flex gap-2">
+                                                            {status === 'PENDIENTE' && (
+                                                                <Button 
+                                                                    onClick={() => initiateAction('CHECK_IN', det)}
+                                                                    className="bg-yellow-600 hover:bg-yellow-700 text-white font-bold shadow-md"
+                                                                >
+                                                                    <LogIn className="mr-2 h-4 w-4" /> REALIZAR CHECK-IN
+                                                                </Button>
+                                                            )}
+                                                            {status === 'CHECKED_IN' && (
+                                                                <Button 
+                                                                    variant="destructive"
+                                                                    onClick={() => initiateAction('CHECK_OUT', det)}
+                                                                    className="font-bold shadow-md"
+                                                                >
+                                                                    <LogOut className="mr-2 h-4 w-4" /> REALIZAR CHECK-OUT
+                                                                </Button>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                        {detalles.length === 0 && (
+                                            <div className="p-12 text-center">
+                                                <AlertCircle className="w-12 h-12 text-red-200 mx-auto mb-3" />
+                                                <p className="text-gray-500">Error: No hay habitaciones vinculadas a esta reserva.</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </CardContent>
+                            </Card>
+                         </div>
+                    )}
+                </div>
+            </main>
+
+            <Footer />
+
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogContent>
+                <DialogContent className="sm:max-w-md">
                     <DialogHeader>
-                        <DialogTitle>Confirmar {actionType === 'CHECK_IN' ? 'Check-In' : 'Check-Out'}</DialogTitle>
+                        <DialogTitle className="flex items-center gap-2 text-xl font-bold text-slate-900">
+                            {actionType === 'CHECK_IN' ? <LogIn className="text-yellow-600" /> : <LogOut className="text-red-600" />}
+                            Confirmar {actionType === 'CHECK_IN' ? 'Check-In' : 'Check-Out'}
+                        </DialogTitle>
+                        <div className="text-sm text-gray-500 mt-2">
+                             {actionType === 'CHECK_IN' 
+                                ? 'Está a punto de registrar la entrada del huésped. Asegúrese de haber verificado su identidad.' 
+                                : 'Está a punto de registrar la salida. Verifique que la habitación se encuentre en buen estado.'
+                             }
+                        </div>
                     </DialogHeader>
                     <div className="grid gap-4 py-4">
                         <div className="grid gap-2">
-                            <Label>Comentarios / Notas</Label>
+                            <Label htmlFor="comments" className="font-semibold text-gray-700">Comentarios / Notas (Opcional)</Label>
                             <Textarea
+                                id="comments"
                                 value={comentarios}
+                                rows={4}
                                 onChange={e => setComentarios(e.target.value)}
-                                placeholder={actionType === 'CHECK_IN' ? "Condición de entrada, entrega de llaves..." : "Estado de la habitación, minibar..."}
+                                placeholder={actionType === 'CHECK_IN' ? "Notas sobre entrega de llaves, depósitos..." : "Notas sobre consumo minibar, daños..."}
+                                className="resize-none focus:border-yellow-500 focus:ring-yellow-500"
                             />
                         </div>
                     </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancelar</Button>
-                        <Button onClick={executeAction}>Confirmar</Button>
+                    <DialogFooter className="flex gap-2 sm:justify-end">
+                        <Button variant="outline" onClick={() => setIsDialogOpen(false)} className="border-gray-300">Cancelar</Button>
+                        <Button 
+                            onClick={executeAction}
+                            className={`${actionType === 'CHECK_IN' ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-red-600 hover:bg-red-700'} text-white font-bold`}
+                        >
+                            Confirmar Acción
+                        </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-        </DashboardLayout>
+        </div>
     );
 };

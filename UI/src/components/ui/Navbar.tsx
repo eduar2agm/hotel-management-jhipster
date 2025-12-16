@@ -3,7 +3,7 @@ import { useAuth } from '../../hooks/useAuth';
 import logo from '../../assets/logoN.png';
 
 export const Navbar = () => {
-  const { isAuthenticated, login, logout, user } = useAuth();
+  const { isAuthenticated, login, logout, user, isClient, isEmployee, isAdmin } = useAuth();
 
   return (
     <nav className="absolute top-0 left-0 w-full z-50 flex bg-black/50 backdrop-blur-sm justify-between items-center px-10 py-6 text-white">
@@ -15,11 +15,35 @@ export const Navbar = () => {
 
       {/* Menú Central */}
       <div className="hidden md:flex space-x-8 text-sm font-medium uppercase tracking-wider">
-        <Link to="/HomePage" className="hover:text-yellow-400 transition-colors">Home</Link>
-        <Link to="/client/reservas" className="hover:text-yellow-400 transition-colors">Reservas</Link>
-        <Link to="/client/perfil" className="hover:text-yellow-400 transition-colors">Mi perfil</Link>
-        <Link to="/client/soporte" className="hover:text-yellow-400 transition-colors">Soporte</Link>
-        <Link to="/client/servicos" className="hover:text-yellow-400 transition-colors">Servicios</Link>
+        
+        {isAuthenticated && isClient() && (
+          <>
+          <Link to="/HomePage" className="hover:text-yellow-400 transition-colors">Home</Link>
+          <Link to="/client/reservas" className="hover:text-yellow-400 transition-colors">Reservas</Link>
+          <Link to="/client/perfil" className="hover:text-yellow-400 transition-colors">Mi perfil</Link>
+          <Link to="/client/soporte" className="hover:text-yellow-400 transition-colors">Soporte</Link>
+          <Link to="/client/servicos" className="hover:text-yellow-400 transition-colors">Servicios</Link>
+          </>
+        )}
+         {isAuthenticated && isEmployee() && (
+          <>
+            <Link to="/employee/dashboard" className="hover:text-yellow-400 transition-colors">Dashboard</Link>
+            <Link to="/employee/clientes" className="hover:text-yellow-400 transition-colors">Clientes</Link>
+            <Link to="/employee/checkin" className="hover:text-yellow-400 transition-colors">Check-in/Out</Link>
+            <Link to="/employee/reservas" className="hover:text-yellow-400 transition-colors">Reservas</Link>
+            <Link to="/employee/soporte" className="hover:text-yellow-400 transition-colors">Soporte</Link>
+          </>
+         )}
+         {isAuthenticated && isAdmin() && (
+          <>
+            <Link to="/admin/dashboard" className="hover:text-yellow-400 transition-colors">Dashboard</Link>
+            <Link to="/admin/habitaciones" className="hover:text-yellow-400 transition-colors">Habitaciones</Link>
+            <Link to="/admin/clientes" className="hover:text-yellow-400 transition-colors">clientes</Link>
+            <Link to="/admin/reservas" className="hover:text-yellow-400 transition-colors">Reservas</Link>
+            <Link to="/admin/reportes" className="hover:text-yellow-400 transition-colors">Reportes</Link>
+            <Link to="/admin/configuracion" className="hover:text-yellow-400 transition-colors">Configuración</Link>
+          </>
+         )}
       </div>
 
       {/* Botón Login / Logout */}
