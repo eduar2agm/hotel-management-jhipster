@@ -72,4 +72,18 @@ public interface ReservaService {
      * @return the list of entities.
      */
     Page<ReservaDTO> findAllByClienteId(Long clienteId, Pageable pageable);
+
+    /**
+     * Activate the "id" reserva.
+     *
+     * @param id the id of the entity.
+     */
+    void activate(Long id);
+
+    /**
+     * Deactivate the "id" reserva.
+     *
+     * @param id the id of the entity.
+     */
+    void deactivate(Long id);
 }
