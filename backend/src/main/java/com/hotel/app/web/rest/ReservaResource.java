@@ -228,9 +228,10 @@ public class ReservaResource {
         if (activo != null) {
             page = reservaService.findByActivo(activo, pageable);
         } else if (eagerload) {
-            page = reservaService.findAllWithEagerRelationships(pageable);
+            // Default to active=true even for eager load, since 'activo' is null here
+            page = reservaService.findByActivoWithEagerRelationships(true, pageable);
         } else {
-            page = reservaService.findAll(pageable);
+            page = reservaService.findByActivo(true, pageable);
         }
         HttpHeaders headers = PaginationUtil
                 .generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
@@ -249,6 +250,11 @@ public class ReservaResource {
     public ResponseEntity<ReservaDTO> getReserva(@PathVariable("id") Long id) {
         LOG.debug("REST request to get Reserva : {}", id);
         Optional<ReservaDTO> reservaDTO = reservaService.findOne(id);
+
+        if (reservaDTO.isPresent() && Boolean.FALSE.equals(reservaDTO.get().getActivo())) {
+            throw new BadRequestAlertException("The reservation is inactive", ENTITY_NAME, "inactive");
+        }
+
         return ResponseUtil.wrapOrNotFound(reservaDTO);
     }
 
