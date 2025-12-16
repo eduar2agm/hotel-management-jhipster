@@ -36,4 +36,6 @@ public interface ReservaRepository extends JpaRepository<Reserva, Long> {
     Optional<Reserva> findOneWithToOneRelationships(@Param("id") Long id);
 
     Page<Reserva> findByClienteId(Long clienteId, Pageable pageable);
+
+    Page<Reserva> findByActivo(Boolean activo, Pageable pageable);
 }
