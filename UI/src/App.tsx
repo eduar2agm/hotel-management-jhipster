@@ -26,6 +26,7 @@ import { Toaster } from 'sonner';
 import { AuthTokenSync } from './components/AuthTokenSync';
 import './api/axios-interceptors';
 import './App.css';
+import { Home } from './pages/HomePage';
 
 function App() {
   return (
@@ -37,6 +38,7 @@ function App() {
           {/* Public Routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
+          <Route path="/HomePage" element={<Home />} />
 
           {/* Admin Routes */}
           <Route path="/admin/dashboard" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN']}><AdminDashboard /></ProtectedRoute>} />

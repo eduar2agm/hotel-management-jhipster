@@ -1,9 +1,8 @@
 import { useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { LogIn } from 'lucide-react';
+import { LogIn, Hotel, ShieldCheck, Loader2 } from 'lucide-react';
 
 export const Login = () => {
     const { login, user, isAuthenticated, isLoading, error } = useAuth();
@@ -24,45 +23,110 @@ export const Login = () => {
         }
     }, [isAuthenticated, isLoading, rolesString, navigate]);
 
+    // --- PANTALLA DE CARGA ---
     if (isLoading) {
         return (
-            <div className="flex h-screen items-center justify-center bg-gray-50">
-                <div className="text-center">
-                    <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent mx-auto mb-4"></div>
-                    <p className="text-muted-foreground">Conectando con servidor seguro...</p>
+            <div className="flex h-screen w-full items-center justify-center bg-slate-950">
+                <div className="flex flex-col items-center gap-4">
+                    <div className="relative">
+                        <div className="absolute inset-0 bg-yellow-500 blur-xl opacity-20 rounded-full"></div>
+                        <Loader2 className="h-12 w-12 animate-spin text-yellow-500 relative z-10" />
+                    </div>
+                    <p className="text-slate-400 text-sm tracking-widest uppercase animate-pulse">
+                        Accediendo al Portal Seguro...
+                    </p>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="flex min-h-screen items-center justify-center bg-gray-100 p-4">
-            <Card className="w-full max-w-md shadow-xl">
-                <CardHeader className="space-y-1 text-center">
-                    <CardTitle className="text-2xl font-bold tracking-tight">Hotel Management</CardTitle>
-                    <CardDescription>
-                        Sistema integral de gestión hotelera
-                    </CardDescription>
-                </CardHeader>
-                <CardContent className="grid gap-4">
+        <div className="w-full min-h-screen flex font-sans">
+            
+            {/* --- COLUMNA IZQUIERDA (IMAGEN & BRANDING) --- */}
+            <div className="hidden lg:flex w-1/2 relative bg-slate-900 items-center justify-center overflow-hidden">
+                <div className="absolute inset-0 z-0">
+                    <img 
+                        src="https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?q=80&w=2070&auto=format&fit=crop" 
+                        alt="Luxury Hotel Lobby" 
+                        className="w-full h-full object-cover opacity-60"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/50 to-transparent"></div>
+                </div>
+                
+                <div className="relative z-10 text-center px-12 max-w-xl">
+                    <div className="mb-8 flex justify-center">
+                        <div className="p-4 bg-white/10 backdrop-blur-md rounded-full border border-white/20">
+                            <Hotel className="h-10 w-10 text-yellow-500" />
+                        </div>
+                    </div>
+                    <h2 className="text-4xl font-black text-white mb-6 tracking-tight leading-tight">
+                        Experiencia y Confort <br/> 
+                        <span className="text-yellow-500">Redefinidos.</span>
+                    </h2>
+                    <p className="text-slate-300 text-lg leading-relaxed">
+                        Gestiona tus reservas, servicios y preferencias en una plataforma diseñada para la excelencia operativa y la satisfacción del huésped.
+                    </p>
+                </div>
+                
+                <div className="absolute bottom-8 text-slate-500 text-xs tracking-wider">
+                    © {new Date().getFullYear()} Hotel Management System. All rights reserved.
+                </div>
+            </div>
+
+            {/* --- COLUMNA DERECHA (FORMULARIO) --- */}
+            <div className="w-full lg:w-1/2 flex items-center justify-center bg-white p-8 relative">
+                {/* Decoración de fondo sutil */}
+                <div className="absolute top-0 right-0 p-12 opacity-5">
+                    <Hotel size={200} />
+                </div>
+
+                <div className="max-w-md w-full space-y-8 relative z-10">
+                    <div className="text-center lg:text-left">
+                        <span className="text-yellow-600 font-bold tracking-widest uppercase text-xs">Bienvenido</span>
+                        <h1 className="text-3xl font-bold text-slate-900 mt-2">Portal de Acceso</h1>
+                        <p className="text-slate-500 mt-2">
+                            Inicia sesión para acceder a tu panel de control personalizado.
+                        </p>
+                    </div>
+
+                    {/* Mensaje de Error */}
                     {error && (
-                        <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-md">
-                            Error de conexión: {error.message}
+                        <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-r shadow-sm">
+                            <div className="flex">
+                                <div className="flex-shrink-0">
+                                    <ShieldCheck className="h-5 w-5 text-red-400" aria-hidden="true" />
+                                </div>
+                                <div className="ml-3">
+                                    <p className="text-sm text-red-700">
+                                        Error de conexión: {error.message}
+                                    </p>
+                                </div>
+                            </div>
                         </div>
                     )}
-                    <div className="text-center text-sm text-muted-foreground mb-4">
-                        Inicia sesión para acceder a tu panel correspondiente.
+
+                    <div className="space-y-6 pt-4">
+                        <div className="bg-slate-50 p-6 rounded-xl border border-slate-100 text-center space-y-4">
+                            <p className="text-sm text-slate-600 font-medium">
+                                Utilizamos autenticación centralizada para garantizar la seguridad de tus datos.
+                            </p>
+                            
+                            <Button 
+                                className="w-full h-12 bg-slate-900 hover:bg-yellow-500 hover:text-white text-white font-bold tracking-wide transition-all shadow-lg shadow-slate-900/20 hover:shadow-yellow-500/30 text-base"
+                                onClick={() => void login()}
+                            >
+                                <LogIn className="mr-2 h-5 w-5" /> Ingresar con SSO
+                            </Button>
+                        </div>
+
+                        <div className="flex items-center justify-center gap-2 text-xs text-slate-400">
+                            <ShieldCheck className="h-3 w-3" />
+                            <span>Conexión cifrada y protegida por Keycloak OAuth2</span>
+                        </div>
                     </div>
-                    <Button className="w-full" size="lg" onClick={() => void login()}>
-                        <LogIn className="mr-2 h-4 w-4" /> Iniciar Sesión con SSO
-                    </Button>
-                </CardContent>
-                <CardFooter className="flex flex-col space-y-2 text-center text-xs text-muted-foreground">
-                    <div>
-                        Protegido por Keycloak OAuth2
-                    </div>
-                </CardFooter>
-            </Card>
+                </div>
+            </div>
         </div>
     );
 };

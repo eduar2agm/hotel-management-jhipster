@@ -1,15 +1,16 @@
-
 import { useEffect, useState } from 'react';
-import { DashboardLayout } from '../../components/DashboardLayout';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CalendarDays, Loader2, Plus, Bed } from 'lucide-react';
+import { CalendarDays, Plus, Bed, MapPin, CreditCard } from 'lucide-react'; // Agregué iconos estéticos
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { ClienteService, ReservaService, ReservaDetalleService } from '../../services';
 import type { ReservaDTO, ReservaDetalleDTO } from '../../types/api';
 import { toast } from 'sonner';
+
+// Importamos los componentes de UI del Hotel
+import { Navbar } from '../../components/ui/Navbar';
+import { Footer } from '../../components/ui/Footer';
 
 export const ClientReservas = () => {
     const { user } = useAuth();
@@ -17,6 +18,7 @@ export const ClientReservas = () => {
     const [reservas, setReservas] = useState<ReservaDTO[]>([]);
     const [reservaDetallesMap, setReservaDetallesMap] = useState<Record<number, ReservaDetalleDTO[]>>({});
 
+    // --- LOGICA ORIGINAL (INTACTA) ---
     useEffect(() => {
         const loadMyReservas = async () => {
             if (!user?.email) return;
@@ -29,18 +31,15 @@ export const ClientReservas = () => {
 
                 if (!me || !me.id) {
                     setLoading(false);
-                    return; // Profile likely not created
+                    return; 
                 }
 
                 // 2. Fetch all reservations
-                // Optimize: Filter by client ID if backend supports it. Assuming generic backend support 'clienteId.equals'
-                // JHipster default usually supports filtering by relationship ID
                 let myReservas: ReservaDTO[] = [];
                 try {
                     const filteredRes = await ReservaService.getReservas({ 'clienteId.equals': me.id, size: 100, sort: 'id,desc' });
                     myReservas = filteredRes.data;
                 } catch (e) {
-                    // Fallback to client side filter if backend doesn't support
                     const all = await ReservaService.getReservas({ size: 1000 });
                     myReservas = all.data.filter(r => r.cliente?.id === me.id);
                     myReservas.sort((a, b) => new Date(b.fechaInicio!).getTime() - new Date(a.fechaInicio!).getTime());
@@ -53,7 +52,6 @@ export const ClientReservas = () => {
                     const ids = myReservas.map(r => r.id).join(',');
                     const detailsRes = await ReservaDetalleService.getReservaDetalles({ 'reservaId.in': ids });
 
-                    // Group by Reservation
                     const map: Record<number, ReservaDetalleDTO[]> = {};
                     detailsRes.data.forEach(d => {
                         if (d.reserva?.id) {
@@ -77,123 +75,195 @@ export const ClientReservas = () => {
 
     const getStatusColor = (status?: string | null) => {
         switch (status) {
-            case 'CONFIRMADA': return 'bg-green-500 hover:bg-green-600';
-            case 'PENDIENTE': return 'bg-yellow-500 hover:bg-yellow-600';
-            case 'CANCELADA': return 'bg-red-500 hover:bg-red-600';
-            case 'CHECK_IN': return 'bg-blue-500 hover:bg-blue-600';
-            case 'CHECK_OUT': return 'bg-gray-500 hover:bg-gray-600';
-            default: return 'bg-primary';
+            case 'CONFIRMADA': return 'bg-emerald-600 hover:bg-emerald-700 border-transparent';
+            case 'PENDIENTE': return 'bg-yellow-500 hover:bg-yellow-600 border-transparent';
+            case 'CANCELADA': return 'bg-red-500 hover:bg-red-600 border-transparent';
+            case 'CHECK_IN': return 'bg-blue-600 hover:bg-blue-700 border-transparent';
+            case 'CHECK_OUT': return 'bg-gray-500 hover:bg-gray-600 border-transparent';
+            default: return 'bg-gray-900';
         }
     };
 
-    if (loading) {
-        return (
-            <DashboardLayout title="Mis Reservas" role="Cliente">
-                <div className="flex justify-center items-center h-64">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                </div>
-            </DashboardLayout>
-        );
-    }
+    // --- RENDERIZADO ---
 
     return (
-        <DashboardLayout title="Mis Reservas" role="Cliente">
-            <div className="max-w-4xl mx-auto space-y-6">
-                <div className="flex justify-between items-center">
+        <div className="font-sans text-gray-900 bg-gray-50 min-h-screen flex flex-col">
+            {/* Reutilización del Navbar */}
+            <Navbar />
+
+            {/* --- HERO SECTION --- 
+                Agregamos pt-32 (padding top) para compensar el Navbar absoluto y evitar que tape el contenido.
+                Fondo azul marino oscuro (#0f172a = slate-900) solicitado.
+            */}
+            <div className="relative bg-[#0F172A] pt-32 pb-20 px-4 md:px-8 lg:px-20 overflow-hidden shadow-xl">
+                 {/* Efecto de fondo sutil */}
+                 <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-blue-900/10 to-transparent pointer-events-none"></div>
+                 
+                 <div className="relative max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-end md:items-center gap-6">
                     <div>
-                        <h2 className="text-2xl font-bold">Historial de Estancias</h2>
-                        <p className="text-muted-foreground">Gestiona tus reservas pasadas y futuras</p>
+                        <span className="text-yellow-500 font-bold tracking-[0.2em] uppercase text-xs mb-3 block animate-in fade-in slide-in-from-bottom-2 duration-500">
+                            Historial de Viajes
+                        </span>
+                        <h2 className="text-4xl md:text-5xl font-black text-white tracking-tight mb-4">
+                            Mis Estancias
+                        </h2>
+                        <p className="text-slate-400 font-light text-lg max-w-xl leading-relaxed">
+                            Gestiona tus experiencias pasadas y futuras con nosotros. Tu historial completo de confort y lujo.
+                        </p>
                     </div>
-                    <Link to="/client/nueva-reserva">
-                        <Button>
-                            <Plus className="mr-2 h-4 w-4" /> Nueva Reserva
+                    
+                    <Link to="/client/nueva-reserva" className="w-full md:w-auto">
+                        <Button className="w-full md:w-auto bg-yellow-600 hover:bg-yellow-700 text-white rounded-none px-8 py-6 text-md font-bold transition-all duration-300 shadow-lg hover:shadow-yellow-900/20 border border-yellow-600/30">
+                            <Plus className="mr-2 h-5 w-5" /> Planear Nueva Visita
                         </Button>
                     </Link>
-                </div>
+                 </div>
+            </div>
 
-                {reservas.length === 0 ? (
-                    <Card className="text-center py-12">
-                        <CardContent>
-                            <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <CalendarDays className="h-8 w-8 text-primary" />
+            <main className="flex-grow py-12 px-4 md:px-8 lg:px-20 relative z-10">
+                <div className="max-w-5xl mx-auto -mt-8"> {/* Margen negativo para acercar cards al hero si se desea, o quitar si no */}
+
+                    {/* Estado de Carga */}
+                    {loading && (
+                        <div className="text-center py-20">
+                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-600 mx-auto"></div>
+                            <p className="mt-4 text-gray-400 uppercase tracking-widest text-sm">Cargando reservas...</p>
+                        </div>
+                    )}
+
+                    {/* Estado Vacío */}
+                    {!loading && reservas.length === 0 && (
+                        <div className="bg-white p-12 text-center rounded-sm shadow-sm border border-gray-100">
+                            <div className="bg-yellow-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+                                <CalendarDays className="h-10 w-10 text-yellow-600" />
                             </div>
-                            <h3 className="text-lg font-semibold mb-2">No tienes reservas registradas</h3>
-                            <p className="text-muted-foreground mb-6">¿Planeando tus próximas vacaciones?</p>
+                            <h3 className="text-xl font-bold text-gray-900 mb-2">Aún no tienes historias con nosotros</h3>
+                            <p className="text-gray-500 mb-8 max-w-md mx-auto">
+                                Descubre nuestras habitaciones exclusivas y comienza a planear unas vacaciones inolvidables.
+                            </p>
                             <Link to="/client/nueva-reserva">
-                                <Button size="lg">Hacer una Reserva</Button>
+                                <Button className="bg-yellow-600 hover:bg-yellow-700 text-white px-8">Reservar Ahora</Button>
                             </Link>
-                        </CardContent>
-                    </Card>
-                ) : (
-                    <div className="grid gap-6">
-                        {reservas.map(reserva => {
-                            const details = reservaDetallesMap[reserva.id!] || [];
-                            return (
-                                <Card key={reserva.id} className="overflow-hidden border-l-4" style={{ borderLeftColor: reserva.estado === 'CONFIRMADA' ? '#22c55e' : undefined }}>
-                                    <CardHeader className="bg-muted/30 pb-4">
-                                        <div className="flex justify-between items-start">
-                                            <div>
-                                                <Badge className={`${getStatusColor(reserva.estado || undefined)} text-white border-0`}>
+                        </div>
+                    )}
+
+                    {/* Lista de Reservas */}
+                    {!loading && reservas.length > 0 && (
+                        <div className="space-y-8">
+                            {reservas.map(reserva => {
+                                const details = reservaDetallesMap[reserva.id!] || [];
+                                
+                                return (
+                                    <div 
+                                        key={reserva.id} 
+                                        className="bg-white group hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden rounded-sm"
+                                    >
+                                        {/* Header de la Tarjeta */}
+                                        <div className="bg-gray-50 px-6 py-4 flex flex-wrap justify-between items-center border-b border-gray-100">
+                                            <div className="flex items-center gap-4">
+                                                <Badge className={`${getStatusColor(reserva.estado || undefined)} text-white rounded-full px-4 py-1 font-medium shadow-sm`}>
                                                     {reserva.estado}
                                                 </Badge>
-                                                <div className="mt-2 text-sm text-muted-foreground">
-                                                    Reserva Realizada el {reserva.fechaReserva ? new Date(reserva.fechaReserva).toLocaleDateString() : '-'}
-                                                </div>
+                                                <span className="text-xs text-gray-400 font-medium uppercase tracking-wider">
+                                                    Reservado el: {reserva.fechaReserva ? new Date(reserva.fechaReserva).toLocaleDateString() : '-'}
+                                                </span>
                                             </div>
-                                            <div className="text-right">
-                                                <span className="text-sm text-muted-foreground block">ID Reserva</span>
-                                                <span className="font-mono font-bold">#{reserva.id}</span>
+                                            <div className="text-right mt-2 sm:mt-0">
+                                                <span className="text-xs text-gray-400 uppercase tracking-widest mr-2">ID Reserva</span>
+                                                <span className="font-mono font-bold text-gray-900">#{reserva.id}</span>
                                             </div>
                                         </div>
-                                    </CardHeader>
-                                    <CardContent className="p-6">
-                                        <div className="flex flex-col md:flex-row gap-6">
-                                            {/* Fechas */}
-                                            <div className="grid grid-cols-2 gap-4 md:w-1/3 border-r md:pr-6">
-                                                <div className="space-y-1">
-                                                    <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Llegada</span>
-                                                    <div className="flex items-center gap-2">
-                                                        <CalendarDays className="h-5 w-5 text-primary" />
-                                                        <span className="font-semibold text-lg">{reserva.fechaInicio ? new Date(reserva.fechaInicio).toLocaleDateString() : ''}</span>
-                                                    </div>
-                                                </div>
-                                                <div className="space-y-1">
-                                                    <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Salida</span>
-                                                    <div className="flex items-center gap-2">
-                                                        <CalendarDays className="h-5 w-5 text-primary" />
-                                                        <span className="font-semibold text-lg">{reserva.fechaFin ? new Date(reserva.fechaFin).toLocaleDateString() : ''}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
 
-                                            {/* Habitaciones */}
-                                            <div className="flex-1">
-                                                <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
-                                                    <Bed className="h-4 w-4" /> Habitaciones Reservadas ({details.length})
-                                                </h4>
-                                                <div className="space-y-2">
-                                                    {details.length > 0 ? (
-                                                        details.map(det => (
-                                                            <div key={det.id} className="bg-secondary/20 p-2 rounded-md flex justify-between items-center text-sm">
-                                                                <span className="font-medium">Habitación {det.habitacion?.numero}</span>
-                                                                <span className="text-muted-foreground">
-                                                                    {det.habitacion?.categoriaHabitacion?.nombre} - ${det.precioUnitario || det.habitacion?.categoriaHabitacion?.precioBase}
-                                                                </span>
+                                        <div className="p-6 md:p-8">
+                                            <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
+                                                
+                                                {/* Columna Izquierda: Fechas */}
+                                                <div className="flex-shrink-0 lg:w-1/3 grid grid-cols-2 gap-4 lg:border-r lg:border-gray-100 lg:pr-8">
+                                                    <div className="space-y-2">
+                                                        <span className="text-xs font-bold text-yellow-600 uppercase tracking-widest flex items-center gap-1">
+                                                            <CalendarDays className="w-3 h-3" /> Llegada
+                                                        </span>
+                                                        <div className="text-2xl font-serif text-gray-900">
+                                                            {reserva.fechaInicio ? new Date(reserva.fechaInicio).toLocaleDateString(undefined, { day: '2-digit', month: 'short' }) : ''}
+                                                        </div>
+                                                        <span className="text-sm text-gray-400">
+                                                            {reserva.fechaInicio ? new Date(reserva.fechaInicio).getFullYear() : ''}
+                                                        </span>
+                                                    </div>
+                                                    
+                                                    <div className="space-y-2">
+                                                        <span className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1">
+                                                            <CalendarDays className="w-3 h-3" /> Salida
+                                                        </span>
+                                                        <div className="text-2xl font-serif text-gray-900">
+                                                            {reserva.fechaFin ? new Date(reserva.fechaFin).toLocaleDateString(undefined, { day: '2-digit', month: 'short' }) : ''}
+                                                        </div>
+                                                        <span className="text-sm text-gray-400">
+                                                            {reserva.fechaFin ? new Date(reserva.fechaFin).getFullYear() : ''}
+                                                        </span>
+                                                    </div>
+                                                    
+                                                    <div className="col-span-2 pt-4 border-t border-gray-50 mt-2">
+                                                        <div className="flex items-center text-gray-500 text-sm">
+                                                            <MapPin className="w-4 h-4 mr-2 text-yellow-600" />
+                                                            <span>Hotel Principal & Resort</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Columna Derecha: Detalles Habitaciones */}
+                                                <div className="flex-grow">
+                                                    <h4 className="text-sm font-bold text-gray-900 mb-4 uppercase tracking-widest flex items-center gap-2">
+                                                        <Bed className="h-4 w-4 text-yellow-600" /> 
+                                                        Detalles de Alojamiento
+                                                    </h4>
+                                                    
+                                                    <div className="space-y-3">
+                                                        {details.length > 0 ? (
+                                                            details.map(det => (
+                                                                <div key={det.id} className="flex justify-between items-center p-4 bg-gray-50 rounded-lg border border-transparent hover:border-yellow-200 transition-colors">
+                                                                    <div>
+                                                                        <span className="block font-bold text-gray-900">
+                                                                            Habitación {det.habitacion?.numero}
+                                                                        </span>
+                                                                        <span className="text-sm text-gray-500">
+                                                                            {det.habitacion?.categoriaHabitacion?.nombre}
+                                                                        </span>
+                                                                    </div>
+                                                                    <div className="text-right">
+                                                                        <span className="block font-medium text-gray-900">
+                                                                            ${det.precioUnitario || det.habitacion?.categoriaHabitacion?.precioBase}
+                                                                        </span>
+                                                                        <span className="text-xs text-gray-400">/ noche</span>
+                                                                    </div>
+                                                                </div>
+                                                            ))
+                                                        ) : (
+                                                            <div className="text-sm text-gray-400 italic bg-gray-50 p-3 rounded">
+                                                                Detalles de habitación pendientes de asignación.
                                                             </div>
-                                                        ))
-                                                    ) : (
-                                                        <span className="text-sm text-muted-foreground italic">No se han asignado habitaciones o error cargando detalles.</span>
-                                                    )}
+                                                        )}
+                                                    </div>
+
+                                                    <div className="mt-6 flex justify-end items-center gap-2 text-sm text-gray-500">
+                                                        <CreditCard className="w-4 h-4" />
+                                                        <span>Total estimado: </span>
+                                                        <span className="font-bold text-gray-900 text-lg">
+                                                            ${reserva.total?.toFixed(2) || '0.00'}
+                                                        </span>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </CardContent>
-                                </Card>
-                            );
-                        })}
-                    </div>
-                )}
-            </div>
-        </DashboardLayout>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+                </div>
+            </main>
+            
+            <Footer />
+        </div>
     );
 };
