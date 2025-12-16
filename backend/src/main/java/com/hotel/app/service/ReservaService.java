@@ -83,6 +83,16 @@ public interface ReservaService {
     Page<ReservaDTO> findByActivo(Boolean activo, Pageable pageable);
 
     /**
+     * Get all the reservas by activo status with eager load of many-to-many
+     * relationships.
+     *
+     * @param activo   the active status to filter by.
+     * @param pageable the pagination information.
+     * @return the list of entities.
+     */
+    Page<ReservaDTO> findByActivoWithEagerRelationships(Boolean activo, Pageable pageable);
+
+    /**
      * Activate the "id" reserva.
      *
      * @param id the id of the entity.
