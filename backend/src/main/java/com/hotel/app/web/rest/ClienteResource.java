@@ -199,7 +199,8 @@ public class ClienteResource {
         if (activo != null) {
             page = clienteService.findByActivo(activo, pageable);
         } else {
-            page = clienteService.findAll(pageable);
+            page = clienteService.findByActivo(true, pageable);
+            ;
         }
         HttpHeaders headers = PaginationUtil
                 .generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
@@ -218,6 +219,12 @@ public class ClienteResource {
     public ResponseEntity<ClienteDTO> getCliente(@PathVariable("id") Long id) {
         LOG.debug("REST request to get Cliente : {}", id);
         Optional<ClienteDTO> clienteDTO = clienteService.findOne(id);
+
+        // Ensure that if the client is found, it must be active
+        if (clienteDTO.isPresent() && Boolean.FALSE.equals(clienteDTO.get().getActivo())) {
+            throw new BadRequestAlertException("The client is inactive", ENTITY_NAME, "inactive");
+        }
+
         return ResponseUtil.wrapOrNotFound(clienteDTO);
     }
 
