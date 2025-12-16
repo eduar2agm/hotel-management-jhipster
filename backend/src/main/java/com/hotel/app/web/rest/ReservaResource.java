@@ -172,7 +172,8 @@ public class ReservaResource {
     @GetMapping("")
     public ResponseEntity<List<ReservaDTO>> getAllReservas(
             @org.springdoc.core.annotations.ParameterObject Pageable pageable,
-            @RequestParam(name = "eagerload", required = false, defaultValue = "true") boolean eagerload) {
+            @RequestParam(name = "eagerload", required = false, defaultValue = "true") boolean eagerload,
+            @RequestParam(name = "activo", required = false) Boolean activo) {
         LOG.debug("REST request to get a page of Reservas");
 
         // Auto-filter for Clients
@@ -210,7 +211,9 @@ public class ReservaResource {
         }
 
         Page<ReservaDTO> page;
-        if (eagerload) {
+        if (activo != null) {
+            page = reservaService.findByActivo(activo, pageable);
+        } else if (eagerload) {
             page = reservaService.findAllWithEagerRelationships(pageable);
         } else {
             page = reservaService.findAll(pageable);
