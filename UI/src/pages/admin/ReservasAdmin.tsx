@@ -47,7 +47,7 @@ import { type ReservaDTO } from '../../types/api/Reserva';
 import { type ClienteDTO } from '../../types/api/Cliente';
 import { type HabitacionDTO } from '../../types/api/Habitacion';
 import { toast } from 'sonner';
-import { Pencil, Trash2, Plus, Calendar, Search, User, Check, AlertCircle, RefreshCcw } from 'lucide-react';
+import { Pencil, Trash2, Plus, Calendar, Search, User, Check, AlertCircle, RefreshCcw, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
@@ -73,10 +73,14 @@ export const AdminReservas = () => {
     const [habitaciones, setHabitaciones] = useState<HabitacionDTO[]>([]);
     const [mapReservaHabitaciones, setMapReservaHabitaciones] = useState<Record<number, string>>({});
 
+    const [currentPage, setCurrentPage] = useState(0);
+    const [totalItems, setTotalItems] = useState(0);
+    const itemsPerPage = 10;
+
     const [isLoading, setIsLoading] = useState(true);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
-    
+
     // Filter State
     const [searchTerm, setSearchTerm] = useState('');
 
@@ -96,13 +100,20 @@ export const AdminReservas = () => {
         try {
             setIsLoading(true);
             const [reservasRes, clientesRes, habitacionesRes] = await Promise.all([
-                ReservaService.getReservas({ page: 0, size: 50, sort: 'id,desc' }),
+                ReservaService.getReservas({
+                    page: currentPage,
+                    size: itemsPerPage,
+                    sort: 'id,desc'
+                }),
                 ClienteService.getClientes({ size: 100 }),
                 HabitacionService.getHabitacions({ size: 100 })
             ]);
 
             const loadedReservas = reservasRes.data;
             setReservas(loadedReservas);
+            const total = parseInt(reservasRes.headers['x-total-count'] || '0', 10);
+            setTotalItems(total);
+
             setClientes(clientesRes.data);
             setHabitaciones(habitacionesRes.data);
 
@@ -130,7 +141,7 @@ export const AdminReservas = () => {
 
     useEffect(() => {
         loadData();
-    }, []);
+    }, [currentPage]);
 
     // Reset Form on Dialog Close
     useEffect(() => {
@@ -264,7 +275,7 @@ export const AdminReservas = () => {
     }
 
     const filteredReservas = reservas.filter(r => {
-        if(!searchTerm) return true;
+        if (!searchTerm) return true;
         const lowerTerm = searchTerm.toLowerCase();
         const clientName = r.cliente ? `${r.cliente.nombre} ${r.cliente.apellido}`.toLowerCase() : '';
         const status = r.estado?.toLowerCase() || '';
@@ -278,10 +289,10 @@ export const AdminReservas = () => {
 
             {/* HERO SECTION */}
             <div className="bg-[#0F172A] pt-32 pb-20 px-4 md:px-8 lg:px-20 relative overflow-hidden shadow-xl">
-                 <div className="absolute top-0 right-0 p-12 opacity-5 scale-150 pointer-events-none">
-                     <Calendar className="w-96 h-96 text-white" />
-                 </div>
-                 <div className="relative max-w-7xl mx-auto z-10 flex flex-col md:flex-row justify-between items-center gap-6">
+                <div className="absolute top-0 right-0 p-12 opacity-5 scale-150 pointer-events-none">
+                    <Calendar className="w-96 h-96 text-white" />
+                </div>
+                <div className="relative max-w-7xl mx-auto z-10 flex flex-col md:flex-row justify-between items-center gap-6">
                     <div>
                         <span className="text-yellow-500 font-bold tracking-[0.2em] uppercase text-xs mb-2 block">Administración</span>
                         <h1 className="text-3xl md:text-5xl font-black text-white tracking-tight mb-2">
@@ -292,21 +303,21 @@ export const AdminReservas = () => {
                         </p>
                     </div>
                     <div>
-                        <Button 
+                        <Button
                             onClick={handleCreate}
                             className="bg-yellow-600 hover:bg-yellow-700 text-white border-0 shadow-lg hover:shadow-yellow-600/20 transition-all rounded-sm px-6 py-6 text-sm uppercase tracking-widest font-bold"
                         >
                             <Plus className="mr-2 h-5 w-5" /> Nueva Reserva
                         </Button>
                     </div>
-                 </div>
+                </div>
             </div>
 
             <main className="flex-grow py-5 px-4 md:px-8 lg:px-20 -mt-10 relative z-10">
-                 <Card className="max-w-7xl mx-auto border-t-4 border-yellow-600 shadow-xl bg-white">
+                <Card className="max-w-7xl mx-auto border-t-4 border-yellow-600 shadow-xl bg-white">
                     <CardHeader className="border-b bg-gray-50/50 pb-6">
                         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-                             <div>
+                            <div>
                                 <CardTitle className="text-xl font-bold text-gray-800">Listado de Reservas</CardTitle>
                                 <CardDescription>Total Registros: {reservas.length}</CardDescription>
                             </div>
@@ -391,8 +402,8 @@ export const AdminReservas = () => {
                                                 <Badge className={cn(
                                                     "shadow-sm border-0 px-2 py-0.5",
                                                     reserva.estado === 'CONFIRMADA' ? "bg-green-100 text-green-700 hover:bg-green-200" :
-                                                    reserva.estado === 'CANCELADA' ? "bg-red-100 text-red-700 hover:bg-red-200" :
-                                                    "bg-yellow-100 text-yellow-700 hover:bg-yellow-200"
+                                                        reserva.estado === 'CANCELADA' ? "bg-red-100 text-red-700 hover:bg-red-200" :
+                                                            "bg-yellow-100 text-yellow-700 hover:bg-yellow-200"
                                                 )}>
                                                     {reserva.estado === 'CONFIRMADA' && <Check className="h-3 w-3 mr-1" />}
                                                     {reserva.estado === 'CANCELADA' && <AlertCircle className="h-3 w-3 mr-1" />}
@@ -402,17 +413,17 @@ export const AdminReservas = () => {
                                             </TableCell>
                                             <TableCell className="text-right p-4">
                                                 <div className="flex justify-end gap-2">
-                                                    <Button 
-                                                        variant="ghost" 
-                                                        size="sm" 
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
                                                         onClick={() => handleEdit(reserva)}
                                                         className="h-8 w-8 p-0 text-gray-400 hover:text-yellow-600 hover:bg-yellow-50 rounded-full transition-colors"
                                                     >
                                                         <Pencil className="h-4 w-4" />
                                                     </Button>
-                                                    <Button 
-                                                        variant="ghost" 
-                                                        size="sm" 
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
                                                         onClick={() => reserva.id && handleDelete(reserva.id)}
                                                         className="h-8 w-8 p-0 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
                                                     >
@@ -426,21 +437,48 @@ export const AdminReservas = () => {
                             </TableBody>
                         </Table>
                     </div>
-                 </Card>
+
+                    {/* PAGINATION */}
+                    <div className="mt-4 flex items-center justify-end gap-4 px-10 pb-10">
+                        <span className="text-sm text-gray-500">
+                            Página {currentPage + 1} de {Math.max(1, Math.ceil(totalItems / itemsPerPage))}
+                        </span>
+                        <div className="flex gap-2">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
+                                disabled={currentPage === 0 || isLoading}
+                                className="bg-white border-gray-200"
+                            >
+                                <ChevronLeft className="h-4 w-4" /> Anterior
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setCurrentPage(p => p + 1)}
+                                disabled={(currentPage + 1) * itemsPerPage >= totalItems || isLoading}
+                                className="bg-white border-gray-200"
+                            >
+                                Siguiente <ChevronRight className="h-4 w-4" />
+                            </Button>
+                        </div>
+                    </div>
+                </Card>
             </main>
 
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto p-0 gap-0 border-0 shadow-2xl">
                     <DialogHeader className="bg-[#0F172A] text-white p-6">
                         <DialogTitle className="text-xl font-bold flex items-center gap-2">
-                             {isEditing ? <Pencil className="h-5 w-5 text-yellow-500" /> : <Plus className="h-5 w-5 text-yellow-500" />}
+                            {isEditing ? <Pencil className="h-5 w-5 text-yellow-500" /> : <Plus className="h-5 w-5 text-yellow-500" />}
                             {isEditing ? 'Editar Reserva' : 'Nueva Reserva'}
                         </DialogTitle>
                         <DialogDescription className="text-slate-400">
                             Complete los detalles de la reserva.
                         </DialogDescription>
                     </DialogHeader>
-                    
+
                     <div className="p-6 bg-white">
                         <Form {...(form as any)}>
                             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">

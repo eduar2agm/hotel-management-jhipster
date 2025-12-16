@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Search, User, CheckCircle2, Send, ChevronRight, MessageCircle, ShieldCheck } from 'lucide-react';
+import { Plus, Search, User, CheckCircle2, Send, ChevronRight, MessageCircle, ShieldCheck, ChevronLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { Navbar } from '../../components/ui/Navbar';
 import { Footer } from '../../components/ui/Footer';
@@ -28,16 +28,20 @@ export const AdminMensajesSoporte = () => {
     const [mensajes, setMensajes] = useState<MensajeSoporteDTO[]>([]);
     const [clientes, setClientes] = useState<ClienteDTO[]>([]);
     const [loading, setLoading] = useState(false);
-    
+
     // Dialog states
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
     const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
 
     const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
-    
+
     const chatEndRef = useRef<HTMLDivElement>(null);
     const [replyText, setReplyText] = useState('');
+
+    // Pagination for Conversations
+    const [currentPage, setCurrentPage] = useState(0);
+    const itemsPerPage = 10;
 
     const loadData = async () => {
         setLoading(true);
@@ -70,11 +74,11 @@ export const AdminMensajesSoporte = () => {
             // If I sent it, other party is 'destinatarioId'
             // If I received it, other party is 'userId' (the sender)
             // Ideally we group by the CLIENT'S ID.
-            
+
             // NOTE: Assuming Admin 'userId' is distinct from Clients.
             // If msg.remitente === 'CLIENTE', then userId is the client.
             // If msg.remitente === 'ADMINISTRATIVO', then destinatarioId is the client.
-            
+
             let otherId = '';
             let otherName = '';
 
@@ -92,14 +96,14 @@ export const AdminMensajesSoporte = () => {
                     otherPartyId: otherId,
                     otherPartyName: otherName,
                     messages: [],
-                    lastMessage: msg, 
+                    lastMessage: msg,
                     unreadCount: 0
                 });
             }
 
             const group = groups.get(otherId)!;
             group.messages.push(msg);
-            
+
             // Count unread messages FROM the client
             if (!msg.leido && msg.remitente === Remitente.CLIENTE) {
                 group.unreadCount++;
@@ -118,7 +122,7 @@ export const AdminMensajesSoporte = () => {
 
     // 2. Filter for display list
     const filteredConversations = useMemo(() => {
-        return allConversations.filter(c => 
+        return allConversations.filter(c =>
             c.otherPartyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
             c.lastMessage.mensaje?.toLowerCase().includes(searchTerm.toLowerCase())
         );
@@ -129,13 +133,21 @@ export const AdminMensajesSoporte = () => {
         return allConversations.find(c => c.otherPartyId === selectedConversationId) || null;
     }, [allConversations, selectedConversationId]);
 
+    // 4. Paginated Conversations for Display
+    const paginatedConversations = useMemo(() => {
+        const start = currentPage * itemsPerPage;
+        return filteredConversations.slice(start, start + itemsPerPage);
+    }, [filteredConversations, currentPage]);
+
+    const totalPages = Math.ceil(filteredConversations.length / itemsPerPage);
+
 
     // Scroll to bottom of chat
     useEffect(() => {
         if (isViewDialogOpen && chatEndRef.current) {
             chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
         }
-    }, [isViewDialogOpen, currentConversation]); 
+    }, [isViewDialogOpen, currentConversation]);
 
     const handleCreate = () => {
         setIsCreateDialogOpen(true);
@@ -153,9 +165,9 @@ export const AdminMensajesSoporte = () => {
             try {
                 const updatedIds = unreadMsgs.map(m => m.id);
                 setMensajes(prev => prev.map(m => updatedIds.includes(m.id) ? { ...m, leido: true } : m));
-                
-                await Promise.all(unreadMsgs.map(m => 
-                     m.id ? MensajeSoporteService.partialUpdateMensaje(m.id, { id: m.id, leido: true }) : Promise.resolve()
+
+                await Promise.all(unreadMsgs.map(m =>
+                    m.id ? MensajeSoporteService.partialUpdateMensaje(m.id, { id: m.id, leido: true }) : Promise.resolve()
                 ));
             } catch (error) {
                 console.error("Error marking messages as read", error);
@@ -175,7 +187,7 @@ export const AdminMensajesSoporte = () => {
                 leido: false,
                 activo: true,
                 mensaje: replyText,
-                reserva: currentConversation.messages.find(m => m.reserva)?.reserva, 
+                reserva: currentConversation.messages.find(m => m.reserva)?.reserva,
                 destinatarioId: currentConversation.otherPartyId,
                 destinatarioName: currentConversation.otherPartyName
             };
@@ -185,15 +197,15 @@ export const AdminMensajesSoporte = () => {
 
             setMensajes(prev => [...prev, newMsg]);
             setReplyText('');
-            
+
         } catch (error) {
             toast.error('Error al enviar respuesta');
         }
     };
 
     // New Message State
-    const [newMsgState, setNewMsgState] = useState<{destinatarioId?: string, destinatarioName?: string, mensaje?: string}>({});
-    
+    const [newMsgState, setNewMsgState] = useState<{ destinatarioId?: string, destinatarioName?: string, mensaje?: string }>({});
+
     const sendNewMessage = async () => {
         if (!newMsgState.destinatarioId || !newMsgState.mensaje) {
             toast.error("Complete los campos");
@@ -201,20 +213,20 @@ export const AdminMensajesSoporte = () => {
         }
         try {
             const payload = {
-                 userId: user?.id || 'admin',
-                 userName: user?.username || 'Administrador',
-                 fechaMensaje: new Date().toISOString(),
-                 remitente: Remitente.ADMINISTRATIVO,
-                 leido: false,
-                 activo: true,
-                 mensaje: newMsgState.mensaje,
-                 destinatarioId: newMsgState.destinatarioId,
-                 destinatarioName: newMsgState.destinatarioName
+                userId: user?.id || 'admin',
+                userName: user?.username || 'Administrador',
+                fechaMensaje: new Date().toISOString(),
+                remitente: Remitente.ADMINISTRATIVO,
+                leido: false,
+                activo: true,
+                mensaje: newMsgState.mensaje,
+                destinatarioId: newMsgState.destinatarioId,
+                destinatarioName: newMsgState.destinatarioName
             };
             const resp = await MensajeSoporteService.createMensaje(payload as any);
-            
+
             setMensajes(prev => [...prev, resp.data]);
-            
+
             setIsCreateDialogOpen(false);
             setNewMsgState({});
             toast.success("Mensaje enviado");
@@ -224,7 +236,7 @@ export const AdminMensajesSoporte = () => {
                 setIsViewDialogOpen(true);
             }
 
-        } catch(e) {
+        } catch (e) {
             toast.error("Error al enviar");
         }
     }
@@ -236,11 +248,11 @@ export const AdminMensajesSoporte = () => {
 
             {/* --- HERO SECTION --- */}
             <div className="relative bg-[#0F172A] pt-32 pb-20 px-4 md:px-8 lg:px-20 overflow-hidden shadow-xl">
-                 <div className="absolute top-0 right-0 p-12 opacity-5 scale-150 pointer-events-none">
-                     <ShieldCheck className="w-96 h-96 text-white" />
-                 </div>
-                 
-                 <div className="relative max-w-7xl mx-auto z-10 flex flex-col md:flex-row justify-between items-end md:items-center gap-6">
+                <div className="absolute top-0 right-0 p-12 opacity-5 scale-150 pointer-events-none">
+                    <ShieldCheck className="w-96 h-96 text-white" />
+                </div>
+
+                <div className="relative max-w-7xl mx-auto z-10 flex flex-col md:flex-row justify-between items-end md:items-center gap-6">
                     <div>
                         <span className="text-yellow-500 font-bold tracking-[0.2em] uppercase text-xs mb-3 block animate-in fade-in slide-in-from-bottom-2 duration-500">
                             Administración
@@ -252,13 +264,13 @@ export const AdminMensajesSoporte = () => {
                             Gestione todas las consultas y solicitudes de soporte de los clientes.
                         </p>
                     </div>
-                 </div>
+                </div>
             </div>
 
             <main className="flex-grow py-12 px-4 md:px-8 lg:px-20 relative z-10">
                 <div className="max-w-7xl mx-auto -mt-16">
                     <div className="bg-white rounded-sm shadow-xl p-6 md:p-10 overflow-hidden border border-gray-100 min-h-[600px]">
-                        
+
                         {/* HEADER TOOLBAR */}
                         <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-8">
                             <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
@@ -274,7 +286,7 @@ export const AdminMensajesSoporte = () => {
                                         onChange={(e) => setSearchTerm(e.target.value)}
                                     />
                                 </div>
-                                <Button 
+                                <Button
                                     onClick={handleCreate}
                                     className="bg-yellow-600 hover:bg-yellow-700 text-white shadow-md rounded-md"
                                 >
@@ -299,21 +311,21 @@ export const AdminMensajesSoporte = () => {
                                         <TableRow>
                                             <TableCell colSpan={4} className="text-center py-20 text-gray-500">
                                                 <div className="flex justify-center items-center gap-2">
-                                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-600"></div> 
+                                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-600"></div>
                                                     Cargando soporte...
                                                 </div>
                                             </TableCell>
                                         </TableRow>
-                                    ) : filteredConversations.length === 0 ? (
+                                    ) : paginatedConversations.length === 0 ? (
                                         <TableRow>
                                             <TableCell colSpan={4} className="text-center py-20 text-gray-400 font-light text-lg">
                                                 No hay mensajes de soporte.
                                             </TableCell>
                                         </TableRow>
                                     ) : (
-                                        filteredConversations.map((conv) => (
-                                            <TableRow 
-                                                key={conv.otherPartyId} 
+                                        paginatedConversations.map((conv) => (
+                                            <TableRow
+                                                key={conv.otherPartyId}
                                                 onClick={() => handleSelectConversation(conv)}
                                                 className={`cursor-pointer transition-all border-b border-gray-50 group
                                                     ${conv.unreadCount > 0 ? 'bg-blue-50/40 hover:bg-blue-50' : 'hover:bg-slate-50'}
@@ -336,7 +348,7 @@ export const AdminMensajesSoporte = () => {
                                                                 {conv.otherPartyName}
                                                             </span>
                                                             <div className="flex items-center gap-1 text-xs text-slate-400">
-                                                                <User className="h-3 w-3" /> ID: {conv.otherPartyId.substring(0,8)}...
+                                                                <User className="h-3 w-3" /> ID: {conv.otherPartyId.substring(0, 8)}...
                                                             </div>
                                                         </div>
                                                     </div>
@@ -352,11 +364,11 @@ export const AdminMensajesSoporte = () => {
                                                     </div>
                                                 </TableCell>
                                                 <TableCell className="hidden md:table-cell w-[180px]">
-                                                     <span className={`text-xs ${conv.unreadCount > 0 ? 'font-bold text-blue-700' : 'text-gray-500'}`}>
+                                                    <span className={`text-xs ${conv.unreadCount > 0 ? 'font-bold text-blue-700' : 'text-gray-500'}`}>
                                                         {new Date(conv.lastMessage.fechaMensaje!).toLocaleDateString()}
                                                     </span>
                                                     <div className="text-[10px] text-gray-400">
-                                                         {new Date(conv.lastMessage.fechaMensaje!).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                                        {new Date(conv.lastMessage.fechaMensaje!).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                                     </div>
                                                 </TableCell>
                                                 <TableCell className="text-right pr-6 w-[50px]">
@@ -368,13 +380,42 @@ export const AdminMensajesSoporte = () => {
                                 </TableBody>
                             </Table>
                         </div>
+
+                        {/* Pagination Footer */}
+                        {filteredConversations.length > 0 && (
+                            <div className="flex items-center justify-end gap-4 mt-6">
+                                <span className="text-sm text-gray-500">
+                                    Página {currentPage + 1} de {Math.max(1, totalPages)}
+                                </span>
+                                <div className="flex gap-2">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
+                                        disabled={currentPage === 0}
+                                        className="bg-white border-gray-200"
+                                    >
+                                        <ChevronLeft className="h-4 w-4" /> Anterior
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setCurrentPage(p => Math.min(totalPages - 1, p + 1))}
+                                        disabled={currentPage >= totalPages - 1}
+                                        className="bg-white border-gray-200"
+                                    >
+                                        Siguiente <ChevronRight className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
 
                 {/* --- CHAT DIALOG --- */}
                 <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
                     <DialogContent className="sm:max-w-[700px] p-0 overflow-hidden flex flex-col h-[600px] gap-0">
-                        
+
                         {/* Header */}
                         <DialogHeader className="p-4 bg-white border-b border-gray-100 flex-shrink-0 z-10 shadow-sm flex-row items-center justify-between space-y-0">
                             <div className="flex items-center gap-3">
@@ -395,30 +436,29 @@ export const AdminMensajesSoporte = () => {
                         {/* Chat Messages */}
                         <div className="flex-1 overflow-y-auto p-6 bg-slate-50 space-y-4">
                             {currentConversation?.messages.map((msg, idx) => {
-                                    const isAdmin = msg.remitente === Remitente.ADMINISTRATIVO;
-                                    return (
-                                        <div key={idx} className={`flex ${isAdmin ? 'justify-end' : 'justify-start'} animate-in slide-in-from-bottom-2`}>
-                                            <div className={`max-w-[80%] rounded-2xl p-3 px-4 text-sm shadow-sm ${
-                                                isAdmin
-                                                    ? 'bg-blue-600 text-white rounded-tr-none' 
-                                                    : 'bg-white text-slate-800 border border-gray-100 rounded-tl-none'
+                                const isAdmin = msg.remitente === Remitente.ADMINISTRATIVO;
+                                return (
+                                    <div key={idx} className={`flex ${isAdmin ? 'justify-end' : 'justify-start'} animate-in slide-in-from-bottom-2`}>
+                                        <div className={`max-w-[80%] rounded-2xl p-3 px-4 text-sm shadow-sm ${isAdmin
+                                            ? 'bg-blue-600 text-white rounded-tr-none'
+                                            : 'bg-white text-slate-800 border border-gray-100 rounded-tl-none'
                                             }`}>
-                                                <p className="whitespace-pre-wrap leading-relaxed">{msg.mensaje}</p>
-                                                <div className={`flex items-center gap-1 mt-1 text-[10px] ${isAdmin ? 'text-blue-200 justify-end' : 'text-gray-400'}`}>
-                                                    {new Date(msg.fechaMensaje).toLocaleDateString()} {new Date(msg.fechaMensaje).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
-                                                    {isAdmin && msg.leido && <CheckCircle2 className="h-3 w-3 ml-1" />}
-                                                </div>
+                                            <p className="whitespace-pre-wrap leading-relaxed">{msg.mensaje}</p>
+                                            <div className={`flex items-center gap-1 mt-1 text-[10px] ${isAdmin ? 'text-blue-200 justify-end' : 'text-gray-400'}`}>
+                                                {new Date(msg.fechaMensaje).toLocaleDateString()} {new Date(msg.fechaMensaje).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                {isAdmin && msg.leido && <CheckCircle2 className="h-3 w-3 ml-1" />}
                                             </div>
                                         </div>
-                                    );
-                                })
+                                    </div>
+                                );
+                            })
                             }
                             <div ref={chatEndRef} />
                         </div>
 
-                         {/* Reply Area */}
+                        {/* Reply Area */}
                         <div className="p-4 bg-white border-t border-gray-100 flex-shrink-0">
-                            <form 
+                            <form
                                 onSubmit={(e) => {
                                     e.preventDefault();
                                     handleSendReply();
@@ -426,12 +466,12 @@ export const AdminMensajesSoporte = () => {
                                 className="flex gap-3 items-end"
                             >
                                 <Textarea
-                                    value={replyText} 
+                                    value={replyText}
                                     onChange={(e) => setReplyText(e.target.value)}
                                     className="min-h-[50px] max-h-[120px] bg-gray-50 border-gray-200 resize-none focus:bg-white transition-all"
                                     placeholder="Escribe una respuesta como Administrador..."
                                     onKeyDown={(e) => {
-                                        if(e.key === 'Enter' && !e.shiftKey) {
+                                        if (e.key === 'Enter' && !e.shiftKey) {
                                             e.preventDefault();
                                             handleSendReply();
                                         }
@@ -453,12 +493,12 @@ export const AdminMensajesSoporte = () => {
                         </DialogHeader>
                         <div className="space-y-4 pt-4">
                             <div className="grid gap-2">
-                                 <Label>Seleccionar Cliente</Label>
-                                 <Select
+                                <Label>Seleccionar Cliente</Label>
+                                <Select
                                     value={newMsgState.destinatarioId || undefined}
                                     onValueChange={(val) => {
                                         const c = clientes.find(cl => cl.keycloakId === val);
-                                        setNewMsgState(prev => ({ ...prev, destinatarioId: val, destinatarioName: c ? `${c.nombre} ${c.apellido}` : undefined}));
+                                        setNewMsgState(prev => ({ ...prev, destinatarioId: val, destinatarioName: c ? `${c.nombre} ${c.apellido}` : undefined }));
                                     }}
                                 >
                                     <SelectTrigger><SelectValue placeholder="Buscar cliente..." /></SelectTrigger>
@@ -472,17 +512,17 @@ export const AdminMensajesSoporte = () => {
                                 </Select>
                             </div>
                             <div className="grid gap-2">
-                                 <Label>Mensaje</Label>
-                                 <Textarea 
-                                     value={newMsgState.mensaje || ''} 
-                                     onChange={e => setNewMsgState({...newMsgState, mensaje: e.target.value})}
-                                     rows={4}
-                                     placeholder="Escribe tu mensaje..."
-                                 />
+                                <Label>Mensaje</Label>
+                                <Textarea
+                                    value={newMsgState.mensaje || ''}
+                                    onChange={e => setNewMsgState({ ...newMsgState, mensaje: e.target.value })}
+                                    rows={4}
+                                    placeholder="Escribe tu mensaje..."
+                                />
                             </div>
                             <DialogFooter>
-                                 <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>Cancelar</Button>
-                                 <Button onClick={sendNewMessage}>Enviar</Button>
+                                <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>Cancelar</Button>
+                                <Button onClick={sendNewMessage}>Enviar</Button>
                             </DialogFooter>
                         </div>
                     </DialogContent>
