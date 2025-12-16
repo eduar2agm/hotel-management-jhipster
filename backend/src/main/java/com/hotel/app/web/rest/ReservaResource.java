@@ -241,7 +241,7 @@ public class ReservaResource {
      * @param id the id of the reservaDTO to delete.
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
      */
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteReserva(@PathVariable("id") Long id) {
         LOG.debug("REST request to delete Reserva : {}", id);
@@ -249,5 +249,33 @@ public class ReservaResource {
         return ResponseEntity.noContent()
                 .headers(HeaderUtil.createEntityDeletionAlert(applicationName, false, ENTITY_NAME, id.toString()))
                 .build();
+    }
+
+    /**
+     * {@code PUT  /reservas/:id/activate} : activate the "id" reserva.
+     *
+     * @param id the id of the reservaDTO to activate.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)}.
+     */
+    @PutMapping("/{id}/activate")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
+    public ResponseEntity<Void> activateReserva(@PathVariable Long id) {
+        LOG.debug("REST request to activate Reserva : {}", id);
+        reservaService.activate(id);
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * {@code PUT  /reservas/:id/deactivate} : deactivate the "id" reserva.
+     *
+     * @param id the id of the reservaDTO to deactivate.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)}.
+     */
+    @PutMapping("/{id}/deactivate")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
+    public ResponseEntity<Void> deactivateReserva(@PathVariable Long id) {
+        LOG.debug("REST request to deactivate Reserva : {}", id);
+        reservaService.deactivate(id);
+        return ResponseEntity.ok().build();
     }
 }
