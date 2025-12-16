@@ -171,7 +171,6 @@ public class HabitacionResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list
      *         of habitacions in body.
      */
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_EMPLOYEE', 'ROLE_CLIENT')")
     @GetMapping("")
     public ResponseEntity<List<HabitacionDTO>> getAllHabitacions(
             @org.springdoc.core.annotations.ParameterObject Pageable pageable,
@@ -213,7 +212,6 @@ public class HabitacionResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body
      *         the habitacionDTO, or with status {@code 404 (Not Found)}.
      */
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_EMPLOYEE', 'ROLE_CLIENT')")
     @GetMapping("/{id}")
     public ResponseEntity<HabitacionDTO> getHabitacion(@PathVariable("id") Long id) {
         LOG.debug("REST request to get Habitacion : {}", id);
