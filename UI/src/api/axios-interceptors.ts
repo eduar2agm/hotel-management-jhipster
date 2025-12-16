@@ -7,10 +7,22 @@ apiClient.interceptors.request.use(
     (config) => {
         // Only attach if not already present
         if (!config.headers['Authorization']) {
-            // Find the OIDC User in sessionStorage (oidc-client-ts default storage)
-            const oidcKey = Object.keys(sessionStorage).find(key => key.startsWith('oidc.user:'));
+            // Find the OIDC User in localStorage (default configured in oidc-config.ts)
+            // or sessionStorage as fallback
+
+            // Check localStorage first
+            let oidcKey = Object.keys(localStorage).find(key => key.startsWith('oidc.user:'));
+            let storageToUse = localStorage;
+
+            // Followed by sessionStorage
+            if (!oidcKey) {
+                oidcKey = Object.keys(sessionStorage).find(key => key.startsWith('oidc.user:'));
+                storageToUse = sessionStorage;
+            }
+
             if (oidcKey) {
-                const userString = sessionStorage.getItem(oidcKey);
+                const userString = storageToUse.getItem(oidcKey);
+
                 if (userString) {
                     try {
                         const user = User.fromStorageString(userString);
@@ -36,7 +48,10 @@ apiClient.interceptors.response.use(
 
         // 401 Unauthorized - Token expirado o inválido
         if (response?.status === 401) {
-            if (!config._retry && config.url !== '/api/refresh') {
+            // Avoid redirecting loop if we are on the public home page
+            const isHomePage = window.location.pathname === '/' || window.location.pathname === '/HomePage';
+
+            if (!config._retry && config.url !== '/api/refresh' && !isHomePage) {
                 config._retry = true;
                 // La librería react-oidc-context generalmente maneja la renovación automática.
                 // Si llegamos aquí, es probable que el refresh token también haya fallado.
