@@ -106,4 +106,11 @@ public class CategoriaHabitacionServiceImpl implements CategoriaHabitacionServic
                     categoriaHabitacionRepository.save(categoriaHabitacion);
                 });
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<CategoriaHabitacionDTO> findByActivo(Boolean activo, Pageable pageable) {
+        LOG.debug("Request to get CategoriaHabitacions by activo : {}", activo);
+        return categoriaHabitacionRepository.findByActivo(activo, pageable).map(categoriaHabitacionMapper::toDto);
+    }
 }
