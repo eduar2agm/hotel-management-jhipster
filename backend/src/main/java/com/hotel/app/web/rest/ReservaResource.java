@@ -112,6 +112,13 @@ public class ReservaResource {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
 
+        // Check if the entity is active
+        reservaRepository.findById(id).ifPresent(existing -> {
+            if (Boolean.FALSE.equals(existing.getActivo())) {
+                throw new BadRequestAlertException("Cannot update inactive entity", ENTITY_NAME, "inactive");
+            }
+        });
+
         reservaDTO = reservaService.update(reservaDTO);
         return ResponseEntity.ok()
                 .headers(HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME,
@@ -151,6 +158,13 @@ public class ReservaResource {
         if (!reservaRepository.existsById(id)) {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
+
+        // Check if the entity is active
+        reservaRepository.findById(id).ifPresent(existing -> {
+            if (Boolean.FALSE.equals(existing.getActivo())) {
+                throw new BadRequestAlertException("Cannot update inactive entity", ENTITY_NAME, "inactive");
+            }
+        });
 
         Optional<ReservaDTO> result = reservaService.partialUpdate(reservaDTO);
 
@@ -236,6 +250,24 @@ public class ReservaResource {
         LOG.debug("REST request to get Reserva : {}", id);
         Optional<ReservaDTO> reservaDTO = reservaService.findOne(id);
         return ResponseUtil.wrapOrNotFound(reservaDTO);
+    }
+
+    /**
+     * {@code GET  /reservas/inactive} : get all the inactive reservas.
+     *
+     * @param pageable the pagination information.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list
+     *         of reservas in body.
+     */
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_EMPLOYEE')")
+    @GetMapping("/inactive")
+    public ResponseEntity<List<ReservaDTO>> getInactiveReservas(
+            @org.springdoc.core.annotations.ParameterObject Pageable pageable) {
+        LOG.debug("REST request to get a page of inactive Reservas");
+        Page<ReservaDTO> page = reservaService.findByActivo(false, pageable);
+        HttpHeaders headers = PaginationUtil
+                .generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
+        return ResponseEntity.ok().headers(headers).body(page.getContent());
     }
 
     /**
