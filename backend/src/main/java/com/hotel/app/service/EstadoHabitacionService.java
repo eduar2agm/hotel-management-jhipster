@@ -55,4 +55,18 @@ public interface EstadoHabitacionService {
      * @param id the id of the entity.
      */
     void delete(Long id);
+
+    /**
+     * Activate the "id" estadoHabitacion.
+     *
+     * @param id the id of the entity.
+     */
+    void activate(Long id);
+
+    /**
+     * Deactivate the "id" estadoHabitacion.
+     *
+     * @param id the id of the entity.
+     */
+    void deactivate(Long id);
 }
