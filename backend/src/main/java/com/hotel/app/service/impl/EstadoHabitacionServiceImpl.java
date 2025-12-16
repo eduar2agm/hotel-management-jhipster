@@ -85,4 +85,11 @@ public class EstadoHabitacionServiceImpl implements EstadoHabitacionService {
         estadoHabitacionRepository.deleteById(id);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public Page<EstadoHabitacionDTO> findByActivo(Boolean activo, Pageable pageable) {
+        LOG.debug("Request to get EstadoHabitacions by activo : {}", activo);
+        return estadoHabitacionRepository.findByActivo(activo, pageable).map(estadoHabitacionMapper::toDto);
+    }
+
 }
