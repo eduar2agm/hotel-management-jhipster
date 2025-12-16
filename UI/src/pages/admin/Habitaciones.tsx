@@ -19,7 +19,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Plus, Search, ChevronsUpDown, Check, Hotel, Image as ImageIcon, Pencil } from 'lucide-react';
+import { Plus, Search, ChevronsUpDown, Check, Hotel, Image as ImageIcon, Pencil, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { Textarea } from '@/components/ui/textarea';
@@ -46,6 +46,9 @@ export const AdminHabitaciones = () => {
     const [categorias, setCategorias] = useState<CategoriaHabitacionDTO[]>([]);
     const [estados, setEstados] = useState<EstadoHabitacionDTO[]>([]);
     const [loading, setLoading] = useState(false);
+    const [currentPage, setCurrentPage] = useState(0);
+    const [totalItems, setTotalItems] = useState(0);
+    const itemsPerPage = 10;
 
     // Dialog & Form State
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -70,11 +73,18 @@ export const AdminHabitaciones = () => {
         setLoading(true);
         try {
             const [habsRes, catsRes, estRes] = await Promise.all([
-                HabitacionService.getHabitacions({ page: 0, size: 50, sort: 'id,asc' }),
+                HabitacionService.getHabitacions({ 
+                    page: currentPage, 
+                    size: itemsPerPage, 
+                    sort: 'id,asc' 
+                }),
                 CategoriaHabitacionService.getCategorias({ size: 100 }),
                 EstadoHabitacionService.getEstados({ size: 100 })
             ]);
             setHabitaciones(habsRes.data);
+            const total = parseInt(habsRes.headers['x-total-count'] || '0', 10);
+            setTotalItems(total);
+
             setCategorias(catsRes.data);
             setEstados(estRes.data);
         } catch (error) {
@@ -84,7 +94,7 @@ export const AdminHabitaciones = () => {
         }
     };
 
-    useEffect(() => { loadData(); }, []);
+    useEffect(() => { loadData(); }, [currentPage]);
 
     // Reset form when dialog opens/closes or mode changes
     useEffect(() => {
@@ -239,6 +249,31 @@ export const AdminHabitaciones = () => {
                                     />
                                 ))
                             )}
+                        </div>
+
+                        {/* PAGINATION */}
+                        <div className="mt-8 flex items-center justify-end gap-4 border-t pt-4">
+                            <span className="text-sm text-gray-500">
+                                Página {currentPage + 1} de {Math.max(1, Math.ceil(totalItems / itemsPerPage))}
+                            </span>
+                            <div className="flex gap-2">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
+                                    disabled={currentPage === 0 || loading}
+                                >
+                                    <ChevronLeft className="h-4 w-4" /> Anterior
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setCurrentPage(p => p + 1)}
+                                    disabled={(currentPage + 1) * itemsPerPage >= totalItems || loading}
+                                >
+                                    Siguiente <ChevronRight className="h-4 w-4" />
+                                </Button>
+                            </div>
                         </div>
                     </CardContent>
                 </Card>
