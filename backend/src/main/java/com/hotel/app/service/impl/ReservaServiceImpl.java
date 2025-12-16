@@ -5,6 +5,9 @@ import com.hotel.app.repository.ReservaRepository;
 import com.hotel.app.service.ReservaService;
 import com.hotel.app.service.dto.ReservaDTO;
 import com.hotel.app.service.mapper.ReservaMapper;
+import com.hotel.app.domain.ReservaDetalle;
+import com.hotel.app.repository.ReservaDetalleRepository;
+import java.util.List;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,9 +29,13 @@ public class ReservaServiceImpl implements ReservaService {
 
     private final ReservaMapper reservaMapper;
 
-    public ReservaServiceImpl(ReservaRepository reservaRepository, ReservaMapper reservaMapper) {
+    private final ReservaDetalleRepository reservaDetalleRepository;
+
+    public ReservaServiceImpl(ReservaRepository reservaRepository, ReservaMapper reservaMapper,
+            ReservaDetalleRepository reservaDetalleRepository) {
         this.reservaRepository = reservaRepository;
         this.reservaMapper = reservaMapper;
+        this.reservaDetalleRepository = reservaDetalleRepository;
     }
 
     @Override
@@ -81,9 +88,18 @@ public class ReservaServiceImpl implements ReservaService {
     }
 
     @Override
+    @Transactional
     public void delete(Long id) {
-        LOG.debug("Request to delete Reserva : {}", id);
+        LOG.debug("Request to delete Reserva with all associated details: {}", id);
+
+        List<ReservaDetalle> detalles = reservaDetalleRepository.findAllByReservaId(id);
+        if (!detalles.isEmpty()) {
+            reservaDetalleRepository.deleteAll(detalles);
+            LOG.info("Deleted {} details for Reserva ID: {}", detalles.size(), id);
+        }
+
         reservaRepository.deleteById(id);
+        LOG.info("Reserva ID: {} deleted successfully with cascade", id);
     }
 
     @Override
@@ -91,5 +107,51 @@ public class ReservaServiceImpl implements ReservaService {
     public Page<ReservaDTO> findAllByClienteId(Long clienteId, Pageable pageable) {
         LOG.debug("Request to get Reservas by Client ID : {}", clienteId);
         return reservaRepository.findByClienteId(clienteId, pageable).map(reservaMapper::toDto);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ReservaDTO> findByActivo(Boolean activo, Pageable pageable) {
+        LOG.debug("Request to get Reservas by activo : {}", activo);
+        return reservaRepository.findByActivo(activo, pageable).map(reservaMapper::toDto);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ReservaDTO> findByActivoWithEagerRelationships(Boolean activo, Pageable pageable) {
+        LOG.debug("Request to get Reservas by activo with eager relationships: {}", activo);
+        return reservaRepository.findByActivoWithEagerRelationships(activo, pageable).map(reservaMapper::toDto);
+    }
+
+    @Override
+    public void activate(Long id) {
+        LOG.debug("Request to activate Reserva : {}", id);
+        reservaRepository
+                .findById(id)
+                .ifPresent(reserva -> {
+                    reserva.setActivo(true);
+                    reservaRepository.save(reserva);
+
+                    // Cascade to details
+                    List<ReservaDetalle> details = reservaDetalleRepository.findAllByReservaId(id);
+                    details.forEach(detail -> detail.setActivo(true));
+                    reservaDetalleRepository.saveAll(details);
+                });
+    }
+
+    @Override
+    public void deactivate(Long id) {
+        LOG.debug("Request to deactivate Reserva : {}", id);
+        reservaRepository
+                .findById(id)
+                .ifPresent(reserva -> {
+                    reserva.setActivo(false);
+                    reservaRepository.save(reserva);
+
+                    // Cascade to details
+                    List<ReservaDetalle> details = reservaDetalleRepository.findAllByReservaId(id);
+                    details.forEach(detail -> detail.setActivo(false));
+                    reservaDetalleRepository.saveAll(details);
+                });
     }
 }

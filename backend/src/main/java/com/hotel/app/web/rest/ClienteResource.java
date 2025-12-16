@@ -121,6 +121,13 @@ public class ClienteResource {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
 
+        // Check if the entity is active
+        clienteRepository.findById(id).ifPresent(existing -> {
+            if (Boolean.FALSE.equals(existing.getActivo())) {
+                throw new BadRequestAlertException("Cannot update inactive entity", ENTITY_NAME, "inactive");
+            }
+        });
+
         clienteDTO = clienteService.update(clienteDTO);
         return ResponseEntity.ok()
                 .headers(HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME,
@@ -161,6 +168,13 @@ public class ClienteResource {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
 
+        // Check if the entity is active
+        clienteRepository.findById(id).ifPresent(existing -> {
+            if (Boolean.FALSE.equals(existing.getActivo())) {
+                throw new BadRequestAlertException("Cannot update inactive entity", ENTITY_NAME, "inactive");
+            }
+        });
+
         Optional<ClienteDTO> result = clienteService.partialUpdate(clienteDTO);
 
         return ResponseUtil.wrapOrNotFound(
@@ -178,9 +192,16 @@ public class ClienteResource {
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_EMPLOYEE', 'ROLE_CLIENT')")
     @GetMapping("")
     public ResponseEntity<List<ClienteDTO>> getAllClientes(
-            @org.springdoc.core.annotations.ParameterObject Pageable pageable) {
+            @org.springdoc.core.annotations.ParameterObject Pageable pageable,
+            @RequestParam(name = "activo", required = false) Boolean activo) {
         LOG.debug("REST request to get a page of Clientes");
-        Page<ClienteDTO> page = clienteService.findAll(pageable);
+        Page<ClienteDTO> page;
+        if (activo != null) {
+            page = clienteService.findByActivo(activo, pageable);
+        } else {
+            page = clienteService.findByActivo(true, pageable);
+            ;
+        }
         HttpHeaders headers = PaginationUtil
                 .generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
         return ResponseEntity.ok().headers(headers).body(page.getContent());
@@ -198,7 +219,31 @@ public class ClienteResource {
     public ResponseEntity<ClienteDTO> getCliente(@PathVariable("id") Long id) {
         LOG.debug("REST request to get Cliente : {}", id);
         Optional<ClienteDTO> clienteDTO = clienteService.findOne(id);
+
+        // Ensure that if the client is found, it must be active
+        if (clienteDTO.isPresent() && Boolean.FALSE.equals(clienteDTO.get().getActivo())) {
+            throw new BadRequestAlertException("The client is inactive", ENTITY_NAME, "inactive");
+        }
+
         return ResponseUtil.wrapOrNotFound(clienteDTO);
+    }
+
+    /**
+     * {@code GET  /clientes/inactive} : get all the inactive clientes.
+     *
+     * @param pageable the pagination information.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list
+     *         of clientes in body.
+     */
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_EMPLOYEE')")
+    @GetMapping("/inactive")
+    public ResponseEntity<List<ClienteDTO>> getInactiveClientes(
+            @org.springdoc.core.annotations.ParameterObject Pageable pageable) {
+        LOG.debug("REST request to get a page of inactive Clientes");
+        Page<ClienteDTO> page = clienteService.findByActivo(false, pageable);
+        HttpHeaders headers = PaginationUtil
+                .generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
+        return ResponseEntity.ok().headers(headers).body(page.getContent());
     }
 
     /**
@@ -215,5 +260,33 @@ public class ClienteResource {
         return ResponseEntity.noContent()
                 .headers(HeaderUtil.createEntityDeletionAlert(applicationName, false, ENTITY_NAME, id.toString()))
                 .build();
+    }
+
+    /**
+     * {@code PUT  /clientes/:id/activate} : activate the "id" cliente.
+     *
+     * @param id the id of the clienteDTO to activate.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)}.
+     */
+    @PutMapping("/{id}/activate")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    public ResponseEntity<Void> activateCliente(@PathVariable Long id) {
+        LOG.debug("REST request to activate Cliente : {}", id);
+        clienteService.activate(id);
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * {@code PUT  /clientes/:id/deactivate} : deactivate the "id" cliente.
+     *
+     * @param id the id of the clienteDTO to deactivate.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)}.
+     */
+    @PutMapping("/{id}/deactivate")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    public ResponseEntity<Void> deactivateCliente(@PathVariable Long id) {
+        LOG.debug("REST request to deactivate Cliente : {}", id);
+        clienteService.deactivate(id);
+        return ResponseEntity.ok().build();
     }
 }

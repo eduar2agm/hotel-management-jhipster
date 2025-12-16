@@ -106,6 +106,13 @@ public class MensajeSoporteResource {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
 
+        // Check if the entity is active
+        mensajeSoporteRepository.findById(id).ifPresent(existing -> {
+            if (Boolean.FALSE.equals(existing.getActivo())) {
+                throw new BadRequestAlertException("Cannot update inactive entity", ENTITY_NAME, "inactive");
+            }
+        });
+
         mensajeSoporteDTO = mensajeSoporteService.update(mensajeSoporteDTO);
         return ResponseEntity.ok()
                 .headers(HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME,
@@ -146,6 +153,13 @@ public class MensajeSoporteResource {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
 
+        // Check if the entity is active
+        mensajeSoporteRepository.findById(id).ifPresent(existing -> {
+            if (Boolean.FALSE.equals(existing.getActivo())) {
+                throw new BadRequestAlertException("Cannot update inactive entity", ENTITY_NAME, "inactive");
+            }
+        });
+
         Optional<MensajeSoporteDTO> result = mensajeSoporteService.partialUpdate(mensajeSoporteDTO);
 
         return ResponseUtil.wrapOrNotFound(
@@ -164,9 +178,34 @@ public class MensajeSoporteResource {
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_EMPLOYEE', 'ROLE_CLIENT')")
     @GetMapping("")
     public ResponseEntity<List<MensajeSoporteDTO>> getAllMensajeSoportes(
-            @org.springdoc.core.annotations.ParameterObject Pageable pageable) {
+            @org.springdoc.core.annotations.ParameterObject Pageable pageable,
+            @RequestParam(name = "activo", required = false) Boolean activo) {
         LOG.debug("REST request to get a page of MensajeSoportes");
-        Page<MensajeSoporteDTO> page = mensajeSoporteService.findAll(pageable);
+        Page<MensajeSoporteDTO> page;
+        if (activo != null) {
+            page = mensajeSoporteService.findByActivo(activo, pageable);
+        } else {
+            page = mensajeSoporteService.findByActivo(true, pageable);
+        }
+        HttpHeaders headers = PaginationUtil
+                .generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
+        return ResponseEntity.ok().headers(headers).body(page.getContent());
+    }
+
+    /**
+     * {@code GET  /mensaje-soportes/inactive} : get all the inactive
+     * mensajeSoportes.
+     *
+     * @param pageable the pagination information.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list
+     *         of mensajeSoportes in body.
+     */
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_EMPLOYEE')")
+    @GetMapping("/inactive")
+    public ResponseEntity<List<MensajeSoporteDTO>> getInactiveMensajeSoportes(
+            @org.springdoc.core.annotations.ParameterObject Pageable pageable) {
+        LOG.debug("REST request to get a page of inactive MensajeSoportes");
+        Page<MensajeSoporteDTO> page = mensajeSoporteService.findByActivo(false, pageable);
         HttpHeaders headers = PaginationUtil
                 .generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
         return ResponseEntity.ok().headers(headers).body(page.getContent());
@@ -229,6 +268,11 @@ public class MensajeSoporteResource {
     public ResponseEntity<MensajeSoporteDTO> getMensajeSoporte(@PathVariable("id") Long id) {
         LOG.debug("REST request to get MensajeSoporte : {}", id);
         Optional<MensajeSoporteDTO> mensajeSoporteDTO = mensajeSoporteService.findOne(id);
+
+        if (mensajeSoporteDTO.isPresent() && Boolean.FALSE.equals(mensajeSoporteDTO.get().getActivo())) {
+            throw new BadRequestAlertException("The support message is inactive", ENTITY_NAME, "inactive");
+        }
+
         return ResponseUtil.wrapOrNotFound(mensajeSoporteDTO);
     }
 
@@ -246,5 +290,35 @@ public class MensajeSoporteResource {
         return ResponseEntity.noContent()
                 .headers(HeaderUtil.createEntityDeletionAlert(applicationName, false, ENTITY_NAME, id.toString()))
                 .build();
+    }
+
+    /**
+     * {@code PUT  /mensaje-soportes/:id/activate} : activate the "id"
+     * mensajeSoporte.
+     *
+     * @param id the id of the mensajeSoporteDTO to activate.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)}.
+     */
+    @PutMapping("/{id}/activate")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
+    public ResponseEntity<Void> activateMensajeSoporte(@PathVariable Long id) {
+        LOG.debug("REST request to activate MensajeSoporte : {}", id);
+        mensajeSoporteService.activate(id);
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * {@code PUT  /mensaje-soportes/:id/deactivate} : deactivate the "id"
+     * mensajeSoporte.
+     *
+     * @param id the id of the mensajeSoporteDTO to deactivate.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)}.
+     */
+    @PutMapping("/{id}/deactivate")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
+    public ResponseEntity<Void> deactivateMensajeSoporte(@PathVariable Long id) {
+        LOG.debug("REST request to deactivate MensajeSoporte : {}", id);
+        mensajeSoporteService.deactivate(id);
+        return ResponseEntity.ok().build();
     }
 }

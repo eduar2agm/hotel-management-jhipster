@@ -55,4 +55,27 @@ public interface HabitacionService {
      * @param id the id of the entity.
      */
     void delete(Long id);
+
+    /**
+     * Activate the "id" habitacion.
+     *
+     * @param id the id of the entity.
+     */
+    void activate(Long id);
+
+    /**
+     * Deactivate the "id" habitacion.
+     *
+     * @param id the id of the entity.
+     */
+    void deactivate(Long id);
+
+    /**
+     * Get all the habitacions by activo status.
+     *
+     * @param activo   the active status to filter by.
+     * @param pageable the pagination information.
+     * @return the list of entities.
+     */
+    Page<HabitacionDTO> findByActivo(Boolean activo, Pageable pageable);
 }

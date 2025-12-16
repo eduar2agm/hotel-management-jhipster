@@ -74,4 +74,27 @@ public interface MensajeSoporteService {
      * @return the list of entities.
      */
     Page<MensajeSoporteDTO> findByUserIdOnly(String userId, Pageable pageable);
+
+    /**
+     * Activate the "id" mensajeSoporte.
+     *
+     * @param id the id of the entity.
+     */
+    void activate(Long id);
+
+    /**
+     * Deactivate the "id" mensajeSoporte.
+     *
+     * @param id the id of the entity.
+     */
+    void deactivate(Long id);
+
+    /**
+     * Get all the mensajeSoportes by activo status.
+     *
+     * @param activo   the active status to filter by.
+     * @param pageable the pagination information.
+     * @return the list of entities.
+     */
+    Page<MensajeSoporteDTO> findByActivo(Boolean activo, Pageable pageable);
 }

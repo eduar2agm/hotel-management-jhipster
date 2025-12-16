@@ -14,7 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Service Implementation for managing {@link com.hotel.app.domain.CategoriaHabitacion}.
+ * Service Implementation for managing
+ * {@link com.hotel.app.domain.CategoriaHabitacion}.
  */
 @Service
 @Transactional
@@ -27,9 +28,8 @@ public class CategoriaHabitacionServiceImpl implements CategoriaHabitacionServic
     private final CategoriaHabitacionMapper categoriaHabitacionMapper;
 
     public CategoriaHabitacionServiceImpl(
-        CategoriaHabitacionRepository categoriaHabitacionRepository,
-        CategoriaHabitacionMapper categoriaHabitacionMapper
-    ) {
+            CategoriaHabitacionRepository categoriaHabitacionRepository,
+            CategoriaHabitacionMapper categoriaHabitacionMapper) {
         this.categoriaHabitacionRepository = categoriaHabitacionRepository;
         this.categoriaHabitacionMapper = categoriaHabitacionMapper;
     }
@@ -55,14 +55,14 @@ public class CategoriaHabitacionServiceImpl implements CategoriaHabitacionServic
         LOG.debug("Request to partially update CategoriaHabitacion : {}", categoriaHabitacionDTO);
 
         return categoriaHabitacionRepository
-            .findById(categoriaHabitacionDTO.getId())
-            .map(existingCategoriaHabitacion -> {
-                categoriaHabitacionMapper.partialUpdate(existingCategoriaHabitacion, categoriaHabitacionDTO);
+                .findById(categoriaHabitacionDTO.getId())
+                .map(existingCategoriaHabitacion -> {
+                    categoriaHabitacionMapper.partialUpdate(existingCategoriaHabitacion, categoriaHabitacionDTO);
 
-                return existingCategoriaHabitacion;
-            })
-            .map(categoriaHabitacionRepository::save)
-            .map(categoriaHabitacionMapper::toDto);
+                    return existingCategoriaHabitacion;
+                })
+                .map(categoriaHabitacionRepository::save)
+                .map(categoriaHabitacionMapper::toDto);
     }
 
     @Override
@@ -83,5 +83,34 @@ public class CategoriaHabitacionServiceImpl implements CategoriaHabitacionServic
     public void delete(Long id) {
         LOG.debug("Request to delete CategoriaHabitacion : {}", id);
         categoriaHabitacionRepository.deleteById(id);
+    }
+
+    @Override
+    public void activate(Long id) {
+        LOG.debug("Request to activate CategoriaHabitacion : {}", id);
+        categoriaHabitacionRepository
+                .findById(id)
+                .ifPresent(categoriaHabitacion -> {
+                    categoriaHabitacion.setActivo(true);
+                    categoriaHabitacionRepository.save(categoriaHabitacion);
+                });
+    }
+
+    @Override
+    public void deactivate(Long id) {
+        LOG.debug("Request to deactivate CategoriaHabitacion : {}", id);
+        categoriaHabitacionRepository
+                .findById(id)
+                .ifPresent(categoriaHabitacion -> {
+                    categoriaHabitacion.setActivo(false);
+                    categoriaHabitacionRepository.save(categoriaHabitacion);
+                });
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<CategoriaHabitacionDTO> findByActivo(Boolean activo, Pageable pageable) {
+        LOG.debug("Request to get CategoriaHabitacions by activo : {}", activo);
+        return categoriaHabitacionRepository.findByActivo(activo, pageable).map(categoriaHabitacionMapper::toDto);
     }
 }

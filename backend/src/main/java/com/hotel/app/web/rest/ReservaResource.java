@@ -112,6 +112,13 @@ public class ReservaResource {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
 
+        // Check if the entity is active
+        reservaRepository.findById(id).ifPresent(existing -> {
+            if (Boolean.FALSE.equals(existing.getActivo())) {
+                throw new BadRequestAlertException("Cannot update inactive entity", ENTITY_NAME, "inactive");
+            }
+        });
+
         reservaDTO = reservaService.update(reservaDTO);
         return ResponseEntity.ok()
                 .headers(HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME,
@@ -152,6 +159,13 @@ public class ReservaResource {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
 
+        // Check if the entity is active
+        reservaRepository.findById(id).ifPresent(existing -> {
+            if (Boolean.FALSE.equals(existing.getActivo())) {
+                throw new BadRequestAlertException("Cannot update inactive entity", ENTITY_NAME, "inactive");
+            }
+        });
+
         Optional<ReservaDTO> result = reservaService.partialUpdate(reservaDTO);
 
         return ResponseUtil.wrapOrNotFound(
@@ -172,7 +186,8 @@ public class ReservaResource {
     @GetMapping("")
     public ResponseEntity<List<ReservaDTO>> getAllReservas(
             @org.springdoc.core.annotations.ParameterObject Pageable pageable,
-            @RequestParam(name = "eagerload", required = false, defaultValue = "true") boolean eagerload) {
+            @RequestParam(name = "eagerload", required = false, defaultValue = "true") boolean eagerload,
+            @RequestParam(name = "activo", required = false) Boolean activo) {
         LOG.debug("REST request to get a page of Reservas");
 
         // Auto-filter for Clients
@@ -210,10 +225,13 @@ public class ReservaResource {
         }
 
         Page<ReservaDTO> page;
-        if (eagerload) {
-            page = reservaService.findAllWithEagerRelationships(pageable);
+        if (activo != null) {
+            page = reservaService.findByActivo(activo, pageable);
+        } else if (eagerload) {
+            // Default to active=true even for eager load, since 'activo' is null here
+            page = reservaService.findByActivoWithEagerRelationships(true, pageable);
         } else {
-            page = reservaService.findAll(pageable);
+            page = reservaService.findByActivo(true, pageable);
         }
         HttpHeaders headers = PaginationUtil
                 .generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
@@ -232,7 +250,30 @@ public class ReservaResource {
     public ResponseEntity<ReservaDTO> getReserva(@PathVariable("id") Long id) {
         LOG.debug("REST request to get Reserva : {}", id);
         Optional<ReservaDTO> reservaDTO = reservaService.findOne(id);
+
+        if (reservaDTO.isPresent() && Boolean.FALSE.equals(reservaDTO.get().getActivo())) {
+            throw new BadRequestAlertException("The reservation is inactive", ENTITY_NAME, "inactive");
+        }
+
         return ResponseUtil.wrapOrNotFound(reservaDTO);
+    }
+
+    /**
+     * {@code GET  /reservas/inactive} : get all the inactive reservas.
+     *
+     * @param pageable the pagination information.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list
+     *         of reservas in body.
+     */
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_EMPLOYEE')")
+    @GetMapping("/inactive")
+    public ResponseEntity<List<ReservaDTO>> getInactiveReservas(
+            @org.springdoc.core.annotations.ParameterObject Pageable pageable) {
+        LOG.debug("REST request to get a page of inactive Reservas");
+        Page<ReservaDTO> page = reservaService.findByActivo(false, pageable);
+        HttpHeaders headers = PaginationUtil
+                .generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
+        return ResponseEntity.ok().headers(headers).body(page.getContent());
     }
 
     /**
@@ -241,7 +282,7 @@ public class ReservaResource {
      * @param id the id of the reservaDTO to delete.
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
      */
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteReserva(@PathVariable("id") Long id) {
         LOG.debug("REST request to delete Reserva : {}", id);
@@ -249,5 +290,33 @@ public class ReservaResource {
         return ResponseEntity.noContent()
                 .headers(HeaderUtil.createEntityDeletionAlert(applicationName, false, ENTITY_NAME, id.toString()))
                 .build();
+    }
+
+    /**
+     * {@code PUT  /reservas/:id/activate} : activate the "id" reserva.
+     *
+     * @param id the id of the reservaDTO to activate.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)}.
+     */
+    @PutMapping("/{id}/activate")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
+    public ResponseEntity<Void> activateReserva(@PathVariable Long id) {
+        LOG.debug("REST request to activate Reserva : {}", id);
+        reservaService.activate(id);
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * {@code PUT  /reservas/:id/deactivate} : deactivate the "id" reserva.
+     *
+     * @param id the id of the reservaDTO to deactivate.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)}.
+     */
+    @PutMapping("/{id}/deactivate")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
+    public ResponseEntity<Void> deactivateReserva(@PathVariable Long id) {
+        LOG.debug("REST request to deactivate Reserva : {}", id);
+        reservaService.deactivate(id);
+        return ResponseEntity.ok().build();
     }
 }

@@ -52,14 +52,14 @@ public class HabitacionServiceImpl implements HabitacionService {
         LOG.debug("Request to partially update Habitacion : {}", habitacionDTO);
 
         return habitacionRepository
-            .findById(habitacionDTO.getId())
-            .map(existingHabitacion -> {
-                habitacionMapper.partialUpdate(existingHabitacion, habitacionDTO);
+                .findById(habitacionDTO.getId())
+                .map(existingHabitacion -> {
+                    habitacionMapper.partialUpdate(existingHabitacion, habitacionDTO);
 
-                return existingHabitacion;
-            })
-            .map(habitacionRepository::save)
-            .map(habitacionMapper::toDto);
+                    return existingHabitacion;
+                })
+                .map(habitacionRepository::save)
+                .map(habitacionMapper::toDto);
     }
 
     @Override
@@ -80,5 +80,34 @@ public class HabitacionServiceImpl implements HabitacionService {
     public void delete(Long id) {
         LOG.debug("Request to delete Habitacion : {}", id);
         habitacionRepository.deleteById(id);
+    }
+
+    @Override
+    public void activate(Long id) {
+        LOG.debug("Request to activate Habitacion : {}", id);
+        habitacionRepository
+                .findById(id)
+                .ifPresent(habitacion -> {
+                    habitacion.setActivo(true);
+                    habitacionRepository.save(habitacion);
+                });
+    }
+
+    @Override
+    public void deactivate(Long id) {
+        LOG.debug("Request to deactivate Habitacion : {}", id);
+        habitacionRepository
+                .findById(id)
+                .ifPresent(habitacion -> {
+                    habitacion.setActivo(false);
+                    habitacionRepository.save(habitacion);
+                });
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<HabitacionDTO> findByActivo(Boolean activo, Pageable pageable) {
+        LOG.debug("Request to get Habitacions by activo : {}", activo);
+        return habitacionRepository.findByActivo(activo, pageable).map(habitacionMapper::toDto);
     }
 }

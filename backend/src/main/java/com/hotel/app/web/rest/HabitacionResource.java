@@ -102,6 +102,13 @@ public class HabitacionResource {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
 
+        // Check if the entity is active
+        habitacionRepository.findById(id).ifPresent(existing -> {
+            if (Boolean.FALSE.equals(existing.getActivo())) {
+                throw new BadRequestAlertException("Cannot update inactive entity", ENTITY_NAME, "inactive");
+            }
+        });
+
         habitacionDTO = habitacionService.update(habitacionDTO);
         return ResponseEntity.ok()
                 .headers(HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME,
@@ -142,6 +149,13 @@ public class HabitacionResource {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
 
+        // Check if the entity is active
+        habitacionRepository.findById(id).ifPresent(existing -> {
+            if (Boolean.FALSE.equals(existing.getActivo())) {
+                throw new BadRequestAlertException("Cannot update inactive entity", ENTITY_NAME, "inactive");
+            }
+        });
+
         Optional<HabitacionDTO> result = habitacionService.partialUpdate(habitacionDTO);
 
         return ResponseUtil.wrapOrNotFound(
@@ -160,9 +174,33 @@ public class HabitacionResource {
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_EMPLOYEE', 'ROLE_CLIENT')")
     @GetMapping("")
     public ResponseEntity<List<HabitacionDTO>> getAllHabitacions(
-            @org.springdoc.core.annotations.ParameterObject Pageable pageable) {
+            @org.springdoc.core.annotations.ParameterObject Pageable pageable,
+            @RequestParam(name = "activo", required = false) Boolean activo) {
         LOG.debug("REST request to get a page of Habitacions");
-        Page<HabitacionDTO> page = habitacionService.findAll(pageable);
+        Page<HabitacionDTO> page;
+        if (activo != null) {
+            page = habitacionService.findByActivo(activo, pageable);
+        } else {
+            page = habitacionService.findByActivo(true, pageable);
+        }
+        HttpHeaders headers = PaginationUtil
+                .generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
+        return ResponseEntity.ok().headers(headers).body(page.getContent());
+    }
+
+    /**
+     * {@code GET  /habitacions/inactive} : get all the inactive habitacions.
+     *
+     * @param pageable the pagination information.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list
+     *         of habitacions in body.
+     */
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_EMPLOYEE')")
+    @GetMapping("/inactive")
+    public ResponseEntity<List<HabitacionDTO>> getInactiveHabitacions(
+            @org.springdoc.core.annotations.ParameterObject Pageable pageable) {
+        LOG.debug("REST request to get a page of inactive Habitacions");
+        Page<HabitacionDTO> page = habitacionService.findByActivo(false, pageable);
         HttpHeaders headers = PaginationUtil
                 .generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
         return ResponseEntity.ok().headers(headers).body(page.getContent());
@@ -180,6 +218,12 @@ public class HabitacionResource {
     public ResponseEntity<HabitacionDTO> getHabitacion(@PathVariable("id") Long id) {
         LOG.debug("REST request to get Habitacion : {}", id);
         Optional<HabitacionDTO> habitacionDTO = habitacionService.findOne(id);
+
+        // Ensure that if the room is found, it must be active
+        if (habitacionDTO.isPresent() && Boolean.FALSE.equals(habitacionDTO.get().getActivo())) {
+            throw new BadRequestAlertException("The room is inactive", ENTITY_NAME, "inactive");
+        }
+
         return ResponseUtil.wrapOrNotFound(habitacionDTO);
     }
 
@@ -189,7 +233,7 @@ public class HabitacionResource {
      * @param id the id of the habitacionDTO to delete.
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
      */
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteHabitacion(@PathVariable("id") Long id) {
         LOG.debug("REST request to delete Habitacion : {}", id);
@@ -197,5 +241,33 @@ public class HabitacionResource {
         return ResponseEntity.noContent()
                 .headers(HeaderUtil.createEntityDeletionAlert(applicationName, false, ENTITY_NAME, id.toString()))
                 .build();
+    }
+
+    /**
+     * {@code PUT  /habitacions/:id/activate} : activate the "id" habitacion.
+     *
+     * @param id the id of the habitacionDTO to activate.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)}.
+     */
+    @PutMapping("/{id}/activate")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
+    public ResponseEntity<Void> activateHabitacion(@PathVariable Long id) {
+        LOG.debug("REST request to activate Habitacion : {}", id);
+        habitacionService.activate(id);
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * {@code PUT  /habitacions/:id/deactivate} : deactivate the "id" habitacion.
+     *
+     * @param id the id of the habitacionDTO to deactivate.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)}.
+     */
+    @PutMapping("/{id}/deactivate")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
+    public ResponseEntity<Void> deactivateHabitacion(@PathVariable Long id) {
+        LOG.debug("REST request to deactivate Habitacion : {}", id);
+        habitacionService.deactivate(id);
+        return ResponseEntity.ok().build();
     }
 }

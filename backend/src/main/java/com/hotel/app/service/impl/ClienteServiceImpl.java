@@ -52,14 +52,14 @@ public class ClienteServiceImpl implements ClienteService {
         LOG.debug("Request to partially update Cliente : {}", clienteDTO);
 
         return clienteRepository
-            .findById(clienteDTO.getId())
-            .map(existingCliente -> {
-                clienteMapper.partialUpdate(existingCliente, clienteDTO);
+                .findById(clienteDTO.getId())
+                .map(existingCliente -> {
+                    clienteMapper.partialUpdate(existingCliente, clienteDTO);
 
-                return existingCliente;
-            })
-            .map(clienteRepository::save)
-            .map(clienteMapper::toDto);
+                    return existingCliente;
+                })
+                .map(clienteRepository::save)
+                .map(clienteMapper::toDto);
     }
 
     @Override
@@ -80,5 +80,34 @@ public class ClienteServiceImpl implements ClienteService {
     public void delete(Long id) {
         LOG.debug("Request to delete Cliente : {}", id);
         clienteRepository.deleteById(id);
+    }
+
+    @Override
+    public void activate(Long id) {
+        LOG.debug("Request to activate Cliente : {}", id);
+        clienteRepository
+                .findById(id)
+                .ifPresent(cliente -> {
+                    cliente.setActivo(true);
+                    clienteRepository.save(cliente);
+                });
+    }
+
+    @Override
+    public void deactivate(Long id) {
+        LOG.debug("Request to deactivate Cliente : {}", id);
+        clienteRepository
+                .findById(id)
+                .ifPresent(cliente -> {
+                    cliente.setActivo(false);
+                    clienteRepository.save(cliente);
+                });
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ClienteDTO> findByActivo(Boolean activo, Pageable pageable) {
+        LOG.debug("Request to get Clientes by activo : {}", activo);
+        return clienteRepository.findByActivo(activo, pageable).map(clienteMapper::toDto);
     }
 }

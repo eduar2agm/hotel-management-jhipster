@@ -106,6 +106,13 @@ public class EstadoHabitacionResource {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
 
+        // Check if the entity is active
+        estadoHabitacionRepository.findById(id).ifPresent(existing -> {
+            if (Boolean.FALSE.equals(existing.getActivo())) {
+                throw new BadRequestAlertException("Cannot update inactive entity", ENTITY_NAME, "inactive");
+            }
+        });
+
         estadoHabitacionDTO = estadoHabitacionService.update(estadoHabitacionDTO);
         return ResponseEntity.ok()
                 .headers(HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME,
@@ -146,6 +153,13 @@ public class EstadoHabitacionResource {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
 
+        // Check if the entity is active
+        estadoHabitacionRepository.findById(id).ifPresent(existing -> {
+            if (Boolean.FALSE.equals(existing.getActivo())) {
+                throw new BadRequestAlertException("Cannot update inactive entity", ENTITY_NAME, "inactive");
+            }
+        });
+
         Optional<EstadoHabitacionDTO> result = estadoHabitacionService.partialUpdate(estadoHabitacionDTO);
 
         return ResponseUtil.wrapOrNotFound(
@@ -165,9 +179,15 @@ public class EstadoHabitacionResource {
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_EMPLOYEE', 'ROLE_CLIENT')")
     @GetMapping("")
     public ResponseEntity<List<EstadoHabitacionDTO>> getAllEstadoHabitacions(
-            @org.springdoc.core.annotations.ParameterObject Pageable pageable) {
+            @org.springdoc.core.annotations.ParameterObject Pageable pageable,
+            @RequestParam(name = "activo", required = false) Boolean activo) {
         LOG.debug("REST request to get a page of EstadoHabitacions");
-        Page<EstadoHabitacionDTO> page = estadoHabitacionService.findAll(pageable);
+        Page<EstadoHabitacionDTO> page;
+        if (activo != null) {
+            page = estadoHabitacionService.findByActivo(activo, pageable);
+        } else {
+            page = estadoHabitacionService.findByActivo(true, pageable);
+        }
         HttpHeaders headers = PaginationUtil
                 .generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
         return ResponseEntity.ok().headers(headers).body(page.getContent());
@@ -185,6 +205,11 @@ public class EstadoHabitacionResource {
     public ResponseEntity<EstadoHabitacionDTO> getEstadoHabitacion(@PathVariable("id") Long id) {
         LOG.debug("REST request to get EstadoHabitacion : {}", id);
         Optional<EstadoHabitacionDTO> estadoHabitacionDTO = estadoHabitacionService.findOne(id);
+
+        if (estadoHabitacionDTO.isPresent() && Boolean.FALSE.equals(estadoHabitacionDTO.get().getActivo())) {
+            throw new BadRequestAlertException("The room status is inactive", ENTITY_NAME, "inactive");
+        }
+
         return ResponseUtil.wrapOrNotFound(estadoHabitacionDTO);
     }
 
@@ -203,4 +228,5 @@ public class EstadoHabitacionResource {
                 .headers(HeaderUtil.createEntityDeletionAlert(applicationName, false, ENTITY_NAME, id.toString()))
                 .build();
     }
+
 }
