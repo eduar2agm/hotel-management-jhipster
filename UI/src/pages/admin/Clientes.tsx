@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { DashboardLayout } from '../../components/DashboardLayout';
 import { ClienteService } from '../../services';
 import type { ClienteDTO, NewClienteDTO } from '../../types/api';
+import { useAuth } from '../../hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -35,6 +36,7 @@ import {
 } from '../../utils/identification';
 
 export const AdminClientes = () => {
+    const { isAdmin, isEmployee } = useAuth();
     const [clientes, setClientes] = useState<ClienteDTO[]>([]);
     const [loading, setLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
@@ -42,6 +44,8 @@ export const AdminClientes = () => {
     const [currentCliente, setCurrentCliente] = useState<Partial<ClienteDTO>>({});
     const [isEditing, setIsEditing] = useState(false);
     const [idError, setIdError] = useState<string | null>(null);
+    
+    const userRole = isAdmin() ? 'Administrador' : isEmployee() ? 'Empleado' : 'Usuario';
 
     const loadClientes = async () => {
         setLoading(true);
@@ -167,7 +171,7 @@ export const AdminClientes = () => {
     );
 
     return (
-        <DashboardLayout title="Gestión de Clientes" role="Administrador">
+        <DashboardLayout title="Gestión de Clientes" role={userRole}>
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                     <CardTitle>Base de Datos de Clientes</CardTitle>
@@ -228,9 +232,11 @@ export const AdminClientes = () => {
                                                 <Button variant="ghost" size="icon" onClick={() => handleEdit(c)}>
                                                     <Pencil className="h-4 w-4" />
                                                 </Button>
-                                                <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-700" onClick={() => handleDelete(c.id!)}>
-                                                    <Trash2 className="h-4 w-4" />
-                                                </Button>
+                                                {isAdmin() && (
+                                                    <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-700" onClick={() => handleDelete(c.id!)}>
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </Button>
+                                                )}
                                             </div>
                                         </TableCell>
                                     </TableRow>
