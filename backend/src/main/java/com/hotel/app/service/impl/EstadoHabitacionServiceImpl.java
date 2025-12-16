@@ -85,25 +85,4 @@ public class EstadoHabitacionServiceImpl implements EstadoHabitacionService {
         estadoHabitacionRepository.deleteById(id);
     }
 
-    @Override
-    public void activate(Long id) {
-        LOG.debug("Request to activate EstadoHabitacion : {}", id);
-        estadoHabitacionRepository
-                .findById(id)
-                .ifPresent(estadoHabitacion -> {
-                    estadoHabitacion.setActivo(true);
-                    estadoHabitacionRepository.save(estadoHabitacion);
-                });
-    }
-
-    @Override
-    public void deactivate(Long id) {
-        LOG.debug("Request to deactivate EstadoHabitacion : {}", id);
-        estadoHabitacionRepository
-                .findById(id)
-                .ifPresent(estadoHabitacion -> {
-                    estadoHabitacion.setActivo(false);
-                    estadoHabitacionRepository.save(estadoHabitacion);
-                });
-    }
 }
