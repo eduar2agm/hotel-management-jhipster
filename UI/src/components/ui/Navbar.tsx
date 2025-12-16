@@ -6,15 +6,15 @@ export const Navbar = () => {
   const { isAuthenticated, login, logout, user, isClient, isEmployee, isAdmin } = useAuth();
 
   return (
-    <nav className="absolute top-0 left-0 w-full z-50 flex bg-black/50 backdrop-blur-sm justify-between items-center px-10 py-6 text-white">
+    <nav className="absolute top-0 left-0 w-full z-50 flex bg-black/50 backdrop-blur-sm justify-between items-center px-6 py-4 text-white">
       
-      <div className="text-xl font-bold tracking-wide flex items-center gap-3">
-        <img src={logo} alt="Logo" title="Hotel Management" className="w-10 h-10" /> 
+      <div className="text-xl font-bold tracking-wide flex items-center gap-2">
+        <img src={logo} alt="Logo" title="Hotel Management" className="w-8 h-8" /> 
         <span>Hotel Management</span>
       </div>
 
       {/* Menú Central */}
-      <div className="hidden md:flex space-x-8 text-sm font-medium uppercase tracking-wider">
+      <div className="hidden md:flex space-x-4 text-xs font-bold uppercase tracking-widest">
         
         {isAuthenticated && isClient() && (
           <>
@@ -41,6 +41,7 @@ export const Navbar = () => {
             <Link to="/admin/clientes" className="hover:text-yellow-400 transition-colors">clientes</Link>
             <Link to="/admin/reservas" className="hover:text-yellow-400 transition-colors">Reservas</Link>
             <Link to="/admin/reportes" className="hover:text-yellow-400 transition-colors">Reportes</Link>
+            <Link to="/admin/soporte" className="hover:text-yellow-400 transition-colors">Soporte</Link>
             <Link to="/admin/configuracion" className="hover:text-yellow-400 transition-colors">Configuración</Link>
           </>
          )}
@@ -57,7 +58,7 @@ export const Navbar = () => {
              
              <button 
                onClick={() => logout()} 
-               className="border border-red-500 text-red-100 bg-red-500/20 px-6 py-2 text-sm uppercase font-bold hover:bg-red-600 hover:text-white transition-all"
+               className="border border-red-500 text-red-100 bg-red-500/20 px-4 py-2 text-xs uppercase font-bold hover:bg-red-600 hover:text-white transition-all"
              >
                Logout
              </button>
