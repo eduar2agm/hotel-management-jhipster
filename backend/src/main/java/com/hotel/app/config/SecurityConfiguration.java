@@ -45,31 +45,33 @@ public class SecurityConfiguration {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, MvcRequestMatcher.Builder mvc) throws Exception {
         http
-            .csrf(csrf -> csrf.disable())
-            .authorizeHttpRequests(authz -> {
-                // prettier-ignore
-                authz
-                    .requestMatchers(mvc.pattern("/api/authenticate")).permitAll()
-                    .requestMatchers(mvc.pattern("/api/auth-info")).permitAll()
-                    .requestMatchers(mvc.pattern("/api/admin/**")).hasAuthority(AuthoritiesConstants.ADMIN)
-                    .requestMatchers(mvc.pattern("/api/**")).authenticated();
-                // OpenAPI docs: permit in dev, otherwise require ADMIN
-                if (env != null && env.acceptsProfiles(Profiles.of(JHipsterConstants.SPRING_PROFILE_DEVELOPMENT))) {
-                    authz.requestMatchers(mvc.pattern("/v3/api-docs/**")).permitAll();
-                } else {
-                    authz.requestMatchers(mvc.pattern("/v3/api-docs/**")).hasAuthority(AuthoritiesConstants.ADMIN);
-                }
-                authz
-                    .requestMatchers(mvc.pattern("/swagger-ui/**")).permitAll()
-                    .requestMatchers(mvc.pattern("/management/health")).permitAll()
-                    .requestMatchers(mvc.pattern("/management/health/**")).permitAll()
-                    .requestMatchers(mvc.pattern("/management/info")).permitAll()
-                    .requestMatchers(mvc.pattern("/management/prometheus")).permitAll()
-                    .requestMatchers(mvc.pattern("/management/**")).hasAuthority(AuthoritiesConstants.ADMIN);
-            })
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(authenticationConverter())))
-            .oauth2Client(withDefaults());
+                .csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests(authz -> {
+                    // prettier-ignore
+                    authz
+                            .requestMatchers(mvc.pattern("/api/authenticate")).permitAll()
+                            .requestMatchers(mvc.pattern("/api/auth-info")).permitAll()
+                            .requestMatchers(mvc.pattern("/api/habitacions/**")).permitAll()
+                            .requestMatchers(mvc.pattern("/api/admin/**")).hasAuthority(AuthoritiesConstants.ADMIN)
+                            .requestMatchers(mvc.pattern("/api/**")).authenticated();
+                    // OpenAPI docs: permit in dev, otherwise require ADMIN
+                    if (env != null && env.acceptsProfiles(Profiles.of(JHipsterConstants.SPRING_PROFILE_DEVELOPMENT))) {
+                        authz.requestMatchers(mvc.pattern("/v3/api-docs/**")).permitAll();
+                    } else {
+                        authz.requestMatchers(mvc.pattern("/v3/api-docs/**")).hasAuthority(AuthoritiesConstants.ADMIN);
+                    }
+                    authz
+                            .requestMatchers(mvc.pattern("/swagger-ui/**")).permitAll()
+                            .requestMatchers(mvc.pattern("/management/health")).permitAll()
+                            .requestMatchers(mvc.pattern("/management/health/**")).permitAll()
+                            .requestMatchers(mvc.pattern("/management/info")).permitAll()
+                            .requestMatchers(mvc.pattern("/management/prometheus")).permitAll()
+                            .requestMatchers(mvc.pattern("/management/**")).hasAuthority(AuthoritiesConstants.ADMIN);
+                })
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .oauth2ResourceServer(
+                        oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(authenticationConverter())))
+                .oauth2Client(withDefaults());
         return http.build();
     }
 
@@ -81,13 +83,12 @@ public class SecurityConfiguration {
     Converter<Jwt, AbstractAuthenticationToken> authenticationConverter() {
         JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
         jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(
-            new Converter<Jwt, Collection<GrantedAuthority>>() {
-                @Override
-                public Collection<GrantedAuthority> convert(Jwt jwt) {
-                    return SecurityUtils.extractAuthorityFromClaims(jwt.getClaims());
-                }
-            }
-        );
+                new Converter<Jwt, Collection<GrantedAuthority>>() {
+                    @Override
+                    public Collection<GrantedAuthority> convert(Jwt jwt) {
+                        return SecurityUtils.extractAuthorityFromClaims(jwt.getClaims());
+                    }
+                });
         jwtAuthenticationConverter.setPrincipalClaimName(PREFERRED_USERNAME);
         return jwtAuthenticationConverter;
     }
@@ -96,7 +97,8 @@ public class SecurityConfiguration {
     JwtDecoder jwtDecoder() {
         NimbusJwtDecoder jwtDecoder = JwtDecoders.fromOidcIssuerLocation(issuerUri);
 
-        OAuth2TokenValidator<Jwt> audienceValidator = new AudienceValidator(jHipsterProperties.getSecurity().getOauth2().getAudience());
+        OAuth2TokenValidator<Jwt> audienceValidator = new AudienceValidator(
+                jHipsterProperties.getSecurity().getOauth2().getAudience());
         OAuth2TokenValidator<Jwt> withIssuer = JwtValidators.createDefaultWithIssuer(issuerUri);
         OAuth2TokenValidator<Jwt> withAudience = new DelegatingOAuth2TokenValidator<>(withIssuer, audienceValidator);
 
