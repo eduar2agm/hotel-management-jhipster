@@ -74,6 +74,15 @@ public interface ReservaService {
     Page<ReservaDTO> findAllByClienteId(Long clienteId, Pageable pageable);
 
     /**
+     * Get all the reservas by activo status.
+     *
+     * @param activo   the active status to filter by.
+     * @param pageable the pagination information.
+     * @return the list of entities.
+     */
+    Page<ReservaDTO> findByActivo(Boolean activo, Pageable pageable);
+
+    /**
      * Activate the "id" reserva.
      *
      * @param id the id of the entity.
