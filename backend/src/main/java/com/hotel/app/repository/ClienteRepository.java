@@ -12,4 +12,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ClienteRepository extends JpaRepository<Cliente, Long> {
     Optional<Cliente> findOneByCorreo(String correo);
+
+    Optional<Cliente> findOneByKeycloakId(String keycloakId);
 }

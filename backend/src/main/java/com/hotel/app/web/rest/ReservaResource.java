@@ -23,6 +23,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import tech.jhipster.web.util.HeaderUtil;
@@ -178,8 +180,23 @@ public class ReservaResource {
                 !SecurityUtils.hasCurrentUserThisAuthority(AuthoritiesConstants.ADMIN) &&
                 !SecurityUtils.hasCurrentUserThisAuthority(AuthoritiesConstants.EMPLOYEE)) {
 
-            String login = SecurityUtils.getCurrentUserLogin().orElse("");
-            Optional<Cliente> cliente = clienteRepository.findOneByCorreo(login);
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            Optional<Cliente> cliente = Optional.empty();
+
+            if (authentication.getPrincipal() instanceof org.springframework.security.oauth2.jwt.Jwt) {
+                org.springframework.security.oauth2.jwt.Jwt jwt = (org.springframework.security.oauth2.jwt.Jwt) authentication
+                        .getPrincipal();
+                String sub = jwt.getSubject();
+                cliente = clienteRepository.findOneByKeycloakId(sub);
+            }
+
+            if (!cliente.isPresent()) {
+                String login = SecurityUtils.getCurrentUserLogin().orElse("");
+                cliente = clienteRepository.findOneByCorreo(login);
+                if (!cliente.isPresent()) {
+                    cliente = clienteRepository.findOneByKeycloakId(login);
+                }
+            }
 
             if (cliente.isPresent()) {
                 Page<ReservaDTO> page = reservaService.findAllByClienteId(cliente.get().getId(), pageable);
