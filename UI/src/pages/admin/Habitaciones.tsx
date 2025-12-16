@@ -1,20 +1,16 @@
-
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { DashboardLayout } from '../../components/DashboardLayout';
 import { HabitacionService, CategoriaHabitacionService, EstadoHabitacionService } from '../../services';
 import type { HabitacionDTO, CategoriaHabitacionDTO, EstadoHabitacionDTO } from '../../types/api';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import {
     Form,
     FormControl,
-    FormDescription,
     FormField,
     FormItem,
     FormLabel,
@@ -23,12 +19,14 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Plus, Pencil, Trash2, Search, Check, ChevronsUpDown } from 'lucide-react';
+import { Plus, Search, ChevronsUpDown, Check, Hotel, Image as ImageIcon, Pencil } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
+import { Navbar } from '../../components/ui/Navbar';
+import { Footer } from '../../components/ui/Footer';
+import { RoomCard } from '@/components/ui/RoomCard';
 
 const habitacionSchema = z.object({
     id: z.number().optional(),
@@ -59,7 +57,7 @@ export const AdminHabitaciones = () => {
         resolver: zodResolver(habitacionSchema) as any,
         defaultValues: {
             numero: '',
-            capacidad: 1,
+            capacidad: 2,
             descripcion: '',
             imagen: '',
             activo: true,
@@ -97,23 +95,20 @@ export const AdminHabitaciones = () => {
 
     const onSubmit = async (data: HabitacionFormValues) => {
         try {
-            // Transform Form Data to DTO
             const payload: any = {
                 ...data,
                 categoriaHabitacion: { id: Number(data.categoriaHabitacionId) },
                 estadoHabitacion: { id: Number(data.estadoHabitacionId) }
             };
-            // Remove helper IDs if backend doesn't accept them directly, or keep them if it does.
-            // JHipster usually ignores unknown fields but good to be clean.
             delete payload.categoriaHabitacionId;
             delete payload.estadoHabitacionId;
 
             if (isEditing && data.id) {
                 await HabitacionService.updateHabitacion(data.id, payload as HabitacionDTO);
-                toast.success('Habitación actualizada');
+                toast.success('Habitación actualizada correctamente');
             } else {
                 await HabitacionService.createHabitacion(payload as any);
-                toast.success('Habitación creada');
+                toast.success('Habitación creada exitosamente');
             }
             setIsDialogOpen(false);
             loadData();
@@ -140,15 +135,15 @@ export const AdminHabitaciones = () => {
 
     const handleCreate = () => {
         setIsEditing(false);
+        const defaultState = estados.find(e => e.nombre === 'DISPONIBLE')?.id?.toString() || '';
         form.reset({
             numero: '',
             capacidad: 2,
             descripcion: '',
             imagen: '',
             activo: true,
-            // Set default or empty? Empty forces selection.
             categoriaHabitacionId: '',
-            estadoHabitacionId: estados.find(e => e.nombre === 'DISPONIBLE')?.id?.toString() || ''
+            estadoHabitacionId: defaultState
         });
         setIsDialogOpen(true);
     };
@@ -164,45 +159,114 @@ export const AdminHabitaciones = () => {
         }
     };
 
-    // Filter habitaciones based on search
     const filteredHabitaciones = habitaciones.filter(h => {
         if (!searchFilter) return true;
         const searchLower = searchFilter.toLowerCase();
         return (
             h.numero?.toLowerCase().includes(searchLower) ||
             h.categoriaHabitacion?.nombre?.toLowerCase().includes(searchLower) ||
-            h.categoriaHabitacion?.descripcion?.toLowerCase().includes(searchLower) ||
-            h.estadoHabitacion?.nombre?.toLowerCase().includes(searchLower) ||
-            h.descripcion?.toLowerCase().includes(searchLower)
+            h.estadoHabitacion?.nombre?.toLowerCase().includes(searchLower)
         );
     });
 
     return (
-        <DashboardLayout title="Gestión de Habitaciones" role="Administrador">
-            <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                    <CardTitle>Listado de Habitaciones</CardTitle>
-                    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                        <DialogTrigger asChild>
-                            <Button onClick={handleCreate}>
-                                <Plus className="mr-2 h-4 w-4" /> Nueva Habitación
-                            </Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-                            <DialogHeader>
-                                <DialogTitle>{isEditing ? 'Editar Habitación' : 'Nueva Habitación'}</DialogTitle>
-                            </DialogHeader>
+        <div className="font-sans text-gray-900 bg-gray-50 min-h-screen flex flex-col">
+            <Navbar />
+
+            {/* HERO SECTION */}
+            <div className="bg-[#0F172A] pt-32 pb-20 px-4 md:px-8 lg:px-20 relative overflow-hidden shadow-xl">
+                 <div className="absolute top-0 right-0 p-12 opacity-5 scale-150 pointer-events-none">
+                     <Hotel className="w-96 h-96 text-white" />
+                 </div>
+                 <div className="relative max-w-7xl mx-auto z-10 flex flex-col md:flex-row justify-between items-center gap-6">
+                    <div>
+                        <span className="text-yellow-500 font-bold tracking-[0.2em] uppercase text-xs mb-2 block">Administración</span>
+                        <h1 className="text-3xl md:text-5xl font-black text-white tracking-tight mb-2">
+                            Gestión de Habitaciones
+                        </h1>
+                        <p className="text-slate-400 text-lg max-w-2xl">
+                            Configure y administre el inventario de habitaciones, categorías y estados.
+                        </p>
+                    </div>
+                    <div>
+                        <Button 
+                            onClick={handleCreate}
+                            className="bg-yellow-600 hover:bg-yellow-700 text-white border-0 shadow-lg hover:shadow-yellow-600/20 transition-all rounded-sm px-6 py-6 text-sm uppercase tracking-widest font-bold"
+                        >
+                            <Plus className="mr-2 h-5 w-5" /> Nueva Habitación
+                        </Button>
+                    </div>
+                 </div>
+            </div>
+
+            <main className="flex-grow py-5  px-4 md:px-8 lg:px-20 -mt-10 relative z-10">
+                <Card className="max-w-7xl mx-auto border-t-4 border-yellow-600 shadow-xl bg-white">
+                    <CardHeader className="border-b bg-gray-50/50 pb-6">
+                        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+                             <div>
+                                <CardTitle className="text-xl font-bold text-gray-800">Inventario de Habitaciones</CardTitle>
+                                <CardDescription>Total de unidades: {habitaciones.length}</CardDescription>
+                            </div>
+                            <div className="relative w-full md:w-96 group">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-yellow-600 transition-colors" />
+                                <Input
+                                    placeholder="Buscar por número, categoría..."
+                                    value={searchFilter}
+                                    onChange={(e) => setSearchFilter(e.target.value)}
+                                    className="pl-10 border-gray-200 focus:border-yellow-600 focus:ring-yellow-600/20 h-11 transition-all"
+                                />
+                            </div>
+                        </div>
+                    </CardHeader>
+                    <CardContent className="p-6 md:p-10">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                            {loading ? (
+                                <div className="col-span-full h-32 flex flex-col items-center justify-center text-gray-500">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-600 mb-2"></div>
+                                    <span>Cargando inventario...</span>
+                                </div>
+                            ) : filteredHabitaciones.length === 0 ? (
+                                <div className="col-span-full h-32 flex items-center justify-center text-gray-500 border-2 border-dashed rounded-lg">
+                                    No se encontraron habitaciones
+                                </div>
+                            ) : (
+                                filteredHabitaciones.map((h) => (
+                                    <RoomCard 
+                                        key={h.id} 
+                                        habitacion={h} 
+                                        onEdit={handleEdit} 
+                                        onDelete={(id) => handleDelete(id)} 
+                                    />
+                                ))
+                            )}
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                    <DialogContent className="max-w-lg p-0 overflow-hidden border-0 shadow-2xl">
+                        <DialogHeader className="bg-[#0F172A] text-white p-6">
+                            <DialogTitle className="text-xl font-bold flex items-center gap-2">
+                                {isEditing ? <Pencil className="h-5 w-5 text-yellow-500" /> : <Plus className="h-5 w-5 text-yellow-500" />}
+                                {isEditing ? 'Editar Habitación' : 'Nueva Habitación'}
+                            </DialogTitle>
+                            <DialogDescription className="text-slate-400">
+                                Detalles de configuración de la unidad.
+                            </DialogDescription>
+                        </DialogHeader>
+                        
+                        <div className="p-6 bg-white overflow-y-auto max-h-[80vh]">
                             <Form {...(form as any)}>
-                                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
+                                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
                                     <div className="grid grid-cols-2 gap-4">
                                         <FormField
                                             control={form.control as any}
                                             name="numero"
                                             render={({ field }) => (
                                                 <FormItem>
-                                                    <FormLabel>Número</FormLabel>
+                                                    <FormLabel className="text-xs font-bold text-gray-500 uppercase tracking-widest">Número</FormLabel>
                                                     <FormControl>
-                                                        <Input placeholder="101" {...field} />
+                                                        <Input placeholder="101" className="h-9 font-mono" {...field} />
                                                     </FormControl>
                                                     <FormMessage />
                                                 </FormItem>
@@ -213,9 +277,9 @@ export const AdminHabitaciones = () => {
                                             name="capacidad"
                                             render={({ field }) => (
                                                 <FormItem>
-                                                    <FormLabel>Capacidad</FormLabel>
+                                                    <FormLabel className="text-xs font-bold text-gray-500 uppercase tracking-widest">Capacidad</FormLabel>
                                                     <FormControl>
-                                                        <Input type="number" {...field} />
+                                                        <Input type="number" className="h-9" {...field} />
                                                     </FormControl>
                                                     <FormMessage />
                                                 </FormItem>
@@ -223,88 +287,84 @@ export const AdminHabitaciones = () => {
                                         />
                                     </div>
 
+                                    <FormField
+                                        control={form.control as any}
+                                        name="categoriaHabitacionId"
+                                        render={({ field }) => (
+                                            <FormItem className="flex flex-col">
+                                                <FormLabel className="text-xs font-bold text-gray-500 uppercase tracking-widest">Categoría</FormLabel>
+                                                <Popover open={openCategoryPopover} onOpenChange={setOpenCategoryPopover}>
+                                                    <PopoverTrigger asChild>
+                                                        <FormControl>
+                                                            <Button
+                                                                variant="outline"
+                                                                role="combobox"
+                                                                className={cn(
+                                                                    "w-full justify-between h-9",
+                                                                    !field.value && "text-muted-foreground"
+                                                                )}
+                                                            >
+                                                                {field.value
+                                                                    ? (() => {
+                                                                        const selected = categorias.find(c => String(c.id) === field.value);
+                                                                        return selected
+                                                                            ? `${selected.nombre} - $${selected.precioBase}`
+                                                                            : "Seleccione categoría...";
+                                                                    })()
+                                                                    : "Seleccione categoría..."}
+                                                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                                            </Button>
+                                                        </FormControl>
+                                                    </PopoverTrigger>
+                                                    <PopoverContent className="w-[300px] p-0" align="start">
+                                                        <Command>
+                                                            <CommandInput placeholder="Buscar categoría..." />
+                                                            <CommandList>
+                                                                <CommandEmpty>No encontrada.</CommandEmpty>
+                                                                <CommandGroup>
+                                                                    {categorias.map((c) => (
+                                                                        <CommandItem
+                                                                            key={c.id}
+                                                                            value={`${c.nombre} ${c.descripcion}`}
+                                                                            onSelect={() => {
+                                                                                field.onChange(String(c.id));
+                                                                                setOpenCategoryPopover(false);
+                                                                            }}
+                                                                        >
+                                                                            <Check
+                                                                                className={cn(
+                                                                                    "mr-2 h-4 w-4",
+                                                                                    String(c.id) === field.value
+                                                                                        ? "opacity-100"
+                                                                                        : "opacity-0"
+                                                                                )}
+                                                                            />
+                                                                            <div className="flex flex-col">
+                                                                                <span className="font-medium">{c.nombre}</span>
+                                                                                <span className="text-xs text-muted-foreground">${c.precioBase}</span>
+                                                                            </div>
+                                                                        </CommandItem>
+                                                                    ))}
+                                                                </CommandGroup>
+                                                            </CommandList>
+                                                        </Command>
+                                                    </PopoverContent>
+                                                </Popover>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+
                                     <div className="grid grid-cols-2 gap-4">
-                                        <FormField
-                                            control={form.control as any}
-                                            name="categoriaHabitacionId"
-                                            render={({ field }) => (
-                                                <FormItem className="flex flex-col">
-                                                    <FormLabel>Categoría</FormLabel>
-                                                    <Popover open={openCategoryPopover} onOpenChange={setOpenCategoryPopover}>
-                                                        <PopoverTrigger asChild>
-                                                            <FormControl>
-                                                                <Button
-                                                                    variant="outline"
-                                                                    role="combobox"
-                                                                    className={cn(
-                                                                        "w-full justify-between",
-                                                                        !field.value && "text-muted-foreground"
-                                                                    )}
-                                                                >
-                                                                    {field.value
-                                                                        ? (() => {
-                                                                            const selected = categorias.find(c => String(c.id) === field.value);
-                                                                            return selected
-                                                                                ? `${selected.nombre} - $${selected.precioBase}`
-                                                                                : "Seleccione categoría...";
-                                                                        })()
-                                                                        : "Seleccione categoría..."}
-                                                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                                                </Button>
-                                                            </FormControl>
-                                                        </PopoverTrigger>
-                                                        <PopoverContent className="w-[400px] p-0">
-                                                            <Command>
-                                                                <CommandInput placeholder="Buscar por nombre, descripción o precio..." />
-                                                                <CommandList>
-                                                                    <CommandEmpty>No se encontró ninguna categoría.</CommandEmpty>
-                                                                    <CommandGroup>
-                                                                        {categorias.map((c) => (
-                                                                            <CommandItem
-                                                                                key={c.id}
-                                                                                value={`${c.nombre} ${c.descripcion} ${c.precioBase}`}
-                                                                                onSelect={() => {
-                                                                                    field.onChange(String(c.id));
-                                                                                    setOpenCategoryPopover(false);
-                                                                                }}
-                                                                            >
-                                                                                <Check
-                                                                                    className={cn(
-                                                                                        "mr-2 h-4 w-4",
-                                                                                        String(c.id) === field.value
-                                                                                            ? "opacity-100"
-                                                                                            : "opacity-0"
-                                                                                    )}
-                                                                                />
-                                                                                <div className="flex flex-col flex-1">
-                                                                                    <div className="flex items-center justify-between">
-                                                                                        <span className="font-semibold">{c.nombre}</span>
-                                                                                        <span className="text-sm font-bold text-primary">${c.precioBase}</span>
-                                                                                    </div>
-                                                                                    {c.descripcion && (
-                                                                                        <span className="text-xs text-muted-foreground">{c.descripcion}</span>
-                                                                                    )}
-                                                                                </div>
-                                                                            </CommandItem>
-                                                                        ))}
-                                                                    </CommandGroup>
-                                                                </CommandList>
-                                                            </Command>
-                                                        </PopoverContent>
-                                                    </Popover>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
                                         <FormField
                                             control={form.control as any}
                                             name="estadoHabitacionId"
                                             render={({ field }) => (
                                                 <FormItem>
-                                                    <FormLabel>Estado</FormLabel>
+                                                    <FormLabel className="text-xs font-bold text-gray-500 uppercase tracking-widest">Estado</FormLabel>
                                                     <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
                                                         <FormControl>
-                                                            <SelectTrigger>
+                                                            <SelectTrigger className="h-9">
                                                                 <SelectValue placeholder="Seleccione..." />
                                                             </SelectTrigger>
                                                         </FormControl>
@@ -320,6 +380,22 @@ export const AdminHabitaciones = () => {
                                                 </FormItem>
                                             )}
                                         />
+                                        <FormField
+                                            control={form.control as any}
+                                            name="imagen"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel className="text-xs font-bold text-gray-500 uppercase tracking-widest">URL Imagen</FormLabel>
+                                                    <FormControl>
+                                                        <div className="relative">
+                                                            <ImageIcon className="absolute left-2 top-2.5 h-4 w-4 text-gray-400" />
+                                                            <Input placeholder="https://..." className="pl-8 h-9" {...field} />
+                                                        </div>
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
                                     </div>
 
                                     <FormField
@@ -327,23 +403,13 @@ export const AdminHabitaciones = () => {
                                         name="descripcion"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Descripción</FormLabel>
+                                                <FormLabel className="text-xs font-bold text-gray-500 uppercase tracking-widest">Descripción</FormLabel>
                                                 <FormControl>
-                                                    <Textarea placeholder="Detalles de la habitación..." {...field} />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-
-                                    <FormField
-                                        control={form.control as any}
-                                        name="imagen"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>URL Imagen</FormLabel>
-                                                <FormControl>
-                                                    <Input placeholder="https://..." {...field} />
+                                                    <Textarea 
+                                                        placeholder="Características de la habitación..." 
+                                                        className="resize-none h-20" 
+                                                        {...field} 
+                                                    />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -354,12 +420,9 @@ export const AdminHabitaciones = () => {
                                         control={form.control as any}
                                         name="activo"
                                         render={({ field }) => (
-                                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                                            <FormItem className="flex flex-row items-center justify-between rounded-lg border border-gray-100 bg-gray-50 p-3">
                                                 <div className="space-y-0.5">
-                                                    <FormLabel className="text-base">Habilitada</FormLabel>
-                                                    <FormDescription>
-                                                        Indica si la habitación está en servicio.
-                                                    </FormDescription>
+                                                    <FormLabel className="text-sm font-medium text-gray-700">Habilitada para reservas</FormLabel>
                                                 </div>
                                                 <FormControl>
                                                     <Switch
@@ -371,87 +434,19 @@ export const AdminHabitaciones = () => {
                                         )}
                                     />
 
-                                    <DialogFooter>
-                                        <Button type="submit">{isEditing ? 'Guardar Cambios' : 'Crear'}</Button>
-                                    </DialogFooter>
+                                    <div className="pt-4 flex justify-end gap-3 border-t">
+                                        <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)} className="h-10">Cancelar</Button>
+                                        <Button type="submit" className="bg-yellow-600 hover:bg-yellow-700 text-white h-10 px-6">
+                                            {isEditing ? 'Guardar Cambios' : 'Crear Habitación'}
+                                        </Button>
+                                    </div>
                                 </form>
                             </Form>
-                        </DialogContent>
-                    </Dialog>
-                </CardHeader>
-                <CardContent>
-                    {/* Search Bar */}
-                    <div className="flex items-center gap-2 mb-4">
-                        <div className="relative flex-1">
-                            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                            <Input
-                                placeholder="Buscar por número, categoría, estado o descripción..."
-                                value={searchFilter}
-                                onChange={(e) => setSearchFilter(e.target.value)}
-                                className="pl-8"
-                            />
                         </div>
-                        {searchFilter && (
-                            <Button
-                                variant="ghost"
-                                onClick={() => setSearchFilter('')}
-                                size="sm"
-                            >
-                                Limpiar
-                            </Button>
-                        )}
-                    </div>
-
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Info</TableHead>
-                                <TableHead>Categoría</TableHead>
-                                <TableHead>Estado</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead className="text-right">Acciones</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {loading ? (
-                                <TableRow><TableCell colSpan={5} className="text-center">Cargando...</TableCell></TableRow>
-                            ) : filteredHabitaciones.length === 0 ? (
-                                <TableRow><TableCell colSpan={5} className="text-center">
-                                    {searchFilter ? 'No se encontraron resultados' : 'No hay habitaciones'}
-                                </TableCell></TableRow>
-                            ) : (
-                                filteredHabitaciones.map((h) => (
-                                    <TableRow key={h.id}>
-                                        <TableCell>
-                                            <div className="flex flex-col">
-                                                <span className="font-bold">#{h.numero}</span>
-                                                <span className="text-xs text-muted-foreground">Cap: {h.capacidad} | {h.descripcion?.substring(0, 30)}...</span>
-                                            </div>
-                                        </TableCell>
-                                        <TableCell>{h.categoriaHabitacion?.nombre}</TableCell>
-                                        <TableCell>
-                                            <Badge variant={h.estadoHabitacion?.nombre === 'DISPONIBLE' ? 'outline' : 'destructive'}>
-                                                {h.estadoHabitacion?.nombre}
-                                            </Badge>
-                                        </TableCell>
-                                        <TableCell>
-                                            <Badge variant={h.activo ? 'default' : 'secondary'}>{h.activo ? 'Activa' : 'Inactiva'}</Badge>
-                                        </TableCell>
-                                        <TableCell className="text-right space-x-2">
-                                            <Button variant="ghost" size="icon" onClick={() => handleEdit(h)}>
-                                                <Pencil className="h-4 w-4" />
-                                            </Button>
-                                            <Button variant="ghost" size="icon" className="text-destructive" onClick={() => h.id && handleDelete(h.id)}>
-                                                <Trash2 className="h-4 w-4" />
-                                            </Button>
-                                        </TableCell>
-                                    </TableRow>
-                                ))
-                            )}
-                        </TableBody>
-                    </Table>
-                </CardContent>
-            </Card>
-        </DashboardLayout>
+                    </DialogContent>
+                </Dialog>
+            </main>
+            <Footer />
+        </div>
     );
 };
