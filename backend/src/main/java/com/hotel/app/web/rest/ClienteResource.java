@@ -121,6 +121,13 @@ public class ClienteResource {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
 
+        // Check if the entity is active
+        clienteRepository.findById(id).ifPresent(existing -> {
+            if (Boolean.FALSE.equals(existing.getActivo())) {
+                throw new BadRequestAlertException("Cannot update inactive entity", ENTITY_NAME, "inactive");
+            }
+        });
+
         clienteDTO = clienteService.update(clienteDTO);
         return ResponseEntity.ok()
                 .headers(HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME,
@@ -160,6 +167,13 @@ public class ClienteResource {
         if (!clienteRepository.existsById(id)) {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
+
+        // Check if the entity is active
+        clienteRepository.findById(id).ifPresent(existing -> {
+            if (Boolean.FALSE.equals(existing.getActivo())) {
+                throw new BadRequestAlertException("Cannot update inactive entity", ENTITY_NAME, "inactive");
+            }
+        });
 
         Optional<ClienteDTO> result = clienteService.partialUpdate(clienteDTO);
 
@@ -205,6 +219,24 @@ public class ClienteResource {
         LOG.debug("REST request to get Cliente : {}", id);
         Optional<ClienteDTO> clienteDTO = clienteService.findOne(id);
         return ResponseUtil.wrapOrNotFound(clienteDTO);
+    }
+
+    /**
+     * {@code GET  /clientes/inactive} : get all the inactive clientes.
+     *
+     * @param pageable the pagination information.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list
+     *         of clientes in body.
+     */
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_EMPLOYEE')")
+    @GetMapping("/inactive")
+    public ResponseEntity<List<ClienteDTO>> getInactiveClientes(
+            @org.springdoc.core.annotations.ParameterObject Pageable pageable) {
+        LOG.debug("REST request to get a page of inactive Clientes");
+        Page<ClienteDTO> page = clienteService.findByActivo(false, pageable);
+        HttpHeaders headers = PaginationUtil
+                .generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
+        return ResponseEntity.ok().headers(headers).body(page.getContent());
     }
 
     /**
