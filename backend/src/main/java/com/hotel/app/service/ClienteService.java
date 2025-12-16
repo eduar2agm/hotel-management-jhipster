@@ -55,4 +55,18 @@ public interface ClienteService {
      * @param id the id of the entity.
      */
     void delete(Long id);
+
+    /**
+     * Activate the "id" cliente.
+     *
+     * @param id the id of the entity.
+     */
+    void activate(Long id);
+
+    /**
+     * Deactivate the "id" cliente.
+     *
+     * @param id the id of the entity.
+     */
+    void deactivate(Long id);
 }
