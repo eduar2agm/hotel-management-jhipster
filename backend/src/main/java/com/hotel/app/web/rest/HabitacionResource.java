@@ -102,6 +102,13 @@ public class HabitacionResource {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
 
+        // Check if the entity is active
+        habitacionRepository.findById(id).ifPresent(existing -> {
+            if (Boolean.FALSE.equals(existing.getActivo())) {
+                throw new BadRequestAlertException("Cannot update inactive entity", ENTITY_NAME, "inactive");
+            }
+        });
+
         habitacionDTO = habitacionService.update(habitacionDTO);
         return ResponseEntity.ok()
                 .headers(HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME,
@@ -142,6 +149,13 @@ public class HabitacionResource {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
 
+        // Check if the entity is active
+        habitacionRepository.findById(id).ifPresent(existing -> {
+            if (Boolean.FALSE.equals(existing.getActivo())) {
+                throw new BadRequestAlertException("Cannot update inactive entity", ENTITY_NAME, "inactive");
+            }
+        });
+
         Optional<HabitacionDTO> result = habitacionService.partialUpdate(habitacionDTO);
 
         return ResponseUtil.wrapOrNotFound(
@@ -167,7 +181,7 @@ public class HabitacionResource {
         if (activo != null) {
             page = habitacionService.findByActivo(activo, pageable);
         } else {
-            page = habitacionService.findAll(pageable);
+            page = habitacionService.findByActivo(true, pageable);
         }
         HttpHeaders headers = PaginationUtil
                 .generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
@@ -204,6 +218,12 @@ public class HabitacionResource {
     public ResponseEntity<HabitacionDTO> getHabitacion(@PathVariable("id") Long id) {
         LOG.debug("REST request to get Habitacion : {}", id);
         Optional<HabitacionDTO> habitacionDTO = habitacionService.findOne(id);
+
+        // Ensure that if the room is found, it must be active
+        if (habitacionDTO.isPresent() && Boolean.FALSE.equals(habitacionDTO.get().getActivo())) {
+            throw new BadRequestAlertException("The room is inactive", ENTITY_NAME, "inactive");
+        }
+
         return ResponseUtil.wrapOrNotFound(habitacionDTO);
     }
 
