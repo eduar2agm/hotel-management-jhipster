@@ -91,4 +91,10 @@ jhipster:
 # https://www.jhipster.tech/common-application-properties/
 # ===================================================================
 
-# application:
+application:
+  keycloak:
+    server-url: http://localhost:9080
+    realm: jhipster
+    client-id: admin-cli
+    username: admin
+    password: admin

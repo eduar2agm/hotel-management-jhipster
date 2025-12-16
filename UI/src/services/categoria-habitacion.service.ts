@@ -1,7 +1,7 @@
 import { apiClient } from '../api/axios-instance';
 import type { CategoriaHabitacionDTO, NewCategoriaHabitacionDTO } from '../types/api';
 
-const base = '/api/categoria-habitacions';
+const base = '/categoria-habitacions';
 
 export const CategoriaHabitacionService = {
     getCategorias: (params?: Record<string, any>) => apiClient.get<CategoriaHabitacionDTO[]>(base, { params }),

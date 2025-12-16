@@ -173,6 +173,51 @@ public class MensajeSoporteResource {
     }
 
     /**
+     * {@code GET  /mensaje-soportes/my-messages} : get all the mensajeSoportes for
+     * the current user.
+     *
+     * @param pageable the pagination information.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list
+     *         of mensajeSoportes in body.
+     */
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_EMPLOYEE', 'ROLE_CLIENT')")
+    @GetMapping("/my-messages")
+    public ResponseEntity<List<MensajeSoporteDTO>> getMyMensajeSoportes(
+            @org.springdoc.core.annotations.ParameterObject Pageable pageable) {
+        LOG.debug("REST request to get a page of my MensajeSoportes");
+
+        // Extract the subject (sub) from the JWT token - this is the Keycloak user ID
+        String userId = org.springframework.security.core.context.SecurityContextHolder.getContext()
+                .getAuthentication().getName();
+
+        // Try to get the subject ID from the JWT token if it's a JWT authentication
+        var authentication = org.springframework.security.core.context.SecurityContextHolder.getContext()
+                .getAuthentication();
+        if (authentication.getPrincipal() instanceof org.springframework.security.oauth2.jwt.Jwt) {
+            org.springframework.security.oauth2.jwt.Jwt jwt = (org.springframework.security.oauth2.jwt.Jwt) authentication
+                    .getPrincipal();
+            userId = jwt.getSubject(); // This is the Keycloak UUID
+        }
+
+        // Check if user is a client - if so, only show their direct messages
+        boolean isClient = authentication.getAuthorities().stream()
+                .anyMatch(auth -> auth.getAuthority().equals("ROLE_CLIENT"));
+
+        Page<MensajeSoporteDTO> page;
+        if (isClient) {
+            // Clients only see messages they sent or received directly
+            page = mensajeSoporteService.findByUserIdOnly(userId, pageable);
+        } else {
+            // Admin/Employee see all support messages including unassigned ones
+            page = mensajeSoporteService.findByUserId(userId, pageable);
+        }
+
+        HttpHeaders headers = PaginationUtil
+                .generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
+        return ResponseEntity.ok().headers(headers).body(page.getContent());
+    }
+
+    /**
      * {@code GET  /mensaje-soportes/:id} : get the "id" mensajeSoporte.
      *
      * @param id the id of the mensajeSoporteDTO to retrieve.

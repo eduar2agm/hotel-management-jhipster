@@ -1,7 +1,7 @@
 import { apiClient } from '../api/axios-instance';
 import type { ReservaDetalleDTO, NewReservaDetalleDTO } from '../types/api';
 
-const base = '/api/reserva-detalles';
+const base = '/reserva-detalles';
 
 export const ReservaDetalleService = {
     getReservaDetalles: (params?: Record<string, any>) => apiClient.get<ReservaDetalleDTO[]>(base, { params }),

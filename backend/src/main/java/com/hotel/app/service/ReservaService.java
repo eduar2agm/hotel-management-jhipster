@@ -63,4 +63,13 @@ public interface ReservaService {
      * @param id the id of the entity.
      */
     void delete(Long id);
+
+    /**
+     * Get all the reservas by clienteId.
+     *
+     * @param clienteId the id of the client.
+     * @param pageable  the pagination information.
+     * @return the list of entities.
+     */
+    Page<ReservaDTO> findAllByClienteId(Long clienteId, Pageable pageable);
 }

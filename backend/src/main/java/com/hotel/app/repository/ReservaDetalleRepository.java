@@ -26,17 +26,15 @@ public interface ReservaDetalleRepository extends JpaRepository<ReservaDetalle, 
         return this.findAllWithToOneRelationships(pageable);
     }
 
-    @Query(
-        value = "select reservaDetalle from ReservaDetalle reservaDetalle left join fetch reservaDetalle.habitacion",
-        countQuery = "select count(reservaDetalle) from ReservaDetalle reservaDetalle"
-    )
+    @Query(value = "select reservaDetalle from ReservaDetalle reservaDetalle left join fetch reservaDetalle.habitacion h left join fetch h.categoriaHabitacion", countQuery = "select count(reservaDetalle) from ReservaDetalle reservaDetalle")
     Page<ReservaDetalle> findAllWithToOneRelationships(Pageable pageable);
 
-    @Query("select reservaDetalle from ReservaDetalle reservaDetalle left join fetch reservaDetalle.habitacion")
+    @Query("select reservaDetalle from ReservaDetalle reservaDetalle left join fetch reservaDetalle.habitacion h left join fetch h.categoriaHabitacion")
     List<ReservaDetalle> findAllWithToOneRelationships();
 
-    @Query(
-        "select reservaDetalle from ReservaDetalle reservaDetalle left join fetch reservaDetalle.habitacion where reservaDetalle.id =:id"
-    )
+    @Query("select reservaDetalle from ReservaDetalle reservaDetalle left join fetch reservaDetalle.habitacion h left join fetch h.categoriaHabitacion where reservaDetalle.id = :id")
     Optional<ReservaDetalle> findOneWithToOneRelationships(@Param("id") Long id);
+
+    @Query("select reservaDetalle from ReservaDetalle reservaDetalle left join fetch reservaDetalle.habitacion h left join fetch h.categoriaHabitacion where reservaDetalle.reserva.id = :reservaId")
+    Page<ReservaDetalle> findAllByReservaId(@Param("reservaId") Long reservaId, Pageable pageable);
 }

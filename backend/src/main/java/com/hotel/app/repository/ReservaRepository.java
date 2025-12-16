@@ -26,10 +26,7 @@ public interface ReservaRepository extends JpaRepository<Reserva, Long> {
         return this.findAllWithToOneRelationships(pageable);
     }
 
-    @Query(
-        value = "select reserva from Reserva reserva left join fetch reserva.cliente",
-        countQuery = "select count(reserva) from Reserva reserva"
-    )
+    @Query(value = "select reserva from Reserva reserva left join fetch reserva.cliente", countQuery = "select count(reserva) from Reserva reserva")
     Page<Reserva> findAllWithToOneRelationships(Pageable pageable);
 
     @Query("select reserva from Reserva reserva left join fetch reserva.cliente")
@@ -37,4 +34,6 @@ public interface ReservaRepository extends JpaRepository<Reserva, Long> {
 
     @Query("select reserva from Reserva reserva left join fetch reserva.cliente where reserva.id =:id")
     Optional<Reserva> findOneWithToOneRelationships(@Param("id") Long id);
+
+    Page<Reserva> findByClienteId(Long clienteId, Pageable pageable);
 }

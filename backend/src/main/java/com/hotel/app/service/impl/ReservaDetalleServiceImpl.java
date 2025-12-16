@@ -14,7 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Service Implementation for managing {@link com.hotel.app.domain.ReservaDetalle}.
+ * Service Implementation for managing
+ * {@link com.hotel.app.domain.ReservaDetalle}.
  */
 @Service
 @Transactional
@@ -26,7 +27,8 @@ public class ReservaDetalleServiceImpl implements ReservaDetalleService {
 
     private final ReservaDetalleMapper reservaDetalleMapper;
 
-    public ReservaDetalleServiceImpl(ReservaDetalleRepository reservaDetalleRepository, ReservaDetalleMapper reservaDetalleMapper) {
+    public ReservaDetalleServiceImpl(ReservaDetalleRepository reservaDetalleRepository,
+            ReservaDetalleMapper reservaDetalleMapper) {
         this.reservaDetalleRepository = reservaDetalleRepository;
         this.reservaDetalleMapper = reservaDetalleMapper;
     }
@@ -52,14 +54,14 @@ public class ReservaDetalleServiceImpl implements ReservaDetalleService {
         LOG.debug("Request to partially update ReservaDetalle : {}", reservaDetalleDTO);
 
         return reservaDetalleRepository
-            .findById(reservaDetalleDTO.getId())
-            .map(existingReservaDetalle -> {
-                reservaDetalleMapper.partialUpdate(existingReservaDetalle, reservaDetalleDTO);
+                .findById(reservaDetalleDTO.getId())
+                .map(existingReservaDetalle -> {
+                    reservaDetalleMapper.partialUpdate(existingReservaDetalle, reservaDetalleDTO);
 
-                return existingReservaDetalle;
-            })
-            .map(reservaDetalleRepository::save)
-            .map(reservaDetalleMapper::toDto);
+                    return existingReservaDetalle;
+                })
+                .map(reservaDetalleRepository::save)
+                .map(reservaDetalleMapper::toDto);
     }
 
     @Override
@@ -71,6 +73,13 @@ public class ReservaDetalleServiceImpl implements ReservaDetalleService {
 
     public Page<ReservaDetalleDTO> findAllWithEagerRelationships(Pageable pageable) {
         return reservaDetalleRepository.findAllWithEagerRelationships(pageable).map(reservaDetalleMapper::toDto);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ReservaDetalleDTO> findAllByReservaId(Long reservaId, Pageable pageable) {
+        LOG.debug("Request to get all ReservaDetalles by reservaId : {}", reservaId);
+        return reservaDetalleRepository.findAllByReservaId(reservaId, pageable).map(reservaDetalleMapper::toDto);
     }
 
     @Override

@@ -3,9 +3,7 @@
   "realm": "jhipster",
   "displayName": "JHipster",
   "displayNameHtml": "<div class=\"kc-logo-text\"><span>JHipster</span></div>",
-
   "loginTheme": "hotel",
-
   "notBefore": 0,
   "defaultSignatureAlgorithm": "RS256",
   "revokeRefreshToken": false,
@@ -746,12 +744,13 @@
       "surrogateAuthRequired": false,
       "enabled": true,
       "alwaysDisplayInConsole": false,
-      "clientAuthenticatorType": "client-secret",
       "redirectUris": [
-        "http://localhost:5173/*"
+        "http://localhost:5173/*",
+        "http://localhost:5173/login"
       ],
       "webOrigins": [
-        "http://localhost:5173"
+        "http://localhost:5173",
+        "+"
       ],
       "notBefore": 0,
       "bearerOnly": false,
@@ -772,7 +771,8 @@
         "frontchannel.logout.session.required": "true",
         "oauth2.device.authorization.grant.enabled": "false",
         "display.on.consent.screen": "false",
-        "backchannel.logout.revoke.offline.tokens": "false"
+        "backchannel.logout.revoke.offline.tokens": "false",
+        "pkce.code.challenge.method": "S256"
       },
       "authenticationFlowBindingOverrides": {},
       "fullScopeAllowed": true,
@@ -783,13 +783,13 @@
         "roles",
         "profile",
         "basic",
-        "email"
+        "email",
+        "microprofile-jwt"
       ],
       "optionalClientScopes": [
         "address",
         "phone",
-        "offline_access",
-        "microprofile-jwt"
+        "offline_access"
       ]
     },
     {
@@ -2590,7 +2590,7 @@
     "parRequestUriLifespan": "60",
     "clientSessionMaxLifespan": "0",
     "frontendUrl": "",
-    "acr.loa.map": "[]"
+    "acr.loa.map": "{}"
   },
   "keycloakVersion": "26.2.3",
   "userManagedAccessAllowed": false,
@@ -2614,8 +2614,24 @@
       "createdTimestamp": 1505479415590,
       "enabled": true,
       "totp": false,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "admin",
+          "temporary": false
+        }
+      ],
       "disableableCredentialTypes": [],
       "requiredActions": [],
+      "realmRoles": [
+        "ROLE_ADMIN",
+        "ROLE_USER"
+      ],
+      "clientRoles": {
+        "realm-management": [
+          "realm-admin"
+        ]
+      },
       "notBefore": 0,
       "access": {
         "manage": true
@@ -2631,8 +2647,19 @@
       "createdTimestamp": 1765640304656,
       "enabled": true,
       "totp": false,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user",
+          "temporary": false
+        }
+      ],
       "disableableCredentialTypes": [],
       "requiredActions": [],
+      "realmRoles": [
+        "ROLE_CLIENT",
+        "ROLE_USER"
+      ],
       "notBefore": 0,
       "access": {
         "manage": true
@@ -2648,8 +2675,19 @@
       "createdTimestamp": 1765640219564,
       "enabled": true,
       "totp": false,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user",
+          "temporary": false
+        }
+      ],
       "disableableCredentialTypes": [],
       "requiredActions": [],
+      "realmRoles": [
+        "ROLE_EMPLOYEE",
+        "ROLE_USER"
+      ],
       "notBefore": 0,
       "access": {
         "manage": true
@@ -2665,8 +2703,18 @@
       "createdTimestamp": 1505479373742,
       "enabled": true,
       "totp": false,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user",
+          "temporary": false
+        }
+      ],
       "disableableCredentialTypes": [],
       "requiredActions": [],
+      "realmRoles": [
+        "ROLE_USER"
+      ],
       "notBefore": 0,
       "access": {
         "manage": true

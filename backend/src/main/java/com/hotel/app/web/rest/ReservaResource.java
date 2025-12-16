@@ -1,6 +1,10 @@
 package com.hotel.app.web.rest;
 
 import com.hotel.app.repository.ReservaRepository;
+import com.hotel.app.repository.ClienteRepository;
+import com.hotel.app.domain.Cliente;
+import com.hotel.app.security.AuthoritiesConstants;
+import com.hotel.app.security.SecurityUtils;
 import com.hotel.app.service.ReservaService;
 import com.hotel.app.service.dto.ReservaDTO;
 import com.hotel.app.web.rest.errors.BadRequestAlertException;
@@ -19,6 +23,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import tech.jhipster.web.util.HeaderUtil;
@@ -43,9 +49,13 @@ public class ReservaResource {
 
     private final ReservaRepository reservaRepository;
 
-    public ReservaResource(ReservaService reservaService, ReservaRepository reservaRepository) {
+    private final ClienteRepository clienteRepository;
+
+    public ReservaResource(ReservaService reservaService, ReservaRepository reservaRepository,
+            ClienteRepository clienteRepository) {
         this.reservaService = reservaService;
         this.reservaRepository = reservaRepository;
+        this.clienteRepository = clienteRepository;
     }
 
     /**
@@ -164,6 +174,41 @@ public class ReservaResource {
             @org.springdoc.core.annotations.ParameterObject Pageable pageable,
             @RequestParam(name = "eagerload", required = false, defaultValue = "true") boolean eagerload) {
         LOG.debug("REST request to get a page of Reservas");
+
+        // Auto-filter for Clients
+        if (SecurityUtils.hasCurrentUserThisAuthority(AuthoritiesConstants.CLIENT) &&
+                !SecurityUtils.hasCurrentUserThisAuthority(AuthoritiesConstants.ADMIN) &&
+                !SecurityUtils.hasCurrentUserThisAuthority(AuthoritiesConstants.EMPLOYEE)) {
+
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            Optional<Cliente> cliente = Optional.empty();
+
+            if (authentication.getPrincipal() instanceof org.springframework.security.oauth2.jwt.Jwt) {
+                org.springframework.security.oauth2.jwt.Jwt jwt = (org.springframework.security.oauth2.jwt.Jwt) authentication
+                        .getPrincipal();
+                String sub = jwt.getSubject();
+                cliente = clienteRepository.findOneByKeycloakId(sub);
+            }
+
+            if (!cliente.isPresent()) {
+                String login = SecurityUtils.getCurrentUserLogin().orElse("");
+                cliente = clienteRepository.findOneByCorreo(login);
+                if (!cliente.isPresent()) {
+                    cliente = clienteRepository.findOneByKeycloakId(login);
+                }
+            }
+
+            if (cliente.isPresent()) {
+                Page<ReservaDTO> page = reservaService.findAllByClienteId(cliente.get().getId(), pageable);
+                HttpHeaders headers = PaginationUtil
+                        .generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
+                return ResponseEntity.ok().headers(headers).body(page.getContent());
+            } else {
+                // return empty page if client profile not found
+                return ResponseEntity.ok().headers(new HttpHeaders()).body(List.of());
+            }
+        }
+
         Page<ReservaDTO> page;
         if (eagerload) {
             page = reservaService.findAllWithEagerRelationships(pageable);

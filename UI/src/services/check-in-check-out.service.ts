@@ -1,7 +1,7 @@
 import { apiClient } from '../api/axios-instance';
 import type { CheckInCheckOutDTO, NewCheckInCheckOutDTO } from '../types/api';
 
-const base = '/api/check-in-check-outs';
+const base = '/check-in-check-outs';
 
 export const CheckInCheckOutService = {
     getAll: (params?: Record<string, any>) => apiClient.get<CheckInCheckOutDTO[]>(base, { params }),

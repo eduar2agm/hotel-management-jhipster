@@ -24,7 +24,8 @@ public final class SecurityUtils {
 
     public static final String CLAIMS_NAMESPACE = "https://www.jhipster.tech/";
 
-    private SecurityUtils() {}
+    private SecurityUtils() {
+    }
 
     /**
      * Get the login of the current user.
@@ -61,7 +62,8 @@ public final class SecurityUtils {
      */
     public static boolean isAuthenticated() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return authentication != null && getAuthorities(authentication).noneMatch(AuthoritiesConstants.ANONYMOUS::equals);
+        return authentication != null
+                && getAuthorities(authentication).noneMatch(AuthoritiesConstants.ANONYMOUS::equals);
     }
 
     /**
@@ -72,16 +74,16 @@ public final class SecurityUtils {
      */
     public static boolean hasCurrentUserAnyOfAuthorities(String... authorities) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return (
-            authentication != null && getAuthorities(authentication).anyMatch(authority -> Arrays.asList(authorities).contains(authority))
-        );
+        return (authentication != null && getAuthorities(authentication)
+                .anyMatch(authority -> Arrays.asList(authorities).contains(authority)));
     }
 
     /**
      * Checks if the current user has none of the authorities.
      *
      * @param authorities the authorities to check.
-     * @return true if the current user has none of the authorities, false otherwise.
+     * @return true if the current user has none of the authorities, false
+     *         otherwise.
      */
     public static boolean hasCurrentUserNoneOfAuthorities(String... authorities) {
         return !hasCurrentUserAnyOfAuthorities(authorities);
@@ -99,8 +101,8 @@ public final class SecurityUtils {
 
     private static Stream<String> getAuthorities(Authentication authentication) {
         Collection<? extends GrantedAuthority> authorities = authentication instanceof JwtAuthenticationToken
-            ? extractAuthorityFromClaims(((JwtAuthenticationToken) authentication).getToken().getClaims())
-            : authentication.getAuthorities();
+                ? extractAuthorityFromClaims(((JwtAuthenticationToken) authentication).getToken().getClaims())
+                : authentication.getAuthorities();
         return authorities.stream().map(GrantedAuthority::getAuthority);
     }
 
@@ -110,13 +112,45 @@ public final class SecurityUtils {
 
     @SuppressWarnings("unchecked")
     private static Collection<String> getRolesFromClaims(Map<String, Object> claims) {
-        return (Collection<String>) claims.getOrDefault(
-            "groups",
-            claims.getOrDefault("roles", claims.getOrDefault(CLAIMS_NAMESPACE + "roles", new ArrayList<>()))
-        );
+        java.util.Set<String> roles = new java.util.HashSet<>();
+
+        if (claims.containsKey("groups")) {
+            roles.addAll((Collection<String>) claims.get("groups"));
+        }
+
+        if (claims.containsKey("roles")) {
+            roles.addAll((Collection<String>) claims.get("roles"));
+        }
+
+        if (claims.containsKey(CLAIMS_NAMESPACE + "roles")) {
+            roles.addAll((Collection<String>) claims.get(CLAIMS_NAMESPACE + "roles"));
+        }
+
+        if (claims.containsKey("realm_access")) {
+            Map<String, Object> realmAccess = (Map<String, Object>) claims.get("realm_access");
+            if (realmAccess.containsKey("roles")) {
+                roles.addAll((Collection<String>) realmAccess.get("roles"));
+            }
+        }
+
+        if (claims.containsKey("resource_access")) {
+            Map<String, Object> resourceAccess = (Map<String, Object>) claims.get("resource_access");
+            // Iterate over all clients in resource_access
+            resourceAccess.values().forEach(clientAccess -> {
+                if (clientAccess instanceof Map) {
+                    Map<String, Object> clientMap = (Map<String, Object>) clientAccess;
+                    if (clientMap.containsKey("roles")) {
+                        roles.addAll((Collection<String>) clientMap.get("roles"));
+                    }
+                }
+            });
+        }
+
+        return roles;
     }
 
     private static List<GrantedAuthority> mapRolesToGrantedAuthorities(Collection<String> roles) {
-        return roles.stream().filter(role -> role.startsWith("ROLE_")).map(SimpleGrantedAuthority::new).collect(Collectors.toList());
+        return roles.stream().filter(role -> role.startsWith("ROLE_")).map(SimpleGrantedAuthority::new)
+                .collect(Collectors.toList());
     }
 }
