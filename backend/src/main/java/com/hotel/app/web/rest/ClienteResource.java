@@ -216,4 +216,32 @@ public class ClienteResource {
                 .headers(HeaderUtil.createEntityDeletionAlert(applicationName, false, ENTITY_NAME, id.toString()))
                 .build();
     }
+
+    /**
+     * {@code PUT  /clientes/:id/activate} : activate the "id" cliente.
+     *
+     * @param id the id of the clienteDTO to activate.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)}.
+     */
+    @PutMapping("/{id}/activate")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    public ResponseEntity<Void> activateCliente(@PathVariable Long id) {
+        LOG.debug("REST request to activate Cliente : {}", id);
+        clienteService.activate(id);
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * {@code PUT  /clientes/:id/deactivate} : deactivate the "id" cliente.
+     *
+     * @param id the id of the clienteDTO to deactivate.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)}.
+     */
+    @PutMapping("/{id}/deactivate")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    public ResponseEntity<Void> deactivateCliente(@PathVariable Long id) {
+        LOG.debug("REST request to deactivate Cliente : {}", id);
+        clienteService.deactivate(id);
+        return ResponseEntity.ok().build();
+    }
 }
