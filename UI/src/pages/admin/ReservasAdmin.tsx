@@ -47,7 +47,7 @@ import { type ReservaDTO } from '../../types/api/Reserva';
 import { type ClienteDTO } from '../../types/api/Cliente';
 import { type HabitacionDTO } from '../../types/api/Habitacion';
 import { toast } from 'sonner';
-import { Pencil, Trash2, Plus, Calendar, Search, User, Check, AlertCircle, RefreshCcw, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Pencil, Trash2, Plus, Calendar, Search, User, Check, AlertCircle, RefreshCcw, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
@@ -80,6 +80,11 @@ export const AdminReservas = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
+
+    // Details View State
+    const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+    const [selectedReserva, setSelectedReserva] = useState<ReservaDTO | null>(null);
+    const [selectedReservaRooms, setSelectedReservaRooms] = useState<HabitacionDTO[]>([]);
 
     // Filter State
     const [searchTerm, setSearchTerm] = useState('');
@@ -119,7 +124,7 @@ export const AdminReservas = () => {
 
             if (loadedReservas.length > 0) {
                 const ids = loadedReservas.map(r => r.id).join(',');
-                const detailsRes = await ReservaDetalleService.getReservaDetalles({ 'reservaId.in': ids });
+                const detailsRes = await ReservaDetalleService.getReservaDetalles({ 'reservaId.in': ids, size: 100 });
 
                 const mapping: Record<number, string> = {};
                 detailsRes.data.forEach(det => {
@@ -189,6 +194,27 @@ export const AdminReservas = () => {
             console.error(error);
             toast.error('Error cargando detalles');
             setIsDialogOpen(false);
+        }
+    };
+
+    const handleViewDetails = async (reserva: ReservaDTO) => {
+        setSelectedReserva(reserva);
+        setSelectedReservaRooms([]); // Reset previuos
+        setIsDetailsOpen(true);
+        try {
+            const detailsRes = await ReservaDetalleService.getReservaDetalles({ 'reservaId.equals': reserva.id });
+            // Extract unique rooms
+            const rooms = detailsRes.data
+                .map(d => d.habitacion)
+                .filter((h): h is HabitacionDTO => !!h);
+
+            // Remove duplicates
+            const uniqueRooms = Array.from(new Map(rooms.map(item => [item.id, item])).values());
+
+            setSelectedReservaRooms(uniqueRooms);
+        } catch (error) {
+            console.error('Error fetching details', error);
+            toast.error('Error al cargar detalles de la reserva');
         }
     };
 
@@ -282,6 +308,9 @@ export const AdminReservas = () => {
         const id = r.id?.toString() || '';
         return clientName.includes(lowerTerm) || status.includes(lowerTerm) || id.includes(lowerTerm);
     });
+
+    // Find full client data
+    const fullClient = selectedReserva ? clientes.find(c => c.id === selectedReserva.clienteId) : null;
 
     return (
         <div className="font-sans text-gray-900 bg-gray-50 min-h-screen flex flex-col">
@@ -413,6 +442,15 @@ export const AdminReservas = () => {
                                             </TableCell>
                                             <TableCell className="text-right p-4">
                                                 <div className="flex justify-end gap-2">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => handleViewDetails(reserva)}
+                                                        className="h-8 w-8 p-0 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
+                                                        title="Ver detalles"
+                                                    >
+                                                        <Eye className="h-4 w-4" />
+                                                    </Button>
                                                     <Button
                                                         variant="ghost"
                                                         size="sm"
@@ -623,6 +661,100 @@ export const AdminReservas = () => {
                             </form>
                         </Form>
                     </div>
+                </DialogContent>
+            </Dialog>
+
+            {/* DETAILS DIALOG */}
+            <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
+                <DialogContent className="sm:max-w-[700px] p-0 overflow-hidden border-0 shadow-2xl">
+                    <DialogHeader className="bg-[#0F172A] text-white p-6">
+                        <div className="flex justify-between items-start">
+                            <div>
+                                <DialogTitle className="text-2xl font-bold flex items-center gap-2">
+                                    <span className="text-yellow-500">#{selectedReserva?.id}</span>
+                                    <span>Detalles de Reserva</span>
+                                </DialogTitle>
+                                <DialogDescription className="text-slate-400 mt-1">
+                                    Información completa de la reserva y habitaciones.
+                                </DialogDescription>
+                            </div>
+                            <Badge className={cn(
+                                "text-sm px-3 py-1",
+                                selectedReserva?.estado === 'CONFIRMADA' ? "bg-green-500 text-white" :
+                                    selectedReserva?.estado === 'CANCELADA' ? "bg-red-500 text-white" :
+                                        "bg-yellow-500 text-black"
+                            )}>
+                                {selectedReserva?.estado}
+                            </Badge>
+                        </div>
+                    </DialogHeader>
+
+                    {selectedReserva && (
+                        <div className="p-6 bg-white space-y-8">
+                            {/* CLIENT SECTION */}
+                            <div className="flex items-start gap-4">
+                                <div className="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold text-lg">
+                                    {fullClient?.nombre?.charAt(0) || <User />}
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-bold text-gray-900">
+                                        {fullClient?.nombre} {fullClient?.apellido}
+                                    </h3>
+                                    <div className="text-sm text-gray-500 flex flex-col">
+                                        <span>{fullClient?.correo}</span>
+                                        <span>{fullClient?.telefono}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-8 border-t border-b border-gray-100 py-6">
+                                <div>
+                                    <span className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-1">Entrada</span>
+                                    <span className="text-xl font-bold text-gray-800">
+                                        {new Date(selectedReserva.fechaInicio!).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                    </span>
+                                </div>
+                                <div>
+                                    <span className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-1">Salida</span>
+                                    <span className="text-xl font-bold text-gray-800">
+                                        {new Date(selectedReserva.fechaFin!).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* ROOMS SECTION */}
+                            <div>
+                                <h4 className="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
+                                    <span className="bg-yellow-100 p-1 rounded text-yellow-700"><Check className="h-3 w-3" /></span>
+                                    Habitaciones Reservadas
+                                </h4>
+                                {selectedReservaRooms.length > 0 ? (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        {selectedReservaRooms.map((room, index) => (
+                                            <div key={room.id || index} className="flex items-center gap-3 p-3 rounded-lg border border-gray-100 bg-gray-50">
+                                                <div className="h-10 w-10 bg-white rounded flex items-center justify-center text-gray-400 border border-gray-200 shadow-sm font-mono font-bold">
+                                                    {room.numero}
+                                                </div>
+                                                <div>
+                                                    <p className="font-bold text-gray-800 text-sm">{room.categoriaHabitacion?.nombre}</p>
+                                                    <p className="text-xs text-gray-500">Capacidad: {room.capacidad} pers.</p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="text-sm text-gray-400 italic flex items-center gap-2">
+                                        <div className="animate-spin h-3 w-3 border-b-2 border-gray-400 rounded-full"></div>
+                                        Cargando detalles...
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    <DialogFooter className="bg-gray-50 p-4 border-t">
+                        <Button onClick={() => setIsDetailsOpen(false)} variant="outline" className="w-full">Cerrar</Button>
+                    </DialogFooter>
                 </DialogContent>
             </Dialog>
             <Footer />
