@@ -187,7 +187,7 @@ public class CategoriaHabitacionResource {
         if (activo != null) {
             page = categoriaHabitacionService.findByActivo(activo, pageable);
         } else {
-            page = categoriaHabitacionService.findAll(pageable);
+            page = categoriaHabitacionService.findByActivo(true, pageable);
         }
         HttpHeaders headers = PaginationUtil
                 .generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
