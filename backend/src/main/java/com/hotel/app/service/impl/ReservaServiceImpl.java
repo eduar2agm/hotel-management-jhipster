@@ -94,6 +94,13 @@ public class ReservaServiceImpl implements ReservaService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public Page<ReservaDTO> findByActivo(Boolean activo, Pageable pageable) {
+        LOG.debug("Request to get Reservas by activo : {}", activo);
+        return reservaRepository.findByActivo(activo, pageable).map(reservaMapper::toDto);
+    }
+
+    @Override
     public void activate(Long id) {
         LOG.debug("Request to activate Reserva : {}", id);
         reservaRepository
