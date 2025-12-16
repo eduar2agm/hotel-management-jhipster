@@ -22,6 +22,8 @@ import { ClientReservas } from './pages/client/ClientReservas';
 import { NuevaReserva } from './pages/client/NuevaReserva';
 import { Perfil } from './pages/client/Perfil';
 import { ClientMensajesSoporte } from './pages/client/MensajesSoporte';
+import { Servicios } from './pages/client/Servicios';
+import { Menu } from './pages/client/Menu';
 import { Toaster } from 'sonner';
 import { AuthTokenSync } from './components/AuthTokenSync';
 import './api/axios-interceptors';
@@ -62,10 +64,13 @@ function App() {
           <Route path="/employee/soporte" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN', 'ROLE_EMPLOYEE']}><EmployeeMensajesSoporte /></ProtectedRoute>} />
 
           {/* Client Routes */}
+          <Route path="/HomePage" element={<Home />} />
           <Route path="/client/reservas" element={<ProtectedRoute requiredRoles={['ROLE_CLIENT']}><ClientReservas /></ProtectedRoute>} />
           <Route path="/client/nueva-reserva" element={<ProtectedRoute requiredRoles={['ROLE_CLIENT']}><NuevaReserva /></ProtectedRoute>} />
           <Route path="/client/perfil" element={<ProtectedRoute requiredRoles={['ROLE_CLIENT']}><Perfil /></ProtectedRoute>} />
           <Route path="/client/soporte" element={<ProtectedRoute requiredRoles={['ROLE_CLIENT']}><ClientMensajesSoporte /></ProtectedRoute>} />
+          <Route path="/client/servicos" element={<ProtectedRoute requiredRoles={['ROLE_CLIENT']}><Servicios /></ProtectedRoute>} />
+          <Route path="/client/menu" element={<ProtectedRoute requiredRoles={['ROLE_CLIENT']}><Menu /></ProtectedRoute>} />
 
           {/* Default Redirect */}
           <Route path="/" element={<Navigate to="/login" replace />} />

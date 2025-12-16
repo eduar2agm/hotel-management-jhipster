@@ -136,7 +136,7 @@ export const Servicios = () => {
                 Disfruta de nuestros 3 restaurantes temáticos. Desayuno buffet incluido en todas las reservas.
             </p>
             <div className="flex justify-center gap-4 pt-4">
-                <Link to="/Menu" className="border border-white text-white px-8 py-3 uppercase tracking-widest text-sm font-bold hover:bg-white hover:text-gray-900 transition-colors">
+                <Link to="/client/Menu" className="border border-white text-white px-8 py-3 uppercase tracking-widest text-sm font-bold hover:bg-white hover:text-gray-900 transition-colors">
                     Ver Menú
                 </Link>
             </div>

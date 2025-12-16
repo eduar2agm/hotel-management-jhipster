@@ -1,20 +1,22 @@
 import { useEffect, useState } from 'react';
-import { DashboardLayout } from '../../components/DashboardLayout';
 import { MensajeSoporteService } from '../../services';
 import type { MensajeSoporteDTO } from '../../types/api';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Search } from 'lucide-react';
+import { Plus, Search, MessageSquare, Clock, Send, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '../../hooks/useAuth';
 
+// Importamos los componentes de UI del Hotel
+import { Navbar } from '../../components/ui/Navbar';
+import { Footer } from '../../components/ui/Footer';
+
 export const ClientMensajesSoporte = () => {
+    // --- LÓGICA ORIGINAL INTACTA ---
     const { user } = useAuth();
     const [mensajes, setMensajes] = useState<MensajeSoporteDTO[]>([]);
     const [loading, setLoading] = useState(false);
@@ -72,104 +74,164 @@ export const ClientMensajesSoporte = () => {
         m.mensaje?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
+    // --- RENDERIZADO UI (REFACTORIZADO) ---
+
     return (
-        <DashboardLayout title="Soporte" role="Cliente">
-            <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                    <CardTitle>Mis Mensajes de Soporte</CardTitle>
-                    <div className="flex gap-2">
-                        <div className="relative">
-                            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+        <div className="font-sans text-gray-900 bg-gray-50 min-h-screen flex flex-col">
+            <Navbar />
+
+            {/* --- HERO SECTION --- 
+                Agregamos pt-32 (padding top) para compensar el Navbar absoluto y evitar que tape el contenido.
+                Fondo azul marino oscuro (#0f172a = slate-900) solicitado.
+            */}
+            <div className="relative bg-[#0F172A] pt-32 pb-20 px-4 md:px-8 lg:px-20 overflow-hidden shadow-xl">
+                 {/* Efecto de fondo sutil */}
+                 <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-blue-900/10 to-transparent pointer-events-none"></div>
+                 
+                 <div className="relative max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-end md:items-center gap-6">
+                    <div>
+                        <span className="text-yellow-500 font-bold tracking-[0.2em] uppercase text-xs mb-3 block animate-in fade-in slide-in-from-bottom-2 duration-500">
+                            Concierge Digital
+                        </span>
+                        <h2 className="text-4xl md:text-5xl font-black text-white tracking-tight mb-4">
+                            Asistencia al Huésped
+                        </h2>
+                        <p className="text-slate-400 font-light text-lg max-w-xl leading-relaxed">
+                            Estamos aquí para resolver sus dudas y peticiones especiales. Su satisfacción es nuestra prioridad.
+                        </p>
+                    </div>
+                 </div>
+            </div>
+
+            <main className="flex-grow py-12 px-4 md:px-8 lg:px-20 relative z-10">
+                <div className="max-w-5xl mx-auto -mt-8">
+
+                    {/* Barra de Herramientas */}
+                    <div className="flex flex-col md:flex-row gap-4 justify-between items-center mb-8">
+                        <div className="relative w-full md:w-96">
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                             <Input
-                                placeholder="Buscar en mensajes..."
-                                className="pl-8 w-[250px]"
+                                placeholder="Buscar en mis consultas..."
+                                className="pl-10 border-gray-200 bg-white h-11 focus:border-yellow-600 focus:ring-yellow-600/20 rounded-sm"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
                         </div>
+
                         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                             <DialogTrigger asChild>
-                                <Button onClick={handleCreate}>
-                                    <Plus className="mr-2 h-4 w-4" /> Contactar Soporte
+                                <Button 
+                                    onClick={handleCreate}
+                                    className="w-full md:w-auto bg-gray-900 hover:bg-gray-800 text-white rounded-none px-6 h-11 shadow-lg transition-all"
+                                >
+                                    <Plus className="mr-2 h-4 w-4 text-yellow-500" /> Nueva Solicitud
                                 </Button>
                             </DialogTrigger>
-                            <DialogContent>
+                            <DialogContent className="sm:max-w-[500px] border-t-4 border-t-yellow-600 rounded-sm">
                                 <DialogHeader>
-                                    <DialogTitle>Contactar Soporte</DialogTitle>
+                                    <DialogTitle className="text-xl font-bold text-gray-900 uppercase tracking-wide">
+                                        Contactar a Recepción
+                                    </DialogTitle>
                                 </DialogHeader>
-                                <form onSubmit={handleSubmit} className="grid gap-4 py-4">
+                                <form onSubmit={handleSubmit} className="grid gap-6 py-4">
                                     <div className="grid gap-2">
-                                        <Label htmlFor="mensaje">¿En qué podemos ayudarte?</Label>
+                                        <Label htmlFor="mensaje" className="text-xs font-bold text-gray-500 uppercase tracking-widest">
+                                            ¿En qué podemos servirle?
+                                        </Label>
                                         <Textarea
                                             id="mensaje"
                                             rows={5}
-                                            placeholder="Describe tu consulta o problema..."
+                                            className="border-gray-200 focus:border-yellow-600 bg-gray-50/50 resize-none"
+                                            placeholder="Describa su solicitud, duda o requerimiento..."
                                             value={currentItem.mensaje || ''}
                                             onChange={e => setCurrentItem({ ...currentItem, mensaje: e.target.value })}
                                             required
                                         />
                                     </div>
                                     <DialogFooter>
-                                        <Button type="submit">Enviar Mensaje</Button>
+                                        <Button type="submit" className="bg-yellow-600 hover:bg-yellow-700 text-white w-full rounded-sm">
+                                            Enviar Mensaje
+                                        </Button>
                                     </DialogFooter>
                                 </form>
                             </DialogContent>
                         </Dialog>
                     </div>
-                </CardHeader>
-                <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Fecha</TableHead>
-                                <TableHead>Dirección</TableHead>
-                                <TableHead>Mensaje</TableHead>
-                                <TableHead>Estado</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {loading ? (
-                                <TableRow><TableCell colSpan={4} className="text-center">Cargando...</TableCell></TableRow>
-                            ) : filteredMensajes.length === 0 ? (
-                                <TableRow><TableCell colSpan={4} className="text-center">No has enviado mensajes aún.</TableCell></TableRow>
-                            ) : (
-                                filteredMensajes.map((msg) => {
-                                    const isSent = msg.userId === user?.id;
 
+                    {/* Lista de Mensajes (Reemplazo de Tabla) */}
+                    <div className="space-y-4">
+                        {loading ? (
+                            <div className="text-center py-20">
+                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-600 mx-auto"></div>
+                                <p className="mt-4 text-gray-400 text-sm tracking-widest uppercase">Consultando historial...</p>
+                            </div>
+                        ) : filteredMensajes.length === 0 ? (
+                            <div className="bg-white p-12 text-center rounded-sm border border-dashed border-gray-300">
+                                <MessageSquare className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                                <h3 className="text-lg font-medium text-gray-900">Sin mensajes recientes</h3>
+                                <p className="text-gray-500 mt-1 text-sm">No ha enviado ninguna solicitud de soporte todavía.</p>
+                            </div>
+                        ) : (
+                            <div className="grid gap-4">
+                                {filteredMensajes.map((msg) => {
+                                    const isSentByUser = msg.userId === user?.id;
+                                    
                                     return (
-                                        <TableRow key={msg.id} className={!msg.leido && !isSent ? 'bg-muted/50 font-medium' : ''}>
-                                            <TableCell className="w-[180px]">
-                                                {new Date(msg.fechaMensaje).toLocaleDateString()} {new Date(msg.fechaMensaje).toLocaleTimeString()}
-                                            </TableCell>
-                                            <TableCell>
-                                                {isSent ? (
-                                                    <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                                                        Enviado a Soporte
-                                                    </Badge>
-                                                ) : (
-                                                    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                                                        Respuesta de Soporte
-                                                    </Badge>
-                                                )}
-                                            </TableCell>
-                                            <TableCell className="max-w-[500px]" title={msg.mensaje}>
-                                                {msg.mensaje}
-                                            </TableCell>
-                                            <TableCell>
-                                                {msg.leido ? (
-                                                    <Badge variant="outline" className="text-green-600 border-green-200 bg-green-50">Leído por soporte</Badge>
-                                                ) : (
-                                                    <Badge variant="secondary">Enviado</Badge>
-                                                )}
-                                            </TableCell>
-                                        </TableRow>
+                                        <div 
+                                            key={msg.id} 
+                                            className={`bg-white p-6 rounded-sm border transition-all duration-300 hover:shadow-md
+                                                ${!msg.leido && !isSentByUser ? 'border-l-4 border-l-yellow-500 shadow-sm' : 'border-l-4 border-l-gray-200 border-gray-100'}
+                                            `}
+                                        >
+                                            <div className="flex flex-col md:flex-row justify-between gap-4">
+                                                <div className="flex-grow space-y-2">
+                                                    <div className="flex items-center gap-2 mb-2">
+                                                        {isSentByUser ? (
+                                                            <Badge variant="outline" className="bg-blue-50 text-blue-800 border-blue-100 rounded-full px-3 py-0.5 text-[10px] uppercase tracking-wider font-bold">
+                                                                <Send className="w-3 h-3 mr-1" /> Enviado
+                                                            </Badge>
+                                                        ) : (
+                                                            <Badge variant="outline" className="bg-emerald-50 text-emerald-800 border-emerald-100 rounded-full px-3 py-0.5 text-[10px] uppercase tracking-wider font-bold">
+                                                                <MessageSquare className="w-3 h-3 mr-1" /> Respuesta
+                                                            </Badge>
+                                                        )}
+                                                        
+                                                        <span className="text-xs text-gray-400 flex items-center gap-1">
+                                                            <Clock className="w-3 h-3" />
+                                                            {new Date(msg.fechaMensaje!).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                                                            {' • '}
+                                                            {new Date(msg.fechaMensaje!).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
+                                                        </span>
+                                                    </div>
+                                                    
+                                                    <p className="text-gray-700 leading-relaxed text-sm md:text-base">
+                                                        {msg.mensaje}
+                                                    </p>
+                                                </div>
+
+                                                <div className="flex items-center md:flex-col md:items-end md:justify-center min-w-[120px] pt-4 md:pt-0 border-t md:border-t-0 md:border-l border-gray-100 pl-0 md:pl-6 gap-2">
+                                                    <span className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Estado</span>
+                                                    {msg.leido ? (
+                                                        <div className="flex items-center text-emerald-600 text-xs font-medium bg-emerald-50 px-3 py-1 rounded-full">
+                                                            <CheckCircle2 className="w-3 h-3 mr-1" /> Visto
+                                                        </div>
+                                                    ) : (
+                                                        <div className="flex items-center text-gray-500 text-xs font-medium bg-gray-100 px-3 py-1 rounded-full">
+                                                            Enviado
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
                                     );
-                                })
-                            )}
-                        </TableBody>
-                    </Table>
-                </CardContent>
-            </Card>
-        </DashboardLayout>
+                                })}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </main>
+
+            <Footer />
+        </div>
     );
 };

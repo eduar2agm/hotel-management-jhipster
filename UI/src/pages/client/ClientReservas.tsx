@@ -114,7 +114,7 @@ export const ClientReservas = () => {
                     
                     <Link to="/client/nueva-reserva" className="w-full md:w-auto">
                         <Button className="w-full md:w-auto bg-yellow-600 hover:bg-yellow-700 text-white rounded-none px-8 py-6 text-md font-bold transition-all duration-300 shadow-lg hover:shadow-yellow-900/20 border border-yellow-600/30">
-                            <Plus className="mr-2 h-5 w-5" /> Planear Nueva Visita
+                            <Plus className="mr-2 h-5 w-5" /> Nueva reserva
                         </Button>
                     </Link>
                  </div>

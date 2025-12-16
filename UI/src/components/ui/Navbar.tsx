@@ -15,10 +15,11 @@ export const Navbar = () => {
 
       {/* Menú Central */}
       <div className="hidden md:flex space-x-8 text-sm font-medium uppercase tracking-wider">
-        <Link to="/home" className="hover:text-yellow-400 transition-colors">Home</Link>
-        <Link to="/reservas" className="hover:text-yellow-400 transition-colors">Reservas</Link>
-        <Link to="/habitaciones" className="hover:text-yellow-400 transition-colors">Habitaciones</Link>
-        <Link to="/servicios" className="hover:text-yellow-400 transition-colors">Servicios</Link>
+        <Link to="/HomePage" className="hover:text-yellow-400 transition-colors">Home</Link>
+        <Link to="/client/reservas" className="hover:text-yellow-400 transition-colors">Reservas</Link>
+        <Link to="/client/perfil" className="hover:text-yellow-400 transition-colors">Mi perfil</Link>
+        <Link to="/client/soporte" className="hover:text-yellow-400 transition-colors">Soporte</Link>
+        <Link to="/client/servicos" className="hover:text-yellow-400 transition-colors">Servicios</Link>
       </div>
 
       {/* Botón Login / Logout */}
