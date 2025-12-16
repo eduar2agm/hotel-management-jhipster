@@ -14,7 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Service Implementation for managing {@link com.hotel.app.domain.EstadoHabitacion}.
+ * Service Implementation for managing
+ * {@link com.hotel.app.domain.EstadoHabitacion}.
  */
 @Service
 @Transactional
@@ -27,9 +28,8 @@ public class EstadoHabitacionServiceImpl implements EstadoHabitacionService {
     private final EstadoHabitacionMapper estadoHabitacionMapper;
 
     public EstadoHabitacionServiceImpl(
-        EstadoHabitacionRepository estadoHabitacionRepository,
-        EstadoHabitacionMapper estadoHabitacionMapper
-    ) {
+            EstadoHabitacionRepository estadoHabitacionRepository,
+            EstadoHabitacionMapper estadoHabitacionMapper) {
         this.estadoHabitacionRepository = estadoHabitacionRepository;
         this.estadoHabitacionMapper = estadoHabitacionMapper;
     }
@@ -55,14 +55,14 @@ public class EstadoHabitacionServiceImpl implements EstadoHabitacionService {
         LOG.debug("Request to partially update EstadoHabitacion : {}", estadoHabitacionDTO);
 
         return estadoHabitacionRepository
-            .findById(estadoHabitacionDTO.getId())
-            .map(existingEstadoHabitacion -> {
-                estadoHabitacionMapper.partialUpdate(existingEstadoHabitacion, estadoHabitacionDTO);
+                .findById(estadoHabitacionDTO.getId())
+                .map(existingEstadoHabitacion -> {
+                    estadoHabitacionMapper.partialUpdate(existingEstadoHabitacion, estadoHabitacionDTO);
 
-                return existingEstadoHabitacion;
-            })
-            .map(estadoHabitacionRepository::save)
-            .map(estadoHabitacionMapper::toDto);
+                    return existingEstadoHabitacion;
+                })
+                .map(estadoHabitacionRepository::save)
+                .map(estadoHabitacionMapper::toDto);
     }
 
     @Override
@@ -83,5 +83,27 @@ public class EstadoHabitacionServiceImpl implements EstadoHabitacionService {
     public void delete(Long id) {
         LOG.debug("Request to delete EstadoHabitacion : {}", id);
         estadoHabitacionRepository.deleteById(id);
+    }
+
+    @Override
+    public void activate(Long id) {
+        LOG.debug("Request to activate EstadoHabitacion : {}", id);
+        estadoHabitacionRepository
+                .findById(id)
+                .ifPresent(estadoHabitacion -> {
+                    estadoHabitacion.setActivo(true);
+                    estadoHabitacionRepository.save(estadoHabitacion);
+                });
+    }
+
+    @Override
+    public void deactivate(Long id) {
+        LOG.debug("Request to deactivate EstadoHabitacion : {}", id);
+        estadoHabitacionRepository
+                .findById(id)
+                .ifPresent(estadoHabitacion -> {
+                    estadoHabitacion.setActivo(false);
+                    estadoHabitacionRepository.save(estadoHabitacion);
+                });
     }
 }
