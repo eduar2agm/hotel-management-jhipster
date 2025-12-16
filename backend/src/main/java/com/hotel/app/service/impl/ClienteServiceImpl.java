@@ -103,4 +103,11 @@ public class ClienteServiceImpl implements ClienteService {
                     clienteRepository.save(cliente);
                 });
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ClienteDTO> findByActivo(Boolean activo, Pageable pageable) {
+        LOG.debug("Request to get Clientes by activo : {}", activo);
+        return clienteRepository.findByActivo(activo, pageable).map(clienteMapper::toDto);
+    }
 }
