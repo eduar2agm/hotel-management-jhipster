@@ -92,4 +92,26 @@ public class ReservaServiceImpl implements ReservaService {
         LOG.debug("Request to get Reservas by Client ID : {}", clienteId);
         return reservaRepository.findByClienteId(clienteId, pageable).map(reservaMapper::toDto);
     }
+
+    @Override
+    public void activate(Long id) {
+        LOG.debug("Request to activate Reserva : {}", id);
+        reservaRepository
+                .findById(id)
+                .ifPresent(reserva -> {
+                    reserva.setActivo(true);
+                    reservaRepository.save(reserva);
+                });
+    }
+
+    @Override
+    public void deactivate(Long id) {
+        LOG.debug("Request to deactivate Reserva : {}", id);
+        reservaRepository
+                .findById(id)
+                .ifPresent(reserva -> {
+                    reserva.setActivo(false);
+                    reservaRepository.save(reserva);
+                });
+    }
 }
