@@ -48,8 +48,7 @@ export const AdminClientes = () => {
     const [idError, setIdError] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);
     
-    // Authorization check - though route should handle it
-    const canEdit = isAdmin() || isEmployee();
+
 
     const loadClientes = async () => {
         setLoading(true);
@@ -226,7 +225,7 @@ export const AdminClientes = () => {
                             </div>
                         </div>
                     </CardHeader>
-                    <CardContent className="p-0">
+                    <CardContent className="p-10">
                         <div className="overflow-x-auto">
                             <Table>
                                 <TableHeader>
@@ -296,18 +295,25 @@ export const AdminClientes = () => {
                                                     )}
                                                 </TableCell>
                                                 <TableCell>
-                                                    {c.activo ? (
-                                                        <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 gap-1 pl-1 pr-2">
-                                                            <CheckCircle2 className="h-3 w-3" /> Activo
-                                                        </Badge>
-                                                    ) : (
-                                                        <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200 gap-1 pl-1 pr-2">
-                                                            <XCircle className="h-3 w-3" /> Inactivo
-                                                        </Badge>
-                                                    )}
+                                                    <div className="flex items-center gap-3">
+                                                        <Switch
+                                                            checked={c.activo}
+                                                            onCheckedChange={() => toggleActivo(c)}
+                                                            className="scale-90"
+                                                        />
+                                                        {c.activo ? (
+                                                            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 gap-1 pl-1 pr-2">
+                                                                <CheckCircle2 className="h-3 w-3" /> Activo
+                                                            </Badge>
+                                                        ) : (
+                                                            <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200 gap-1 pl-1 pr-2">
+                                                                <XCircle className="h-3 w-3" /> Inactivo
+                                                            </Badge>
+                                                        )}
+                                                    </div>
                                                 </TableCell>
                                                 <TableCell className="text-right p-4">
-                                                    <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <div className="flex justify-end gap-2">
                                                         <Button 
                                                             variant="outline" 
                                                             size="sm" 
@@ -327,13 +333,6 @@ export const AdminClientes = () => {
                                                             </Button>
                                                         )}
                                                     </div>
-                                                    <div className="flex justify-end gap-2 group-hover:hidden">
-                                                        <Switch
-                                                            checked={c.activo}
-                                                            onCheckedChange={() => toggleActivo(c)}
-                                                            className="scale-75"
-                                                        />
-                                                    </div>
                                                 </TableCell>
                                             </TableRow>
                                         ))
@@ -345,21 +344,21 @@ export const AdminClientes = () => {
                 </Card>
 
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                    <DialogContent className="max-w-2xl p-0 overflow-hidden border-0 shadow-2xl">
+                    <DialogContent className="max-w-md p-0 overflow-hidden border-0 shadow-2xl">
                         <DialogHeader className="bg-[#0F172A] text-white p-6">
                             <DialogTitle className="text-xl font-bold flex items-center gap-2">
                                 {isEditing ? <Pencil className="h-5 w-5 text-yellow-500" /> : <Plus className="h-5 w-5 text-yellow-500" />}
-                                {isEditing ? 'Editar Perfil de Cliente' : 'Registrar Nuevo Cliente'}
+                                {isEditing ? 'Editar Perfil' : 'Nuevo Cliente'}
                             </DialogTitle>
                             <DialogDescription className="text-slate-400">
-                                Complete la información requerida para la base de datos.
+                                Información de registro.
                             </DialogDescription>
                         </DialogHeader>
                         
-                        <form onSubmit={handleSave} className="p-6 bg-white">
-                            <div className="grid grid-cols-2 gap-6 mb-6">
-                                <div className="space-y-4">
-                                    <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest border-b pb-2">Datos Personales</h4>
+                        <form onSubmit={handleSave} className="p-6 bg-white overflow-y-auto max-h-[80vh]">
+                            <div className="space-y-4 mb-6">
+                                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest border-b pb-2">Datos Personales</h4>
+                                <div className="grid grid-cols-2 gap-4">
                                     <div className="grid gap-2">
                                         <Label className="text-xs font-semibold">Nombre</Label>
                                         <Input 
@@ -379,10 +378,9 @@ export const AdminClientes = () => {
                                         />
                                     </div>
                                 </div>
-                                <div className="space-y-4">
-                                    <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest border-b pb-2">Identificación</h4>
+                                <div className="grid grid-cols-2 gap-4">
                                     <div className="grid gap-2">
-                                        <Label className="text-xs font-semibold">Tipo</Label>
+                                        <Label className="text-xs font-semibold">Tipo ID</Label>
                                         <Select
                                             value={currentCliente.tipoIdentificacion || 'CEDULA'}
                                             onValueChange={handleTypeChange}
@@ -400,7 +398,7 @@ export const AdminClientes = () => {
                                         </Select>
                                     </div>
                                     <div className="grid gap-2">
-                                        <Label className="text-xs font-semibold">Número</Label>
+                                        <Label className="text-xs font-semibold">Número ID</Label>
                                         <div className="relative">
                                             <Input
                                                 value={currentCliente.numeroIdentificacion || ''}
@@ -416,17 +414,17 @@ export const AdminClientes = () => {
 
                             <div className="space-y-4 mb-6">
                                 <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest border-b pb-2">Contacto</h4>
-                                <div className="grid grid-cols-2 gap-6">
-                                    <div className="grid gap-2">
-                                        <Label className="text-xs font-semibold">Correo Electrónico</Label>
-                                        <Input 
-                                            type="email" 
-                                            value={currentCliente.correo || ''} 
-                                            onChange={e => setCurrentCliente({ ...currentCliente, correo: e.target.value })} 
-                                            required 
-                                            className="h-9"
-                                        />
-                                    </div>
+                                <div className="grid gap-2">
+                                    <Label className="text-xs font-semibold">Correo Electrónico</Label>
+                                    <Input 
+                                        type="email" 
+                                        value={currentCliente.correo || ''} 
+                                        onChange={e => setCurrentCliente({ ...currentCliente, correo: e.target.value })} 
+                                        required 
+                                        className="h-9"
+                                    />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
                                     <div className="grid gap-2">
                                         <Label className="text-xs font-semibold">Teléfono</Label>
                                         <Input 
@@ -435,14 +433,14 @@ export const AdminClientes = () => {
                                             className="h-9"
                                         />
                                     </div>
-                                </div>
-                                <div className="grid gap-2">
-                                    <Label className="text-xs font-semibold">Dirección</Label>
-                                    <Input 
-                                        value={currentCliente.direccion || ''} 
-                                        onChange={e => setCurrentCliente({ ...currentCliente, direccion: e.target.value })} 
-                                        className="h-9"
-                                    />
+                                    <div className="grid gap-2">
+                                        <Label className="text-xs font-semibold">Dirección</Label>
+                                        <Input 
+                                            value={currentCliente.direccion || ''} 
+                                            onChange={e => setCurrentCliente({ ...currentCliente, direccion: e.target.value })} 
+                                            className="h-9"
+                                        />
+                                    </div>
                                 </div>
                             </div>
 
