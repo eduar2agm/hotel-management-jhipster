@@ -47,6 +47,9 @@ public class Pago implements Serializable {
     @Column(name = "activo", nullable = false)
     private Boolean activo;
 
+    @Column(name = "transaction_id")
+    private String transactionId;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JsonIgnoreProperties(value = { "cliente" }, allowSetters = true)
     private Reserva reserva;
@@ -129,6 +132,19 @@ public class Pago implements Serializable {
 
     public void setActivo(Boolean activo) {
         this.activo = activo;
+    }
+
+    public String getTransactionId() {
+        return this.transactionId;
+    }
+
+    public Pago transactionId(String transactionId) {
+        this.setTransactionId(transactionId);
+        return this;
+    }
+
+    public void setTransactionId(String transactionId) {
+        this.transactionId = transactionId;
     }
 
     public Reserva getReserva() {

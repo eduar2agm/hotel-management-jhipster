@@ -33,6 +33,8 @@ public class PagoDTO implements Serializable {
 
     private ReservaDTO reserva;
 
+    private String transactionId;
+
     public Long getId() {
         return id;
     }
@@ -87,6 +89,14 @@ public class PagoDTO implements Serializable {
 
     public void setReserva(ReservaDTO reserva) {
         this.reserva = reserva;
+    }
+
+    public String getTransactionId() {
+        return transactionId;
+    }
+
+    public void setTransactionId(String transactionId) {
+        this.transactionId = transactionId;
     }
 
     @Override
