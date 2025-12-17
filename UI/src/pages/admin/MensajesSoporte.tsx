@@ -14,6 +14,8 @@ import { toast } from 'sonner';
 import { Navbar } from '../../components/ui/Navbar';
 import { Footer } from '../../components/ui/Footer';
 import { Remitente } from '../../types/enums';
+import { ActiveFilter } from '@/components/ui/ActiveFilter';
+import { Archive, ArchiveRestore } from 'lucide-react';
 
 interface Conversation {
     otherPartyId: string;
@@ -33,6 +35,7 @@ export const AdminMensajesSoporte = () => {
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
     const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
+    const [showInactive, setShowInactive] = useState(false);
 
     const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
 
@@ -47,7 +50,9 @@ export const AdminMensajesSoporte = () => {
         setLoading(true);
         try {
             const [msgsRes, clientesRes] = await Promise.all([
-                MensajeSoporteService.getMyMensajes({ page: 0, size: 1000, sort: 'fechaMensaje,desc' }),
+                showInactive
+                    ? MensajeSoporteService.getMensajesInactivos({ page: 0, size: 1000, sort: 'fechaMensaje,desc' })
+                    : MensajeSoporteService.getMyMensajes({ page: 0, size: 1000, sort: 'fechaMensaje,desc' }),
                 ClienteService.getClientes()
             ]);
             setMensajes(msgsRes.data);
@@ -62,7 +67,7 @@ export const AdminMensajesSoporte = () => {
 
     useEffect(() => {
         loadData();
-    }, []);
+    }, [showInactive]);
 
     // 1. Compute ALL conversations first
     const allConversations = useMemo(() => {
@@ -241,6 +246,25 @@ export const AdminMensajesSoporte = () => {
         }
     }
 
+    const handleToggleActivo = async (msg: MensajeSoporteDTO) => {
+        if (!msg.id) return;
+        try {
+            if (msg.activo) {
+                await MensajeSoporteService.desactivarMensaje(msg.id);
+                toast.success('Conversación archivada');
+            } else {
+                await MensajeSoporteService.activarMensaje(msg.id);
+                toast.success('Conversación restaurada');
+            }
+            loadData();
+            if (selectedConversationId === msg.userId || selectedConversationId === msg.destinatarioId) {
+                setIsViewDialogOpen(false);
+            }
+        } catch (error) {
+            toast.error('Error al cambiar estado');
+        }
+    };
+
 
     return (
         <div className="font-sans text-gray-900 bg-gray-50 min-h-screen flex flex-col">
@@ -276,7 +300,8 @@ export const AdminMensajesSoporte = () => {
                             <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
                                 <MessageCircle className="h-5 w-5 text-yellow-600" /> Bandeja de Entrada
                             </h3>
-                            <div className="flex gap-3 w-full md:w-auto">
+                            <div className="flex gap-3 w-full md:w-auto items-center">
+                                <ActiveFilter showInactive={showInactive} onChange={setShowInactive} activeLabel="Activos" inactiveLabel="Archivados" />
                                 <div className="relative w-full md:w-80">
                                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                                     <Input
@@ -371,7 +396,19 @@ export const AdminMensajesSoporte = () => {
                                                         {new Date(conv.lastMessage.fechaMensaje!).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                                     </div>
                                                 </TableCell>
-                                                <TableCell className="text-right pr-6 w-[50px]">
+                                                <TableCell className="text-right pr-6 w-[80px] flex items-center justify-end gap-2">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="h-8 w-8 text-gray-400 hover:text-blue-600"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleToggleActivo(conv.lastMessage);
+                                                        }}
+                                                        title={conv.lastMessage.activo ? "Archivar" : "Restaurar"}
+                                                    >
+                                                        {conv.lastMessage.activo ? <Archive className="h-4 w-4" /> : <ArchiveRestore className="h-4 w-4" />}
+                                                    </Button>
                                                     <ChevronRight className="h-5 w-5 text-gray-300 group-hover:text-blue-500 transition-colors" />
                                                 </TableCell>
                                             </TableRow>
