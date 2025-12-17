@@ -4,16 +4,17 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
-import { BedDouble, DollarSign, Image as ImageIcon, Pencil, Trash2, Eye, Info } from 'lucide-react';
+import { BedDouble, DollarSign, Image as ImageIcon, Pencil, Trash2, Eye, Info, CheckCircle2, XCircle } from 'lucide-react';
 import { useState } from 'react';
 
 interface RoomCardProps {
     habitacion: HabitacionDTO;
     onEdit?: (h: HabitacionDTO) => void;
     onDelete?: (id: number) => void;
+    onToggleActive?: (id: number, currentStatus: boolean | undefined) => void;
 }
 
-export const RoomCard = ({ habitacion: h, onEdit, onDelete }: RoomCardProps) => {
+export const RoomCard = ({ habitacion: h, onEdit, onDelete, onToggleActive }: RoomCardProps) => {
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
     return (
@@ -92,6 +93,17 @@ export const RoomCard = ({ habitacion: h, onEdit, onDelete }: RoomCardProps) => 
                                     title="Editar"
                                 >
                                     <Pencil className="h-4 w-4" />
+                                </Button>
+                            )}
+                            {onToggleActive && (
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => h.id && onToggleActive(h.id, h.activo)}
+                                    className="h-8 w-8 p-0 text-gray-500 hover:text-orange-600 hover:bg-orange-50"
+                                    title={h.activo ? "Desactivar" : "Activar"}
+                                >
+                                    {h.activo ? <XCircle className="h-4 w-4" /> : <CheckCircle2 className="h-4 w-4 text-green-600" />}
                                 </Button>
                             )}
                             {onDelete && (
