@@ -10,9 +10,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, CheckCircle2, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { EstadoHabitacionNombre } from '../../types/enums';
+import { ActiveFilter } from '@/components/ui/ActiveFilter';
+import { ActiveBadge } from '@/components/ui/ActiveBadge';
 
 export const AdminEstados = () => {
     const [estados, setEstados] = useState<EstadoHabitacionDTO[]>([]);
@@ -20,11 +22,14 @@ export const AdminEstados = () => {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [currentItem, setCurrentItem] = useState<Partial<EstadoHabitacionDTO>>({});
     const [isEditing, setIsEditing] = useState(false);
+    const [showInactive, setShowInactive] = useState(false);
 
     const loadData = async () => {
         setLoading(true);
         try {
-            const res = await EstadoHabitacionService.getEstados({ page: 0, size: 50 });
+            const res = showInactive
+                ? await EstadoHabitacionService.getEstadosInactivos({ page: 0, size: 50 })
+                : await EstadoHabitacionService.getEstados({ page: 0, size: 50 });
             setEstados(res.data);
         } catch (error) {
             toast.error('Error al cargar datos');
@@ -35,7 +40,7 @@ export const AdminEstados = () => {
 
     useEffect(() => {
         loadData();
-    }, []);
+    }, [showInactive]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -69,6 +74,21 @@ export const AdminEstados = () => {
         setIsDialogOpen(true);
     };
 
+    const handleToggleActivo = async (id: number, currentState: boolean) => {
+        try {
+            if (currentState) {
+                await EstadoHabitacionService.desactivarEstado(id);
+                toast.success('Estado desactivado');
+            } else {
+                await EstadoHabitacionService.activarEstado(id);
+                toast.success('Estado activado');
+            }
+            loadData();
+        } catch (error) {
+            toast.error('Error al cambiar estado');
+        }
+    };
+
     const handleDelete = async (id: number) => {
         if (!confirm('¿Estás seguro?')) return;
         try {
@@ -84,7 +104,10 @@ export const AdminEstados = () => {
         <DashboardLayout title="Gestión de Estados" role="Administrador">
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
-                    <CardTitle>Listado de Estados</CardTitle>
+                    <div className="flex items-center gap-4">
+                        <CardTitle>Listado de Estados</CardTitle>
+                        <ActiveFilter showInactive={showInactive} onChange={setShowInactive} />
+                    </div>
                     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                         <DialogTrigger asChild>
                             <Button onClick={handleCreate}>
@@ -138,7 +161,7 @@ export const AdminEstados = () => {
                             <TableRow>
                                 <TableHead>Nombre</TableHead>
                                 <TableHead>Descripción</TableHead>
-                                <TableHead>Activo</TableHead>
+                                <TableHead>Estado</TableHead>
                                 <TableHead className="text-right">Acciones</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -152,10 +175,13 @@ export const AdminEstados = () => {
                                     <TableRow key={est.id}>
                                         <TableCell className="font-medium">{est.nombre}</TableCell>
                                         <TableCell>{est.descripcion}</TableCell>
-                                        <TableCell>{est.activo ? 'Sí' : 'No'}</TableCell>
+                                        <TableCell><ActiveBadge activo={!!est.activo} size="sm" /></TableCell>
                                         <TableCell className="text-right space-x-2">
-                                            <Button variant="ghost" size="icon" onClick={() => handleEdit(est)}>
+                                            <Button variant="ghost" size="icon" onClick={() => handleEdit(est)} disabled={!est.activo}>
                                                 <Pencil className="h-4 w-4" />
+                                            </Button>
+                                            <Button variant="ghost" size="icon" onClick={() => est.id && handleToggleActivo(est.id, !!est.activo)}>
+                                                {est.activo ? <XCircle className="h-4 w-4 text-orange-500" /> : <CheckCircle2 className="h-4 w-4 text-green-500" />}
                                             </Button>
                                             <Button variant="ghost" size="icon" className="text-destructive" onClick={() => est.id && handleDelete(est.id)}>
                                                 <Trash2 className="h-4 w-4" />
