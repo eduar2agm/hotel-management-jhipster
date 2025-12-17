@@ -374,9 +374,38 @@ export const ClientReservas = () => {
                             </div>
                         </div>
                     )}
+
+                    {/* PAGINATION FOOTER */}
+                    {reservas.length > 0 && (
+                        <div className="flex items-center justify-end gap-4 mt-8 pb-8">
+                            <span className="text-sm text-gray-500">
+                                Página {currentPage + 1} de {Math.max(1, Math.ceil(totalItems / itemsPerPage))}
+                            </span>
+                            <div className="flex gap-2">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
+                                    disabled={currentPage === 0 || loading}
+                                    className="bg-white border-gray-200 hover:bg-yellow-50 hover:text-yellow-700"
+                                >
+                                    <ChevronLeft className="h-4 w-4" /> Anterior
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setCurrentPage(p => p + 1)}
+                                    disabled={(currentPage + 1) * itemsPerPage >= totalItems || loading}
+                                    className="bg-white border-gray-200 hover:bg-yellow-50 hover:text-yellow-700"
+                                >
+                                    Siguiente <ChevronRight className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </main>
-            
+
             <Footer />
         </div>
     );
