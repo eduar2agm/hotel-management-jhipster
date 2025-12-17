@@ -94,6 +94,16 @@ public class ReservaServiceImpl implements ReservaService {
     public void delete(Long id) {
         LOG.debug("Request to delete Reserva with all associated details: {}", id);
 
+        // Verificar que la reserva esté cancelada antes de eliminar
+        reservaRepository.findById(id).ifPresent(reserva -> {
+            if (reserva.getEstado() != EstadoReserva.CANCELADA) {
+                throw new BadRequestAlertException(
+                        "Solo se puede eliminar una reserva que esté cancelada",
+                        "reserva",
+                        "reservaNoCanceladaEliminar");
+            }
+        });
+
         List<ReservaDetalle> detalles = reservaDetalleRepository.findAllByReservaId(id);
         if (!detalles.isEmpty()) {
             reservaDetalleRepository.deleteAll(detalles);
