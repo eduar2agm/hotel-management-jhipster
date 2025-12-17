@@ -9,4 +9,16 @@ import org.springframework.stereotype.Repository;
  */
 @SuppressWarnings("unused")
 @Repository
-public interface CheckInCheckOutRepository extends JpaRepository<CheckInCheckOut, Long> {}
+public interface CheckInCheckOutRepository extends JpaRepository<CheckInCheckOut, Long> {
+
+    /**
+     * Verifica si existe un check-in activo sin check-out para una habitación
+     * específica.
+     * Esto indica que la habitación está actualmente ocupada por un huésped.
+     *
+     * @param habitacionId ID de la habitación a verificar
+     * @return true si hay un huésped ocupando la habitación, false en caso
+     *         contrario
+     */
+    boolean existsByReservaDetalle_Habitacion_IdAndFechaHoraCheckOutIsNullAndActivoTrue(Long habitacionId);
+}
