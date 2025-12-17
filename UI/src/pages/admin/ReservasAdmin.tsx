@@ -32,13 +32,26 @@ import {
     FormDescription
 } from '@/components/ui/form';
 import {
+    Command,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+    CommandList,
+} from "@/components/ui/command";
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
+import { Checkbox } from '@/components/ui/checkbox';
+import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
 import { ReservaService } from '../../services/reserva.service';
 import { ClienteService } from '../../services/cliente.service';
 import { HabitacionService } from '../../services/habitacion.service';
@@ -47,7 +60,7 @@ import { type ReservaDTO } from '../../types/api/Reserva';
 import { type ClienteDTO } from '../../types/api/Cliente';
 import { type HabitacionDTO } from '../../types/api/Habitacion';
 import { toast } from 'sonner';
-import { Pencil, Trash2, Plus, Calendar, Search, User, Check, AlertCircle, RefreshCcw, ChevronLeft, ChevronRight, Eye, CheckCircle2, XCircle } from 'lucide-react';
+import { Pencil, Trash2, Plus, Calendar, Search, User, Check, AlertCircle, RefreshCcw, ChevronLeft, ChevronRight, Eye, CheckCircle2, XCircle, ChevronsUpDown } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
@@ -81,6 +94,9 @@ export const AdminReservas = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
+
+    // Combobox State
+    const [openClientCombo, setOpenClientCombo] = useState(false);
 
     // Details View State
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
@@ -673,26 +689,70 @@ export const AdminReservas = () => {
                     <div className="p-6 bg-white">
                         <Form {...(form as any)}>
                             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                                {/* --- CLIENT SELECTOR (COMBOBOX) --- */}
                                 <FormField
                                     control={form.control as any}
                                     name="clienteId"
                                     render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel className="text-xs font-bold text-gray-500 uppercase tracking-widest">Cliente</FormLabel>
-                                            <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString() || ''}>
-                                                <FormControl>
-                                                    <SelectTrigger className="h-10">
-                                                        <SelectValue placeholder="Seleccione un cliente" />
-                                                    </SelectTrigger>
-                                                </FormControl>
-                                                <SelectContent>
-                                                    {clientes.map(cliente => (
-                                                        <SelectItem key={cliente.id} value={cliente.id?.toString() || '0'}>
-                                                            {cliente.nombre} {cliente.apellido}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
+                                        <FormItem className="flex flex-col">
+                                            <FormLabel className="font-bold text-gray-700">Cliente</FormLabel>
+                                            <Popover open={openClientCombo} onOpenChange={setOpenClientCombo}>
+                                                <PopoverTrigger asChild>
+                                                    <FormControl>
+                                                        <Button
+                                                            variant="outline"
+                                                            role="combobox"
+                                                            aria-expanded={openClientCombo}
+                                                            className={cn(
+                                                                "w-full justify-between bg-gray-50 border-gray-200 h-10",
+                                                                !field.value && "text-muted-foreground"
+                                                            )}
+                                                        >
+                                                            {field.value
+                                                                ? (() => {
+                                                                    const c = clientes.find((cliente) => cliente.id === field.value);
+                                                                    return c ? `${c.nombre} ${c.apellido}` : "Seleccione cliente";
+                                                                })()
+                                                                : "Buscar cliente..."}
+                                                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                                        </Button>
+                                                    </FormControl>
+                                                </PopoverTrigger>
+                                                <PopoverContent className="w-[400px] p-0">
+                                                    <Command>
+                                                        <CommandInput placeholder="Buscar por nombre o DNI..." />
+                                                        <CommandList>
+                                                            <CommandEmpty>No se encontró cliente.</CommandEmpty>
+                                                            <CommandGroup>
+                                                                {clientes.map((cliente) => (
+                                                                    <CommandItem
+                                                                        key={cliente.id}
+                                                                        // Combine fields for search filtering
+                                                                        value={`${cliente.nombre} ${cliente.apellido} ${cliente.numeroIdentificacion || ''}`}
+                                                                        onSelect={() => {
+                                                                            form.setValue("clienteId", cliente.id!);
+                                                                            setOpenClientCombo(false);
+                                                                        }}
+                                                                    >
+                                                                        <Check
+                                                                            className={cn(
+                                                                                "mr-2 h-4 w-4",
+                                                                                cliente.id === field.value ? "opacity-100" : "opacity-0"
+                                                                            )}
+                                                                        />
+                                                                        <div className="flex flex-col">
+                                                                            <span className="font-medium">{cliente.nombre} {cliente.apellido}</span>
+                                                                            {cliente.numeroIdentificacion && (
+                                                                                <span className="text-xs text-gray-500">ID: {cliente.numeroIdentificacion}</span>
+                                                                            )}
+                                                                        </div>
+                                                                    </CommandItem>
+                                                                ))}
+                                                            </CommandGroup>
+                                                        </CommandList>
+                                                    </Command>
+                                                </PopoverContent>
+                                            </Popover>
                                             <FormMessage />
                                         </FormItem>
                                     )}
