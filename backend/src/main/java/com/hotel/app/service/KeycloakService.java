@@ -95,4 +95,30 @@ public class KeycloakService {
         }
         return null;
     }
+
+    public void updateUserStatus(String userId, boolean enabled) {
+        Keycloak keycloak = null;
+        try {
+            keycloak = KeycloakBuilder.builder()
+                    .serverUrl(serverUrl)
+                    .realm(realm)
+                    .clientId(clientId)
+                    .username(username)
+                    .password(password)
+                    .build();
+
+            UserRepresentation user = new UserRepresentation();
+            user.setEnabled(enabled);
+            keycloak.realm(realm).users().get(userId).update(user);
+            LOG.info("Updated Keycloak user {} status to enabled={}", userId, enabled);
+
+        } catch (Exception e) {
+            LOG.error("Error updating Keycloak user status", e);
+            throw new RuntimeException("Failed to update user status in Keycloak", e);
+        } finally {
+            if (keycloak != null) {
+                keycloak.close();
+            }
+        }
+    }
 }
