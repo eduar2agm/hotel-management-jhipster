@@ -36,15 +36,18 @@ import {
     IDENTIFICATION_PLACEHOLDERS,
     TipoIdentificacion
 } from '../../utils/identification';
+import { ActiveFilter } from '@/components/ui/ActiveFilter';
+import { cn } from '@/lib/utils';
 
 export const AdminClientes = () => {
-    const { isAdmin, isEmployee } = useAuth();
+    const { isAdmin } = useAuth();
     const [clientes, setClientes] = useState<ClienteDTO[]>([]);
     const [loading, setLoading] = useState(false);
     const [currentPage, setCurrentPage] = useState(0);
     const [totalItems, setTotalItems] = useState(0);
     const itemsPerPage = 10;
     const [searchTerm, setSearchTerm] = useState('');
+    const [showInactive, setShowInactive] = useState(false);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [currentCliente, setCurrentCliente] = useState<Partial<ClienteDTO>>({});
     const [isEditing, setIsEditing] = useState(false);
@@ -56,10 +59,15 @@ export const AdminClientes = () => {
     const loadClientes = async () => {
         setLoading(true);
         try {
-            const res = await ClienteService.getClientes({
-                page: currentPage,
-                size: itemsPerPage
-            });
+            const res = showInactive
+                ? await ClienteService.getClientesInactivos({
+                    page: currentPage,
+                    size: itemsPerPage
+                })
+                : await ClienteService.getClientes({
+                    page: currentPage,
+                    size: itemsPerPage
+                });
             setClientes(res.data);
             const total = parseInt(res.headers['x-total-count'] || '0', 10);
             setTotalItems(total);
@@ -72,7 +80,7 @@ export const AdminClientes = () => {
 
     useEffect(() => {
         loadClientes();
-    }, [currentPage]);
+    }, [currentPage, showInactive]);
 
     const handleDelete = async (id: number) => {
         if (!confirm('¿Está seguro de eliminar este cliente? Esta acción no se puede deshacer.')) return;
@@ -129,10 +137,14 @@ export const AdminClientes = () => {
     const toggleActivo = async (cliente: ClienteDTO) => {
         if (!cliente.id) return;
         try {
-            const updated = { ...cliente, activo: !cliente.activo };
-            await ClienteService.updateCliente(cliente.id, updated);
-            toast.success(`Cliente ${updated.activo ? 'activado' : 'desactivado'}`);
-            setClientes(clientes.map(c => c.id === cliente.id ? updated : c));
+            if (cliente.activo) {
+                await ClienteService.desactivarCliente(cliente.id);
+                toast.success('Cliente desactivado');
+            } else {
+                await ClienteService.activarCliente(cliente.id);
+                toast.success('Cliente activado');
+            }
+            loadClientes();
         } catch (error) {
             toast.error('Error al actualizar estado');
         }
@@ -220,18 +232,28 @@ export const AdminClientes = () => {
                         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
                             <div>
                                 <CardTitle className="text-xl font-bold text-gray-800">Directorio de Huéspedes</CardTitle>
-                                <CardDescription>Total de clientes registrados: {clientes.length}</CardDescription>
+                                <CardDescription>Total de clientes: {totalItems}</CardDescription>
                             </div>
-                            <div className="relative w-full md:w-96 group">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-yellow-600 transition-colors" />
-                                <Input
-                                    placeholder="Buscar por nombre, correo o ID..."
-                                    className="pl-10 border-gray-200 focus:border-yellow-600 focus:ring-yellow-600/20 h-11 transition-all"
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
+                            <div className="flex flex-col md:flex-row gap-4 items-center w-full md:w-auto">
+                                <ActiveFilter
+                                    showInactive={showInactive}
+                                    onChange={(val) => {
+                                        setShowInactive(val);
+                                        setCurrentPage(0);
+                                    }}
                                 />
+                                <div className="relative w-full md:w-96 group">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-yellow-600 transition-colors" />
+                                    <Input
+                                        placeholder="Buscar por nombre, correo o ID..."
+                                        className="pl-10 border-gray-200 focus:border-yellow-600 focus:ring-yellow-600/20 h-11 transition-all"
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                    />
+                                </div>
                             </div>
                         </div>
+
                     </CardHeader>
                     <CardContent className="p-10">
                         <div className="overflow-x-auto">
@@ -325,7 +347,13 @@ export const AdminClientes = () => {
                                                         <Button
                                                             variant="outline"
                                                             size="sm"
-                                                            className="h-8 border-gray-200 hover:border-yellow-600 hover:text-yellow-700 hover:bg-yellow-50"
+                                                            disabled={!c.activo}
+                                                            className={cn(
+                                                                "h-8 border-gray-200",
+                                                                c.activo
+                                                                    ? "hover:border-yellow-600 hover:text-yellow-700 hover:bg-yellow-50"
+                                                                    : "opacity-50 cursor-not-allowed"
+                                                            )}
                                                             onClick={() => handleEdit(c)}
                                                         >
                                                             <Pencil className="h-3.5 w-3.5 mr-1" /> Editar
@@ -496,6 +524,6 @@ export const AdminClientes = () => {
             </main>
 
             <Footer />
-        </div>
+        </div >
     );
 };
