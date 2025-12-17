@@ -4,6 +4,7 @@ import { oidcConfig } from './config/oidc-config';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { Login } from './pages/Login';
 import { Unauthorized } from './pages/Unauthorized';
+
 import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { AdminHabitaciones } from './pages/admin/Habitaciones';
 import { AdminClientes } from './pages/admin/Clientes';
@@ -42,6 +43,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
           <Route path="/HomePage" element={<Home />} />
+
           <Route path="/admin/dashboard" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN']}><AdminDashboard /></ProtectedRoute>} />
           <Route path="/admin/habitaciones" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN']}><AdminHabitaciones /></ProtectedRoute>} />
           <Route path="/admin/clientes" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN']}><AdminClientes /></ProtectedRoute>} />
