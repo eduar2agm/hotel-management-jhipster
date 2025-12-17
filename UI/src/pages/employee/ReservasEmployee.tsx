@@ -743,7 +743,7 @@ export const EmployeeReservas = () => {
                                             <span className="text-gray-900">{detailClient?.telefono || <span className="text-gray-300">-</span>}</span>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <span className="font-semibold text-gray-400/80 w-20">DNI:</span>
+                                            <span className="font-semibold text-gray-400/80 w-20">Doc:</span>
                                             <span className="text-gray-900 uppercase font-mono">{detailClient?.numeroIdentificacion || <span className="text-gray-300">-</span>}</span>
                                         </div>
                                         <div className="flex items-center gap-2 sm:col-span-2">
