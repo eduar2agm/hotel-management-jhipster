@@ -4,13 +4,67 @@ import { Footer } from '../../components/ui/Footer';
 import { RoomCard } from '../../components/ui/RoomCard';
 import { Search, SlidersHorizontal, X } from 'lucide-react';
 
-const HABITACIONES_MOCK = [
-  { id: 1, titulo: "Suite Presidencial", precio: 350, capacidad: 4, categoria: "SUITE", imagen: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&q=80&w=800", descripcion: "Vista al mar y jacuzzi." },
-  { id: 2, titulo: "Doble Deluxe", precio: 120, capacidad: 2, categoria: "DOBLE", imagen: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&q=80&w=800", descripcion: "Espaciosa y moderna." },
-  { id: 3, titulo: "Sencilla Standard", precio: 85, capacidad: 1, categoria: "SENCILLA", imagen: "https://images.unsplash.com/photo-1566665797739-1674de7a421a?auto=format&fit=crop&q=80&w=800", descripcion: "Ideal para negocios." },
-  { id: 4, titulo: "Suite Familiar", precio: 280, capacidad: 5, categoria: "SUITE", imagen: "https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&q=80&w=800", descripcion: "Dos ambientes conectados." },
-  { id: 5, titulo: "Doble Twin", precio: 110, capacidad: 2, categoria: "DOBLE", imagen: "https://images.unsplash.com/photo-1596394516093-501ba68a0ba6?auto=format&fit=crop&q=80&w=800", descripcion: "Dos camas individuales." },
-  { id: 6, titulo: "Penthouse", precio: 550, capacidad: 6, categoria: "LUJO", imagen: "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?auto=format&fit=crop&q=80&w=800", descripcion: "La joya del hotel." },
+const HABITACIONES_MOCK: any[] = [
+  {
+    id: 1,
+    numero: "101",
+    capacidad: 4,
+    imagen: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&q=80&w=800",
+    descripcion: "Suite Presidencial. Vista al mar y jacuzzi.",
+    activo: true,
+    estadoHabitacion: { nombre: "DISPONIBLE" },
+    categoriaHabitacion: { nombre: "SUITE", precioBase: "350" }
+  },
+  {
+    id: 2,
+    numero: "102",
+    capacidad: 2,
+    imagen: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&q=80&w=800",
+    descripcion: "Doble Deluxe. Espaciosa y moderna.",
+    activo: true,
+    estadoHabitacion: { nombre: "DISPONIBLE" },
+    categoriaHabitacion: { nombre: "DOBLE", precioBase: "120" }
+  },
+  {
+    id: 3,
+    numero: "103",
+    capacidad: 1,
+    imagen: "https://images.unsplash.com/photo-1566665797739-1674de7a421a?auto=format&fit=crop&q=80&w=800",
+    descripcion: "Sencilla Standard. Ideal para negocios.",
+    activo: true,
+    estadoHabitacion: { nombre: "DISPONIBLE" },
+    categoriaHabitacion: { nombre: "SENCILLA", precioBase: "85" }
+  },
+  {
+    id: 4,
+    numero: "104",
+    capacidad: 5,
+    imagen: "https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&q=80&w=800",
+    descripcion: "Suite Familiar. Dos ambientes conectados.",
+    activo: true,
+    estadoHabitacion: { nombre: "DISPONIBLE" },
+    categoriaHabitacion: { nombre: "SUITE", precioBase: "280" }
+  },
+  {
+    id: 5,
+    numero: "105",
+    capacidad: 2,
+    imagen: "https://images.unsplash.com/photo-1596394516093-501ba68a0ba6?auto=format&fit=crop&q=80&w=800",
+    descripcion: "Doble Twin. Dos camas individuales.",
+    activo: true,
+    estadoHabitacion: { nombre: "DISPONIBLE" },
+    categoriaHabitacion: { nombre: "DOBLE", precioBase: "110" }
+  },
+  {
+    id: 6,
+    numero: "106",
+    capacidad: 6,
+    imagen: "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?auto=format&fit=crop&q=80&w=800",
+    descripcion: "Penthouse. La joya del hotel.",
+    activo: true,
+    estadoHabitacion: { nombre: "DISPONIBLE" },
+    categoriaHabitacion: { nombre: "SUITE", precioBase: "550" }
+  },
 ];
 
 export const Habitaciones = () => {
@@ -20,10 +74,16 @@ export const Habitaciones = () => {
 
   const habitacionesFiltradas = useMemo(() => {
     return HABITACIONES_MOCK.filter(hab => {
-      const matchTexto = hab.titulo.toLowerCase().includes(busqueda.toLowerCase());
-      const matchCategoria = categoriaSelec === "TODAS" || hab.categoria === categoriaSelec;
-      const matchPrecio = hab.precio <= precioMax;
-      
+      // Búsqueda en descripción o categoría
+      const matchTexto =
+        (hab.descripcion || "").toLowerCase().includes(busqueda.toLowerCase()) ||
+        (hab.categoriaHabitacion?.nombre || "").toLowerCase().includes(busqueda.toLowerCase());
+
+      const matchCategoria = categoriaSelec === "TODAS" || hab.categoriaHabitacion?.nombre === categoriaSelec;
+
+      const precio = parseFloat(hab.categoriaHabitacion?.precioBase || "0");
+      const matchPrecio = precio <= precioMax;
+
       return matchTexto && matchCategoria && matchPrecio;
     });
   }, [busqueda, categoriaSelec, precioMax]);
@@ -31,7 +91,7 @@ export const Habitaciones = () => {
   return (
     <div className="bg-gray-50 min-h-screen font-sans">
       <Navbar />
-      
+
       <div className="bg-gray-900 pt-32 pb-12 px-6 text-center">
         <h1 className="text-4xl font-black text-white uppercase tracking-wider mb-4">Catálogo de Habitaciones</h1>
         <p className="text-gray-400 max-w-2xl mx-auto">
@@ -43,7 +103,7 @@ export const Habitaciones = () => {
          Esto permite que el contenido se expanda más hacia los bordes en pantallas grandes.
       */}
       <div className="max-w-[1600px] mx-auto px-6 md:px-10 py-12 flex flex-col lg:flex-row gap-8">
-        
+
         {/* CAMBIO 2: Ajusté el ancho del Sidebar.
            En lugar de 'w-1/4' (que puede ser muy ancho en pantallas gigantes), 
            le puse un ancho fijo 'lg:w-80' (320px) para dejar más espacio a las cartas.
@@ -57,9 +117,9 @@ export const Habitaciones = () => {
           <div className="mb-6">
             <label className="text-xs font-bold uppercase mb-2 block">Buscar</label>
             <div className="relative">
-              <input 
-                type="text" 
-                placeholder="Ej: Suite..." 
+              <input
+                type="text"
+                placeholder="Ej: Suite..."
                 value={busqueda}
                 onChange={(e) => setBusqueda(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 bg-gray-50 text-gray-800 border border-gray-200 rounded-lg focus:outline-none focus:border-yellow-500 transition-colors text-sm"
@@ -72,11 +132,11 @@ export const Habitaciones = () => {
           <div className="mb-6">
             <label className="text-xs font-bold text-gray-500 uppercase mb-2 block">Categoría</label>
             <div className="space-y-2">
-              {["TODAS", "SENCILLA", "DOBLE", "SUITE", "LUJO"].map(cat => (
+              {["TODAS", "SENCILLA", "DOBLE", "SUITE"].map(cat => (
                 <label key={cat} className="flex items-center gap-2 cursor-pointer hover:text-yellow-600 transition-colors">
-                  <input 
-                    type="radio" 
-                    name="categoria" 
+                  <input
+                    type="radio"
+                    name="categoria"
                     checked={categoriaSelec === cat}
                     onChange={() => setCategoriaSelec(cat)}
                     className="accent-yellow-500"
@@ -93,10 +153,10 @@ export const Habitaciones = () => {
               <label className="text-xs font-bold text-gray-500 uppercase">Precio Máximo</label>
               <span className="text-sm font-bold text-yellow-600">${precioMax}</span>
             </div>
-            <input 
-              type="range" 
-              min="50" 
-              max="600" 
+            <input
+              type="range"
+              min="50"
+              max="600"
               step="10"
               value={precioMax}
               onChange={(e) => setPrecioMax(Number(e.target.value))}
@@ -105,7 +165,7 @@ export const Habitaciones = () => {
           </div>
 
           {/* Botón Limpiar */}
-          <button 
+          <button
             onClick={() => { setBusqueda(""); setCategoriaSelec("TODAS"); setPrecioMax(600); }}
             className="w-full flex justify-center items-center gap-2 text-xs font-bold text-gray-400 hover:text-red-500 transition-colors py-2"
           >
@@ -129,13 +189,9 @@ export const Habitaciones = () => {
             */
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
               {habitacionesFiltradas.map((hab) => (
-                <RoomCard 
+                <RoomCard
                   key={hab.id}
-                  titulo={hab.titulo}
-                  precio={hab.precio}
-                  capacidad={hab.capacidad}
-                  imagen={hab.imagen}
-                  descripcion={hab.descripcion}
+                  habitacion={hab}
                 />
               ))}
             </div>
