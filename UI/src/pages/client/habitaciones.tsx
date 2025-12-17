@@ -1,71 +1,8 @@
 import { useState, useMemo } from 'react';
 import { Navbar } from '../../components/ui/Navbar';
 import { Footer } from '../../components/ui/Footer';
-import { RoomCard } from '../../components/ui/RoomCard';
+import { PublicRoomCard } from '../../components/ui/PublicRoomCard';
 import { Search, SlidersHorizontal, X } from 'lucide-react';
-
-const HABITACIONES_MOCK: any[] = [
-  {
-    id: 1,
-    numero: "101",
-    capacidad: 4,
-    imagen: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&q=80&w=800",
-    descripcion: "Suite Presidencial. Vista al mar y jacuzzi.",
-    activo: true,
-    estadoHabitacion: { nombre: "DISPONIBLE" },
-    categoriaHabitacion: { nombre: "SUITE", precioBase: "350" }
-  },
-  {
-    id: 2,
-    numero: "102",
-    capacidad: 2,
-    imagen: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&q=80&w=800",
-    descripcion: "Doble Deluxe. Espaciosa y moderna.",
-    activo: true,
-    estadoHabitacion: { nombre: "DISPONIBLE" },
-    categoriaHabitacion: { nombre: "DOBLE", precioBase: "120" }
-  },
-  {
-    id: 3,
-    numero: "103",
-    capacidad: 1,
-    imagen: "https://images.unsplash.com/photo-1566665797739-1674de7a421a?auto=format&fit=crop&q=80&w=800",
-    descripcion: "Sencilla Standard. Ideal para negocios.",
-    activo: true,
-    estadoHabitacion: { nombre: "DISPONIBLE" },
-    categoriaHabitacion: { nombre: "SENCILLA", precioBase: "85" }
-  },
-  {
-    id: 4,
-    numero: "104",
-    capacidad: 5,
-    imagen: "https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&q=80&w=800",
-    descripcion: "Suite Familiar. Dos ambientes conectados.",
-    activo: true,
-    estadoHabitacion: { nombre: "DISPONIBLE" },
-    categoriaHabitacion: { nombre: "SUITE", precioBase: "280" }
-  },
-  {
-    id: 5,
-    numero: "105",
-    capacidad: 2,
-    imagen: "https://images.unsplash.com/photo-1596394516093-501ba68a0ba6?auto=format&fit=crop&q=80&w=800",
-    descripcion: "Doble Twin. Dos camas individuales.",
-    activo: true,
-    estadoHabitacion: { nombre: "DISPONIBLE" },
-    categoriaHabitacion: { nombre: "DOBLE", precioBase: "110" }
-  },
-  {
-    id: 6,
-    numero: "106",
-    capacidad: 6,
-    imagen: "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?auto=format&fit=crop&q=80&w=800",
-    descripcion: "Penthouse. La joya del hotel.",
-    activo: true,
-    estadoHabitacion: { nombre: "DISPONIBLE" },
-    categoriaHabitacion: { nombre: "SUITE", precioBase: "550" }
-  },
-];
 
 export const Habitaciones = () => {
   const [busqueda, setBusqueda] = useState("");
@@ -189,7 +126,7 @@ export const Habitaciones = () => {
             */
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
               {habitacionesFiltradas.map((hab) => (
-                <RoomCard
+                <PublicRoomCard 
                   key={hab.id}
                   habitacion={hab}
                 />

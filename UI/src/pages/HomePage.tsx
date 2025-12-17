@@ -1,6 +1,6 @@
 import { Navbar } from '../components/ui/Navbar';
 import { HeroSection } from '../components/ui/HeroSection';
-import { RoomCard } from '../components/ui/RoomCard';
+import { CardRoom } from '../components/ui/CardRoom';
 import { Footer } from '../components/ui/Footer';
 import { useHabitaciones } from '../hooks/useHabitaciones';
 
@@ -39,17 +39,14 @@ export const Home = () => {
         {!loading && !error && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 container mx-auto">
             {habitaciones.map((hab) => {
-              // Si no tiene imagen, usamos una por defecto para que no se vea roto
-              const imagenPorDefecto = "https://images.unsplash.com/photo-1566665797739-1674de7a421a?auto=format&fit=crop&q=80&w=800";
-              const habWithImage = {
-                ...hab,
-                imagen: hab.imagen || imagenPorDefecto
-              };
+              // Lógica de Mapeo: Backend -> Frontend Card
+              // Si no tiene imagen, la card manejará un fallback
+
 
               return (
-                <RoomCard
+                <CardRoom 
                   key={hab.id}
-                  habitacion={habWithImage}
+                  habitacion={hab}
                 />
               );
             })}

@@ -18,7 +18,7 @@ export const Navbar = () => {
         
         {isAuthenticated && isClient() && (
           <>
-            <Link to="/" className="hover:text-yellow-400 transition-colors">Home</Link>
+            <Link to="/client/" className="hover:text-yellow-400 transition-colors">Home</Link>
             <Link to="/client/reservas" className="hover:text-yellow-400 transition-colors">Reservas</Link>
             <Link to="/client/perfil" className="hover:text-yellow-400 transition-colors">Mi perfil</Link>
             <Link to="/client/soporte" className="hover:text-yellow-400 transition-colors">Soporte</Link>

@@ -11,7 +11,7 @@ export interface CategoriaHabitacionDTO {
     id?: number;
     nombre?: CategoriaHabitacionNombreType; // enum
     descripcion?: string | null;
-    precioBase?: string | null; // BigDecimal as string
+    precioBase?: number; // BigDecimal as string
     activo?: boolean;
 }
 

@@ -64,7 +64,7 @@ function App() {
           <Route path="/employee/soporte" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN', 'ROLE_EMPLOYEE']}><EmployeeMensajesSoporte /></ProtectedRoute>} />
 
           {/* Client Routes */}
-          <Route path="/HomePage" element={<Home />} />
+          <Route path="/client/HomePage" element={ <ProtectedRoute requiredRoles={['ROLE_CLIENT']}><Home /></ProtectedRoute> } />
           <Route path="/client/reservas" element={<ProtectedRoute requiredRoles={['ROLE_CLIENT']}><ClientReservas /></ProtectedRoute>} />
           <Route path="/client/nueva-reserva" element={<ProtectedRoute requiredRoles={['ROLE_CLIENT']}><NuevaReserva /></ProtectedRoute>} />
           <Route path="/client/perfil" element={<ProtectedRoute requiredRoles={['ROLE_CLIENT']}><Perfil /></ProtectedRoute>} />
