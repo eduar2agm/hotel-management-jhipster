@@ -1,12 +1,14 @@
 package com.hotel.app.service.impl;
 
 import com.hotel.app.domain.Reserva;
+import com.hotel.app.domain.ReservaDetalle;
+import com.hotel.app.domain.enumeration.EstadoReserva;
+import com.hotel.app.repository.ReservaDetalleRepository;
 import com.hotel.app.repository.ReservaRepository;
 import com.hotel.app.service.ReservaService;
 import com.hotel.app.service.dto.ReservaDTO;
 import com.hotel.app.service.mapper.ReservaMapper;
-import com.hotel.app.domain.ReservaDetalle;
-import com.hotel.app.repository.ReservaDetalleRepository;
+import com.hotel.app.web.rest.errors.BadRequestAlertException;
 import java.util.List;
 import java.util.Optional;
 import org.slf4j.Logger;
@@ -145,6 +147,14 @@ public class ReservaServiceImpl implements ReservaService {
         reservaRepository
                 .findById(id)
                 .ifPresent(reserva -> {
+                    // Verificar que la reserva esté cancelada antes de desactivar
+                    if (reserva.getEstado() != EstadoReserva.CANCELADA) {
+                        throw new BadRequestAlertException(
+                                "Solo se puede desactivar una reserva que esté cancelada",
+                                "reserva",
+                                "reservaNoCancelada");
+                    }
+
                     reserva.setActivo(false);
                     reservaRepository.save(reserva);
 
