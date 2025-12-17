@@ -6,7 +6,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { ClienteService } from '../../services';
 import type { ClienteDTO, NewClienteDTO } from '../../types/api';
 import { toast } from 'sonner';
-import { Save, User, UserCircle, ShieldCheck, Contact } from 'lucide-react'; // Iconos añadidos para decorar
+import { Save, UserCircle, ShieldCheck, Contact } from 'lucide-react'; // Iconos añadidos para decorar
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
     IDENTIFICATION_TYPES,
@@ -151,9 +151,9 @@ export const Perfil = () => {
 
             {/* --- HERO SECTION --- */}
             <div className="relative bg-[#0F172A] pt-32 pb-20 px-4 md:px-8 lg:px-20 overflow-hidden shadow-xl">
-                 <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-blue-900/10 to-transparent pointer-events-none"></div>
-                 
-                 <div className="relative max-w-4xl mx-auto text-center md:text-left">
+                <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-blue-900/10 to-transparent pointer-events-none"></div>
+
+                <div className="relative max-w-4xl mx-auto text-center md:text-left">
                     <span className="text-yellow-500 font-bold tracking-[0.2em] uppercase text-xs mb-3 block animate-in fade-in slide-in-from-bottom-2 duration-500">
                         Configuración
                     </span>
@@ -163,7 +163,7 @@ export const Perfil = () => {
                     <p className="text-slate-400 font-light text-lg max-w-xl leading-relaxed mx-auto md:mx-0">
                         Mantenga su información actualizada para agilizar su proceso de check-in y disfrutar de una experiencia personalizada.
                     </p>
-                 </div>
+                </div>
             </div>
 
             <main className="flex-grow py-12 px-4 md:px-8 lg:px-20 relative z-10">
@@ -178,14 +178,14 @@ export const Perfil = () => {
                         <div className="bg-white shadow-xl border-t-4 border-yellow-600 p-8 md:p-12 rounded-sm">
                             <form onSubmit={handleSave}>
                                 <div className="space-y-10">
-                                    
+
                                     {/* Sección: Información Básica */}
                                     <div>
                                         <div className="flex items-center gap-2 mb-6 pb-2 border-b border-gray-100">
                                             <UserCircle className="h-5 w-5 text-yellow-600" />
                                             <h3 className="text-lg font-bold text-gray-900 uppercase tracking-wider">Información Básica</h3>
                                         </div>
-                                        
+
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <div className="grid gap-2">
                                                 <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest">Nombre</Label>
@@ -291,8 +291,8 @@ export const Perfil = () => {
                                     </div>
 
                                     <div className="pt-6 border-t border-gray-100 flex justify-end">
-                                        <Button 
-                                            type="submit" 
+                                        <Button
+                                            type="submit"
                                             disabled={isSaving || !!idError}
                                             className="bg-gray-900 hover:bg-gray-800 text-white rounded-none px-8 py-6 h-auto text-sm uppercase tracking-widest transition-all shadow-lg hover:shadow-xl disabled:opacity-70"
                                         >
