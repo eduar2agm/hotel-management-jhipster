@@ -30,6 +30,7 @@ import { AuthTokenSync } from './components/AuthTokenSync';
 import './api/axios-interceptors';
 import './App.css';
 import { Home } from './pages/HomePage';
+import { StripeTest } from './pages/client/StripeTest';
 
 function App() {
   return (
@@ -53,9 +54,6 @@ function App() {
           <Route path="/admin/categorias" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN']}><AdminCategorias /></ProtectedRoute>} />
           <Route path="/admin/estados" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN']}><AdminEstados /></ProtectedRoute>} />
           <Route path="/admin/reportes" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN']}><AdminReportes /></ProtectedRoute>} />
-
-
-
           <Route path="/admin/configuracion" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN']}><AdminConfiguracion /></ProtectedRoute>} />
 
           {/* Employee Routes */}
@@ -66,13 +64,14 @@ function App() {
           <Route path="/employee/soporte" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN', 'ROLE_EMPLOYEE']}><EmployeeMensajesSoporte /></ProtectedRoute>} />
 
           {/* Client Routes */}
-          <Route path="/HomePage" element={<Home />} />
+          <Route path="/client/HomePage" element={ <ProtectedRoute requiredRoles={['ROLE_CLIENT']}><Home /></ProtectedRoute> } />
           <Route path="/client/reservas" element={<ProtectedRoute requiredRoles={['ROLE_CLIENT']}><ClientReservas /></ProtectedRoute>} />
           <Route path="/client/nueva-reserva" element={<ProtectedRoute requiredRoles={['ROLE_CLIENT']}><NuevaReserva /></ProtectedRoute>} />
           <Route path="/client/perfil" element={<ProtectedRoute requiredRoles={['ROLE_CLIENT']}><Perfil /></ProtectedRoute>} />
           <Route path="/client/soporte" element={<ProtectedRoute requiredRoles={['ROLE_CLIENT']}><ClientMensajesSoporte /></ProtectedRoute>} />
           <Route path="/client/servicos" element={<ProtectedRoute requiredRoles={['ROLE_CLIENT']}><Servicios /></ProtectedRoute>} />
           <Route path="/client/menu" element={<ProtectedRoute requiredRoles={['ROLE_CLIENT']}><Menu /></ProtectedRoute>} />
+          <Route path="/client/stripe-test" element={<ProtectedRoute requiredRoles={['ROLE_CLIENT']}><StripeTest /></ProtectedRoute>} />
 
           {/* Catch all - Redirect to Home */}
           <Route path="*" element={<Navigate to="/" replace />} />

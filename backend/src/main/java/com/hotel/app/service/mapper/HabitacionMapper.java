@@ -20,10 +20,14 @@ public interface HabitacionMapper extends EntityMapper<HabitacionDTO, Habitacion
     @Named("categoriaHabitacionId")
     @BeanMapping(ignoreByDefault = true)
     @Mapping(target = "id", source = "id")
+    @Mapping(target = "nombre", source = "nombre")
+    @Mapping(target = "precioBase", source = "precioBase")
+    @Mapping(target = "descripcion", source = "descripcion")
     CategoriaHabitacionDTO toDtoCategoriaHabitacionId(CategoriaHabitacion categoriaHabitacion);
 
     @Named("estadoHabitacionId")
     @BeanMapping(ignoreByDefault = true)
     @Mapping(target = "id", source = "id")
+    @Mapping(target = "nombre", source = "nombre")
     EstadoHabitacionDTO toDtoEstadoHabitacionId(EstadoHabitacion estadoHabitacion);
 }
