@@ -1,10 +1,12 @@
 package com.hotel.app.service.impl;
 
 import com.hotel.app.domain.Habitacion;
+import com.hotel.app.repository.CheckInCheckOutRepository;
 import com.hotel.app.repository.HabitacionRepository;
 import com.hotel.app.service.HabitacionService;
 import com.hotel.app.service.dto.HabitacionDTO;
 import com.hotel.app.service.mapper.HabitacionMapper;
+import com.hotel.app.web.rest.errors.BadRequestAlertException;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,9 +28,15 @@ public class HabitacionServiceImpl implements HabitacionService {
 
     private final HabitacionMapper habitacionMapper;
 
-    public HabitacionServiceImpl(HabitacionRepository habitacionRepository, HabitacionMapper habitacionMapper) {
+    private final CheckInCheckOutRepository checkInCheckOutRepository;
+
+    public HabitacionServiceImpl(
+            HabitacionRepository habitacionRepository,
+            HabitacionMapper habitacionMapper,
+            CheckInCheckOutRepository checkInCheckOutRepository) {
         this.habitacionRepository = habitacionRepository;
         this.habitacionMapper = habitacionMapper;
+        this.checkInCheckOutRepository = checkInCheckOutRepository;
     }
 
     @Override
@@ -96,6 +104,20 @@ public class HabitacionServiceImpl implements HabitacionService {
     @Override
     public void deactivate(Long id) {
         LOG.debug("Request to deactivate Habitacion : {}", id);
+
+        // Verificar si hay un cliente hospedado actualmente en esta habitación
+        boolean estaOcupada = checkInCheckOutRepository
+                .existsByReservaDetalle_Habitacion_IdAndFechaHoraCheckOutIsNullAndActivoTrue(id);
+
+        LOG.info("Habitación {} - ¿Está ocupada?: {}", id, estaOcupada);
+
+        if (estaOcupada) {
+            throw new BadRequestAlertException(
+                    "No se puede desactivar la habitación porque hay un cliente hospedado actualmente",
+                    "habitacion",
+                    "habitacionOcupada");
+        }
+
         habitacionRepository
                 .findById(id)
                 .ifPresent(habitacion -> {
