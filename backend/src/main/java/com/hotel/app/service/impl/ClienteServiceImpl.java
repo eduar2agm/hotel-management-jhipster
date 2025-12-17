@@ -26,9 +26,13 @@ public class ClienteServiceImpl implements ClienteService {
 
     private final ClienteMapper clienteMapper;
 
-    public ClienteServiceImpl(ClienteRepository clienteRepository, ClienteMapper clienteMapper) {
+    private final com.hotel.app.service.KeycloakService keycloakService;
+
+    public ClienteServiceImpl(ClienteRepository clienteRepository, ClienteMapper clienteMapper,
+            com.hotel.app.service.KeycloakService keycloakService) {
         this.clienteRepository = clienteRepository;
         this.clienteMapper = clienteMapper;
+        this.keycloakService = keycloakService;
     }
 
     @Override
@@ -90,6 +94,7 @@ public class ClienteServiceImpl implements ClienteService {
                 .ifPresent(cliente -> {
                     cliente.setActivo(true);
                     clienteRepository.save(cliente);
+                    keycloakService.updateUserStatus(cliente.getKeycloakId(), true);
                 });
     }
 
@@ -101,6 +106,7 @@ public class ClienteServiceImpl implements ClienteService {
                 .ifPresent(cliente -> {
                     cliente.setActivo(false);
                     clienteRepository.save(cliente);
+                    keycloakService.updateUserStatus(cliente.getKeycloakId(), false);
                 });
     }
 
