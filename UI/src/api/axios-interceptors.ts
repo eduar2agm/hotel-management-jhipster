@@ -46,6 +46,79 @@ apiClient.interceptors.response.use(
     async (error) => {
         const { response, config } = error;
 
+        // Custom Handling for Inactive Entities (400)
+        if (response?.status === 400) {
+            const data = response.data;
+            const errorKey = data?.errorKey || data?.detail || '';
+            const title = data?.title || '';
+
+            if (errorKey.includes('inactive') || title.includes('inactive')) {
+                // Check if the current user is a CLIENT (and not Admin/Employee)
+                try {
+                    let oidcKey = Object.keys(localStorage).find(key => key.startsWith('oidc.user:'));
+                    let storageToUse = localStorage;
+                    if (!oidcKey) {
+                        oidcKey = Object.keys(sessionStorage).find(key => key.startsWith('oidc.user:'));
+                        storageToUse = sessionStorage;
+                    }
+
+                    if (oidcKey) {
+                        const userString = storageToUse.getItem(oidcKey);
+                        if (userString) {
+                            const user = User.fromStorageString(userString);
+                            // Helper to parse JWT
+                            const parseJwt = (token: string) => {
+                                try {
+                                    return JSON.parse(atob(token.split('.')[1]));
+                                } catch (e) {
+                                    return {};
+                                }
+                            };
+
+                            const profile = user.profile;
+                            const accessToken = user.access_token;
+                            const decodedAccess = accessToken ? parseJwt(accessToken) : {};
+
+                            // Helper to extract roles (simplified from useAuth)
+                            const extractRoles = (tokenData: any) => {
+                                const realmRoles = tokenData.realm_access?.roles || [];
+                                // Safe access to resource_access
+                                const clientRoles = tokenData.resource_access?.[import.meta.env.VITE_KEYCLOAK_CLIENT_ID]?.roles || [];
+                                const jhipsterRoles = tokenData['https://www.jhipster.tech/roles'] || [];
+                                const directRoles = tokenData.roles || tokenData.groups || [];
+                                return [...realmRoles, ...clientRoles, ...jhipsterRoles, ...directRoles];
+                            };
+
+                            const allRoles = new Set([
+                                ...extractRoles(profile),
+                                ...extractRoles(decodedAccess)
+                            ]);
+                            const roles = Array.from(allRoles);
+
+                            const isClient = roles.includes('ROLE_CLIENT');
+                            const isAdmin = roles.includes('ROLE_ADMIN');
+                            const isEmployee = roles.includes('ROLE_EMPLOYEE');
+
+                            // Only redirect if it is a pure Client (admins/employees might be editing inactive users)
+                            if (isClient && !isAdmin && !isEmployee) {
+                                window.location.href = '/account-deactivated';
+                                return Promise.reject(error);
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error checking user roles in interceptor', e);
+                }
+
+                toast.error('Esta entidad está inactiva', {
+                    description: 'No puede ser modificada hasta que sea reactivada por un administrador.',
+                    duration: 5000,
+                    // className: "bg-orange-50 border-orange-200 text-orange-800" // Optional styling
+                });
+                return Promise.reject(error);
+            }
+        }
+
         // 401 Unauthorized - Token expirado o inválido
         if (response?.status === 401) {
             // Avoid redirecting loop if we are on the public home page
