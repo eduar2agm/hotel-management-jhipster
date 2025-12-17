@@ -128,6 +128,12 @@ export const AdminHabitaciones = () => {
         }
     };
 
+    // Mapa de mensajes de error del backend
+    const errorMessages: Record<string, string> = {
+        'error.habitacionOcupada': 'No se puede desactivar la habitación porque hay un cliente hospedado actualmente',
+        'error.inactive': 'La entidad está inactiva',
+    };
+
     const handleToggleActivo = async (id: number, currentStatus: boolean | undefined) => {
         try {
             if (currentStatus) {
@@ -138,8 +144,14 @@ export const AdminHabitaciones = () => {
                 toast.success('Habitación activada');
             }
             loadData();
-        } catch (error) {
-            toast.error('Error al cambiar estado');
+        } catch (error: any) {
+            const data = error?.response?.data;
+            // Buscar el mensaje en el mapa usando el errorKey
+            const errorKey = data?.message;
+            const backendMessage = errorMessages[errorKey]
+                || data?.detail
+                || 'Error al cambiar estado';
+            toast.error(backendMessage);
         }
     };
 
