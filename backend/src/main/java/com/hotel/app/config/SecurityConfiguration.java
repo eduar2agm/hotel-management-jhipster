@@ -100,7 +100,7 @@ public class SecurityConfiguration {
         OAuth2TokenValidator<Jwt> audienceValidator = new AudienceValidator(
                 jHipsterProperties.getSecurity().getOauth2().getAudience());
         OAuth2TokenValidator<Jwt> withIssuer = JwtValidators.createDefaultWithIssuer(issuerUri);
-        OAuth2TokenValidator<Jwt> withAudience = new DelegatingOAuth2TokenValidator<>(withIssuer, audienceValidator);
+        OAuth2TokenValidator<Jwt> withAudience = new DelegatingOAuth2TokenValidator<Jwt>(withIssuer, audienceValidator);
 
         jwtDecoder.setJwtValidator(withAudience);
 
