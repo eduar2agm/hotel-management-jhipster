@@ -43,7 +43,7 @@ export const CheckoutSidebar = ({ reserva, details, onClose, onPaymentSuccess }:
     
     setLoadingSecret(true);
     try {
-        const response = await apiClient.post('/api/stripe/payment-intent', {
+        const response = await apiClient.post('/stripe/payment-intent', {
             amount: reserva.total,
             currency: 'usd', // Assuming USD for now, could actuaize based on business logic
             reservaId: reserva.id,
@@ -100,7 +100,7 @@ export const CheckoutSidebar = ({ reserva, details, onClose, onPaymentSuccess }:
                              Habitación {detail.habitacion?.numero} ({detail.habitacion?.categoriaHabitacion?.nombre})
                         </span>
                         <span className="font-medium text-gray-900">
-                            ${detail.precioUnitario?.toFixed(2)}
+                            ${(detail.precioUnitario ?? 0).toFixed(2)}
                         </span>
                     </div>
                 ))}
@@ -109,7 +109,7 @@ export const CheckoutSidebar = ({ reserva, details, onClose, onPaymentSuccess }:
 
                  <div className="flex justify-between items-center text-lg">
                     <span className="font-bold text-gray-900">Total a Pagar</span>
-                    <span className="font-bold text-yellow-600 text-2xl">${reserva.total?.toFixed(2)}</span>
+                    <span className="font-bold text-yellow-600 text-2xl">${(reserva.total ?? 0).toFixed(2)}</span>
                  </div>
             </div>
 
