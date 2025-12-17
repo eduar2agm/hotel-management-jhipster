@@ -1,4 +1,4 @@
-import { useState, FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import {
   Elements,
@@ -71,7 +71,7 @@ export const StripeTest = () => {
     const createPaymentIntent = async (e: FormEvent) => {
         e.preventDefault();
         try {
-            const response = await apiClient.post('/stripe/payment-intent', {
+            const response = await apiClient.post('/api/stripe/payment-intent', {
                 amount: amount,
                 currency: 'usd',
                 reservaId: parseInt(reservaId),

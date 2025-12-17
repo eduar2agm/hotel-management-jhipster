@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CalendarDays, Plus, Bed, MapPin, CreditCard, ChevronLeft, ChevronRight } from 'lucide-react'; // Agregué iconos estéticos
+import { CalendarDays, Plus, Bed, MapPin, ChevronLeft, ChevronRight } from 'lucide-react'; // Agregué iconos estéticos
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { ClienteService, ReservaService, ReservaDetalleService } from '../../services';
@@ -9,6 +9,7 @@ import type { ReservaDTO, ReservaDetalleDTO } from '../../types/api';
 import { toast } from 'sonner';
 
 // Importamos los componentes de UI del Hotel
+import { CheckoutSidebar } from '../../components/stripe/CheckoutSidebar';
 import { Navbar } from '../../components/ui/Navbar';
 import { Footer } from '../../components/ui/Footer';
 
@@ -17,6 +18,10 @@ export const ClientReservas = () => {
     const [loading, setLoading] = useState(true);
     const [reservas, setReservas] = useState<ReservaDTO[]>([]);
     const [reservaDetallesMap, setReservaDetallesMap] = useState<Record<number, ReservaDetalleDTO[]>>({});
+    
+    // Stripe Checkout State
+    const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+    const [activeReserva, setActiveReserva] = useState<ReservaDTO | null>(null);
 
     // Pagination
     const [currentPage, setCurrentPage] = useState(0);
@@ -101,17 +106,27 @@ export const ClientReservas = () => {
         }
     };
 
+
+
     // --- RENDERIZADO ---
+    
+    // Derived state for the sidebar
+    const activeReservaDetails = activeReserva ? (reservaDetallesMap[activeReserva.id!] || []) : [];
+
+    const handlePaymentSuccess = () => {
+        setIsCheckoutOpen(false);
+        setActiveReserva(null);
+        // Reload reservas to update status
+        // A simple way is to reload window or re-fetch.
+        // For better UX, we could call loadMyReservas again.
+        window.location.reload(); 
+    };
 
     return (
         <div className="font-sans text-gray-900 bg-gray-50 min-h-screen flex flex-col">
-            {/* Reutilización del Navbar */}
             <Navbar />
 
-            {/* --- HERO SECTION --- 
-                Agregamos pt-32 (padding top) para compensar el Navbar absoluto y evitar que tape el contenido.
-                Fondo azul marino oscuro (#0f172a = slate-900) solicitado.
-            */}
+            {/* --- HERO SECTION --- */}
             <div className="relative bg-[#0F172A] pt-32 pb-20 px-4 md:px-8 lg:px-20 overflow-hidden shadow-xl">
                 {/* Efecto de fondo sutil */}
                 <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-blue-900/10 to-transparent pointer-events-none"></div>
@@ -125,7 +140,7 @@ export const ClientReservas = () => {
                             Mis Estancias
                         </h2>
                         <p className="text-slate-400 font-light text-lg max-w-xl leading-relaxed">
-                            Gestiona tus experiencias pasadas y futuras con nosotros. Tu historial completo de confort y lujo.
+                            Gestiona tus experiencias pasadas y futuras.
                         </p>
                     </div>
 
@@ -138,145 +153,140 @@ export const ClientReservas = () => {
             </div>
 
             <main className="flex-grow py-12 px-4 md:px-8 lg:px-20 relative z-10">
-                <div className="max-w-5xl mx-auto -mt-8"> {/* Margen negativo para acercar cards al hero si se desea, o quitar si no */}
+                <div className="max-w-7xl mx-auto -mt-8">
 
-                    {/* Estado de Carga */}
-                    {loading && (
-                        <div className="text-center py-20">
-                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-600 mx-auto"></div>
-                            <p className="mt-4 text-gray-400 uppercase tracking-widest text-sm">Cargando reservas...</p>
-                        </div>
-                    )}
+                    {/* TWO COLUMN LAYOUT */}
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                        
+                        {/* LEFT COLUMN: LIST */}
+                        <div className={`transition-all duration-500 ${isCheckoutOpen ? 'lg:col-span-8' : 'lg:col-span-12'}`}>
+                            
+                            {/* Estado de Carga */}
+                            {loading && (
+                                <div className="text-center py-20">
+                                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-600 mx-auto"></div>
+                                    <p className="mt-4 text-gray-400 uppercase tracking-widest text-sm">Cargando reservas...</p>
+                                </div>
+                            )}
 
-                    {/* Estado Vacío */}
-                    {!loading && reservas.length === 0 && (
-                        <div className="bg-white p-12 text-center rounded-sm shadow-sm border border-gray-100">
-                            <div className="bg-yellow-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
-                                <CalendarDays className="h-10 w-10 text-yellow-600" />
-                            </div>
-                            <h3 className="text-xl font-bold text-gray-900 mb-2">Aún no tienes historias con nosotros</h3>
-                            <p className="text-gray-500 mb-8 max-w-md mx-auto">
-                                Descubre nuestras habitaciones exclusivas y comienza a planear unas vacaciones inolvidables.
-                            </p>
-                            <Link to="/client/nueva-reserva">
-                                <Button className="bg-yellow-600 hover:bg-yellow-700 text-white px-8">Reservar Ahora</Button>
-                            </Link>
-                        </div>
-                    )}
-
-                    {/* Lista de Reservas */}
-                    {!loading && reservas.length > 0 && (
-                        <div className="space-y-8">
-                            {reservas.map(reserva => {
-                                const details = reservaDetallesMap[reserva.id!] || [];
-
-                                return (
-                                    <div
-                                        key={reserva.id}
-                                        className="bg-white group hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden rounded-sm"
-                                    >
-                                        {/* Header de la Tarjeta */}
-                                        <div className="bg-gray-50 px-6 py-4 flex flex-wrap justify-between items-center border-b border-gray-100">
-                                            <div className="flex items-center gap-4">
-                                                <Badge className={`${getStatusColor(reserva.estado || undefined)} text-white rounded-full px-4 py-1 font-medium shadow-sm`}>
-                                                    {reserva.estado}
-                                                </Badge>
-                                                <span className="text-xs text-gray-400 font-medium uppercase tracking-wider">
-                                                    Reservado el: {reserva.fechaReserva ? new Date(reserva.fechaReserva).toLocaleDateString() : '-'}
-                                                </span>
-                                            </div>
-                                            <div className="text-right mt-2 sm:mt-0">
-                                                <span className="text-xs text-gray-400 uppercase tracking-widest mr-2">ID Reserva</span>
-                                                <span className="font-mono font-bold text-gray-900">#{reserva.id}</span>
-                                            </div>
-                                        </div>
-
-                                        <div className="p-6 md:p-8">
-                                            <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
-
-                                                {/* Columna Izquierda: Fechas */}
-                                                <div className="flex-shrink-0 lg:w-1/3 grid grid-cols-2 gap-4 lg:border-r lg:border-gray-100 lg:pr-8">
-                                                    <div className="space-y-2">
-                                                        <span className="text-xs font-bold text-yellow-600 uppercase tracking-widest flex items-center gap-1">
-                                                            <CalendarDays className="w-3 h-3" /> Llegada
-                                                        </span>
-                                                        <div className="text-2xl font-serif text-gray-900">
-                                                            {reserva.fechaInicio ? new Date(reserva.fechaInicio).toLocaleDateString(undefined, { day: '2-digit', month: 'short' }) : ''}
-                                                        </div>
-                                                        <span className="text-sm text-gray-400">
-                                                            {reserva.fechaInicio ? new Date(reserva.fechaInicio).getFullYear() : ''}
-                                                        </span>
-                                                    </div>
-
-                                                    <div className="space-y-2">
-                                                        <span className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1">
-                                                            <CalendarDays className="w-3 h-3" /> Salida
-                                                        </span>
-                                                        <div className="text-2xl font-serif text-gray-900">
-                                                            {reserva.fechaFin ? new Date(reserva.fechaFin).toLocaleDateString(undefined, { day: '2-digit', month: 'short' }) : ''}
-                                                        </div>
-                                                        <span className="text-sm text-gray-400">
-                                                            {reserva.fechaFin ? new Date(reserva.fechaFin).getFullYear() : ''}
-                                                        </span>
-                                                    </div>
-
-                                                    <div className="col-span-2 pt-4 border-t border-gray-50 mt-2">
-                                                        <div className="flex items-center text-gray-500 text-sm">
-                                                            <MapPin className="w-4 h-4 mr-2 text-yellow-600" />
-                                                            <span>Hotel Principal & Resort</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                {/* Columna Derecha: Detalles Habitaciones */}
-                                                <div className="flex-grow">
-                                                    <h4 className="text-sm font-bold text-gray-900 mb-4 uppercase tracking-widest flex items-center gap-2">
-                                                        <Bed className="h-4 w-4 text-yellow-600" />
-                                                        Detalles de Alojamiento
-                                                    </h4>
-
-                                                    <div className="space-y-3">
-                                                        {details.length > 0 ? (
-                                                            details.map(det => (
-                                                                <div key={det.id} className="flex justify-between items-center p-4 bg-gray-50 rounded-lg border border-transparent hover:border-yellow-200 transition-colors">
-                                                                    <div>
-                                                                        <span className="block font-bold text-gray-900">
-                                                                            Habitación {det.habitacion?.numero}
-                                                                        </span>
-                                                                        <span className="text-sm text-gray-500">
-                                                                            {det.habitacion?.categoriaHabitacion?.nombre}
-                                                                        </span>
-                                                                    </div>
-                                                                    <div className="text-right">
-                                                                        <span className="block font-medium text-gray-900">
-                                                                            ${det.precioUnitario || det.habitacion?.categoriaHabitacion?.precioBase}
-                                                                        </span>
-                                                                        <span className="text-xs text-gray-400">/ noche</span>
-                                                                    </div>
-                                                                </div>
-                                                            ))
-                                                        ) : (
-                                                            <div className="text-sm text-gray-400 italic bg-gray-50 p-3 rounded">
-                                                                Detalles de habitación pendientes de asignación.
-                                                            </div>
-                                                        )}
-                                                    </div>
-
-                                                    <div className="mt-6 flex justify-end items-center gap-2 text-sm text-gray-500">
-                                                        <CreditCard className="w-4 h-4" />
-                                                        <span>Total estimado: </span>
-                                                        <span className="font-bold text-gray-900 text-lg">
-                                                            ${reserva.total?.toFixed(2) || '0.00'}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
+                            {/* Estado Vacío */}
+                            {!loading && reservas.length === 0 && (
+                                <div className="bg-white p-12 text-center rounded-sm shadow-sm border border-gray-100">
+                                    <div className="bg-yellow-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+                                        <CalendarDays className="h-10 w-10 text-yellow-600" />
                                     </div>
-                                );
-                            })}
+                                    <h3 className="text-xl font-bold text-gray-900 mb-2">Aún no tienes historias con nosotros</h3>
+                                    <Link to="/client/nueva-reserva">
+                                        <Button className="bg-yellow-600 hover:bg-yellow-700 text-white px-8 mt-4">Reservar Ahora</Button>
+                                    </Link>
+                                </div>
+                            )}
+
+                            {/* Lista de Reservas */}
+                            {!loading && reservas.length > 0 && (
+                                <div className="space-y-6">
+                                    {reservas.map(reserva => {
+                                        const details = reservaDetallesMap[reserva.id!] || [];
+                                        const isPending = reserva.estado === 'PENDIENTE';
+                                        
+                                        return (
+                                            <div 
+                                                key={reserva.id} 
+                                                className={`bg-white group transition-all duration-300 border overflow-hidden rounded-sm
+                                                    ${activeReserva?.id === reserva.id ? 'border-yellow-500 shadow-xl ring-1 ring-yellow-500 transform scale-[1.01]' : 'border-gray-100 hover:shadow-lg'}
+                                                `}
+                                            >
+                                                {/* Header de la Tarjeta */}
+                                                <div className="bg-gray-50 px-6 py-4 flex flex-wrap justify-between items-center border-b border-gray-100">
+                                                    <div className="flex items-center gap-4">
+                                                        <Badge className={`${getStatusColor(reserva.estado || undefined)} text-white rounded-full px-4 py-1 font-medium shadow-sm`}>
+                                                            {reserva.estado}
+                                                        </Badge>
+                                                        <span className="text-xs text-gray-400 font-medium uppercase tracking-wider hidden sm:inline">
+                                                            Reservado el: {reserva.fechaReserva ? new Date(reserva.fechaReserva).toLocaleDateString() : '-'}
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex items-center gap-3">
+                                                       <span className="font-mono font-bold text-gray-900 text-lg">#{reserva.id}</span>
+                                                       
+                                                       {/* PAY BUTTON */}
+                                                       {isPending && (
+                                                           <Button 
+                                                               onClick={() => {
+                                                                   setActiveReserva(reserva);
+                                                                   setIsCheckoutOpen(true);
+                                                               }}
+                                                               className="ml-2 bg-yellow-600 hover:bg-yellow-700 text-white text-xs font-bold uppercase tracking-wider py-1 h-8"
+                                                           >
+                                                               Pagar
+                                                           </Button>
+                                                       )}
+                                                    </div>
+                                                </div>
+
+                                                <div className="p-6">
+                                                    <div className="flex flex-col md:flex-row gap-6">
+                                                        {/* Dates */}
+                                                        <div className="flex-shrink-0 grid grid-cols-2 gap-4 md:w-1/3 md:border-r md:border-gray-100 md:pr-6">
+                                                            <div>
+                                                                <span className="text-xs text-gray-400 font-bold uppercase block mb-1">Entrada</span>
+                                                                <span className="text-lg font-serif font-bold text-gray-900">
+                                                                    {reserva.fechaInicio ? new Date(reserva.fechaInicio).toLocaleDateString() : ''}
+                                                                </span>
+                                                            </div>
+                                                            <div>
+                                                                <span className="text-xs text-gray-400 font-bold uppercase block mb-1">Salida</span>
+                                                                <span className="text-lg font-serif font-bold text-gray-900">
+                                                                    {reserva.fechaFin ? new Date(reserva.fechaFin).toLocaleDateString() : ''}
+                                                                </span>
+                                                            </div>
+                                                            <div className="col-span-2 text-xs text-gray-500 mt-2 flex items-center">
+                                                                <MapPin className="w-3 h-3 mr-1 text-yellow-600" /> Hotel Principal & Resort
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Preview Details */}
+                                                        <div className="flex-grow">
+                                                             <div className="flex justify-between items-end mb-2">
+                                                                 <h4 className="text-sm font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
+                                                                     <Bed className="h-4 w-4 text-yellow-600" /> Alojamiento
+                                                                 </h4>
+                                                                 <span className="text-2xl font-black text-gray-900 group-hover:text-yellow-600 transition-colors">
+                                                                    ${reserva.total?.toFixed(2)}
+                                                                 </span>
+                                                             </div>
+                                                             <p className="text-sm text-gray-500 mb-2">
+                                                                 {details.length} Habitación(es) reservada(s)
+                                                             </p>
+                                                             <div className="text-xs text-gray-400">
+                                                                 {details.map(d => d.habitacion?.categoriaHabitacion?.nombre).join(', ')}
+                                                             </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
                         </div>
-                    )}
+
+                        {/* RIGHT COLUMN: CHECKOUT SIDEBAR */}
+                        {isCheckoutOpen && (
+                            <div className="lg:col-span-4 animate-in slide-in-from-right duration-500">
+                                <CheckoutSidebar 
+                                    reserva={activeReserva}
+                                    details={activeReservaDetails}
+                                    onClose={() => {
+                                        setIsCheckoutOpen(false);
+                                        setActiveReserva(null);
+                                    }}
+                                    onPaymentSuccess={handlePaymentSuccess}
+                                />
+                            </div>
+                        )}
+                    </div>
+
 
                     {/* PAGINATION FOOTER */}
                     {reservas.length > 0 && (
