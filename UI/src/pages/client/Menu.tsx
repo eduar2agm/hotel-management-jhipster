@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Navbar } from '../../components/ui/Navbar';
 import { Footer } from '../../components/ui/Footer';
-import { Coffee, Utensils, Wine, Leaf, Flame, Star } from 'lucide-react';
+import { Coffee, Utensils, Wine } from 'lucide-react';
 
 // --- MOCK DATA DEL MENÚ ---
 const MENU_ITEMS = {
@@ -41,9 +41,9 @@ export const Menu = () => {
       {/* --- HERO SECTION --- */}
       <div className="relative h-[50vh] w-full overflow-hidden flex items-center justify-center">
         <div className="absolute inset-0">
-          <img 
-            src="https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?q=80&w=2070&auto=format&fit=crop" 
-            alt="Gastronomía" 
+          <img
+            src="https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?q=80&w=2070&auto=format&fit=crop"
+            alt="Gastronomía"
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-black/60"></div>
@@ -62,71 +62,71 @@ export const Menu = () => {
       {/* --- MENU TABS --- */}
       <div className="sticky top-20 z-40 bg-white/95 backdrop-blur shadow-sm border-b border-gray-100">
         <div className="max-w-[1600px] mx-auto px-6 flex justify-center gap-2 md:gap-8 py-4 overflow-x-auto">
-            
-            <button 
-                onClick={() => setCategoriaActiva('desayuno')}
-                className={`flex items-center gap-2 px-6 py-3 rounded-full text-sm font-bold uppercase tracking-wider transition-all whitespace-nowrap
+
+          <button
+            onClick={() => setCategoriaActiva('desayuno')}
+            className={`flex items-center gap-2 px-6 py-3 rounded-full text-sm font-bold uppercase tracking-wider transition-all whitespace-nowrap
                 ${categoriaActiva === 'desayuno' ? 'bg-gray-900 text-white' : 'text-gray-500 hover:bg-gray-100'}`}
-            >
-                <Coffee size={18} /> Desayuno
-            </button>
+          >
+            <Coffee size={18} /> Desayuno
+          </button>
 
-            <button 
-                onClick={() => setCategoriaActiva('fuerte')}
-                className={`flex items-center gap-2 px-6 py-3 rounded-full text-sm font-bold uppercase tracking-wider transition-all whitespace-nowrap
+          <button
+            onClick={() => setCategoriaActiva('fuerte')}
+            className={`flex items-center gap-2 px-6 py-3 rounded-full text-sm font-bold uppercase tracking-wider transition-all whitespace-nowrap
                 ${categoriaActiva === 'fuerte' ? 'bg-gray-900 text-white' : 'text-gray-500 hover:bg-gray-100'}`}
-            >
-                <Utensils size={18} /> Almuerzo & Cena
-            </button>
+          >
+            <Utensils size={18} /> Almuerzo & Cena
+          </button>
 
-            <button 
-                onClick={() => setCategoriaActiva('bar')}
-                className={`flex items-center gap-2 px-6 py-3 rounded-full text-sm font-bold uppercase tracking-wider transition-all whitespace-nowrap
+          <button
+            onClick={() => setCategoriaActiva('bar')}
+            className={`flex items-center gap-2 px-6 py-3 rounded-full text-sm font-bold uppercase tracking-wider transition-all whitespace-nowrap
                 ${categoriaActiva === 'bar' ? 'bg-gray-900 text-white' : 'text-gray-500 hover:bg-gray-100'}`}
-            >
-                <Wine size={18} /> Bar & Cocteles
-            </button>
+          >
+            <Wine size={18} /> Bar & Cocteles
+          </button>
 
         </div>
       </div>
 
       {/* --- MENU LIST --- */}
       <div className="max-w-5xl mx-auto px-6 py-16 min-h-[500px]">
-        
+
         {/* Título de Sección */}
         <div className="text-center mb-12">
-            <h2 className="text-3xl font-black text-gray-900 uppercase">
-                {categoriaActiva === 'desayuno' && "Para empezar el día"}
-                {categoriaActiva === 'fuerte' && "Platos Principales"}
-                {categoriaActiva === 'bar' && "Nuestra Selección de Bebidas"}
-            </h2>
-            <div className="w-24 h-1 bg-yellow-500 mx-auto mt-4"></div>
+          <h2 className="text-3xl font-black text-gray-900 uppercase">
+            {categoriaActiva === 'desayuno' && "Para empezar el día"}
+            {categoriaActiva === 'fuerte' && "Platos Principales"}
+            {categoriaActiva === 'bar' && "Nuestra Selección de Bebidas"}
+          </h2>
+          <div className="w-24 h-1 bg-yellow-500 mx-auto mt-4"></div>
         </div>
 
         {/* Grid de Items */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
-            {MENU_ITEMS[categoriaActiva].map((item) => (
-                <div key={item.id} className="group flex flex-col pb-4 border-b border-gray-100 hover:border-gray-300 transition-colors">
-                    <div className="flex justify-between items-baseline mb-2">
-                        <h3 className="text-xl font-bold text-gray-800 group-hover:text-yellow-600 transition-colors">
-                            {item.nombre}
-                        </h3>
-                        <span className="text-lg font-black text-gray-900">${item.precio}</span>
-                    </div>
-                    
-                    <p className="text-gray-500 text-sm leading-relaxed mb-3">
-                        {item.desc}
-                    </p>
+          {MENU_ITEMS[categoriaActiva].map((item) => (
+            <div key={item.id} className="group flex flex-col pb-4 border-b border-gray-100 hover:border-gray-300 transition-colors">
+              <div className="flex justify-between items-baseline mb-2">
+                <h3 className="text-xl font-bold text-gray-800 group-hover:text-yellow-600 transition-colors">
+                  {item.nombre}
+                </h3>
+                <span className="text-lg font-black text-gray-900">${item.precio}</span>
+              </div>
 
-                    <div className="flex gap-2">
-                        {item.tags.map((tag, i) => (
-                            <span key={i} className="text-[10px] font-bold uppercase bg-gray-100 text-gray-600 px-2 py-1 rounded">
-                                {tag}
-                            </span>
-                        ))}
-                    </div>
-                </div>
-            ))}
+              <p className="text-gray-500 text-sm leading-relaxed mb-3">
+                {item.desc}
+              </p>
+
+              <div className="flex gap-2">
+                {item.tags.map((tag, i) => (
+                  <span key={i} className="text-[10px] font-bold uppercase bg-gray-100 text-gray-600 px-2 py-1 rounded">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
       <Footer />
