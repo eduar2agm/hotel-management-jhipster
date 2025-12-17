@@ -234,21 +234,98 @@ export const AdminReservas = () => {
         }
     };
 
+    const [detailClient, setDetailClient] = useState<ClienteDTO | null>(null);
+
     const handleViewDetails = async (reserva: ReservaDTO) => {
         setSelectedReserva(reserva);
-        setSelectedReservaRooms([]); // Reset previuos
+        setSelectedReservaRooms([]); // Reset previous
+        setDetailClient(null); // Reset previous
         setIsDetailsOpen(true);
+
         try {
-            const detailsRes = await ReservaDetalleService.getReservaDetalles({ 'reservaId.equals': reserva.id });
-            // Extract unique rooms
-            const rooms = detailsRes.data
-                .map(d => d.habitacion)
-                .filter((h): h is HabitacionDTO => !!h);
+            // Parallel Fetch: Details + Client (always fetch to ensure full data)
+            const detailsPromise = ReservaDetalleService.getReservaDetalles({ 'reservaId.equals': reserva.id });
 
-            // Remove duplicates
-            const uniqueRooms = Array.from(new Map(rooms.map(item => [item.id, item])).values());
+            let clientPromise: Promise<any> | null = null;
+            const cId = reserva.clienteId || reserva.cliente?.id;
 
-            setSelectedReservaRooms(uniqueRooms);
+            if (cId) {
+                // ALWAYS fetch the client to ensure we have full details (DNI, Address, etc.)
+                // The list 'clientes' might only have partial data.
+                clientPromise = ClienteService.getCliente(cId);
+            }
+
+            const [detailsRes, clientRes] = await Promise.all([
+                detailsPromise,
+                clientPromise ? clientPromise : Promise.resolve(null)
+            ]);
+
+            if (clientRes) {
+                console.log('Cliente Full Data:', clientRes.data);
+                setDetailClient(clientRes.data);
+            }
+
+
+            // Extract unique room IDs
+            const roomIds = detailsRes.data
+                .map(d => d.habitacion?.id)
+                .filter((id): id is number => id !== undefined);
+
+            const uniqueRoomIds = Array.from(new Set(roomIds));
+
+            // Map to full room objects from our loaded state to ensure we have capacity/price
+            // Strategy: Fetch fresh, but fallback to list/detail if fresh is missing Category (lazy load issue)
+            const resolvedRooms = await Promise.all(uniqueRoomIds.map(async (id) => {
+                let candidate: HabitacionDTO | undefined;
+
+                try {
+                    const roomRes = await HabitacionService.getHabitacion(id);
+                    candidate = roomRes.data;
+                } catch (e) {
+                    console.error('Error fetching room', id, e);
+                }
+
+                // Fallback sources
+                const detailWithRoom = detailsRes.data.find(d => d.habitacion?.id === id)?.habitacion;
+                const stateRoom = habitaciones.find(h => h.id === id);
+
+                // Smart Merge Strategy:
+                // Start with the most recent data (Candidate > State > Detail)
+                // But specifically Patch missing critical fields (Capacity, Category) from other sources if missing/null in the primary.
+
+                const base = candidate || stateRoom || detailWithRoom;
+                if (!base) return undefined;
+
+                const result: HabitacionDTO = { ...base };
+
+                // 1. Ensure Capacity
+                if (!result.capacidad && result.capacidad !== 0) {
+                    if (stateRoom?.capacidad) result.capacidad = stateRoom.capacidad;
+                    else if (detailWithRoom?.capacidad) result.capacidad = detailWithRoom.capacidad;
+                }
+
+                // 2. Ensure Category (with Price)
+                const hasValidPrice = (cat?: any) => cat?.precioBase !== undefined && cat?.precioBase !== null;
+
+                if (!result.categoriaHabitacion || !hasValidPrice(result.categoriaHabitacion)) {
+                    if (stateRoom?.categoriaHabitacion && hasValidPrice(stateRoom.categoriaHabitacion)) {
+                        result.categoriaHabitacion = stateRoom.categoriaHabitacion;
+                    } else if (detailWithRoom?.categoriaHabitacion && hasValidPrice(detailWithRoom.categoriaHabitacion)) {
+                        result.categoriaHabitacion = detailWithRoom.categoriaHabitacion;
+                    }
+                }
+
+                // 3. Ensure Number
+                if (!result.numero) {
+                    if (stateRoom?.numero) result.numero = stateRoom.numero;
+                    else if (detailWithRoom?.numero) result.numero = detailWithRoom.numero;
+                }
+
+                return result;
+            }));
+
+            const validRooms = resolvedRooms.filter((h): h is HabitacionDTO => !!h);
+            setSelectedReservaRooms(validRooms);
         } catch (error) {
             console.error('Error fetching details', error);
             toast.error('Error al cargar detalles de la reserva');
@@ -346,8 +423,6 @@ export const AdminReservas = () => {
         return clientName.includes(lowerTerm) || status.includes(lowerTerm) || id.includes(lowerTerm);
     });
 
-    // Find full client data
-    const fullClient = selectedReserva ? clientes.find(c => c.id === selectedReserva.clienteId) : null;
 
     return (
         <div className="font-sans text-gray-900 bg-gray-50 min-h-screen flex flex-col">
@@ -769,30 +844,68 @@ export const AdminReservas = () => {
 
                     {selectedReserva && (
                         <div className="p-6 bg-white space-y-8">
-                            {/* CLIENT SECTION */}
-                            <div className="flex items-start gap-4">
-                                <div className="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold text-lg">
-                                    {fullClient?.nombre?.charAt(0) || <User />}
-                                </div>
+                            {/* TOP META ROW */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-b pb-6">
                                 <div>
-                                    <h3 className="text-lg font-bold text-gray-900">
-                                        {fullClient?.nombre} {fullClient?.apellido}
+                                    <span className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-1">Fecha de Reserva</span>
+                                    <span className="text-gray-900 font-medium">
+                                        {selectedReserva.fechaReserva ?
+                                            new Date(selectedReserva.fechaReserva).toLocaleString('es-ES', { dateStyle: 'long', timeStyle: 'short' })
+                                            : <span className="text-gray-400 italic">No registrada</span>
+                                        }
+                                    </span>
+                                </div>
+                                <div className="md:text-left">
+                                    <span className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-1">Estado</span>
+                                    <Badge className={cn(
+                                        "px-3 py-1 text-sm",
+                                        selectedReserva.estado === 'CONFIRMADA' ? "bg-green-100 text-green-700" :
+                                            selectedReserva.estado === 'CANCELADA' ? "bg-red-100 text-red-700" :
+                                                "bg-yellow-100 text-yellow-700"
+                                    )}>
+                                        {selectedReserva.estado || 'PENDIENTE'}
+                                    </Badge>
+                                </div>
+                            </div>
+
+                            {/* CLIENT SECTION */}
+                            <div className="flex items-start gap-5">
+                                <div className="h-16 w-16 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold text-2xl shadow-sm border border-slate-200">
+                                    {(detailClient?.nombre || selectedReserva.cliente?.nombre)?.charAt(0) || <User />}
+                                </div>
+                                <div className="space-y-1 w-full">
+                                    <h3 className="text-xl font-bold text-gray-900 border-b border-dashed border-gray-200 pb-1 mb-2">
+                                        {detailClient?.nombre || selectedReserva.cliente?.nombre || 'Cliente'} {detailClient?.apellido || selectedReserva.cliente?.apellido || ''}
                                     </h3>
-                                    <div className="text-sm text-gray-500 flex flex-col">
-                                        <span>{fullClient?.correo}</span>
-                                        <span>{fullClient?.telefono}</span>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2 text-sm text-gray-600">
+                                        <div className="flex items-center gap-2">
+                                            <span className="font-semibold text-gray-400/80 w-20">Email:</span>
+                                            <span className="text-gray-900">{detailClient?.correo || <span className="text-gray-300">-</span>}</span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <span className="font-semibold text-gray-400/80 w-20">Teléfono:</span>
+                                            <span className="text-gray-900">{detailClient?.telefono || <span className="text-gray-300">-</span>}</span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <span className="font-semibold text-gray-400/80 w-20">Doc:</span>
+                                            <span className="text-gray-900 uppercase font-mono">{detailClient?.numeroIdentificacion || <span className="text-gray-300">-</span>}</span>
+                                        </div>
+                                        <div className="flex items-center gap-2 sm:col-span-2">
+                                            <span className="font-semibold text-gray-400/80 w-20">Dirección:</span>
+                                            <span className="text-gray-900 truncate max-w-[400px]" title={detailClient?.direccion || ''}>{detailClient?.direccion || <span className="text-gray-300">-</span>}</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-8 border-t border-b border-gray-100 py-6">
+                            <div className="grid grid-cols-2 gap-8 border-t border-b border-gray-100 py-6 bg-slate-50/50 px-4 rounded-lg">
                                 <div>
                                     <span className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-1">Entrada</span>
                                     <span className="text-xl font-bold text-gray-800">
                                         {new Date(selectedReserva.fechaInicio!).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
                                     </span>
                                 </div>
-                                <div>
+                                <div className="text-right">
                                     <span className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-1">Salida</span>
                                     <span className="text-xl font-bold text-gray-800">
                                         {new Date(selectedReserva.fechaFin!).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
@@ -802,28 +915,41 @@ export const AdminReservas = () => {
 
                             {/* ROOMS SECTION */}
                             <div>
-                                <h4 className="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
+                                <h4 className="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2 uppercase tracking-wider">
                                     <span className="bg-yellow-100 p-1 rounded text-yellow-700"><Check className="h-3 w-3" /></span>
-                                    Habitaciones Reservadas
+                                    Habitaciones Reservadas ({selectedReservaRooms.length})
                                 </h4>
                                 {selectedReservaRooms.length > 0 ? (
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                         {selectedReservaRooms.map((room, index) => (
-                                            <div key={room.id || index} className="flex items-center gap-3 p-3 rounded-lg border border-gray-100 bg-gray-50">
-                                                <div className="h-10 w-10 bg-white rounded flex items-center justify-center text-gray-400 border border-gray-200 shadow-sm font-mono font-bold">
-                                                    {room.numero}
+                                            <div key={room.id || index} className="flex flex-col gap-2 p-4 rounded-lg border border-gray-100 bg-white shadow-sm hover:shadow-md transition-shadow">
+                                                <div className="flex justify-between items-center border-b border-gray-50 pb-2">
+                                                    <span className="font-mono font-bold text-lg text-yellow-600">Hab {room.numero}</span>
+                                                    <span className="text-xs bg-yellow-50 text-yellow-700 border border-yellow-200 px-2 py-1 rounded-full font-medium">
+                                                        {room.categoriaHabitacion?.nombre || 'Estándar'}
+                                                    </span>
                                                 </div>
-                                                <div>
-                                                    <p className="font-bold text-gray-800 text-sm">{room.categoriaHabitacion?.nombre}</p>
-                                                    <p className="text-xs text-gray-500">Capacidad: {room.capacidad} pers.</p>
+                                                <div className="flex justify-between items-end text-sm">
+                                                    <div className="text-gray-500">
+                                                        <p>Capacidad: <span className="font-medium text-gray-800">{room.capacidad ?? '?'} pax</span></p>
+                                                    </div>
+                                                    <div className="font-bold text-gray-900">
+                                                        ${room.categoriaHabitacion?.precioBase ? Number(room.categoriaHabitacion.precioBase).toLocaleString() : '0'} <span className="text-xs font-normal text-gray-400">/noche</span>
+                                                    </div>
                                                 </div>
                                             </div>
                                         ))}
                                     </div>
                                 ) : (
-                                    <div className="text-sm text-gray-400 italic flex items-center gap-2">
-                                        <div className="animate-spin h-3 w-3 border-b-2 border-gray-400 rounded-full"></div>
-                                        Cargando detalles...
+                                    <div className="text-sm text-gray-400 italic flex items-center gap-2 p-4 bg-gray-50 rounded-lg justify-center border border-dashed">
+                                        {isLoading ? (
+                                            <>
+                                                <div className="animate-spin h-3 w-3 border-b-2 border-gray-400 rounded-full"></div>
+                                                Cargando habitaciones...
+                                            </>
+                                        ) : (
+                                            <span>No se encontraron habitaciones asociadas.</span>
+                                        )}
                                     </div>
                                 )}
                             </div>
