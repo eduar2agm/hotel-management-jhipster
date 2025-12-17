@@ -27,6 +27,7 @@ import { Switch } from '@/components/ui/switch';
 import { Navbar } from '../../components/ui/Navbar';
 import { Footer } from '../../components/ui/Footer';
 import { RoomCard } from '@/components/ui/RoomCard';
+import { ActiveFilter } from '@/components/ui/ActiveFilter';
 
 const habitacionSchema = z.object({
     id: z.number().optional(),
@@ -55,6 +56,7 @@ export const AdminHabitaciones = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [openCategoryPopover, setOpenCategoryPopover] = useState(false);
     const [searchFilter, setSearchFilter] = useState('');
+    const [showInactive, setShowInactive] = useState(false);
 
     const form = useForm<HabitacionFormValues>({
         resolver: zodResolver(habitacionSchema) as any,
@@ -73,11 +75,9 @@ export const AdminHabitaciones = () => {
         setLoading(true);
         try {
             const [habsRes, catsRes, estRes] = await Promise.all([
-                HabitacionService.getHabitacions({ 
-                    page: currentPage, 
-                    size: itemsPerPage, 
-                    sort: 'id,asc' 
-                }),
+                showInactive
+                    ? HabitacionService.getHabitacionesInactivas({ page: currentPage, size: itemsPerPage, sort: 'id,asc' })
+                    : HabitacionService.getHabitacions({ page: currentPage, size: itemsPerPage, sort: 'id,asc' }),
                 CategoriaHabitacionService.getCategorias({ size: 100 }),
                 EstadoHabitacionService.getEstados({ size: 100 })
             ]);
@@ -94,7 +94,7 @@ export const AdminHabitaciones = () => {
         }
     };
 
-    useEffect(() => { loadData(); }, [currentPage]);
+    useEffect(() => { loadData(); }, [currentPage, showInactive]);
 
     // Reset form when dialog opens/closes or mode changes
     useEffect(() => {
@@ -128,7 +128,26 @@ export const AdminHabitaciones = () => {
         }
     };
 
+    const handleToggleActivo = async (id: number, currentStatus: boolean | undefined) => {
+        try {
+            if (currentStatus) {
+                await HabitacionService.desactivarHabitacion(id);
+                toast.success('Habitación desactivada');
+            } else {
+                await HabitacionService.activarHabitacion(id);
+                toast.success('Habitación activada');
+            }
+            loadData();
+        } catch (error) {
+            toast.error('Error al cambiar estado');
+        }
+    };
+
     const handleEdit = (item: HabitacionDTO) => {
+        if (!item.activo) {
+            toast.warning('No se puede editar una habitación inactiva');
+            return;
+        }
         setIsEditing(true);
         form.reset({
             id: item.id,
@@ -145,7 +164,8 @@ export const AdminHabitaciones = () => {
 
     const handleCreate = () => {
         setIsEditing(false);
-        const defaultState = estados.find(e => e.nombre === 'DISPONIBLE')?.id?.toString() || '';
+        const activeStates = estados.filter(e => e.activo !== false);
+        const defaultState = activeStates.find(e => e.nombre === 'DISPONIBLE')?.id?.toString() || '';
         form.reset({
             numero: '',
             capacidad: 2,
@@ -185,10 +205,10 @@ export const AdminHabitaciones = () => {
 
             {/* HERO SECTION */}
             <div className="bg-[#0F172A] pt-32 pb-20 px-4 md:px-8 lg:px-20 relative overflow-hidden shadow-xl">
-                 <div className="absolute top-0 right-0 p-12 opacity-5 scale-150 pointer-events-none">
-                     <Hotel className="w-96 h-96 text-white" />
-                 </div>
-                 <div className="relative max-w-7xl mx-auto z-10 flex flex-col md:flex-row justify-between items-center gap-6">
+                <div className="absolute top-0 right-0 p-12 opacity-5 scale-150 pointer-events-none">
+                    <Hotel className="w-96 h-96 text-white" />
+                </div>
+                <div className="relative max-w-7xl mx-auto z-10 flex flex-col md:flex-row justify-between items-center gap-6">
                     <div>
                         <span className="text-yellow-500 font-bold tracking-[0.2em] uppercase text-xs mb-2 block">Administración</span>
                         <h1 className="text-3xl md:text-5xl font-black text-white tracking-tight mb-2">
@@ -199,32 +219,35 @@ export const AdminHabitaciones = () => {
                         </p>
                     </div>
                     <div>
-                        <Button 
+                        <Button
                             onClick={handleCreate}
                             className="bg-yellow-600 hover:bg-yellow-700 text-white border-0 shadow-lg hover:shadow-yellow-600/20 transition-all rounded-sm px-6 py-6 text-sm uppercase tracking-widest font-bold"
                         >
                             <Plus className="mr-2 h-5 w-5" /> Nueva Habitación
                         </Button>
                     </div>
-                 </div>
+                </div>
             </div>
 
             <main className="flex-grow py-5  px-4 md:px-8 lg:px-20 -mt-10 relative z-10">
                 <Card className="max-w-7xl mx-auto border-t-4 border-yellow-600 shadow-xl bg-white">
                     <CardHeader className="border-b bg-gray-50/50 pb-6">
                         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-                             <div>
+                            <div>
                                 <CardTitle className="text-xl font-bold text-gray-800">Inventario de Habitaciones</CardTitle>
-                                <CardDescription>Total de unidades: {habitaciones.length}</CardDescription>
+                                <CardDescription>Total de unidades: {totalItems}</CardDescription>
                             </div>
-                            <div className="relative w-full md:w-96 group">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-yellow-600 transition-colors" />
-                                <Input
-                                    placeholder="Buscar por número, categoría..."
-                                    value={searchFilter}
-                                    onChange={(e) => setSearchFilter(e.target.value)}
-                                    className="pl-10 border-gray-200 focus:border-yellow-600 focus:ring-yellow-600/20 h-11 transition-all"
-                                />
+                            <div className="flex flex-col md:flex-row gap-4 items-center w-full md:w-auto">
+                                <ActiveFilter showInactive={showInactive} onChange={(val) => { setShowInactive(val); setCurrentPage(0); }} />
+                                <div className="relative w-full md:w-96 group">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-yellow-600 transition-colors" />
+                                    <Input
+                                        placeholder="Buscar por número, categoría..."
+                                        value={searchFilter}
+                                        onChange={(e) => setSearchFilter(e.target.value)}
+                                        className="pl-10 border-gray-200 focus:border-yellow-600 focus:ring-yellow-600/20 h-11 transition-all"
+                                    />
+                                </div>
                             </div>
                         </div>
                     </CardHeader>
@@ -241,11 +264,12 @@ export const AdminHabitaciones = () => {
                                 </div>
                             ) : (
                                 filteredHabitaciones.map((h) => (
-                                    <RoomCard 
-                                        key={h.id} 
-                                        habitacion={h} 
-                                        onEdit={handleEdit} 
-                                        onDelete={(id) => handleDelete(id)} 
+                                    <RoomCard
+                                        key={h.id}
+                                        habitacion={h}
+                                        onEdit={handleEdit}
+                                        onDelete={(id) => handleDelete(id)}
+                                        onToggleActive={handleToggleActivo}
                                     />
                                 ))
                             )}
@@ -289,7 +313,7 @@ export const AdminHabitaciones = () => {
                                 Detalles de configuración de la unidad.
                             </DialogDescription>
                         </DialogHeader>
-                        
+
                         <div className="p-6 bg-white overflow-y-auto max-h-[80vh]">
                             <Form {...(form as any)}>
                                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
@@ -357,7 +381,7 @@ export const AdminHabitaciones = () => {
                                                             <CommandList>
                                                                 <CommandEmpty>No encontrada.</CommandEmpty>
                                                                 <CommandGroup>
-                                                                    {categorias.map((c) => (
+                                                                    {categorias.filter(c => c.activo !== false).map((c) => (
                                                                         <CommandItem
                                                                             key={c.id}
                                                                             value={`${c.nombre} ${c.descripcion}`}
@@ -404,7 +428,7 @@ export const AdminHabitaciones = () => {
                                                             </SelectTrigger>
                                                         </FormControl>
                                                         <SelectContent>
-                                                            {estados.map(e => (
+                                                            {estados.filter(e => e.activo !== false).map(e => (
                                                                 <SelectItem key={e.id} value={String(e.id)}>
                                                                     {e.nombre}
                                                                 </SelectItem>
@@ -440,10 +464,10 @@ export const AdminHabitaciones = () => {
                                             <FormItem>
                                                 <FormLabel className="text-xs font-bold text-gray-500 uppercase tracking-widest">Descripción</FormLabel>
                                                 <FormControl>
-                                                    <Textarea 
-                                                        placeholder="Características de la habitación..." 
-                                                        className="resize-none h-20" 
-                                                        {...field} 
+                                                    <Textarea
+                                                        placeholder="Características de la habitación..."
+                                                        className="resize-none h-20"
+                                                        {...field}
                                                     />
                                                 </FormControl>
                                                 <FormMessage />
