@@ -26,12 +26,11 @@ export const ClientReservas = () => {
     // Pagination
     const [currentPage, setCurrentPage] = useState(0);
     const [totalItems, setTotalItems] = useState(0);
-    const itemsPerPage = 5; // Mostrar pocas por página para mejor UX en móvil
+    const itemsPerPage = 5; 
 
-    // --- LOGICA ORIGINAL (INTACTA) ---
-    useEffect(() => {
-        const loadMyReservas = async () => {
-            if (!user?.email) return;
+    // --- LOGIC ---
+    const loadMyReservas = useCallback(async () => {
+        if (!user?.email) return;
 
         try {
             setLoading(true);
@@ -43,28 +42,28 @@ export const ClientReservas = () => {
                 return;
             }
 
-                // 2. Fetch PAGINATED reservations
-                let myReservas: ReservaDTO[] = [];
-                try {
-                    const filteredRes = await ReservaService.getReservas({
-                        'clienteId.equals': me.id,
-                        page: currentPage,
-                        size: itemsPerPage,
-                        sort: 'id,desc'
-                    });
-                    myReservas = filteredRes.data;
-                    const total = parseInt(filteredRes.headers['x-total-count'] || '0', 10);
-                    setTotalItems(total);
-                } catch (e) {
-                    // Fallback (mantiene lógica legado pero intenta paginar localmente si falla filtro)
-                    const all = await ReservaService.getReservas({ size: 1000 });
-                    const allMyReservas = all.data.filter(r => r.cliente?.id === me.id);
-                    allMyReservas.sort((a, b) => new Date(b.fechaInicio!).getTime() - new Date(a.fechaInicio!).getTime());
+            // 2. Fetch PAGINATED reservations
+            let myReservas: ReservaDTO[] = [];
+            try {
+                const filteredRes = await ReservaService.getReservas({
+                    'clienteId.equals': me.id,
+                    page: currentPage,
+                    size: itemsPerPage,
+                    sort: 'id,desc'
+                });
+                myReservas = filteredRes.data;
+                const total = parseInt(filteredRes.headers['x-total-count'] || '0', 10);
+                setTotalItems(total);
+            } catch (e) {
+                // Fallback
+                const all = await ReservaService.getReservas({ size: 1000 });
+                const allMyReservas = all.data.filter(r => r.cliente?.id === me.id);
+                allMyReservas.sort((a, b) => new Date(b.fechaInicio!).getTime() - new Date(a.fechaInicio!).getTime());
 
-                    setTotalItems(allMyReservas.length);
-                    const start = currentPage * itemsPerPage;
-                    myReservas = allMyReservas.slice(start, start + itemsPerPage);
-                }
+                setTotalItems(allMyReservas.length);
+                const start = currentPage * itemsPerPage;
+                myReservas = allMyReservas.slice(start, start + itemsPerPage);
+            }
 
             setReservas(myReservas);
 
@@ -88,7 +87,7 @@ export const ClientReservas = () => {
         } finally {
             setLoading(false);
         }
-    }, [user?.email]);
+    }, [user?.email, currentPage, itemsPerPage]);
 
     useEffect(() => {
         loadMyReservas();
@@ -111,7 +110,6 @@ export const ClientReservas = () => {
             setSearchParams({});
         }
     }, [searchParams, setSearchParams, loadMyReservas]);
-    }, [user, currentPage]);
 
     const getStatusColor = (status?: string | null) => {
         switch (status) {
@@ -378,7 +376,7 @@ export const ClientReservas = () => {
                     )}
                 </div>
             </main>
-
+            
             <Footer />
         </div>
     );
