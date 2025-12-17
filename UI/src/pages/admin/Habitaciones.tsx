@@ -131,6 +131,7 @@ export const AdminHabitaciones = () => {
     // Mapa de mensajes de error del backend
     const errorMessages: Record<string, string> = {
         'error.habitacionOcupada': 'No se puede desactivar la habitación porque hay un cliente hospedado actualmente',
+        'error.habitacionOcupadaEliminar': 'No se puede eliminar la habitación porque hay un cliente hospedado actualmente',
         'error.inactive': 'La entidad está inactiva',
     };
 
@@ -196,8 +197,13 @@ export const AdminHabitaciones = () => {
             await HabitacionService.deleteHabitacion(id);
             toast.success('Habitación eliminada');
             loadData();
-        } catch (error) {
-            toast.error('Error al eliminar');
+        } catch (error: any) {
+            const data = error?.response?.data;
+            const errorKey = data?.message;
+            const backendMessage = errorMessages[errorKey]
+                || data?.detail
+                || 'Error al eliminar';
+            toast.error(backendMessage);
         }
     };
 
