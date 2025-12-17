@@ -87,6 +87,18 @@ public class HabitacionServiceImpl implements HabitacionService {
     @Override
     public void delete(Long id) {
         LOG.debug("Request to delete Habitacion : {}", id);
+
+        // Verificar si hay un cliente hospedado actualmente en esta habitación
+        boolean estaOcupada = checkInCheckOutRepository
+                .existsByReservaDetalle_Habitacion_IdAndFechaHoraCheckOutIsNullAndActivoTrue(id);
+
+        if (estaOcupada) {
+            throw new BadRequestAlertException(
+                    "No se puede eliminar la habitación porque hay un cliente hospedado actualmente",
+                    "habitacion",
+                    "habitacionOcupadaEliminar");
+        }
+
         habitacionRepository.deleteById(id);
     }
 
@@ -108,8 +120,6 @@ public class HabitacionServiceImpl implements HabitacionService {
         // Verificar si hay un cliente hospedado actualmente en esta habitación
         boolean estaOcupada = checkInCheckOutRepository
                 .existsByReservaDetalle_Habitacion_IdAndFechaHoraCheckOutIsNullAndActivoTrue(id);
-
-        LOG.info("Habitación {} - ¿Está ocupada?: {}", id, estaOcupada);
 
         if (estaOcupada) {
             throw new BadRequestAlertException(
