@@ -47,10 +47,11 @@ import { type ReservaDTO } from '../../types/api/Reserva';
 import { type ClienteDTO } from '../../types/api/Cliente';
 import { type HabitacionDTO } from '../../types/api/Habitacion';
 import { toast } from 'sonner';
-import { Pencil, Trash2, Plus, Calendar, Search, User, Check, AlertCircle, RefreshCcw, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
+import { Pencil, Trash2, Plus, Calendar, Search, User, Check, AlertCircle, RefreshCcw, ChevronLeft, ChevronRight, Eye, CheckCircle2, XCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+import { ActiveFilter } from '@/components/ui/ActiveFilter';
 
 const reservaSchema = z.object({
     id: z.number().optional(),
@@ -88,6 +89,7 @@ export const AdminReservas = () => {
 
     // Filter State
     const [searchTerm, setSearchTerm] = useState('');
+    const [showInactive, setShowInactive] = useState(false);
 
     const form = useForm<ReservaFormValues>({
         resolver: zodResolver(reservaSchema) as any,
@@ -104,12 +106,20 @@ export const AdminReservas = () => {
     const loadData = async () => {
         try {
             setIsLoading(true);
-            const [reservasRes, clientesRes, habitacionesRes] = await Promise.all([
-                ReservaService.getReservas({
+            const reservasPromise = showInactive
+                ? ReservaService.getReservasInactivas({
                     page: currentPage,
                     size: itemsPerPage,
                     sort: 'id,desc'
-                }),
+                })
+                : ReservaService.getReservas({
+                    page: currentPage,
+                    size: itemsPerPage,
+                    sort: 'id,desc'
+                });
+
+            const [reservasRes, clientesRes, habitacionesRes] = await Promise.all([
+                reservasPromise,
                 ClienteService.getClientes({ size: 100 }),
                 HabitacionService.getHabitacions({ size: 100 })
             ]);
@@ -146,7 +156,7 @@ export const AdminReservas = () => {
 
     useEffect(() => {
         loadData();
-    }, [currentPage]);
+    }, [currentPage, showInactive]);
 
     // Reset Form on Dialog Close
     useEffect(() => {
@@ -174,7 +184,34 @@ export const AdminReservas = () => {
         setIsDialogOpen(true);
     };
 
+    const handleActivarReserva = async (id: number) => {
+        try {
+            await ReservaService.activarReserva(id);
+            toast.success('Reserva activada. Detalles sincronizados.');
+            loadData();
+        } catch (error) {
+            toast.error('Error al activar reserva');
+        }
+    };
+
+    const handleDesactivarReserva = async (id: number) => {
+        if (!confirm('¿Desactivar esta reserva? Se desactivarán todos sus detalles.')) return;
+        try {
+            await ReservaService.desactivarReserva(id);
+            toast.success('Reserva desactivada');
+            loadData();
+        } catch (error) {
+            toast.error('Error al desactivar reserva');
+        }
+    };
+
     const handleEdit = async (reserva: ReservaDTO) => {
+        if (!reserva.activo) {
+            toast.warning('No se puede editar una reserva inactiva', {
+                description: 'Debe reactivarla primero.'
+            });
+            return;
+        }
         setIsEditing(true);
         try {
             const detailsRes = await ReservaDetalleService.getReservaDetalles({ 'reservaId.equals': reserva.id });
@@ -359,6 +396,13 @@ export const AdminReservas = () => {
                                     className="pl-10 border-gray-200 focus:border-yellow-600 focus:ring-yellow-600/20 h-11 transition-all"
                                 />
                             </div>
+                            <ActiveFilter
+                                showInactive={showInactive}
+                                onChange={(val) => {
+                                    setShowInactive(val);
+                                    setCurrentPage(0);
+                                }}
+                            />
                         </div>
                     </CardHeader>
                     <div className="overflow-x-auto p-10">
@@ -439,6 +483,11 @@ export const AdminReservas = () => {
                                                     {reserva.estado === 'PENDIENTE' && <RefreshCcw className="h-3 w-3 mr-1" />}
                                                     {reserva.estado || 'PENDIENTE'}
                                                 </Badge>
+                                                {!reserva.activo && (
+                                                    <Badge variant="outline" className="bg-gray-100 text-gray-600 text-[10px] mt-1 w-fit">
+                                                        Inactiva
+                                                    </Badge>
+                                                )}
                                             </TableCell>
                                             <TableCell className="text-right p-4">
                                                 <div className="flex justify-end gap-2">
@@ -446,7 +495,11 @@ export const AdminReservas = () => {
                                                         variant="ghost"
                                                         size="sm"
                                                         onClick={() => handleViewDetails(reserva)}
-                                                        className="h-8 w-8 p-0 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
+                                                        disabled={!reserva.activo}
+                                                        className={cn(
+                                                            "h-8 w-8 p-0 rounded-full transition-colors",
+                                                            !reserva.activo ? "text-gray-200 cursor-not-allowed" : "text-gray-400 hover:text-blue-600 hover:bg-blue-50"
+                                                        )}
                                                         title="Ver detalles"
                                                     >
                                                         <Eye className="h-4 w-4" />
@@ -455,7 +508,11 @@ export const AdminReservas = () => {
                                                         variant="ghost"
                                                         size="sm"
                                                         onClick={() => handleEdit(reserva)}
-                                                        className="h-8 w-8 p-0 text-gray-400 hover:text-yellow-600 hover:bg-yellow-50 rounded-full transition-colors"
+                                                        disabled={!reserva.activo}
+                                                        className={cn(
+                                                            "h-8 w-8 p-0 rounded-full transition-colors",
+                                                            !reserva.activo ? "text-gray-200 cursor-not-allowed" : "text-gray-400 hover:text-yellow-600 hover:bg-yellow-50"
+                                                        )}
                                                     >
                                                         <Pencil className="h-4 w-4" />
                                                     </Button>
@@ -467,6 +524,27 @@ export const AdminReservas = () => {
                                                     >
                                                         <Trash2 className="h-4 w-4" />
                                                     </Button>
+                                                    {reserva.activo ? (
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={() => reserva.id && handleDesactivarReserva(reserva.id)}
+                                                            className="h-8 w-8 p-0 text-gray-400 hover:text-orange-600 hover:bg-orange-50 rounded-full transition-colors"
+                                                            title="Desactivar"
+                                                        >
+                                                            <XCircle className="h-4 w-4" />
+                                                        </Button>
+                                                    ) : (
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={() => reserva.id && handleActivarReserva(reserva.id)}
+                                                            className="h-8 w-8 p-0 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-full transition-colors"
+                                                            title="Reactivar"
+                                                        >
+                                                            <CheckCircle2 className="h-4 w-4" />
+                                                        </Button>
+                                                    )}
                                                 </div>
                                             </TableCell>
                                         </TableRow>
