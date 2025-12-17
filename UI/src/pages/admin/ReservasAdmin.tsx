@@ -184,6 +184,12 @@ export const AdminReservas = () => {
         setIsDialogOpen(true);
     };
 
+    // Mapa de mensajes de error del backend
+    const errorMessages: Record<string, string> = {
+        'error.reservaNoCancelada': 'Solo se puede desactivar una reserva que esté cancelada',
+        'error.inactive': 'La entidad está inactiva',
+    };
+
     const handleActivarReserva = async (id: number) => {
         try {
             await ReservaService.activarReserva(id);
@@ -200,8 +206,13 @@ export const AdminReservas = () => {
             await ReservaService.desactivarReserva(id);
             toast.success('Reserva desactivada');
             loadData();
-        } catch (error) {
-            toast.error('Error al desactivar reserva');
+        } catch (error: any) {
+            const data = error?.response?.data;
+            const errorKey = data?.message;
+            const backendMessage = errorMessages[errorKey]
+                || data?.detail
+                || 'Error al desactivar reserva';
+            toast.error(backendMessage);
         }
     };
 
