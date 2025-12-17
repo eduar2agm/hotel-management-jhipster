@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Navbar } from '../../components/ui/Navbar';
 import { Footer } from '../../components/ui/Footer';
-import { RoomCard } from '../../components/ui/RoomCard';
+import { PublicRoomCard } from '../../components/ui/PublicRoomCard';
 import { Search, SlidersHorizontal, X } from 'lucide-react';
 
 const HABITACIONES_MOCK: any[] = [
