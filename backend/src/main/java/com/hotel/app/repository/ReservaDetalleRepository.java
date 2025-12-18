@@ -45,4 +45,13 @@ public interface ReservaDetalleRepository extends JpaRepository<ReservaDetalle, 
 
     @Query(value = "select reservaDetalle from ReservaDetalle reservaDetalle left join fetch reservaDetalle.habitacion h left join fetch h.categoriaHabitacion where reservaDetalle.activo = :activo", countQuery = "select count(reservaDetalle) from ReservaDetalle reservaDetalle where reservaDetalle.activo = :activo")
     Page<ReservaDetalle> findByActivoWithEagerRelationships(@Param("activo") Boolean activo, Pageable pageable);
+
+    /**
+     * Verifica si existe algún detalle de reserva asociado a una habitación.
+     *
+     * @param habitacionId ID de la habitación
+     * @return true si hay al menos un detalle de reserva que referencia esta
+     *         habitación
+     */
+    boolean existsByHabitacion_Id(Long habitacionId);
 }

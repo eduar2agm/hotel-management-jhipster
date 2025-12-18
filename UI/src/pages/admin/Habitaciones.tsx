@@ -132,6 +132,7 @@ export const AdminHabitaciones = () => {
     const errorMessages: Record<string, string> = {
         'error.habitacionOcupada': 'No se puede desactivar la habitación porque hay un cliente hospedado actualmente',
         'error.habitacionOcupadaEliminar': 'No se puede eliminar la habitación porque hay un cliente hospedado actualmente',
+        'error.habitacionConReservas': 'No se puede eliminar la habitación porque tiene reservas asociadas',
         'error.inactive': 'La entidad está inactiva',
     };
 
