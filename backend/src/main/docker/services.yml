@@ -9,3 +9,7 @@ services:
     extends:
       file: ./keycloak.yml
       service: keycloak
+  stripe-cli:
+    extends:
+      file: ./stripe.yml
+      service: stripe-cli
