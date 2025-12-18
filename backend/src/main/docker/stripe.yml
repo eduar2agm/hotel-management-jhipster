@@ -1,0 +1,12 @@
+version: '3.8'
+services:
+  stripe-cli:
+    image: stripe/stripe-cli
+    container_name: stripe_listener
+    environment:
+      - STRIPE_API_KEY=${STRIPE_SECRET_KEY}
+    command: listen --forward-to http://host.docker.internal:8081/api/stripe/webhook --api-key ${STRIPE_SECRET_KEY}
+    env_file:
+      - ../../../.env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
