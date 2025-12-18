@@ -2,6 +2,7 @@ package com.hotel.app;
 
 import com.hotel.app.config.ApplicationProperties;
 import com.hotel.app.config.CRLFLogConverter;
+import io.github.cdimascio.dotenv.Dotenv;
 import jakarta.annotation.PostConstruct;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -65,6 +66,9 @@ public class HotelApp {
      * @param args the command line arguments.
      */
     public static void main(String[] args) {
+        Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load();
+        dotenv.entries().forEach(entry -> System.setProperty(entry.getKey(), entry.getValue()));
+
         SpringApplication app = new SpringApplication(HotelApp.class);
         DefaultProfileUtil.addDefaultProfile(app);
         Environment env = app.run(args).getEnvironment();
