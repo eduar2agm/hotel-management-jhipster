@@ -3,6 +3,7 @@ package com.hotel.app.service.impl;
 import com.hotel.app.domain.Habitacion;
 import com.hotel.app.repository.CheckInCheckOutRepository;
 import com.hotel.app.repository.HabitacionRepository;
+import com.hotel.app.repository.ReservaDetalleRepository;
 import com.hotel.app.service.HabitacionService;
 import com.hotel.app.service.dto.HabitacionDTO;
 import com.hotel.app.service.mapper.HabitacionMapper;
@@ -30,13 +31,17 @@ public class HabitacionServiceImpl implements HabitacionService {
 
     private final CheckInCheckOutRepository checkInCheckOutRepository;
 
+    private final ReservaDetalleRepository reservaDetalleRepository;
+
     public HabitacionServiceImpl(
             HabitacionRepository habitacionRepository,
             HabitacionMapper habitacionMapper,
-            CheckInCheckOutRepository checkInCheckOutRepository) {
+            CheckInCheckOutRepository checkInCheckOutRepository,
+            ReservaDetalleRepository reservaDetalleRepository) {
         this.habitacionRepository = habitacionRepository;
         this.habitacionMapper = habitacionMapper;
         this.checkInCheckOutRepository = checkInCheckOutRepository;
+        this.reservaDetalleRepository = reservaDetalleRepository;
     }
 
     @Override
@@ -97,6 +102,16 @@ public class HabitacionServiceImpl implements HabitacionService {
                     "No se puede eliminar la habitación porque hay un cliente hospedado actualmente",
                     "habitacion",
                     "habitacionOcupadaEliminar");
+        }
+
+        // Verificar si hay reservas asociadas a esta habitación
+        boolean tieneReservas = reservaDetalleRepository.existsByHabitacion_Id(id);
+
+        if (tieneReservas) {
+            throw new BadRequestAlertException(
+                    "No se puede eliminar la habitación porque tiene reservas asociadas. Debe eliminar primero las reservas que incluyen esta habitación.",
+                    "habitacion",
+                    "habitacionConReservas");
         }
 
         habitacionRepository.deleteById(id);
