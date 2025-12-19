@@ -1,0 +1,63 @@
+{
+  "annotations": {
+    "changelogDate": "20251219230612"
+  },
+  "applications": "*",
+  "clientRootFolder": "hotelApp",
+  "databaseType": "sql",
+  "dto": "mapstruct",
+  "fields": [
+    {
+      "fieldName": "nombre",
+      "fieldType": "String",
+      "fieldValidateRules": ["required"]
+    },
+    {
+      "fieldName": "descripcion",
+      "fieldType": "String",
+      "fieldValidateRules": ["maxlength"],
+      "fieldValidateRulesMaxlength": "500"
+    },
+    {
+      "fieldName": "fichero",
+      "fieldType": "ImageBlob",
+      "fieldValidateRules": ["required"]
+    },
+    {
+      "fieldName": "nombreArchivo",
+      "fieldType": "String"
+    },
+    {
+      "fieldName": "activo",
+      "fieldType": "Boolean",
+      "fieldValidateRules": ["required"]
+    },
+    {
+      "fieldName": "fechaCreacion",
+      "fieldType": "Instant"
+    }
+  ],
+  "microserviceName": "hotelApp",
+  "name": "Imagen",
+  "pagination": "pagination",
+  "relationships": [
+    {
+      "otherEntityField": "numero",
+      "otherEntityName": "habitacion",
+      "relationshipName": "habitacion",
+      "relationshipSide": "left",
+      "relationshipType": "many-to-one",
+      "relationshipWithBuiltInEntity": true
+    },
+    {
+      "otherEntityField": "nombre",
+      "otherEntityName": "servicio",
+      "relationshipName": "servicio",
+      "relationshipSide": "left",
+      "relationshipType": "many-to-one",
+      "relationshipWithBuiltInEntity": true
+    }
+  ],
+  "searchEngine": "no",
+  "service": "serviceImpl"
+}
