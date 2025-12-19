@@ -94,16 +94,40 @@ export const CheckoutSidebar = ({ reserva, details, onClose, onPaymentSuccess }:
                 
                 <div className="border-t border-gray-100 my-4"></div>
 
-                {details.map((detail, idx) => (
-                    <div key={idx} className="flex justify-between text-sm">
-                        <span className="text-gray-500">
-                             Habitación {detail.habitacion?.numero} ({detail.habitacion?.categoriaHabitacion?.nombre})
-                        </span>
-                        <span className="font-medium text-gray-900">
-                            ${(detail.precioUnitario ?? 0).toFixed(2)}
-                        </span>
-                    </div>
-                ))}
+                {details.map((detail, idx) => {
+                    const price = detail.precioUnitario || detail.habitacion?.categoriaHabitacion?.precioBase || 0;
+                    
+                    // Calculate nights
+                    let nights = 1;
+                    if (reserva.fechaInicio && reserva.fechaFin) {
+                        const start = new Date(reserva.fechaInicio);
+                        const end = new Date(reserva.fechaFin);
+                        const diffTime = Math.abs(end.getTime() - start.getTime());
+                        const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                        nights = days === 0 ? 1 : days;
+                    }
+
+                    const roomTotal = price * nights;
+
+                    return (
+                        <div key={idx} className="flex justify-between items-start text-sm">
+                            <div className="flex flex-col">
+                                <span className="text-gray-900 font-medium">
+                                     Habitación {detail.habitacion?.numero}
+                                </span>
+                                <span className="text-xs text-gray-500">
+                                    {detail.habitacion?.categoriaHabitacion?.nombre}
+                                </span>
+                                <span className="text-xs text-gray-400 mt-0.5">
+                                    ${price.toFixed(2)} x {nights} noches
+                                </span>
+                            </div>
+                            <span className="font-bold text-gray-900">
+                                ${roomTotal.toFixed(2)}
+                            </span>
+                        </div>
+                    );
+                })}
                  
                  <div className="border-t border-gray-100 my-4"></div>
 
