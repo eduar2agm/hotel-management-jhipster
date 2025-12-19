@@ -244,6 +244,46 @@ export const EmployeeReservas = () => {
         loadData(currentPage);
     }, [currentPage]);
 
+    // --- DATE WATCHER FOR AVAILABILITY ---
+    const watchedFechaInicio = form.watch('fechaInicio');
+    const watchedFechaFin = form.watch('fechaFin');
+
+    useEffect(() => {
+        const fetchAvailability = async () => {
+            if (!watchedFechaInicio || !watchedFechaFin) {
+                if (isDialogOpen) {
+                    try {
+                        const res = await HabitacionService.getHabitacions({ 'activo.equals': true, size: 100 });
+                        setHabitaciones(res.data);
+                    } catch (e) { console.error(e); }
+                }
+                return;
+            }
+
+            const start = new Date(watchedFechaInicio);
+            const end = new Date(watchedFechaFin);
+
+            if (start >= end) return;
+
+            try {
+                const startStr = `${watchedFechaInicio}T00:00:00Z`;
+                const endStr = `${watchedFechaFin}T00:00:00Z`;
+
+                const res = await HabitacionService.getAvailableHabitaciones(startStr, endStr, { size: 100 });
+                setHabitaciones(res.data);
+            } catch (error) {
+                console.error("Error fetching available rooms", error);
+            }
+        };
+
+        const timer = setTimeout(() => {
+            fetchAvailability();
+        }, 500);
+
+        return () => clearTimeout(timer);
+
+    }, [watchedFechaInicio, watchedFechaFin, isDialogOpen]);
+
     useEffect(() => {
         if (!isDialogOpen) {
             form.reset({
@@ -254,6 +294,7 @@ export const EmployeeReservas = () => {
                 activo: true,
                 clienteId: 0
             });
+            loadData(currentPage);
         }
     }, [isDialogOpen, form]);
 

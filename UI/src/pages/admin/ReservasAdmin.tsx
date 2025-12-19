@@ -119,6 +119,8 @@ export const AdminReservas = () => {
         }
     });
 
+
+
     const loadData = async () => {
         try {
             setIsLoading(true);
@@ -170,9 +172,61 @@ export const AdminReservas = () => {
         }
     };
 
+
+
+
     useEffect(() => {
         loadData();
     }, [currentPage, showInactive]);
+
+    // --- DATE WATCHER FOR AVAILABILITY ---
+    const watchedFechaInicio = form.watch('fechaInicio');
+    const watchedFechaFin = form.watch('fechaFin');
+
+    useEffect(() => {
+        const fetchAvailability = async () => {
+            if (!watchedFechaInicio || !watchedFechaFin) {
+                // If dates are invalid, maybe we should show ALL rooms? 
+                // Or nothing? Usually better to show all so they can see what exists, 
+                // but strictly speaking, availability depends on date.
+                // Converting to "All Active Rooms" if dates are cleared.
+                if (isDialogOpen) {
+                    try {
+                        const res = await HabitacionService.getHabitacions({ size: 100 });
+                        setHabitaciones(res.data);
+                    } catch (e) { console.error(e); }
+                }
+                return;
+            }
+
+            const start = new Date(watchedFechaInicio);
+            const end = new Date(watchedFechaFin);
+
+            if (start >= end) return; // Invalid range
+
+            try {
+                // Append time to make it compatible with Instant
+                const startStr = `${watchedFechaInicio}T00:00:00Z`;
+                const endStr = `${watchedFechaFin}T00:00:00Z`;
+
+                const res = await HabitacionService.getAvailableHabitaciones(startStr, endStr, { size: 100 });
+                setHabitaciones(res.data);
+
+                // OPTIONAL: Toast to notify user
+                // toast.info(`Habitaciones actualizadas para ${watchedFechaInicio} - ${watchedFechaFin}`);
+            } catch (error) {
+                console.error("Error fetching available rooms", error);
+            }
+        };
+
+        const timer = setTimeout(() => {
+            fetchAvailability();
+        }, 500); // Debounce
+
+        return () => clearTimeout(timer);
+
+    }, [watchedFechaInicio, watchedFechaFin, isDialogOpen]);
+
 
     // Reset Form on Dialog Close
     useEffect(() => {
@@ -185,6 +239,8 @@ export const AdminReservas = () => {
                 activo: true,
                 clienteId: 0
             });
+            // Reset rooms to all? handled by next open or loadData
+            loadData();
         }
     }, [isDialogOpen, form]);
 
