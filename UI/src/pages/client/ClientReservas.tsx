@@ -19,14 +19,14 @@ export const ClientReservas = () => {
     const [loading, setLoading] = useState(true);
     const [reservas, setReservas] = useState<ReservaDTO[]>([]);
     const [reservaDetallesMap, setReservaDetallesMap] = useState<Record<number, ReservaDetalleDTO[]>>({});
-    
+
     // Stripe Checkout State
     const [activeReserva, setActiveReserva] = useState<ReservaDTO | null>(null);
 
     // Pagination
     const [currentPage, setCurrentPage] = useState(0);
     const [totalItems, setTotalItems] = useState(0);
-    const itemsPerPage = 5; 
+    const itemsPerPage = 5;
 
     // --- LOGIC ---
     const loadMyReservas = useCallback(async () => {
@@ -101,7 +101,7 @@ export const ClientReservas = () => {
         if (paymentIntent && redirectStatus) {
             if (redirectStatus === 'succeeded') {
                 toast.success('Pago completado con éxito');
-                loadMyReservas(); 
+                loadMyReservas();
             } else if (redirectStatus === 'processing') {
                 toast.info('Su pago se está procesando.');
             } else if (redirectStatus === 'failed') {
@@ -118,6 +118,7 @@ export const ClientReservas = () => {
             case 'CANCELADA': return 'bg-red-500 border-red-400 text-white';
             case 'CHECK_IN': return 'bg-blue-600 border-blue-500 text-white';
             case 'CHECK_OUT': return 'bg-gray-500 border-gray-400 text-white';
+            case 'FINALIZADA': return 'bg-blue-700 border-blue-600 text-white';
             default: return 'bg-gray-900 border-gray-800 text-white';
         }
     };
@@ -131,11 +132,11 @@ export const ClientReservas = () => {
 
         const start = new Date(reserva.fechaInicio);
         const end = new Date(reserva.fechaFin);
-        
+
         // Calculate difference in milliseconds and convert to days
         const diffTime = Math.abs(end.getTime() - start.getTime());
         const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        
+
         // Ensure at least 1 night if dates are same (although usually logic prevents this)
         const nights = days === 0 ? 1 : days;
 
@@ -153,7 +154,7 @@ export const ClientReservas = () => {
     const handlePaymentSuccess = () => {
         setActiveReserva(null);
         toast.success("Pago registrado correctamente");
-        loadMyReservas(); 
+        loadMyReservas();
     };
 
     return (
@@ -190,10 +191,10 @@ export const ClientReservas = () => {
                 <div className="max-w-8xl mx-auto -mt-8">
 
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                        
+
                         {/* --- LEFT SIDEBAR (Sticky) --- */}
                         <div className="lg:col-span-4 lg:sticky lg:top-32 order-1 z-20">
-                            <CheckoutSidebar 
+                            <CheckoutSidebar
                                 reserva={activeReserva || null}
                                 details={activeReservaDetails}
                                 onClose={() => setActiveReserva(null)}
@@ -203,7 +204,7 @@ export const ClientReservas = () => {
 
                         {/* --- RIGHT CONTENT (List) --- */}
                         <div className="lg:col-span-8 order-2">
-                            
+
                             {loading && (
                                 <div className="text-center py-20">
                                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-600 mx-auto"></div>
@@ -231,10 +232,10 @@ export const ClientReservas = () => {
 
                                         // Calculate total dynamically
                                         const computedTotal = calculateTotal(reserva, details);
-                                        
+
                                         return (
-                                            <div 
-                                                key={reserva.id} 
+                                            <div
+                                                key={reserva.id}
                                                 className={`bg-white group transition-all duration-300 border overflow-hidden rounded-xl
                                                     ${activeReserva?.id === reserva.id ? 'border-yellow-500 shadow-xl ring-2 ring-yellow-500 ring-offset-2' : 'border-gray-200 hover:shadow-lg'}
                                                 `}
@@ -251,21 +252,21 @@ export const ClientReservas = () => {
                                                         </span>
                                                     </div>
                                                     <div className="flex items-center gap-3">
-                                                       <span className="font-mono font-bold text-gray-400 text-sm">ID: #{reserva.id}</span>
-                                                       
-                                                       {isPending && (
-                                                           <Button 
-                                                               onClick={() => {
-                                                                   // Use computed total for the payment flow
-                                                                   setActiveReserva({ ...reserva, total: computedTotal });
-                                                                   window.scrollTo({ top: 0, behavior: 'smooth' }); // Optional: scroll to top for mobile
-                                                               }}
-                                                               className="ml-4 bg-yellow-600 hover:bg-yellow-700 text-white text-xs font-bold uppercase tracking-wider py-1 h-8 shadow-md shadow-yellow-200 transition-all hover:-translate-y-0.5"
-                                                           >
-                                                               <DollarSign className="w-3 h-3 mr-1" />
-                                                               Pagar Ahora
-                                                           </Button>
-                                                       )}
+                                                        <span className="font-mono font-bold text-gray-400 text-sm">ID: #{reserva.id}</span>
+
+                                                        {isPending && (
+                                                            <Button
+                                                                onClick={() => {
+                                                                    // Use computed total for the payment flow
+                                                                    setActiveReserva({ ...reserva, total: computedTotal });
+                                                                    window.scrollTo({ top: 0, behavior: 'smooth' }); // Optional: scroll to top for mobile
+                                                                }}
+                                                                className="ml-4 bg-yellow-600 hover:bg-yellow-700 text-white text-xs font-bold uppercase tracking-wider py-1 h-8 shadow-md shadow-yellow-200 transition-all hover:-translate-y-0.5"
+                                                            >
+                                                                <DollarSign className="w-3 h-3 mr-1" />
+                                                                Pagar Ahora
+                                                            </Button>
+                                                        )}
                                                     </div>
                                                 </div>
 
@@ -283,7 +284,7 @@ export const ClientReservas = () => {
                                                             <div>
                                                                 <span className="text-xs text-gray-400 font-bold uppercase block mb-2 tracking-wider">Check-out</span>
                                                                 <span className="text-xl font-serif font-bold text-gray-900 flex items-center gap-2">
-                                                                     <div className="w-1 h-8 bg-red-500 rounded-full"></div>
+                                                                    <div className="w-1 h-8 bg-red-500 rounded-full"></div>
                                                                     {reserva.fechaFin ? new Date(reserva.fechaFin).toLocaleDateString() : ''}
                                                                 </span>
                                                             </div>
@@ -314,7 +315,7 @@ export const ClientReservas = () => {
                                                                         </div>
                                                                     )}
                                                                 </div>
-                                                                
+
                                                                 {/* Info */}
                                                                 <div className="flex-grow">
                                                                     <div className="flex justify-between items-start">
@@ -345,35 +346,6 @@ export const ClientReservas = () => {
                             )}
                         </div>
                     </div>
-
-                    {/* PAGINATION FOOTER */}
-                    {reservas.length > 0 && (
-                        <div className="flex items-center justify-end gap-4 mt-8 pb-8">
-                            <span className="text-sm text-gray-500">
-                                Página {currentPage + 1} de {Math.max(1, Math.ceil(totalItems / itemsPerPage))}
-                            </span>
-                            <div className="flex gap-2">
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
-                                    disabled={currentPage === 0 || loading}
-                                    className="bg-white border-gray-200 hover:bg-yellow-50 hover:text-yellow-700"
-                                >
-                                    <ChevronLeft className="h-4 w-4" /> Anterior
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => setCurrentPage(p => p + 1)}
-                                    disabled={(currentPage + 1) * itemsPerPage >= totalItems || loading}
-                                    className="bg-white border-gray-200 hover:bg-yellow-50 hover:text-yellow-700"
-                                >
-                                    Siguiente <ChevronRight className="h-4 w-4" />
-                                </Button>
-                            </div>
-                        </div>
-                    )}
 
                     {/* PAGINATION FOOTER */}
                     {reservas.length > 0 && (
