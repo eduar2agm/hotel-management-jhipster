@@ -435,10 +435,17 @@ export const AdminReservas = () => {
 
     const onSubmit = async (data: ReservaFormValues) => {
         try {
+            // Fix timezone issue: create dates at local midnight to preserve the selected date
+            const [yearInicio, monthInicio, dayInicio] = data.fechaInicio.split('-').map(Number);
+            const [yearFin, monthFin, dayFin] = data.fechaFin.split('-').map(Number);
+
+            const fechaInicio = new Date(yearInicio, monthInicio - 1, dayInicio, 0, 0, 0);
+            const fechaFin = new Date(yearFin, monthFin - 1, dayFin, 23, 59, 59);
+
             const reservaToSave = {
                 id: data.id,
-                fechaInicio: new Date(data.fechaInicio).toISOString(),
-                fechaFin: new Date(data.fechaFin).toISOString(),
+                fechaInicio: fechaInicio.toISOString(),
+                fechaFin: fechaFin.toISOString(),
                 estado: data.estado,
                 activo: data.activo,
                 cliente: { id: data.clienteId },
