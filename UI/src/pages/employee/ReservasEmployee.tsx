@@ -57,11 +57,12 @@ import { type ReservaDTO } from '../../types/api/Reserva';
 import { type ClienteDTO } from '../../types/api/Cliente';
 import { type HabitacionDTO } from '../../types/api/Habitacion';
 import { toast } from 'sonner';
-import { Pencil, Plus, Edit, CalendarCheck, User, BedDouble, ChevronLeft, ChevronRight, Eye, Check, ChevronsUpDown } from 'lucide-react';
+import { Pencil, Plus, Edit, CalendarCheck, User, BedDouble, ChevronLeft, ChevronRight, Eye, Check, ChevronsUpDown, Search } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Navbar } from '../../components/ui/Navbar';
 import { Footer } from '../../components/ui/Footer';
 import { cn } from '@/lib/utils';
+import { ActiveFilter } from '@/components/ui/ActiveFilter';
 
 const reservaSchema = z.object({
     id: z.number().optional(),
@@ -100,6 +101,10 @@ export const EmployeeReservas = () => {
     const [selectedReserva, setSelectedReserva] = useState<ReservaDTO | null>(null);
     const [selectedReservaRooms, setSelectedReservaRooms] = useState<HabitacionDTO[]>([]);
     const [detailClient, setDetailClient] = useState<ClienteDTO | null>(null);
+
+    // Filter State
+    const [searchTerm, setSearchTerm] = useState('');
+    const [showInactive, setShowInactive] = useState(false);
 
     const form = useForm<ReservaFormValues>({
         resolver: zodResolver(reservaSchema) as any,
@@ -400,6 +405,15 @@ export const EmployeeReservas = () => {
         }
     }
 
+    const filteredReservas = reservas.filter(r => {
+        if (!searchTerm) return true;
+        const lowerTerm = searchTerm.toLowerCase();
+        const clientName = r.cliente ? `${r.cliente.nombre} ${r.cliente.apellido}`.toLowerCase() : '';
+        const status = r.estado?.toLowerCase() || '';
+        const id = r.id?.toString() || '';
+        return clientName.includes(lowerTerm) || status.includes(lowerTerm) || id.includes(lowerTerm);
+    });
+
     return (
         <div className="font-sans text-gray-900 bg-gray-50 min-h-screen flex flex-col">
             <Navbar />
@@ -432,140 +446,158 @@ export const EmployeeReservas = () => {
 
             <main className="flex-grow py-12 px-4 md:px-8 lg:px-20 relative z-10">
                 <div className="max-w-6xl mx-auto -mt-16">
-                    <div className="bg-white rounded-sm shadow-xl p-10 overflow-hidden border border-gray-100">
-                        <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
+                    <div className="bg-white rounded-sm shadow-xl overflow-hidden border border-gray-100">
+                        <div className="flex flex-col md:flex-row justify-between items-center gap-4 p-10 pb-6">
                             <div>
                                 <h3 className="text-xl font-bold text-gray-800">Listado de Reservas</h3>
-                                <p className="text-sm text-gray-500">Total Registros en esta página: {reservas.length}</p>
+                                <p className="text-sm text-gray-500">Total Registros: {reservas.length}</p>
                             </div>
+                            <div className="relative w-full md:w-96 group">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-yellow-600 transition-colors" />
+                                <Input
+                                    placeholder="Buscar por cliente, ID o estado..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="pl-10 border-gray-200 focus:border-yellow-600 focus:ring-yellow-600/20 h-11 transition-all"
+                                />
+                            </div>
+                            <ActiveFilter
+                                showInactive={showInactive}
+                                onChange={(val) => {
+                                    setShowInactive(val);
+                                    setCurrentPage(0);
+                                }}
+                            />
                         </div>
-                        <Table>
-                            <TableHeader className="bg-gray-50">
-                                <TableRow>
-                                    <TableHead className="font-bold text-gray-700 uppercase tracking-wider text-xs py-4">ID</TableHead>
-                                    <TableHead className="font-bold text-gray-700 uppercase tracking-wider text-xs">Cliente</TableHead>
-                                    <TableHead className="font-bold text-gray-700 uppercase tracking-wider text-xs">Habitación(es)</TableHead>
-                                    <TableHead className="font-bold text-gray-700 uppercase tracking-wider text-xs">Fechas</TableHead>
-                                    <TableHead className="font-bold text-gray-700 uppercase tracking-wider text-xs">Estado</TableHead>
-                                    <TableHead className="text-right font-bold text-gray-700 uppercase tracking-wider text-xs">Acciones</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {isLoading ? (
+                        <div className="overflow-x-auto px-10 pb-10">
+                            <Table>
+                                <TableHeader className="bg-gray-50">
                                     <TableRow>
-                                        <TableCell colSpan={6} className="text-center py-20 text-gray-500">
-                                            <div className="flex justify-center items-center gap-2">
-                                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-600"></div>
-                                                Cargando reservas...
-                                            </div>
-                                        </TableCell>
+                                        <TableHead className="font-bold text-gray-700 uppercase tracking-wider text-xs py-4">ID</TableHead>
+                                        <TableHead className="font-bold text-gray-700 uppercase tracking-wider text-xs">Cliente</TableHead>
+                                        <TableHead className="font-bold text-gray-700 uppercase tracking-wider text-xs">Habitación(es)</TableHead>
+                                        <TableHead className="font-bold text-gray-700 uppercase tracking-wider text-xs">Fechas</TableHead>
+                                        <TableHead className="font-bold text-gray-700 uppercase tracking-wider text-xs">Estado</TableHead>
+                                        <TableHead className="text-right font-bold text-gray-700 uppercase tracking-wider text-xs">Acciones</TableHead>
                                     </TableRow>
-                                ) : reservas.length === 0 ? (
-                                    <TableRow>
-                                        <TableCell colSpan={6} className="text-center py-20 text-gray-400 font-light text-lg">
-                                            No hay reservas registradas.
-                                        </TableCell>
-                                    </TableRow>
-                                ) : (
-                                    reservas.map((reserva) => (
-                                        <TableRow key={reserva.id} className="hover:bg-slate-50 transition-colors cursor-pointer group">
-                                            <TableCell className="font-mono text-gray-500 text-xs">
-                                                #{reserva.id}
+                                </TableHeader>
+                                <TableBody>
+                                    {isLoading ? (
+                                        <TableRow>
+                                            <TableCell colSpan={6} className="text-center py-20 text-gray-500">
+                                                <div className="flex justify-center items-center gap-2">
+                                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-600"></div>
+                                                    Cargando reservas...
+                                                </div>
                                             </TableCell>
-                                            <TableCell className="font-bold text-gray-800">
-                                                <div className="flex items-center gap-2">
-                                                    <div className="bg-blue-50 p-1.5 rounded-full text-blue-600">
-                                                        <User className="w-4 h-4" />
+                                        </TableRow>
+                                    ) : filteredReservas.length === 0 ? (
+                                        <TableRow>
+                                            <TableCell colSpan={6} className="text-center py-20 text-gray-400 font-light text-lg">
+                                                No hay reservas que coincidan con la búsqueda.
+                                            </TableCell>
+                                        </TableRow>
+                                    ) : (
+                                        filteredReservas.map((reserva) => (
+                                            <TableRow key={reserva.id} className="hover:bg-slate-50 transition-colors cursor-pointer group">
+                                                <TableCell className="font-mono text-gray-500 text-xs">
+                                                    #{reserva.id}
+                                                </TableCell>
+                                                <TableCell className="font-bold text-gray-800">
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="bg-blue-50 p-1.5 rounded-full text-blue-600">
+                                                            <User className="w-4 h-4" />
+                                                        </div>
+                                                        {reserva.cliente
+                                                            ? `${reserva.cliente.nombre || ''} ${reserva.cliente.apellido || ''}`.trim() || 'Desconocido'
+                                                            : getClienteName(reserva.clienteId)
+                                                        }
                                                     </div>
-                                                    {reserva.cliente
-                                                        ? `${reserva.cliente.nombre || ''} ${reserva.cliente.apellido || ''}`.trim() || 'Desconocido'
-                                                        : getClienteName(reserva.clienteId)
-                                                    }
-                                                </div>
-                                            </TableCell>
-                                            <TableCell>
-                                                <div className="flex items-center gap-2 text-sm text-gray-600">
-                                                    <BedDouble className="w-4 h-4 text-gray-400" />
-                                                    <div className="max-w-[200px] truncate" title={mapReservaHabitaciones[reserva.id!]}>
-                                                        {mapReservaHabitaciones[reserva.id!] || <span className="text-red-400 italic text-xs">Sin asignar</span>}
+                                                </TableCell>
+                                                <TableCell>
+                                                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                                                        <BedDouble className="w-4 h-4 text-gray-400" />
+                                                        <div className="max-w-[200px] truncate" title={mapReservaHabitaciones[reserva.id!]}>
+                                                            {mapReservaHabitaciones[reserva.id!] || <span className="text-red-400 italic text-xs">Sin asignar</span>}
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            </TableCell>
-                                            <TableCell>
-                                                <div className="flex flex-col text-xs space-y-1">
-                                                    <span className="flex items-center gap-1.5 text-gray-700 font-medium">
-                                                        <CalendarCheck className="h-3 w-3 text-emerald-600" />
-                                                        {new Date(reserva.fechaInicio!).toLocaleDateString()}
-                                                    </span>
-                                                    <span className="flex items-center gap-1.5 text-gray-400 pl-4">
-                                                        hasta {new Date(reserva.fechaFin!).toLocaleDateString()}
-                                                    </span>
-                                                </div>
-                                            </TableCell>
-                                            <TableCell>
-                                                <Badge
-                                                    className={`
+                                                </TableCell>
+                                                <TableCell>
+                                                    <div className="flex flex-col text-xs space-y-1">
+                                                        <span className="flex items-center gap-1.5 text-gray-700 font-medium">
+                                                            <CalendarCheck className="h-3 w-3 text-emerald-600" />
+                                                            {new Date(reserva.fechaInicio!).toLocaleDateString()}
+                                                        </span>
+                                                        <span className="flex items-center gap-1.5 text-gray-400 pl-4">
+                                                            hasta {new Date(reserva.fechaFin!).toLocaleDateString()}
+                                                        </span>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Badge
+                                                        className={`
                                                         ${reserva.estado === 'CONFIRMADA' ? 'bg-green-100 text-green-700 hover:bg-green-100 border-green-200' : ''}
                                                         ${reserva.estado === 'PENDIENTE' ? 'bg-yellow-50 text-yellow-700 hover:bg-yellow-50 border-yellow-200' : ''}
                                                         ${reserva.estado === 'CANCELADA' ? 'bg-red-50 text-red-700 hover:bg-red-50 border-red-200' : ''}
                                                     `}
-                                                    variant="secondary"
-                                                >
-                                                    {reserva.estado || 'PENDIENTE'}
-                                                </Badge>
-                                            </TableCell>
-                                            <TableCell className="text-right">
-                                                <div className="flex items-center justify-end gap-1">
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        onClick={(e) => { e.stopPropagation(); handleViewDetails(reserva); }}
-                                                        className="hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 border border-transparent rounded-full transition-all text-gray-400"
+                                                        variant="secondary"
                                                     >
-                                                        <Eye className="h-4 w-4" />
-                                                    </Button>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        onClick={(e) => { e.stopPropagation(); handleEdit(reserva); }}
-                                                        className="hover:bg-yellow-50 hover:text-yellow-600 hover:border-yellow-200 border border-transparent rounded-full transition-all text-gray-400"
-                                                    >
-                                                        <Pencil className="h-4 w-4" />
-                                                    </Button>
-                                                </div>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))
-                                )}
-                            </TableBody>
-                        </Table>
-                    </div>
+                                                        {reserva.estado || 'PENDIENTE'}
+                                                    </Badge>
+                                                </TableCell>
+                                                <TableCell className="text-right">
+                                                    <div className="flex items-center justify-end gap-1">
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={(e) => { e.stopPropagation(); handleViewDetails(reserva); }}
+                                                            className="hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 border border-transparent rounded-full transition-all text-gray-400"
+                                                        >
+                                                            <Eye className="h-4 w-4" />
+                                                        </Button>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={(e) => { e.stopPropagation(); handleEdit(reserva); }}
+                                                            className="hover:bg-yellow-50 hover:text-yellow-600 hover:border-yellow-200 border border-transparent rounded-full transition-all text-gray-400"
+                                                        >
+                                                            <Pencil className="h-4 w-4" />
+                                                        </Button>
+                                                    </div>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))
+                                    )}
+                                </TableBody>
+                            </Table>
+                        </div>
 
 
-                    {/* PAGINATION */}
-                    <div className="flex items-center justify-end gap-4 mt-6">
-                        <span className="text-sm text-gray-500">
-                            Página {currentPage + 1} de {Math.max(1, Math.ceil(totalItems / itemsPerPage))}
-                        </span>
-                        <div className="flex gap-2">
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
-                                disabled={currentPage === 0 || isLoading}
-                                className="bg-white border-gray-200 shadow-sm"
-                            >
-                                <ChevronLeft className="h-4 w-4" /> Anterior
-                            </Button>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setCurrentPage(p => p + 1)}
-                                disabled={(currentPage + 1) * itemsPerPage >= totalItems || isLoading}
-                                className="bg-white border-gray-200 shadow-sm"
-                            >
-                                Siguiente <ChevronRight className="h-4 w-4" />
-                            </Button>
+                        {/* PAGINATION */}
+                        <div className="flex items-center justify-end gap-4 px-10 pb-10">
+                            <span className="text-sm text-gray-500">
+                                Página {currentPage + 1} de {Math.max(1, Math.ceil(totalItems / itemsPerPage))}
+                            </span>
+                            <div className="flex gap-2">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
+                                    disabled={currentPage === 0 || isLoading}
+                                    className="bg-white border-gray-200 shadow-sm"
+                                >
+                                    <ChevronLeft className="h-4 w-4" /> Anterior
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setCurrentPage(p => p + 1)}
+                                    disabled={(currentPage + 1) * itemsPerPage >= totalItems || isLoading}
+                                    className="bg-white border-gray-200 shadow-sm"
+                                >
+                                    Siguiente <ChevronRight className="h-4 w-4" />
+                                </Button>
+                            </div>
                         </div>
                     </div>
                 </div>

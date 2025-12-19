@@ -748,27 +748,27 @@ export const AdminReservas = () => {
             </main>
 
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto p-0 gap-0 border-0 shadow-2xl">
-                    <DialogHeader className="bg-[#0F172A] text-white p-6">
-                        <DialogTitle className="text-xl font-bold flex items-center gap-2">
-                            {isEditing ? <Pencil className="h-5 w-5 text-yellow-500" /> : <Plus className="h-5 w-5 text-yellow-500" />}
+                <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto p-0 gap-0">
+                    <DialogHeader className="p-6 border-b">
+                        <DialogTitle className="text-2xl font-bold flex items-center gap-2">
+                            {isEditing ? <Pencil className="h-5 w-5 text-green-600" /> : <Plus className="h-5 w-5 text-green-600" />}
                             {isEditing ? 'Editar Reserva' : 'Nueva Reserva'}
                         </DialogTitle>
-                        <DialogDescription className="text-slate-400">
-                            Complete los detalles de la reserva.
-                        </DialogDescription>
                     </DialogHeader>
 
-                    <div className="p-6 bg-white">
+                    <div className="p-6">
                         <Form {...(form as any)}>
-                            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                                {/* --- CLIENT SELECTOR (COMBOBOX) --- */}
+                            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                                {/* --- CLIENT SELECTOR --- */}
                                 <FormField
                                     control={form.control as any}
                                     name="clienteId"
                                     render={({ field }) => (
                                         <FormItem className="flex flex-col">
-                                            <FormLabel className="font-bold text-gray-700">Cliente</FormLabel>
+                                            <FormLabel className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                                                <User className="h-4 w-4" />
+                                                Cliente
+                                            </FormLabel>
                                             <Popover open={openClientCombo} onOpenChange={setOpenClientCombo}>
                                                 <PopoverTrigger asChild>
                                                     <FormControl>
@@ -777,7 +777,7 @@ export const AdminReservas = () => {
                                                             role="combobox"
                                                             aria-expanded={openClientCombo}
                                                             className={cn(
-                                                                "w-full justify-between bg-gray-50 border-gray-200 h-10",
+                                                                "w-full justify-between h-11 bg-white border-gray-300",
                                                                 !field.value && "text-muted-foreground"
                                                             )}
                                                         >
@@ -791,7 +791,7 @@ export const AdminReservas = () => {
                                                         </Button>
                                                     </FormControl>
                                                 </PopoverTrigger>
-                                                <PopoverContent className="w-[400px] p-0">
+                                                <PopoverContent className="w-[550px] p-0">
                                                     <Command>
                                                         <CommandInput placeholder="Buscar por nombre o DNI..." />
                                                         <CommandList>
@@ -800,7 +800,6 @@ export const AdminReservas = () => {
                                                                 {clientes.map((cliente) => (
                                                                     <CommandItem
                                                                         key={cliente.id}
-                                                                        // Combine fields for search filtering
                                                                         value={`${cliente.nombre} ${cliente.apellido} ${cliente.numeroIdentificacion || ''}`}
                                                                         onSelect={() => {
                                                                             form.setValue("clienteId", cliente.id!);
@@ -831,100 +830,120 @@ export const AdminReservas = () => {
                                     )}
                                 />
 
-                                <div className="grid grid-cols-2 gap-4">
-                                    <FormField
-                                        control={form.control as any}
-                                        name="fechaInicio"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel className="text-xs font-bold text-gray-500 uppercase tracking-widest">Entrada</FormLabel>
-                                                <FormControl>
-                                                    <Input type="date" className="h-10" {...field} />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                    <FormField
-                                        control={form.control as any}
-                                        name="fechaFin"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel className="text-xs font-bold text-gray-500 uppercase tracking-widest">Salida</FormLabel>
-                                                <FormControl>
-                                                    <Input type="date" className="h-10" {...field} />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
+                                {/* --- DATES --- */}
+                                <div className="bg-gray-50 p-4 rounded-lg border">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <FormField
+                                            control={form.control as any}
+                                            name="fechaInicio"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel className="text-xs font-semibold text-gray-600 uppercase">Fecha Entrada</FormLabel>
+                                                    <FormControl>
+                                                        <Input type="date" className="h-11" {...field} />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <FormField
+                                            control={form.control as any}
+                                            name="fechaFin"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel className="text-xs font-semibold text-gray-600 uppercase">Fecha Salida</FormLabel>
+                                                    <FormControl>
+                                                        <Input type="date" className="h-11" {...field} />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                    </div>
                                 </div>
 
+                                {/* --- ROOMS --- */}
                                 <FormField
                                     control={form.control as any}
                                     name="roomIds"
                                     render={() => (
                                         <FormItem>
-                                            <div className="mb-2">
-                                                <FormLabel className="text-xs font-bold text-gray-500 uppercase tracking-widest">Habitaciones Disponibles</FormLabel>
-                                                <FormDescription className="text-xs text-gray-400">
-                                                    Seleccione las habitaciones para esta reserva.
+                                            <div className="mb-3">
+                                                <FormLabel className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                                                    <Calendar className="h-4 w-4" />
+                                                    Habitaciones
+                                                </FormLabel>
+                                                <FormDescription className="text-xs text-gray-500 mt-1">
+                                                    Seleccione una o más habitaciones para esta reserva.
                                                 </FormDescription>
                                             </div>
-                                            <div className="border rounded-md p-3 h-48 overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-2 bg-gray-50/50">
-                                                {habitaciones.map((hab) => (
-                                                    <FormField
-                                                        key={hab.id}
-                                                        control={form.control as any}
-                                                        name="roomIds"
-                                                        render={({ field }) => {
-                                                            return (
-                                                                <FormItem
-                                                                    key={hab.id}
-                                                                    className={cn(
-                                                                        "flex flex-row items-center space-x-3 space-y-0 p-2 rounded border transition-colors cursor-pointer",
-                                                                        field.value?.includes(hab.id!) ? "bg-yellow-50 border-yellow-200" : "bg-white border-gray-100 hover:bg-gray-50"
-                                                                    )}
-                                                                >
-                                                                    <FormControl>
-                                                                        <Checkbox
-                                                                            checked={field.value?.includes(hab.id!)}
-                                                                            onCheckedChange={(checked) => {
-                                                                                return checked
-                                                                                    ? field.onChange([...field.value, hab.id])
-                                                                                    : field.onChange(
-                                                                                        field.value?.filter(
-                                                                                            (value: number) => value !== hab.id
+                                            <div className="border rounded-lg p-4 max-h-64 overflow-y-auto bg-gray-50">
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    {habitaciones.map((hab) => (
+                                                        <FormField
+                                                            key={hab.id}
+                                                            control={form.control as any}
+                                                            name="roomIds"
+                                                            render={({ field }) => {
+                                                                const isChecked = field.value?.includes(hab.id!);
+                                                                return (
+                                                                    <FormItem
+                                                                        key={hab.id}
+                                                                        className={cn(
+                                                                            "flex flex-row items-start space-x-3 space-y-0 p-3 rounded-md border-2 transition-all cursor-pointer",
+                                                                            isChecked
+                                                                                ? "bg-white border-green-500 shadow-sm"
+                                                                                : "bg-white border-gray-200 hover:border-gray-300"
+                                                                        )}
+                                                                    >
+                                                                        <FormControl>
+                                                                            <Checkbox
+                                                                                checked={isChecked}
+                                                                                onCheckedChange={(checked) => {
+                                                                                    return checked
+                                                                                        ? field.onChange([...field.value, hab.id])
+                                                                                        : field.onChange(
+                                                                                            field.value?.filter(
+                                                                                                (value: number) => value !== hab.id
+                                                                                            )
                                                                                         )
-                                                                                    )
-                                                                            }}
-                                                                            className="data-[state=checked]:bg-yellow-600 data-[state=checked]:border-yellow-600"
-                                                                        />
-                                                                    </FormControl>
-                                                                    <FormLabel className="font-normal text-sm cursor-pointer w-full flex justify-between">
-                                                                        <span className="font-medium">#{hab.numero}</span>
-                                                                        <span className="text-gray-500 text-xs">{hab.categoriaHabitacion?.nombre}</span>
-                                                                    </FormLabel>
-                                                                </FormItem>
-                                                            )
-                                                        }}
-                                                    />
-                                                ))}
+                                                                                }}
+                                                                                className="mt-0.5"
+                                                                            />
+                                                                        </FormControl>
+                                                                        <div className="flex-1 space-y-1">
+                                                                            <FormLabel className="font-semibold text-sm cursor-pointer text-gray-900">
+                                                                                Habitación {hab.numero}
+                                                                            </FormLabel>
+                                                                            <div className="text-xs text-gray-600 space-y-0.5">
+                                                                                <div>{hab.categoriaHabitacion?.nombre || 'Sin categoría'}</div>
+                                                                                <div className="font-medium text-gray-900">
+                                                                                    ${hab.categoriaHabitacion?.precioBase || '0'}
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </FormItem>
+                                                                )
+                                                            }}
+                                                        />
+                                                    ))}
+                                                </div>
                                             </div>
                                             <FormMessage />
                                         </FormItem>
                                     )}
                                 />
 
+                                {/* --- STATUS --- */}
                                 <FormField
                                     control={form.control as any}
                                     name="estado"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel className="text-xs font-bold text-gray-500 uppercase tracking-widest">Estado</FormLabel>
+                                            <FormLabel className="text-sm font-semibold text-gray-700">Estado de Reserva</FormLabel>
                                             <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
                                                 <FormControl>
-                                                    <SelectTrigger className="h-10">
+                                                    <SelectTrigger className="h-11">
                                                         <SelectValue placeholder="Seleccione estado" />
                                                     </SelectTrigger>
                                                 </FormControl>
@@ -938,11 +957,23 @@ export const AdminReservas = () => {
                                         </FormItem>
                                     )}
                                 />
-                                <div className="pt-4 flex justify-end gap-3 border-t mt-4">
-                                    <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)} className="h-10">
+
+                                {/* --- FOOTER BUTTONS --- */}
+                                <div className="flex justify-end gap-3 pt-4">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() => setIsDialogOpen(false)}
+                                        className="h-11 px-6"
+                                    >
                                         Cancelar
                                     </Button>
-                                    <Button type="submit" className="bg-yellow-600 hover:bg-yellow-700 text-white h-10 px-8">Guardar</Button>
+                                    <Button
+                                        type="submit"
+                                        className="bg-slate-900 hover:bg-slate-800 text-white h-11 px-8"
+                                    >
+                                        Guardar
+                                    </Button>
                                 </div>
                             </form>
                         </Form>
