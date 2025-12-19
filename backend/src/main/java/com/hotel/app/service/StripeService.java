@@ -32,6 +32,7 @@ public class StripeService {
 
     private final PagoRepository pagoRepository;
     private final ReservaRepository reservaRepository;
+    private final com.hotel.app.repository.ServicioContratadoRepository servicioContratadoRepository;
 
     @Value("${stripe.key.secret}")
     private String secretKey;
@@ -39,26 +40,31 @@ public class StripeService {
     @Value("${stripe.key.webhook-secret}")
     private String endpointSecret;
 
-    public StripeService(PagoRepository pagoRepository, ReservaRepository reservaRepository) {
+    public StripeService(PagoRepository pagoRepository, ReservaRepository reservaRepository,
+            com.hotel.app.repository.ServicioContratadoRepository servicioContratadoRepository) {
         this.pagoRepository = pagoRepository;
         this.reservaRepository = reservaRepository;
+        this.servicioContratadoRepository = servicioContratadoRepository;
     }
 
     public PaymentIntentResponse createPaymentIntent(PaymentIntentRequest request) throws StripeException {
         Stripe.apiKey = secretKey;
 
-        PaymentIntentCreateParams params =
-            PaymentIntentCreateParams.builder()
+        PaymentIntentCreateParams.Builder paramsBuilder = PaymentIntentCreateParams.builder()
                 .setAmount(request.getAmount().multiply(new BigDecimal(100)).longValue()) // Amount in cents
                 .setCurrency(request.getCurrency())
                 .setDescription(request.getDescription())
                 .putMetadata("reservaId", request.getReservaId() != null ? request.getReservaId().toString() : "")
                 .setAutomaticPaymentMethods(
-                    PaymentIntentCreateParams.AutomaticPaymentMethods.builder()
-                        .setEnabled(true)
-                        .build()
-                )
-                .build();
+                        PaymentIntentCreateParams.AutomaticPaymentMethods.builder()
+                                .setEnabled(true)
+                                .build());
+
+        if (request.getServicioContratadoId() != null) {
+            paramsBuilder.putMetadata("servicioContratadoId", request.getServicioContratadoId().toString());
+        }
+
+        PaymentIntentCreateParams params = paramsBuilder.build();
 
         PaymentIntent paymentIntent = PaymentIntent.create(params);
 
@@ -81,8 +87,19 @@ public class StripeService {
             pago.setActivo(true);
             pago.setReserva(reserva.get());
             pago.setTransactionId(transactionId);
-            pagoRepository.save(pago);
+            pago = pagoRepository.save(pago);
             log.info("Created pending payment for Transaction ID: {}", transactionId);
+
+            if (request.getServicioContratadoId() != null) {
+                Optional<com.hotel.app.domain.ServicioContratado> servicio = servicioContratadoRepository
+                        .findById(request.getServicioContratadoId());
+                if (servicio.isPresent()) {
+                    com.hotel.app.domain.ServicioContratado s = servicio.get();
+                    s.setPago(pago);
+                    servicioContratadoRepository.save(s);
+                    log.info("Linked payment to ServicioContratado ID: {}", s.getId());
+                }
+            }
         }
     }
 
@@ -102,6 +119,17 @@ public class StripeService {
             if (paymentIntent != null) {
                 log.info("Payment succeeded for Transaction ID: {}", paymentIntent.getId());
                 updatePaymentStatus(paymentIntent.getId(), EstadoPago.COMPLETADO);
+
+                // Check if it's for a service
+                String servicioContratadoIdStr = paymentIntent.getMetadata().get("servicioContratadoId");
+                if (servicioContratadoIdStr != null && !servicioContratadoIdStr.isEmpty()) {
+                    Long servicioId = Long.parseLong(servicioContratadoIdStr);
+                    servicioContratadoRepository.findById(servicioId).ifPresent(s -> {
+                        s.setEstado(com.hotel.app.domain.enumeration.EstadoServicioContratado.CONFIRMADO);
+                        servicioContratadoRepository.save(s);
+                        log.info("Confirmed ServicioContratado ID: {}", s.getId());
+                    });
+                }
             }
         } else if ("payment_intent.payment_failed".equals(event.getType())) {
             PaymentIntent paymentIntent = (PaymentIntent) event.getDataObjectDeserializer().getObject().orElse(null);

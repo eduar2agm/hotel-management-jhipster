@@ -22,7 +22,8 @@ export const Navbar = () => {
             <Link to="/client/reservas" className="hover:text-yellow-400 transition-colors">Reservas</Link>
             <Link to="/client/perfil" className="hover:text-yellow-400 transition-colors">Mi perfil</Link>
             <Link to="/client/soporte" className="hover:text-yellow-400 transition-colors">Soporte</Link>
-            <Link to="/client/servicos" className="hover:text-yellow-400 transition-colors">Servicios</Link>
+            <Link to="/client/servicios" className="hover:text-yellow-400 transition-colors">Servicios</Link>
+            <Link to="/client/mis-servicios" className="hover:text-yellow-400 transition-colors">Mis Servicios</Link>
           </>
         )}
         {isAuthenticated && isEmployee() && (
@@ -30,8 +31,9 @@ export const Navbar = () => {
             <Link to="/" className="hover:text-yellow-400 transition-colors">Home</Link>
             <Link to="/employee/dashboard" className="hover:text-yellow-400 transition-colors">Dashboard</Link>
             <Link to="/employee/clientes" className="hover:text-yellow-400 transition-colors">Clientes</Link>
-            <Link to="/employee/checkin" className="hover:text-yellow-400 transition-colors">Check-in/Out</Link>
+            <Link to="/employee/checkin" className="hover:text-yellow-400 transition-colors">Check-in</Link>
             <Link to="/employee/reservas" className="hover:text-yellow-400 transition-colors">Reservas</Link>
+            <Link to="/employee/servicios-contratados" className="hover:text-yellow-400 transition-colors">Servicios</Link>
             <Link to="/employee/soporte" className="hover:text-yellow-400 transition-colors">Soporte</Link>
           </>
         )}
@@ -40,11 +42,13 @@ export const Navbar = () => {
             <Link to="/" className="hover:text-yellow-400 transition-colors">Home</Link>
             <Link to="/admin/dashboard" className="hover:text-yellow-400 transition-colors">Dashboard</Link>
             <Link to="/admin/habitaciones" className="hover:text-yellow-400 transition-colors">Habitaciones</Link>
-            <Link to="/admin/clientes" className="hover:text-yellow-400 transition-colors">clientes</Link>
+            <Link to="/admin/clientes" className="hover:text-yellow-400 transition-colors">Clientes</Link>
             <Link to="/admin/reservas" className="hover:text-yellow-400 transition-colors">Reservas</Link>
+            <Link to="/admin/servicios" className="hover:text-yellow-400 transition-colors">Servicios</Link>
+            <Link to="/admin/servicios-contratados" className="hover:text-yellow-400 transition-colors">Solicitudes</Link>
             <Link to="/admin/reportes" className="hover:text-yellow-400 transition-colors">Reportes</Link>
             <Link to="/admin/soporte" className="hover:text-yellow-400 transition-colors">Soporte</Link>
-            <Link to="/admin/configuracion" className="hover:text-yellow-400 transition-colors">Configuración</Link>
+            <Link to="/admin/configuracion" className="hover:text-yellow-400 transition-colors">Config</Link>
           </>
         )}
       </div>
