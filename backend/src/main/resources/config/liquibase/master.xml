@@ -22,6 +22,8 @@
     <include file="config/liquibase/changelog/20251211014124_added_entity_EstadoHabitacion.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20251212021327_added_entity_MensajeSoporte.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20251216000000_added_transaction_id_to_pago.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20251219023541_added_entity_Servicio.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20251219023542_added_entity_ServicioContratado.xml" relativeToChangelogFile="false"/>
     <!-- jhipster-needle-liquibase-add-changelog - JHipster will add liquibase changelogs here -->
     <include file="config/liquibase/changelog/20251211014117_added_entity_constraints_Habitacion.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20251211014119_added_entity_constraints_Reserva.xml" relativeToChangelogFile="false"/>
@@ -31,6 +33,7 @@
     <include file="config/liquibase/changelog/20251212021327_added_entity_constraints_MensajeSoporte.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20251215000000_added_remitente_to_MensajeSoporte.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20251215000001_added_destinatario_to_MensajeSoporte.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20251219023542_added_entity_constraints_ServicioContratado.xml" relativeToChangelogFile="false"/>
     <!-- jhipster-needle-liquibase-add-constraints-changelog - JHipster will add liquibase constraints changelogs here -->
     <!-- jhipster-needle-liquibase-add-incremental-changelog - JHipster will add incremental liquibase changelogs here -->
 </databaseChangeLog>
