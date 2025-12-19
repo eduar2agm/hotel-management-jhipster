@@ -41,4 +41,14 @@ public class PaymentIntentRequest {
     public void setDescription(String description) {
         this.description = description;
     }
+
+    private Long servicioContratadoId;
+
+    public Long getServicioContratadoId() {
+        return servicioContratadoId;
+    }
+
+    public void setServicioContratadoId(Long servicioContratadoId) {
+        this.servicioContratadoId = servicioContratadoId;
+    }
 }

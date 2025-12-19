@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd
+                        http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
+    <!--
+        Added the constraints for entity ServicioContratado.
+    -->
+    <changeSet id="20251219023542-2" author="jhipster">
+
+        <addForeignKeyConstraint baseColumnNames="servicio_id"
+                                 baseTableName="servicio_contratado"
+                                 constraintName="fk_servicio_contratado__servicio_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="servicio"
+                                 />
+
+        <addForeignKeyConstraint baseColumnNames="reserva_id"
+                                 baseTableName="servicio_contratado"
+                                 constraintName="fk_servicio_contratado__reserva_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="reserva"
+                                 />
+
+        <addForeignKeyConstraint baseColumnNames="cliente_id"
+                                 baseTableName="servicio_contratado"
+                                 constraintName="fk_servicio_contratado__cliente_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="cliente"
+                                 />
+
+        <addForeignKeyConstraint baseColumnNames="pago_id"
+                                 baseTableName="servicio_contratado"
+                                 constraintName="fk_servicio_contratado__pago_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="pago"
+                                 />
+    </changeSet>
+</databaseChangeLog>
