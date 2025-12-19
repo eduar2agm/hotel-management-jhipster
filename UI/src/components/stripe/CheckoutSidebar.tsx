@@ -143,7 +143,10 @@ export const CheckoutSidebar = ({ reserva, details, onClose, onPaymentSuccess }:
             ) : (
                 <div className="animate-in fade-in duration-500">
                      <Elements stripe={stripePromise} options={options}>
-                        <StripePaymentForm onSuccess={onPaymentSuccess} />
+                        <StripePaymentForm 
+                            onSuccess={onPaymentSuccess} 
+                            returnUrl={`${window.location.origin}${window.location.pathname}?confirm_reserva_id=${reserva.id}`}
+                        />
                      </Elements>
                 </div>
             )}
