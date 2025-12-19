@@ -467,7 +467,8 @@ export const EmployeeReservas = () => {
                                                         ${reserva.estado === 'CONFIRMADA' ? 'bg-green-100 text-green-700 hover:bg-green-100 border-green-200' : ''}
                                                         ${reserva.estado === 'PENDIENTE' ? 'bg-yellow-50 text-yellow-700 hover:bg-yellow-50 border-yellow-200' : ''}
                                                         ${reserva.estado === 'CANCELADA' ? 'bg-red-50 text-red-700 hover:bg-red-50 border-red-200' : ''}
-                                                    `}
+                                                        ${reserva.estado === 'FINALIZADA' ? 'bg-blue-50 text-blue-700 hover:bg-blue-50 border-blue-200' : ''}
+                                                     `}
                                                     variant="secondary"
                                                 >
                                                     {reserva.estado || 'PENDIENTE'}
@@ -723,6 +724,7 @@ export const EmployeeReservas = () => {
                                                 <SelectItem value="PENDIENTE">PENDIENTE</SelectItem>
                                                 <SelectItem value="CONFIRMADA">CONFIRMADA</SelectItem>
                                                 <SelectItem value="CANCELADA">CANCELADA</SelectItem>
+                                                <SelectItem value="FINALIZADA">FINALIZADA</SelectItem>
                                             </SelectContent>
                                         </Select>
                                         <FormMessage />
@@ -773,7 +775,8 @@ export const EmployeeReservas = () => {
                                         "px-3 py-1 text-sm",
                                         selectedReserva.estado === 'CONFIRMADA' ? "bg-green-100 text-green-700" :
                                             selectedReserva.estado === 'CANCELADA' ? "bg-red-100 text-red-700" :
-                                                "bg-yellow-100 text-yellow-700"
+                                                selectedReserva.estado === 'FINALIZADA' ? "bg-blue-100 text-blue-700" :
+                                                    "bg-yellow-100 text-yellow-700"
                                     )}>
                                         {selectedReserva.estado || 'PENDIENTE'}
                                     </Badge>
