@@ -209,8 +209,20 @@ export const EmployeeReservas = () => {
     const loadData = async (page: number) => {
         try {
             setIsLoading(true);
+            const reservasPromise = showInactive
+                ? ReservaService.getReservasInactivas({
+                    page,
+                    size: itemsPerPage,
+                    sort: 'id,desc'
+                })
+                : ReservaService.getReservas({
+                    page,
+                    size: itemsPerPage,
+                    sort: 'id,desc'
+                });
+
             const [reservasRes, clientesRes, habitacionesRes] = await Promise.all([
-                ReservaService.getReservas({ page: page, size: itemsPerPage, sort: 'id,desc' }),
+                reservasPromise,
                 ClienteService.getClientes({ size: 100 }),
                 HabitacionService.getHabitacions({ 'activo.equals': true, size: 100 })
             ]);
@@ -247,7 +259,7 @@ export const EmployeeReservas = () => {
 
     useEffect(() => {
         loadData(currentPage);
-    }, [currentPage]);
+    }, [currentPage, showInactive]);
 
     // --- DATE WATCHER FOR AVAILABILITY ---
     const watchedFechaInicio = form.watch('fechaInicio');
