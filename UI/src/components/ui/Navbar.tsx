@@ -47,6 +47,7 @@ export const Navbar = () => {
             <Link to="/admin/servicios" className="hover:text-yellow-400 transition-colors">Servicios</Link>
             <Link to="/admin/servicios-contratados" className="hover:text-yellow-400 transition-colors">Solicitudes</Link>
             <Link to="/admin/reportes" className="hover:text-yellow-400 transition-colors">Reportes</Link>
+            <Link to="/admin/imagenes" className="hover:text-yellow-400 transition-colors">Imágenes</Link>
             <Link to="/admin/soporte" className="hover:text-yellow-400 transition-colors">Soporte</Link>
             <Link to="/admin/configuracion" className="hover:text-yellow-400 transition-colors">Config</Link>
           </>
