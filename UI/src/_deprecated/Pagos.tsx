@@ -1,8 +1,8 @@
 
 import { useEffect, useState } from 'react';
-import { DashboardLayout } from '../../components/DashboardLayout';
-import { PagoService, ReservaService } from '../../services';
-import type { PagoDTO, ReservaDTO } from '../../types/api';
+import { DashboardLayout } from './DashboardLayout';
+import { PagoService, ReservaService } from '../services';
+import type { PagoDTO, ReservaDTO } from '../types/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Pencil, Trash2, Search } from 'lucide-react';
 import { toast } from 'sonner';
-import { MetodoPago, EstadoPago } from '../../types/enums';
+import { MetodoPago, EstadoPago } from '../types/enums';
 import { Badge } from '@/components/ui/badge';
 
 export const AdminPagos = () => {

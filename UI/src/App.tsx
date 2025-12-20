@@ -9,10 +9,7 @@ import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { AdminHabitaciones } from './pages/admin/Habitaciones';
 import { AdminClientes } from './pages/admin/Clientes';
 import { AdminReservas } from './pages/admin/ReservasAdmin';
-import { AdminPagos } from './pages/admin/Pagos';
 import { AdminMensajesSoporte } from './pages/admin/MensajesSoporte';
-import { AdminCategorias } from './pages/admin/Categorias';
-import { AdminEstados } from './pages/admin/Estados';
 import { AdminReportes } from './pages/admin/Reportes';
 import { AdminConfiguracion } from './pages/admin/Configuracion';
 import { AdminServicios } from './pages/admin/Servicios';
@@ -40,7 +37,6 @@ import { AuthTokenSync } from './components/AuthTokenSync';
 import './api/axios-interceptors';
 import './App.css';
 import { Home } from './pages/HomePage';
-import { StripeTest } from './pages/client/StripeTest';
 import { ProfileCompletionModal } from './components/modals/ProfileCompletionModal';
 
 function App() {
@@ -62,10 +58,7 @@ function App() {
           <Route path="/admin/habitaciones" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN']}><AdminHabitaciones /></ProtectedRoute>} />
           <Route path="/admin/clientes" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN']}><AdminClientes /></ProtectedRoute>} />
           <Route path="/admin/reservas" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN']}><AdminReservas /></ProtectedRoute>} />
-          <Route path="/admin/pagos" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN']}><AdminPagos /></ProtectedRoute>} />
           <Route path="/admin/soporte" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN']}><AdminMensajesSoporte /></ProtectedRoute>} />
-          <Route path="/admin/categorias" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN']}><AdminCategorias /></ProtectedRoute>} />
-          <Route path="/admin/estados" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN']}><AdminEstados /></ProtectedRoute>} />
           <Route path="/admin/reportes" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN']}><AdminReportes /></ProtectedRoute>} />
           <Route path="/admin/configuracion" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN']}><AdminConfiguracion /></ProtectedRoute>} />
           <Route path="/admin/servicios" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN']}><AdminServicios /></ProtectedRoute>} />
@@ -92,7 +85,7 @@ function App() {
           <Route path="/client/servicios" element={<ProtectedRoute requiredRoles={['ROLE_CLIENT']}><Servicios /></ProtectedRoute>} />
           <Route path="/client/mis-servicios" element={<ProtectedRoute requiredRoles={['ROLE_CLIENT']}><MisServicios /></ProtectedRoute>} />
           <Route path="/client/menu" element={<ProtectedRoute requiredRoles={['ROLE_CLIENT']}><Menu /></ProtectedRoute>} />
-          <Route path="/client/stripe-test" element={<ProtectedRoute requiredRoles={['ROLE_CLIENT']}><StripeTest /></ProtectedRoute>} />
+          
 
           {/* Catch all - Redirect to Home */}
           <Route path="*" element={<Navigate to="/" replace />} />
