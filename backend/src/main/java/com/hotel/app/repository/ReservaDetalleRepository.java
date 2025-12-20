@@ -54,4 +54,13 @@ public interface ReservaDetalleRepository extends JpaRepository<ReservaDetalle, 
      *         habitación
      */
     boolean existsByHabitacion_Id(Long habitacionId);
+
+    @Query("select distinct rd.habitacion.id from ReservaDetalle rd " +
+            "where rd.reserva.activo = true " +
+            "and rd.activo = true " +
+            "and rd.reserva.estado <> 'CANCELADA' " +
+            "and rd.reserva.fechaInicio <= :fechaFin " +
+            "and rd.reserva.fechaFin >= :fechaInicio")
+    List<Long> findOccupiedHabitacionIds(@Param("fechaInicio") java.time.Instant fechaInicio,
+            @Param("fechaFin") java.time.Instant fechaFin);
 }

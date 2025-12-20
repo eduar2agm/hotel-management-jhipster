@@ -268,4 +268,35 @@ public class HabitacionResource {
         habitacionService.deactivate(id);
         return ResponseEntity.ok().build();
     }
+
+    /**
+     * {@code GET  /habitacions/available} : get available habitacions for a date
+     * range.
+     *
+     * @param fechaInicio start date (ISOInstant).
+     * @param fechaFin    end date (ISOInstant).
+     * @param pageable    the pagination information.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list
+     *         of habitacions in body.
+     */
+    @GetMapping("/available")
+    public ResponseEntity<List<HabitacionDTO>> getAvailableHabitacions(
+            @RequestParam(name = "fechaInicio") java.time.Instant fechaInicio,
+            @RequestParam(name = "fechaFin") java.time.Instant fechaFin,
+            @org.springdoc.core.annotations.ParameterObject Pageable pageable) {
+        LOG.debug("REST request to get available Habitacions between {} and {}", fechaInicio, fechaFin);
+
+        if (fechaInicio == null || fechaFin == null) {
+            throw new BadRequestAlertException("Fechas son requeridas", ENTITY_NAME, "datesrequired");
+        }
+
+        if (fechaInicio.isAfter(fechaFin)) {
+            throw new BadRequestAlertException("Fecha inicio debe ser antes de fecha fin", ENTITY_NAME, "datesinvalid");
+        }
+
+        Page<HabitacionDTO> page = habitacionService.findAvailable(fechaInicio, fechaFin, pageable);
+        HttpHeaders headers = PaginationUtil
+                .generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
+        return ResponseEntity.ok().headers(headers).body(page.getContent());
+    }
 }

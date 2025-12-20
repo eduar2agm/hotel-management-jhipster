@@ -439,7 +439,7 @@ export const AdminConfiguracion = () => {
                                     type="number"
                                     step="0.01"
                                     value={currentCat.precioBase || ''}
-                                    onChange={e => setCurrentCat({ ...currentCat, precioBase: e.target.value })}
+                                    onChange={e => setCurrentCat({ ...currentCat, precioBase: parseFloat(e.target.value) })}
                                     required
                                     className="font-mono"
                                 />
