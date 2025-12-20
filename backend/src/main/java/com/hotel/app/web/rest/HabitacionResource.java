@@ -212,10 +212,7 @@ public class HabitacionResource {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
 
-        // 1. Update room details
-        habitacionDTO = habitacionService.update(habitacionDTO);
-
-        // 2. Save image if provided
+        // 1. Save image FIRST (if provided) to ensure old file is deleted
         if (image != null && !image.isEmpty()) {
             try {
                 ImagenDTO imagenDTO = new ImagenDTO();
@@ -228,15 +225,19 @@ public class HabitacionResource {
                 habLink.setId(habitacionDTO.getId());
                 imagenDTO.setHabitacion(habLink);
 
-                imagenService.save(imagenDTO);
+                // This call will delete the old file physically
+                ImagenDTO savedImagen = imagenService.save(imagenDTO);
 
-                // Refresh to get updated path
-                habitacionDTO = habitacionService.findOne(habitacionDTO.getId()).orElse(habitacionDTO);
+                // Update DTO with the server-generated path
+                habitacionDTO.setImagen(savedImagen.getNombreArchivo());
             } catch (Exception e) {
                 LOG.error("Error saving updated image", e);
                 throw new RuntimeException("Could not save image", e);
             }
         }
+
+        // 2. Update room details (now with the new image path if it changed)
+        habitacionDTO = habitacionService.update(habitacionDTO);
 
         return ResponseEntity.ok()
                 .headers(HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME,
