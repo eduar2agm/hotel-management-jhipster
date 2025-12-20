@@ -7,4 +7,9 @@ export { EstadoHabitacionService } from './estado-habitacion.service';
 export { PagoService } from './pago.service';
 export { MensajeSoporteService } from './mensaje-soporte.service';
 export { CheckInCheckOutService } from './check-in-check-out.service';
+export { ServicioService } from './servicio.service';
+export { ServicioContratadoService } from './servicio-contratado.service';
+export { ImagenService } from './imagen.service';
+export { CarouselItemService } from './carousel-item.service';
+export { ConfiguracionSistemaService } from './configuracion-sistema.service';
 

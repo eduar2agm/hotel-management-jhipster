@@ -18,6 +18,7 @@ import { AdminConfiguracion } from './pages/admin/Configuracion';
 import { AdminServicios } from './pages/admin/Servicios';
 import { AdminServiciosContratados } from './pages/admin/ServiciosContratados';
 import { AdminContratarServicio } from './pages/admin/ContratarServicio';
+import { AdminImagenes } from './pages/admin/Imagenes';
 
 import { EmployeeDashboard } from './pages/employee/EmployeeDashboard';
 import { CheckIn } from './pages/employee/CheckIn';
@@ -70,6 +71,7 @@ function App() {
           <Route path="/admin/servicios" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN']}><AdminServicios /></ProtectedRoute>} />
           <Route path="/admin/servicios-contratados" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN']}><AdminServiciosContratados basePath="/admin" /></ProtectedRoute>} />
           <Route path="/admin/servicios/contratar" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN']}><AdminContratarServicio returnPath="/admin/servicios-contratados" /></ProtectedRoute>} />
+          <Route path="/admin/imagenes" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN']}><AdminImagenes /></ProtectedRoute>} />
 
           {/* Employee Routes */}
           <Route path="/employee/dashboard" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN', 'ROLE_EMPLOYEE']}><EmployeeDashboard /></ProtectedRoute>} />
