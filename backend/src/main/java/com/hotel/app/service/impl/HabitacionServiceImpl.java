@@ -7,6 +7,7 @@ import com.hotel.app.repository.ReservaDetalleRepository;
 import com.hotel.app.service.HabitacionService;
 import com.hotel.app.service.dto.HabitacionDTO;
 import com.hotel.app.service.mapper.HabitacionMapper;
+import com.hotel.app.service.ImagenService;
 import com.hotel.app.web.rest.errors.BadRequestAlertException;
 import java.util.Optional;
 import org.slf4j.Logger;
@@ -32,16 +33,19 @@ public class HabitacionServiceImpl implements HabitacionService {
     private final CheckInCheckOutRepository checkInCheckOutRepository;
 
     private final ReservaDetalleRepository reservaDetalleRepository;
+    private final ImagenService imagenService;
 
     public HabitacionServiceImpl(
             HabitacionRepository habitacionRepository,
             HabitacionMapper habitacionMapper,
             CheckInCheckOutRepository checkInCheckOutRepository,
-            ReservaDetalleRepository reservaDetalleRepository) {
+            ReservaDetalleRepository reservaDetalleRepository,
+            ImagenService imagenService) {
         this.habitacionRepository = habitacionRepository;
         this.habitacionMapper = habitacionMapper;
         this.checkInCheckOutRepository = checkInCheckOutRepository;
         this.reservaDetalleRepository = reservaDetalleRepository;
+        this.imagenService = imagenService;
     }
 
     @Override
@@ -114,6 +118,7 @@ public class HabitacionServiceImpl implements HabitacionService {
                     "habitacionConReservas");
         }
 
+        imagenService.deleteByHabitacionId(id);
         habitacionRepository.deleteById(id);
     }
 
