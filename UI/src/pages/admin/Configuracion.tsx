@@ -702,8 +702,7 @@ export const AdminConfiguracion = () => {
                                     type="number"
                                     step="0.01"
                                     value={currentCat.precioBase?.toString() || ''}
-                                    onChange={e => setCurrentCat({ ...currentCat, precioBase: parseFloat(parseFloat(e.target.value)) })}
-                                    required
+                                    onChange={e => setCurrentCat({ ...currentCat, precioBase: parseFloat(e.target.value) })}
                                     className="font-mono"
                                 />
                             </div>
