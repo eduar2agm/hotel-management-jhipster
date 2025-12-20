@@ -7,3 +7,8 @@ export * from './EstadoHabitacion';
 export * from './Pago';
 export * from './MensajeSoporte';
 export * from './CheckInCheckOut';
+export * from './Imagen';
+export * from './CarouselItem';
+export * from './ConfiguracionSistema';
+export * from './Servicio';
+export * from './ServicioContratado';
