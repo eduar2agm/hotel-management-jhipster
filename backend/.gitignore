@@ -152,5 +152,5 @@ Desktop.ini
 coverage/
 .nyc_output/
 .env
-/imagenes/*
-!/imagenes/.gitkeep
+/images/*
+!/images/.gitkeep
