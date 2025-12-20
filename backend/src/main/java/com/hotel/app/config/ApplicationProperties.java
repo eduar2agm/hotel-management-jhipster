@@ -11,9 +11,19 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "application", ignoreUnknownFields = true)
 public class ApplicationProperties {
 
+    private String imagePath = "images/";
+
     private final Liquibase liquibase = new Liquibase();
 
     // jhipster-needle-application-properties-property
+
+    public String getImagePath() {
+        return imagePath;
+    }
+
+    public void setImagePath(String imagePath) {
+        this.imagePath = imagePath;
+    }
 
     public Liquibase getLiquibase() {
         return liquibase;
