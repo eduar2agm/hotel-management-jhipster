@@ -50,9 +50,11 @@ public class Imagen implements Serializable {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JsonIgnoreProperties(value = { "categoriaHabitacion", "estadoHabitacion" }, allowSetters = true)
+    @org.hibernate.annotations.OnDelete(action = org.hibernate.annotations.OnDeleteAction.CASCADE)
     private Habitacion habitacion;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @org.hibernate.annotations.OnDelete(action = org.hibernate.annotations.OnDeleteAction.CASCADE)
     private Servicio servicio;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here
@@ -187,7 +189,8 @@ public class Imagen implements Serializable {
         return this;
     }
 
-    // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
+    // jhipster-needle-entity-add-getters-setters - JHipster will add getters and
+    // setters here
 
     @Override
     public boolean equals(Object o) {
@@ -202,7 +205,8 @@ public class Imagen implements Serializable {
 
     @Override
     public int hashCode() {
-        // see https://vladmihalcea.com/how-to-implement-equals-and-hashcode-using-the-jpa-entity-identifier/
+        // see
+        // https://vladmihalcea.com/how-to-implement-equals-and-hashcode-using-the-jpa-entity-identifier/
         return getClass().hashCode();
     }
 
@@ -210,14 +214,14 @@ public class Imagen implements Serializable {
     @Override
     public String toString() {
         return "Imagen{" +
-            "id=" + getId() +
-            ", nombre='" + getNombre() + "'" +
-            ", descripcion='" + getDescripcion() + "'" +
-            ", fichero='" + getFichero() + "'" +
-            ", ficheroContentType='" + getFicheroContentType() + "'" +
-            ", nombreArchivo='" + getNombreArchivo() + "'" +
-            ", activo='" + getActivo() + "'" +
-            ", fechaCreacion='" + getFechaCreacion() + "'" +
-            "}";
+                "id=" + getId() +
+                ", nombre='" + getNombre() + "'" +
+                ", descripcion='" + getDescripcion() + "'" +
+                ", fichero='" + getFichero() + "'" +
+                ", ficheroContentType='" + getFicheroContentType() + "'" +
+                ", nombreArchivo='" + getNombreArchivo() + "'" +
+                ", activo='" + getActivo() + "'" +
+                ", fechaCreacion='" + getFechaCreacion() + "'" +
+                "}";
     }
 }
