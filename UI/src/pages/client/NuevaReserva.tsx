@@ -13,10 +13,10 @@ import {
     FormMessage,
 } from '@/components/ui/form';
 import { useAuth } from '../../hooks/useAuth';
-import { ClienteService, HabitacionService, ReservaService, ReservaDetalleService } from '../../services';
-import type { HabitacionDTO, NewReservaDTO } from '../../types/api';
+import { ClienteService, HabitacionService, ReservaService, ReservaDetalleService, ServicioService } from '../../services';
+import type { HabitacionDTO, NewReservaDTO, ServicioDTO } from '../../types/api';
 import { toast } from 'sonner';
-import { BedDouble, Search, ArrowLeft, CalendarDays, Check, Wifi, Tv, ShoppingBag, X, Trash2 } from 'lucide-react';
+import { BedDouble, Search, ArrowLeft, CalendarDays, Check, ShoppingBag, X, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 // Importamos los componentes de UI del Hotel
@@ -49,6 +49,7 @@ export const NuevaReserva = () => {
     const [step, setStep] = useState(1);
     const [availableRooms, setAvailableRooms] = useState<HabitacionDTO[]>([]);
     const [selectedRooms, setSelectedRooms] = useState<HabitacionDTO[]>([]); // MULTI-SELECTION STATE
+    const [freeServices, setFreeServices] = useState<ServicioDTO[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false); // New loading state for submit
     const [clienteId, setClienteId] = useState<number | null>(null);
@@ -79,7 +80,18 @@ export const NuevaReserva = () => {
                 // Don't block if error, might be connectivity, but warn.
             }
         };
+
+        const fetchFreeServices = async () => {
+            try {
+                const res = await ServicioService.getServiciosGratuitos();
+                setFreeServices(res.data);
+            } catch (error) {
+                console.error("Error fetching free services:", error);
+            }
+        };
+        
         checkProfile();
+        fetchFreeServices();
     }, [user, navigate]);
 
     const onSearch = async (values: SearchFormValues) => {
@@ -360,6 +372,21 @@ export const NuevaReserva = () => {
                                                             <p className="text-gray-500 text-sm leading-relaxed mb-4 line-clamp-2">
                                                                 {room.descripcion || 'Disfrute de un confort inigualable y servicios de primera clase en nuestra exclusiva habitación.'}
                                                             </p>
+
+                                                            {freeServices.length > 0 && (
+                                                                <div className="mb-4 text-sm text-gray-500">
+                                                                    <span className="font-bold text-gray-700">Servicios: </span>
+                                                                    
+                                                                    {/* Contenedor con un pequeño margen superior */}
+                                                                    <div className="mt-1 flex flex-col gap-1"> 
+                                                                    {freeServices.map((s, index) => (
+                                                                        <span key={s.id || index} className="block">
+                                                                        {s.nombre}
+                                                                        </span>
+                                                                    ))}
+                                                                    </div>
+                                                                </div>
+                                                                )}
 
                                                             <div className="mt-auto pt-4 border-t border-gray-100 flex items-end justify-between">
                                                                 <div>
