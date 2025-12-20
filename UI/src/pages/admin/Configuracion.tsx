@@ -361,6 +361,15 @@ export const AdminConfiguracion = () => {
                             <Tag className="mr-2 h-5 w-5" /> Categorías
                         </Button>
                         <Button
+                            onClick={() => setActiveTab('estados')}
+                            className={`h-12 px-6 rounded-full shadow-lg transition-all text-base font-bold tracking-wide ${activeTab === 'estados'
+                                ? 'bg-indigo-600 hover:bg-indigo-700 text-white ring-4 ring-indigo-600/20'
+                                : 'bg-white text-gray-600 hover:text-indigo-600 hover:bg-gray-50'
+                                }`}
+                        >
+                            <Activity className="mr-2 h-5 w-5" /> Estados
+                        </Button>
+                        <Button
                             onClick={() => setActiveTab('carousel')}
                             className={`h-12 px-6 rounded-full shadow-lg transition-all text-base font-bold tracking-wide ${activeTab === 'carousel'
                                 ? 'bg-indigo-600 hover:bg-indigo-700 text-white ring-4 ring-indigo-600/20'
