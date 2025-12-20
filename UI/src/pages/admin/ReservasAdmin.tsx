@@ -60,7 +60,15 @@ import { type ReservaDTO } from '../../types/api/Reserva';
 import { type ClienteDTO } from '../../types/api/Cliente';
 import { type HabitacionDTO } from '../../types/api/Habitacion';
 import { toast } from 'sonner';
-import { Pencil, Trash2, Plus, Calendar, Search, User, Check, AlertCircle, RefreshCcw, ChevronLeft, ChevronRight, Eye, CheckCircle2, XCircle, ChevronsUpDown } from 'lucide-react';
+import { Pencil, Trash2, Plus, Calendar, Search, User, Check, AlertCircle, RefreshCcw, ChevronLeft, ChevronRight, Eye, CheckCircle2, XCircle, ChevronsUpDown, CreditCard, Banknote, Wallet, DollarSign } from 'lucide-react';
+import { PagoService } from '../../services/pago.service';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements } from '@stripe/react-stripe-js';
+import { StripePaymentForm } from '../../components/stripe/StripePaymentForm';
+import { apiClient } from '../../api/axios-instance';
+
+// Initialize Stripe (Lazy load)
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
 import { Badge } from '@/components/ui/badge';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
@@ -103,6 +111,17 @@ export const AdminReservas = () => {
     const [selectedReserva, setSelectedReserva] = useState<ReservaDTO | null>(null);
     const [selectedReservaRooms, setSelectedReservaRooms] = useState<HabitacionDTO[]>([]);
 
+    // Payment State
+    const [isPaymentMethodOpen, setIsPaymentMethodOpen] = useState(false);
+    const [isCashPaymentOpen, setIsCashPaymentOpen] = useState(false);
+    const [isStripePaymentOpen, setIsStripePaymentOpen] = useState(false);
+    
+    const [paymentReserva, setPaymentReserva] = useState<ReservaDTO | null>(null);
+    const [paymentTotal, setPaymentTotal] = useState(0);
+    const [stripeClientSecret, setStripeClientSecret] = useState<string | null>(null);
+    const [cashAmount, setCashAmount] = useState('');
+    const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+
     // Filter State
     const [searchTerm, setSearchTerm] = useState('');
     const [showInactive, setShowInactive] = useState(false);
@@ -118,6 +137,8 @@ export const AdminReservas = () => {
             clienteId: 0
         }
     });
+
+
 
     const loadData = async () => {
         try {
@@ -170,9 +191,61 @@ export const AdminReservas = () => {
         }
     };
 
+
+
+
     useEffect(() => {
         loadData();
     }, [currentPage, showInactive]);
+
+    // --- DATE WATCHER FOR AVAILABILITY ---
+    const watchedFechaInicio = form.watch('fechaInicio');
+    const watchedFechaFin = form.watch('fechaFin');
+
+    useEffect(() => {
+        const fetchAvailability = async () => {
+            if (!watchedFechaInicio || !watchedFechaFin) {
+                // If dates are invalid, maybe we should show ALL rooms? 
+                // Or nothing? Usually better to show all so they can see what exists, 
+                // but strictly speaking, availability depends on date.
+                // Converting to "All Active Rooms" if dates are cleared.
+                if (isDialogOpen) {
+                    try {
+                        const res = await HabitacionService.getHabitacions({ size: 100 });
+                        setHabitaciones(res.data);
+                    } catch (e) { console.error(e); }
+                }
+                return;
+            }
+
+            const start = new Date(watchedFechaInicio);
+            const end = new Date(watchedFechaFin);
+
+            if (start >= end) return; // Invalid range
+
+            try {
+                // Append time to make it compatible with Instant
+                const startStr = `${watchedFechaInicio}T00:00:00Z`;
+                const endStr = `${watchedFechaFin}T00:00:00Z`;
+
+                const res = await HabitacionService.getAvailableHabitaciones(startStr, endStr, { size: 100 });
+                setHabitaciones(res.data);
+
+                // OPTIONAL: Toast to notify user
+                // toast.info(`Habitaciones actualizadas para ${watchedFechaInicio} - ${watchedFechaFin}`);
+            } catch (error) {
+                console.error("Error fetching available rooms", error);
+            }
+        };
+
+        const timer = setTimeout(() => {
+            fetchAvailability();
+        }, 500); // Debounce
+
+        return () => clearTimeout(timer);
+
+    }, [watchedFechaInicio, watchedFechaFin, isDialogOpen]);
+
 
     // Reset Form on Dialog Close
     useEffect(() => {
@@ -185,6 +258,8 @@ export const AdminReservas = () => {
                 activo: true,
                 clienteId: 0
             });
+            // Reset rooms to all? handled by next open or loadData
+            loadData();
         }
     }, [isDialogOpen, form]);
 
@@ -379,12 +454,135 @@ export const AdminReservas = () => {
         }
     };
 
+    // --- PAYMENT HANDLERS ---
+    
+    const handleOpenPayment = async (reserva: ReservaDTO) => {
+        try {
+            setIsLoading(true); // Small loading indicator if needed
+            // 1. Fetch details to calculate total accurately
+            const detailsRes = await ReservaDetalleService.getReservaDetalles({ 'reservaId.equals': reserva.id });
+            const details = detailsRes.data;
+
+            // 2. Calculate Total
+            let calculatedTotal = 0;
+            if (reserva.fechaInicio && reserva.fechaFin) {
+                const start = new Date(reserva.fechaInicio);
+                const end = new Date(reserva.fechaFin);
+                const diffTime = Math.abs(end.getTime() - start.getTime());
+                const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                const nights = days === 0 ? 1 : days;
+
+                details.forEach(det => {
+                    const price = det.precioUnitario || det.habitacion?.categoriaHabitacion?.precioBase || 0;
+                    calculatedTotal += price * nights;
+                });
+            }
+
+            setPaymentReserva(reserva);
+            setPaymentTotal(calculatedTotal);
+            setCashAmount(calculatedTotal.toString()); // Pre-fill
+            
+            setIsPaymentMethodOpen(true);
+        } catch (error) {
+            console.error(error);
+            toast.error('Error al preparar pago');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleSelectCash = () => {
+        setIsPaymentMethodOpen(false);
+        setIsCashPaymentOpen(true);
+    };
+
+    const handleSelectStripe = async () => {
+        if (!paymentReserva || !paymentTotal) return;
+        setIsProcessingPayment(true);
+        try {
+            // Initiate Payment Intent
+            const response = await apiClient.post('/stripe/payment-intent', {
+                amount: paymentTotal,
+                currency: 'usd', 
+                reservaId: paymentReserva.id,
+                description: `Pago Admin Reserva #${paymentReserva.id}`
+            });
+            
+            setStripeClientSecret(response.data.clientSecret);
+            setIsPaymentMethodOpen(false);
+            setIsStripePaymentOpen(true);
+        } catch (error) {
+            console.error(error);
+            toast.error('Error al conectar con pasarela de pago');
+        } finally {
+            setIsProcessingPayment(false);
+        }
+    };
+
+    const submitCashPayment = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!paymentReserva) return;
+        
+        try {
+            setIsProcessingPayment(true);
+            const monto = parseFloat(cashAmount);
+            if (isNaN(monto) || monto <= 0) {
+                toast.error('Monto inválido');
+                return;
+            }
+
+            // Create Pago entity
+            await PagoService.createPago({
+                fechaPago: new Date().toISOString(),
+                monto: cashAmount,
+                metodoPago: 'EFECTIVO',
+                estado: 'COMPLETADO', 
+                activo: true,
+                reserva: { id: paymentReserva.id }
+            });
+
+            // Optionally confirm reserva if not confirmed?
+            if (paymentReserva.estado !== 'CONFIRMADA') {
+                 await ReservaService.partialUpdateReserva(paymentReserva.id!, { id: paymentReserva.id, estado: 'CONFIRMADA' });
+            }
+
+            toast.success('Pago en efectivo registrado correctamente');
+            setIsCashPaymentOpen(false);
+            loadData(); // Refresh list to maybe show updated status if logic changes
+        } catch (error) {
+            console.error(error);
+            toast.error('Error al registrar pago');
+        } finally {
+            setIsProcessingPayment(false);
+        }
+    };
+
+    const handleStripeSuccess = async () => {
+        toast.success("Pago con tarjeta completado");
+        setIsStripePaymentOpen(false);
+        // Stripe webhook handles 'Pago' entity creation usually. 
+        // We can force status update just in case.
+        if (paymentReserva && paymentReserva.estado !== 'CONFIRMADA') {
+             try {
+                await ReservaService.partialUpdateReserva(paymentReserva.id!, { id: paymentReserva.id, estado: 'CONFIRMADA' });
+             } catch (e) { console.error("Error auto-confirming", e); }
+        }
+        loadData();
+    };
+
     const onSubmit = async (data: ReservaFormValues) => {
         try {
+            // Fix timezone issue: create dates at local midnight to preserve the selected date
+            const [yearInicio, monthInicio, dayInicio] = data.fechaInicio.split('-').map(Number);
+            const [yearFin, monthFin, dayFin] = data.fechaFin.split('-').map(Number);
+
+            const fechaInicio = new Date(yearInicio, monthInicio - 1, dayInicio, 0, 0, 0);
+            const fechaFin = new Date(yearFin, monthFin - 1, dayFin, 23, 59, 59);
+
             const reservaToSave = {
                 id: data.id,
-                fechaInicio: new Date(data.fechaInicio).toISOString(),
-                fechaFin: new Date(data.fechaFin).toISOString(),
+                fechaInicio: fechaInicio.toISOString(),
+                fechaFin: fechaFin.toISOString(),
                 estado: data.estado,
                 activo: data.activo,
                 cliente: { id: data.clienteId },
@@ -603,6 +801,18 @@ export const AdminReservas = () => {
                                             </TableCell>
                                             <TableCell className="text-right p-4">
                                                 <div className="flex justify-end gap-2">
+                                                    {/* PAYMENT BUTTON */}
+                                                     <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => handleOpenPayment(reserva)}
+                                                        disabled={!reserva.activo}
+                                                        className="h-8 w-8 p-0 text-gray-400 rounded-full transition-colors hover:bg-green-50 hover:text-green-600"
+                                                        title="Gestionar Pago"
+                                                    >
+                                                        <CreditCard className="h-4 w-4" />
+                                                    </Button>
+
                                                     <Button
                                                         variant="ghost"
                                                         size="sm"
@@ -696,27 +906,27 @@ export const AdminReservas = () => {
             </main>
 
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto p-0 gap-0 border-0 shadow-2xl">
-                    <DialogHeader className="bg-[#0F172A] text-white p-6">
-                        <DialogTitle className="text-xl font-bold flex items-center gap-2">
-                            {isEditing ? <Pencil className="h-5 w-5 text-yellow-500" /> : <Plus className="h-5 w-5 text-yellow-500" />}
+                <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto p-0 gap-0">
+                    <DialogHeader className="p-6 border-b">
+                        <DialogTitle className="text-2xl font-bold flex items-center gap-2">
+                            {isEditing ? <Pencil className="h-5 w-5 text-green-600" /> : <Plus className="h-5 w-5 text-green-600" />}
                             {isEditing ? 'Editar Reserva' : 'Nueva Reserva'}
                         </DialogTitle>
-                        <DialogDescription className="text-slate-400">
-                            Complete los detalles de la reserva.
-                        </DialogDescription>
                     </DialogHeader>
 
-                    <div className="p-6 bg-white">
+                    <div className="p-6">
                         <Form {...(form as any)}>
-                            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                                {/* --- CLIENT SELECTOR (COMBOBOX) --- */}
+                            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                                {/* --- CLIENT SELECTOR --- */}
                                 <FormField
                                     control={form.control as any}
                                     name="clienteId"
                                     render={({ field }) => (
                                         <FormItem className="flex flex-col">
-                                            <FormLabel className="font-bold text-gray-700">Cliente</FormLabel>
+                                            <FormLabel className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                                                <User className="h-4 w-4" />
+                                                Cliente
+                                            </FormLabel>
                                             <Popover open={openClientCombo} onOpenChange={setOpenClientCombo}>
                                                 <PopoverTrigger asChild>
                                                     <FormControl>
@@ -725,7 +935,7 @@ export const AdminReservas = () => {
                                                             role="combobox"
                                                             aria-expanded={openClientCombo}
                                                             className={cn(
-                                                                "w-full justify-between bg-gray-50 border-gray-200 h-10",
+                                                                "w-full justify-between h-11 bg-white border-gray-300",
                                                                 !field.value && "text-muted-foreground"
                                                             )}
                                                         >
@@ -739,7 +949,7 @@ export const AdminReservas = () => {
                                                         </Button>
                                                     </FormControl>
                                                 </PopoverTrigger>
-                                                <PopoverContent className="w-[400px] p-0">
+                                                <PopoverContent className="w-[550px] p-0">
                                                     <Command>
                                                         <CommandInput placeholder="Buscar por nombre o DNI..." />
                                                         <CommandList>
@@ -748,7 +958,6 @@ export const AdminReservas = () => {
                                                                 {clientes.map((cliente) => (
                                                                     <CommandItem
                                                                         key={cliente.id}
-                                                                        // Combine fields for search filtering
                                                                         value={`${cliente.nombre} ${cliente.apellido} ${cliente.numeroIdentificacion || ''}`}
                                                                         onSelect={() => {
                                                                             form.setValue("clienteId", cliente.id!);
@@ -779,100 +988,120 @@ export const AdminReservas = () => {
                                     )}
                                 />
 
-                                <div className="grid grid-cols-2 gap-4">
-                                    <FormField
-                                        control={form.control as any}
-                                        name="fechaInicio"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel className="text-xs font-bold text-gray-500 uppercase tracking-widest">Entrada</FormLabel>
-                                                <FormControl>
-                                                    <Input type="date" className="h-10" {...field} />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                    <FormField
-                                        control={form.control as any}
-                                        name="fechaFin"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel className="text-xs font-bold text-gray-500 uppercase tracking-widest">Salida</FormLabel>
-                                                <FormControl>
-                                                    <Input type="date" className="h-10" {...field} />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
+                                {/* --- DATES --- */}
+                                <div className="bg-gray-50 p-4 rounded-lg border">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <FormField
+                                            control={form.control as any}
+                                            name="fechaInicio"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel className="text-xs font-semibold text-gray-600 uppercase">Fecha Entrada</FormLabel>
+                                                    <FormControl>
+                                                        <Input type="date" className="h-11" {...field} />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <FormField
+                                            control={form.control as any}
+                                            name="fechaFin"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel className="text-xs font-semibold text-gray-600 uppercase">Fecha Salida</FormLabel>
+                                                    <FormControl>
+                                                        <Input type="date" className="h-11" {...field} />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                    </div>
                                 </div>
 
+                                {/* --- ROOMS --- */}
                                 <FormField
                                     control={form.control as any}
                                     name="roomIds"
                                     render={() => (
                                         <FormItem>
-                                            <div className="mb-2">
-                                                <FormLabel className="text-xs font-bold text-gray-500 uppercase tracking-widest">Habitaciones Disponibles</FormLabel>
-                                                <FormDescription className="text-xs text-gray-400">
-                                                    Seleccione las habitaciones para esta reserva.
+                                            <div className="mb-3">
+                                                <FormLabel className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                                                    <Calendar className="h-4 w-4" />
+                                                    Habitaciones
+                                                </FormLabel>
+                                                <FormDescription className="text-xs text-gray-500 mt-1">
+                                                    Seleccione una o más habitaciones para esta reserva.
                                                 </FormDescription>
                                             </div>
-                                            <div className="border rounded-md p-3 h-48 overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-2 bg-gray-50/50">
-                                                {habitaciones.map((hab) => (
-                                                    <FormField
-                                                        key={hab.id}
-                                                        control={form.control as any}
-                                                        name="roomIds"
-                                                        render={({ field }) => {
-                                                            return (
-                                                                <FormItem
-                                                                    key={hab.id}
-                                                                    className={cn(
-                                                                        "flex flex-row items-center space-x-3 space-y-0 p-2 rounded border transition-colors cursor-pointer",
-                                                                        field.value?.includes(hab.id!) ? "bg-yellow-50 border-yellow-200" : "bg-white border-gray-100 hover:bg-gray-50"
-                                                                    )}
-                                                                >
-                                                                    <FormControl>
-                                                                        <Checkbox
-                                                                            checked={field.value?.includes(hab.id!)}
-                                                                            onCheckedChange={(checked) => {
-                                                                                return checked
-                                                                                    ? field.onChange([...field.value, hab.id])
-                                                                                    : field.onChange(
-                                                                                        field.value?.filter(
-                                                                                            (value: number) => value !== hab.id
+                                            <div className="border rounded-lg p-4 max-h-64 overflow-y-auto bg-gray-50">
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    {habitaciones.map((hab) => (
+                                                        <FormField
+                                                            key={hab.id}
+                                                            control={form.control as any}
+                                                            name="roomIds"
+                                                            render={({ field }) => {
+                                                                const isChecked = field.value?.includes(hab.id!);
+                                                                return (
+                                                                    <FormItem
+                                                                        key={hab.id}
+                                                                        className={cn(
+                                                                            "flex flex-row items-start space-x-3 space-y-0 p-3 rounded-md border-2 transition-all cursor-pointer",
+                                                                            isChecked
+                                                                                ? "bg-white border-green-500 shadow-sm"
+                                                                                : "bg-white border-gray-200 hover:border-gray-300"
+                                                                        )}
+                                                                    >
+                                                                        <FormControl>
+                                                                            <Checkbox
+                                                                                checked={isChecked}
+                                                                                onCheckedChange={(checked) => {
+                                                                                    return checked
+                                                                                        ? field.onChange([...field.value, hab.id])
+                                                                                        : field.onChange(
+                                                                                            field.value?.filter(
+                                                                                                (value: number) => value !== hab.id
+                                                                                            )
                                                                                         )
-                                                                                    )
-                                                                            }}
-                                                                            className="data-[state=checked]:bg-yellow-600 data-[state=checked]:border-yellow-600"
-                                                                        />
-                                                                    </FormControl>
-                                                                    <FormLabel className="font-normal text-sm cursor-pointer w-full flex justify-between">
-                                                                        <span className="font-medium">#{hab.numero}</span>
-                                                                        <span className="text-gray-500 text-xs">{hab.categoriaHabitacion?.nombre}</span>
-                                                                    </FormLabel>
-                                                                </FormItem>
-                                                            )
-                                                        }}
-                                                    />
-                                                ))}
+                                                                                }}
+                                                                                className="mt-0.5"
+                                                                            />
+                                                                        </FormControl>
+                                                                        <div className="flex-1 space-y-1">
+                                                                            <FormLabel className="font-semibold text-sm cursor-pointer text-gray-900">
+                                                                                Habitación {hab.numero}
+                                                                            </FormLabel>
+                                                                            <div className="text-xs text-gray-600 space-y-0.5">
+                                                                                <div>{hab.categoriaHabitacion?.nombre || 'Sin categoría'}</div>
+                                                                                <div className="font-medium text-gray-900">
+                                                                                    ${hab.categoriaHabitacion?.precioBase || '0'}
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </FormItem>
+                                                                )
+                                                            }}
+                                                        />
+                                                    ))}
+                                                </div>
                                             </div>
                                             <FormMessage />
                                         </FormItem>
                                     )}
                                 />
 
+                                {/* --- STATUS --- */}
                                 <FormField
                                     control={form.control as any}
                                     name="estado"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel className="text-xs font-bold text-gray-500 uppercase tracking-widest">Estado</FormLabel>
+                                            <FormLabel className="text-sm font-semibold text-gray-700">Estado de Reserva</FormLabel>
                                             <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
                                                 <FormControl>
-                                                    <SelectTrigger className="h-10">
+                                                    <SelectTrigger className="h-11">
                                                         <SelectValue placeholder="Seleccione estado" />
                                                     </SelectTrigger>
                                                 </FormControl>
@@ -887,11 +1116,23 @@ export const AdminReservas = () => {
                                         </FormItem>
                                     )}
                                 />
-                                <div className="pt-4 flex justify-end gap-3 border-t mt-4">
-                                    <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)} className="h-10">
+
+                                {/* --- FOOTER BUTTONS --- */}
+                                <div className="flex justify-end gap-3 pt-4">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() => setIsDialogOpen(false)}
+                                        className="h-11 px-6"
+                                    >
                                         Cancelar
                                     </Button>
-                                    <Button type="submit" className="bg-yellow-600 hover:bg-yellow-700 text-white h-10 px-8">Guardar</Button>
+                                    <Button
+                                        type="submit"
+                                        className="bg-slate-900 hover:bg-slate-800 text-white h-11 px-8"
+                                    >
+                                        Guardar
+                                    </Button>
                                 </div>
                             </form>
                         </Form>
@@ -1045,6 +1286,129 @@ export const AdminReservas = () => {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+            
+            {/* --- PAYMENT METHOD SELECTION DIALOG --- */}
+            <Dialog open={isPaymentMethodOpen} onOpenChange={setIsPaymentMethodOpen}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className="text-xl font-bold text-center">Seleccionar Método de Pago</DialogTitle>
+                        <DialogDescription className="text-center">
+                            Reserva #{paymentReserva?.id} • Total a Pagar: <span className="font-bold text-gray-900">${paymentTotal.toFixed(2)}</span>
+                        </DialogDescription>
+                    </DialogHeader>
+                    
+                    <div className="grid grid-cols-2 gap-4 py-4">
+                        <button 
+                            onClick={handleSelectStripe}
+                            disabled={isProcessingPayment}
+                            className="flex flex-col items-center justify-center p-6 border-2 border-gray-100 rounded-xl hover:border-yellow-500 hover:bg-yellow-50 transition-all gap-3 group"
+                        >
+                            <div className="bg-white p-3 rounded-full shadow-sm group-hover:scale-110 transition-transform">
+                                <CreditCard className="h-8 w-8 text-yellow-600" />
+                            </div>
+                            <span className="font-bold text-gray-800">Pasarela de Pago</span>
+                            <span className="text-xs text-gray-400">Tarjeta Crédito/Débito</span>
+                        </button>
+
+                        <button 
+                            onClick={handleSelectCash}
+                            className="flex flex-col items-center justify-center p-6 border-2 border-gray-100 rounded-xl hover:border-green-500 hover:bg-green-50 transition-all gap-3 group"
+                        >
+                             <div className="bg-white p-3 rounded-full shadow-sm group-hover:scale-110 transition-transform">
+                                <Banknote className="h-8 w-8 text-green-600" />
+                            </div>
+                            <span className="font-bold text-gray-800">Efectivo</span>
+                            <span className="text-xs text-gray-400">Pago presencial</span>
+                        </button>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            {/* --- CASH PAYMENT DIALOG --- */}
+            <Dialog open={isCashPaymentOpen} onOpenChange={setIsCashPaymentOpen}>
+                <DialogContent className="sm:max-w-sm">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <Wallet className="w-5 h-5 text-green-600" /> Registrar Pago Efectivo
+                        </DialogTitle>
+                        <DialogDescription>
+                            Ingrese el monto recibido del cliente.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={submitCashPayment} className="space-y-4 pt-2">
+                        <div className="bg-gray-50 p-3 rounded text-sm space-y-1">
+                            <div className="flex justify-between">
+                                <span className="text-gray-500">Cliente:</span>
+                                <span className="font-medium text-gray-900">{paymentReserva?.cliente?.nombre || 'Desconocido'}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-gray-500">Reserva:</span>
+                                <span className="font-medium text-gray-900">#{paymentReserva?.id}</span>
+                            </div>
+                            <div className="flex justify-between border-t border-gray-200 pt-1 mt-1">
+                                <span className="text-gray-500 font-bold">Total Esperado:</span>
+                                <span className="font-bold text-yellow-600">${paymentTotal.toFixed(2)}</span>
+                            </div>
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold uppercase text-gray-500">Monto A Recibir ($)</label>
+                            <div className="relative">
+                                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                <Input 
+                                    className="pl-9 text-lg font-bold"
+                                    type="number" 
+                                    step="0.01" 
+                                    value={cashAmount} 
+                                    onChange={(e) => setCashAmount(e.target.value)}
+                                    autoFocus
+                                />
+                            </div>
+                        </div>
+
+                        <div className="flex justify-end gap-2 pt-2">
+                            <Button type="button" variant="ghost" onClick={() => setIsCashPaymentOpen(false)}>Cancelar</Button>
+                            <Button type="submit" className="bg-green-600 hover:bg-green-700 text-white font-bold" disabled={isProcessingPayment}>
+                                {isProcessingPayment ? 'Registrando...' : 'Confirmar Pago'}
+                            </Button>
+                        </div>
+                    </form>
+                </DialogContent>
+            </Dialog>
+
+            {/* --- STRIPE PAYMENT DIALOG --- */}
+            <Dialog open={isStripePaymentOpen} onOpenChange={setIsStripePaymentOpen}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <CreditCard className="w-5 h-5 text-yellow-600" /> Procesar Pago con Tarjeta
+                        </DialogTitle>
+                         <DialogDescription>
+                             Complete los datos de la tarjeta para la Reserva #{paymentReserva?.id}.
+                        </DialogDescription>
+                    </DialogHeader>
+                    
+                    <div className="py-4">
+                         {stripeClientSecret && (
+                             <Elements stripe={stripePromise} options={{ 
+                                 clientSecret: stripeClientSecret,
+                                 appearance: { theme: 'stripe', variables: { colorPrimary: '#ca8a04' } }
+                             }}>
+                                 <StripePaymentForm 
+                                    onSuccess={handleStripeSuccess}
+                                    returnUrl={window.location.href} // Admin usually stays on page
+                                 />
+                             </Elements>
+                         )}
+                         {!stripeClientSecret && (
+                             <div className="flex justify-center py-10">
+                                 <div className="animate-spin h-8 w-8 border-b-2 border-yellow-600 rounded-full"></div>
+                             </div>
+                         )}
+                    </div>
+                </DialogContent>
+            </Dialog>
+
             <Footer />
         </div>
     );

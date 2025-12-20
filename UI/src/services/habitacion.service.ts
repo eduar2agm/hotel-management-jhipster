@@ -7,6 +7,10 @@ export const HabitacionService = {
     getHabitacions: (params?: Record<string, any>) => apiClient.get<HabitacionDTO[]>(base, { params }),
     getHabitacion: (id: number) => apiClient.get<HabitacionDTO>(`${base}/${id}`),
     getHabitacionesInactivas: (params?: Record<string, any>) => apiClient.get<HabitacionDTO[]>(`${base}/inactive`, { params }),
+    getAvailableHabitaciones: (fechaInicio: string, fechaFin: string, params?: Record<string, any>) => 
+        apiClient.get<HabitacionDTO[]>(`${base}/available`, { 
+            params: { ...params, fechaInicio, fechaFin } 
+        }),
     activarHabitacion: (id: number) => apiClient.put<void>(`${base}/${id}/activate`),
     desactivarHabitacion: (id: number) => apiClient.put<void>(`${base}/${id}/deactivate`),
     createHabitacion: (dto: NewHabitacionDTO) => apiClient.post<HabitacionDTO>(base, dto),

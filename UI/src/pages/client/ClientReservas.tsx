@@ -1,8 +1,8 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CalendarDays, Plus, MapPin, DollarSign, Calendar, Info, ChevronLeft, ChevronRight } from 'lucide-react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { CalendarDays, Plus, MapPin, DollarSign, Calendar, Info, ChevronLeft, ChevronRight, XCircle } from 'lucide-react';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { ClienteService, ReservaService, ReservaDetalleService } from '../../services';
 import type { ReservaDTO, ReservaDetalleDTO } from '../../types/api';
@@ -15,6 +15,7 @@ import { Footer } from '../../components/ui/Footer';
 export const ClientReservas = () => {
     const { user } = useAuth();
     const [searchParams, setSearchParams] = useSearchParams();
+    const navigate = useNavigate();
 
     const [loading, setLoading] = useState(true);
     const [reservas, setReservas] = useState<ReservaDTO[]>([]);
@@ -97,18 +98,36 @@ export const ClientReservas = () => {
     useEffect(() => {
         const paymentIntent = searchParams.get('payment_intent');
         const redirectStatus = searchParams.get('redirect_status');
+        const confirmReservaId = searchParams.get('confirm_reserva_id');
 
-        if (paymentIntent && redirectStatus) {
-            if (redirectStatus === 'succeeded') {
-                toast.success('Pago completado con éxito');
-                loadMyReservas();
-            } else if (redirectStatus === 'processing') {
-                toast.info('Su pago se está procesando.');
-            } else if (redirectStatus === 'failed') {
-                toast.error('El pago ha fallado. Por favor intente nuevamente.');
+        const processRedirect = async () => {
+            if (paymentIntent && redirectStatus) {
+                if (redirectStatus === 'succeeded') {
+                    toast.success('Pago completado con éxito');
+
+                    if (confirmReservaId) {
+                        try {
+                            await ReservaService.partialUpdateReserva(Number(confirmReservaId), {
+                                id: Number(confirmReservaId),
+                                estado: 'CONFIRMADA'
+                            });
+                        } catch (error) {
+                            console.error('Error auto-confirming reservation:', error);
+                            // We don't block the UI, just log it. The user sees "Pago completado"
+                        }
+                    }
+                    loadMyReservas();
+                } else if (redirectStatus === 'processing') {
+                    toast.info('Su pago se está procesando.');
+                    loadMyReservas();
+                } else if (redirectStatus === 'failed') {
+                    toast.error('El pago ha fallado. Por favor intente nuevamente.');
+                }
+                setSearchParams({});
             }
-            setSearchParams({});
-        }
+        };
+
+        processRedirect();
     }, [searchParams, setSearchParams, loadMyReservas]);
 
     const getStatusColor = (status?: string | null) => {
@@ -151,10 +170,38 @@ export const ClientReservas = () => {
 
     const activeReservaDetails = activeReserva ? (reservaDetallesMap[activeReserva.id!] || []) : [];
 
-    const handlePaymentSuccess = () => {
-        setActiveReserva(null);
-        toast.success("Pago registrado correctamente");
-        loadMyReservas();
+    const handlePaymentSuccess = async () => {
+        if (!activeReserva?.id) return;
+
+        try {
+            await ReservaService.partialUpdateReserva(activeReserva.id, {
+                id: activeReserva.id,
+                estado: 'CONFIRMADA'
+            });
+            toast.success("Pago registrado y reserva confirmada");
+            setActiveReserva(null);
+            loadMyReservas();
+        } catch (error) {
+            console.error(error);
+            toast.error("El pago fue exitoso pero hubo un error al confirmar la reserva." + error);
+            // Still reload to reflect at least the payment if possible, or keep sidebar open?
+            // If payment succeeded, we probably want to close the sidebar anyway or let user retry the update?
+            // For now, let's close it and let them see the status.
+            setActiveReserva(null);
+            loadMyReservas();
+        }
+    };
+
+    const handleCancelReserva = (reservaId: number) => {
+        const confirmMsg = "Esta acción podría suponer cargos no deseados, por cancelar una reservación confirmada, será enviada a soporte para realizar su solicitud y esperar que un empleado la contacte";
+        if (!window.confirm(confirmMsg)) return;
+
+        navigate('/client/soporte', {
+            state: {
+                action: 'cancelRequest',
+                reservaId: reservaId
+            }
+        });
     };
 
     return (
@@ -193,7 +240,7 @@ export const ClientReservas = () => {
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
                         {/* --- LEFT SIDEBAR (Sticky) --- */}
-                        <div className="lg:col-span-4 lg:sticky lg:top-32 order-1 z-20">
+                        <div className="lg:col-span-4 lg:sticky lg:-top-20 order-1 z-20">
                             <CheckoutSidebar
                                 reserva={activeReserva || null}
                                 details={activeReservaDetails}
@@ -229,6 +276,7 @@ export const ClientReservas = () => {
                                     {reservas.map(reserva => {
                                         const details = reservaDetallesMap[reserva.id!] || [];
                                         const isPending = reserva.estado === 'PENDIENTE';
+                                        const isConfirmed = reserva.estado === 'CONFIRMADA';
 
                                         // Calculate total dynamically
                                         const computedTotal = calculateTotal(reserva, details);
@@ -265,6 +313,16 @@ export const ClientReservas = () => {
                                                             >
                                                                 <DollarSign className="w-3 h-3 mr-1" />
                                                                 Pagar Ahora
+                                                            </Button>
+                                                        )}
+
+                                                        {isConfirmed && (
+                                                            <Button
+                                                                onClick={() => handleCancelReserva(reserva.id!)}
+                                                                className="ml-4 bg-red-400 hover:bg-red-700 text-white text-xs font-bold  tracking-wider py-1 h-8 shadow-md shadow-red-200 transition-all hover:-translate-y-0.5"
+                                                            >
+                                                                <XCircle className="w-3 h-3 mr-1" />
+                                                                Solicitar Cancelación
                                                             </Button>
                                                         )}
                                                     </div>
@@ -346,7 +404,6 @@ export const ClientReservas = () => {
                             )}
                         </div>
                     </div>
-
                     {/* PAGINATION FOOTER */}
                     {reservas.length > 0 && (
                         <div className="flex items-center justify-end gap-4 mt-8 pb-8">
@@ -375,6 +432,7 @@ export const ClientReservas = () => {
                             </div>
                         </div>
                     )}
+
                 </div>
             </main>
 

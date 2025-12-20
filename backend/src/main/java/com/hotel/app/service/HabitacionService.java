@@ -78,4 +78,14 @@ public interface HabitacionService {
      * @return the list of entities.
      */
     Page<HabitacionDTO> findByActivo(Boolean activo, Pageable pageable);
+
+    /**
+     * Get all available habitacions for a date range.
+     *
+     * @param fechaInicio start date
+     * @param fechaFin    end date
+     * @param pageable    the pagination information.
+     * @return the list of available entities.
+     */
+    Page<HabitacionDTO> findAvailable(java.time.Instant fechaInicio, java.time.Instant fechaFin, Pageable pageable);
 }

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { MensajeSoporteService } from '../../services';
 import type { MensajeSoporteDTO } from '../../types/api';
 import { Button } from '@/components/ui/button';
@@ -18,6 +19,7 @@ import { Footer } from '../../components/ui/Footer';
 export const ClientMensajesSoporte = () => {
     // --- LÓGICA ORIGINAL INTACTA ---
     const { user } = useAuth();
+    const location = useLocation();
     const [mensajes, setMensajes] = useState<MensajeSoporteDTO[]>([]);
     const [loading, setLoading] = useState(false);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -29,6 +31,23 @@ export const ClientMensajesSoporte = () => {
     const itemsPerPage = 5;
 
     const [currentItem, setCurrentItem] = useState<Partial<MensajeSoporteDTO>>({});
+
+    // Handle incoming navigation state (e.g. from Cancel Reservation)
+    useEffect(() => {
+        if (location.state && location.state.action === 'cancelRequest' && location.state.reservaId) {
+             const { reservaId } = location.state;
+             setCurrentItem({
+                fechaMensaje: new Date().toISOString(),
+                remitente: 'CLIENT',
+                leido: false,
+                activo: true,
+                mensaje: `Deseo cancelar mi reservación. Usuario: ${user?.username || user?.email || 'N/A'}, Reserva: ${reservaId}`
+            });
+            setIsDialogOpen(true);
+            // Clear state to prevent reopening on simple refresh
+            window.history.replaceState({}, '');
+        }
+    }, [location, user]);
 
     const loadData = async (page: number) => {
         setLoading(true);

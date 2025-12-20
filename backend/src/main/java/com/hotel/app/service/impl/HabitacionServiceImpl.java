@@ -162,4 +162,24 @@ public class HabitacionServiceImpl implements HabitacionService {
         LOG.debug("Request to get Habitacions by activo : {}", activo);
         return habitacionRepository.findByActivo(activo, pageable).map(habitacionMapper::toDto);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<HabitacionDTO> findAvailable(java.time.Instant fechaInicio, java.time.Instant fechaFin,
+            Pageable pageable) {
+        LOG.debug("Request to get available Habitacions between {} and {}", fechaInicio, fechaFin);
+
+        java.util.List<Long> occupiedIds = reservaDetalleRepository.findOccupiedHabitacionIds(fechaInicio, fechaFin);
+
+        // Filter out nulls to prevent JPA errors
+        java.util.List<Long> validOccupiedIds = occupiedIds.stream()
+                .filter(java.util.Objects::nonNull)
+                .collect(java.util.stream.Collectors.toList());
+
+        if (validOccupiedIds.isEmpty()) {
+            return habitacionRepository.findByActivo(true, pageable).map(habitacionMapper::toDto);
+        }
+
+        return habitacionRepository.findByIdNotIn(validOccupiedIds, pageable).map(habitacionMapper::toDto);
+    }
 }
