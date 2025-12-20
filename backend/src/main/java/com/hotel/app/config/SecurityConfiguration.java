@@ -49,10 +49,11 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(authz -> {
                     // prettier-ignore
                     authz
-                    .requestMatchers(mvc.pattern("/api/stripe/webhook")).permitAll()
+                            .requestMatchers(mvc.pattern("/api/stripe/webhook")).permitAll()
                             .requestMatchers(mvc.pattern("/api/authenticate")).permitAll()
                             .requestMatchers(mvc.pattern("/api/auth-info")).permitAll()
                             .requestMatchers(mvc.pattern("/api/habitacions/**")).permitAll()
+                            .requestMatchers(mvc.pattern("/images/**")).permitAll()
                             .requestMatchers(mvc.pattern("/api/admin/**")).hasAuthority(AuthoritiesConstants.ADMIN)
                             .requestMatchers(mvc.pattern("/api/**")).authenticated();
                     // OpenAPI docs: permit in dev, otherwise require ADMIN
