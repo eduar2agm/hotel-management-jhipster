@@ -29,14 +29,23 @@ import {
 } from '@/components/ui/select';
 import { CategoriaHabitacionService } from '../../services/categoria-habitacion.service';
 import { EstadoHabitacionService } from '../../services/estado-habitacion.service';
-import { type CategoriaHabitacionDTO, type NewCategoriaHabitacionDTO, type CategoriaHabitacionNombreType } from '../../types/api/CategoriaHabitacion';
+import { CarouselItemService } from '../../services/carousel-item.service';
+import { ConfiguracionSistemaService } from '../../services/configuracion-sistema.service';
+import { ImagenService } from '../../services/imagen.service';
+import { type CategoriaHabitacionDTO, type NewCategoriaHabitacionDTO, CategoriaHabitacionNombre, type CategoriaHabitacionNombreType } from '../../types/api/CategoriaHabitacion';
 import { type EstadoHabitacionDTO, type NewEstadoHabitacionDTO, type EstadoHabitacionNombreType } from '../../types/api/EstadoHabitacion';
+import { type CarouselItemDTO, type NewCarouselItemDTO } from '../../types/api/CarouselItem';
+import { type ConfiguracionSistemaDTO, type NewConfiguracionSistemaDTO, TipoConfiguracion } from '../../types/api/ConfiguracionSistema';
+import { type ImagenDTO } from '../../types/api/Imagen';
 import { toast } from 'sonner';
-import { Pencil, Trash2, Plus, Tag, Activity, Settings, LayoutGrid, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Pencil, Trash2, Plus, Tag, Activity, Settings, LayoutGrid, CheckCircle, ChevronLeft, ChevronRight, Image as ImageIcon } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+
+import { getImageUrl } from '../../utils/imageUtils';
 
 export const AdminConfiguracion = () => {
-    const [activeTab, setActiveTab] = useState<'categorias' | 'estados'>('categorias');
+    const [activeTab, setActiveTab] = useState<'categorias' | 'estados' | 'carousel' | 'sistema'>('categorias');
 
     // Categorias State
     const [categorias, setCategorias] = useState<CategoriaHabitacionDTO[]>([]);
@@ -49,6 +58,21 @@ export const AdminConfiguracion = () => {
     const [isLoadingEstados, setIsLoadingEstados] = useState(false);
     const [isEstDialogOpen, setIsEstDialogOpen] = useState(false);
     const [currentEst, setCurrentEst] = useState<Partial<EstadoHabitacionDTO>>({});
+
+    // Carousel State
+    const [carouselItems, setCarouselItems] = useState<CarouselItemDTO[]>([]);
+    const [isLoadingCarousel, setIsLoadingCarousel] = useState(false);
+    const [isCarDialogOpen, setIsCarDialogOpen] = useState(false);
+    const [currentCar, setCurrentCar] = useState<Partial<CarouselItemDTO>>({});
+
+    // Sistema State
+    const [configuraciones, setConfiguraciones] = useState<ConfiguracionSistemaDTO[]>([]);
+    const [isLoadingSistema, setIsLoadingSistema] = useState(false);
+    const [isSysDialogOpen, setIsSysDialogOpen] = useState(false);
+    const [currentSys, setCurrentSys] = useState<Partial<ConfiguracionSistemaDTO>>({});
+
+    // Images for selection
+    const [imagenes, setImagenes] = useState<ImagenDTO[]>([]);
 
     // Unified Pagination State
     const [currentPage, setCurrentPage] = useState(0);
@@ -96,12 +120,63 @@ export const AdminConfiguracion = () => {
         setCurrentPage(0);
     }, [activeTab]);
 
+    const loadCarousel = async (page: number) => {
+        setIsLoadingCarousel(true);
+        try {
+            const res = await CarouselItemService.getCarouselItems({
+                page: page,
+                size: itemsPerPage,
+                sort: 'orden,asc'
+            });
+            setCarouselItems(res.data);
+            const total = parseInt(res.headers['x-total-count'] || '0', 10);
+            if (activeTab === 'carousel') setTotalItems(total);
+        } catch (error) {
+            toast.error('Error al cargar carrusel');
+        } finally {
+            setIsLoadingCarousel(false);
+        }
+    };
+
+    const loadSistema = async (page: number) => {
+        setIsLoadingSistema(true);
+        try {
+            const res = await ConfiguracionSistemaService.getConfiguraciones({
+                page: page,
+                size: itemsPerPage,
+                sort: 'id,asc'
+            });
+            setConfiguraciones(res.data);
+            const total = parseInt(res.headers['x-total-count'] || '0', 10);
+            if (activeTab === 'sistema') setTotalItems(total);
+        } catch (error) {
+            toast.error('Error al cargar configuración del sistema');
+        } finally {
+            setIsLoadingSistema(false);
+        }
+    };
+
+    const loadImagenes = async () => {
+        try {
+            const res = await ImagenService.getImagens({ size: 1000 });
+            setImagenes(res.data);
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
     // Consolidate data loading
     useEffect(() => {
         if (activeTab === 'categorias') {
             loadCategorias(currentPage);
-        } else {
+        } else if (activeTab === 'estados') {
             loadEstados(currentPage);
+        } else if (activeTab === 'carousel') {
+            loadCarousel(currentPage);
+            loadImagenes();
+        } else if (activeTab === 'sistema') {
+            loadSistema(currentPage);
+            loadImagenes();
         }
     }, [activeTab, currentPage]);
 
@@ -160,6 +235,64 @@ export const AdminConfiguracion = () => {
             loadEstados(currentPage);
         } catch (error) {
             toast.error('Error al eliminar (puede estar en uso)');
+        }
+    };
+
+    // Handlers for Carousel
+    const handleSaveCarousel = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            if (currentCar.id) {
+                await CarouselItemService.updateCarouselItem(currentCar.id, currentCar as CarouselItemDTO);
+                toast.success('Item actualizado');
+            } else {
+                await CarouselItemService.createCarouselItem({ ...currentCar, activo: true } as NewCarouselItemDTO);
+                toast.success('Item creado');
+            }
+            setIsCarDialogOpen(false);
+            loadCarousel(currentPage);
+        } catch (error) {
+            toast.error('Error al guardar item');
+        }
+    };
+
+    const handleDeleteCarousel = async (id: number) => {
+        if (!confirm('¿Eliminar item del carrusel?')) return;
+        try {
+            await CarouselItemService.deleteCarouselItem(id);
+            toast.success('Item eliminado');
+            loadCarousel(currentPage);
+        } catch (error) {
+            toast.error('Error al eliminar');
+        }
+    };
+
+    // Handlers for Sistema
+    const handleSaveSistema = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            if (currentSys.id) {
+                await ConfiguracionSistemaService.updateConfiguracion(currentSys.id, currentSys as ConfiguracionSistemaDTO);
+                toast.success('Configuración actualizada');
+            } else {
+                await ConfiguracionSistemaService.createConfiguracion({ ...currentSys, activo: true } as NewConfiguracionSistemaDTO);
+                toast.success('Configuración creada');
+            }
+            setIsSysDialogOpen(false);
+            loadSistema(currentPage);
+        } catch (error) {
+            toast.error('Error al guardar configuración');
+        }
+    };
+
+    const handleDeleteSistema = async (id: number) => {
+        if (!confirm('¿Eliminar configuración?')) return;
+        try {
+            await ConfiguracionSistemaService.deleteConfiguracion(id);
+            toast.success('Configuración eliminada');
+            loadSistema(currentPage);
+        } catch (error) {
+            toast.error('Error al eliminar');
         }
     };
 
@@ -228,13 +361,22 @@ export const AdminConfiguracion = () => {
                             <Tag className="mr-2 h-5 w-5" /> Categorías
                         </Button>
                         <Button
-                            onClick={() => setActiveTab('estados')}
-                            className={`h-12 px-6 rounded-full shadow-lg transition-all text-base font-bold tracking-wide ${activeTab === 'estados'
+                            onClick={() => setActiveTab('carousel')}
+                            className={`h-12 px-6 rounded-full shadow-lg transition-all text-base font-bold tracking-wide ${activeTab === 'carousel'
                                 ? 'bg-indigo-600 hover:bg-indigo-700 text-white ring-4 ring-indigo-600/20'
                                 : 'bg-white text-gray-600 hover:text-indigo-600 hover:bg-gray-50'
                                 }`}
                         >
-                            <Activity className="mr-2 h-5 w-5" /> Estados
+                            <ImageIcon className="mr-2 h-5 w-5" /> Carrusel
+                        </Button>
+                        <Button
+                            onClick={() => setActiveTab('sistema')}
+                            className={`h-12 px-6 rounded-full shadow-lg transition-all text-base font-bold tracking-wide ${activeTab === 'sistema'
+                                ? 'bg-indigo-600 hover:bg-indigo-700 text-white ring-4 ring-indigo-600/20'
+                                : 'bg-white text-gray-600 hover:text-indigo-600 hover:bg-gray-50'
+                                }`}
+                        >
+                            <Settings className="mr-2 h-5 w-5" /> Sistema
                         </Button>
                     </div>
 
@@ -368,6 +510,118 @@ export const AdminConfiguracion = () => {
                             </Card>
                         )}
 
+                        {activeTab === 'carousel' && (
+                            <Card className="bg-white border-0 shadow-xl overflow-hidden rounded-2xl">
+                                <CardHeader className="border-b border-gray-100 bg-white p-6 flex flex-row items-center justify-between">
+                                    <div>
+                                        <CardTitle className="text-2xl font-bold text-gray-800">Items del Carrusel</CardTitle>
+                                        <p className="text-gray-500 text-sm mt-1">Gestione las imágenes y textos del carrusel de inicio.</p>
+                                    </div>
+                                    <Button
+                                        onClick={() => { setCurrentCar({}); setIsCarDialogOpen(true); }}
+                                        className="bg-yellow-600 hover:bg-yellow-700 text-white shadow-md rounded-full px-6 transition-all hover:scale-105"
+                                    >
+                                        <Plus className="mr-2 h-5 w-5" /> Nuevo Item
+                                    </Button>
+                                </CardHeader>
+                                <CardContent className="p-0">
+                                    <Table>
+                                        <TableHeader className="bg-gray-50">
+                                            <TableRow>
+                                                <TableHead className="font-bold text-gray-600 py-5 pl-8">ORDEN</TableHead>
+                                                <TableHead className="font-bold text-gray-600 py-5">TITULO</TableHead>
+                                                <TableHead className="font-bold text-gray-600 py-5">IMAGEN</TableHead>
+                                                <TableHead className="font-bold text-gray-600 py-5 text-right pr-8">ACCIONES</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {isLoadingCarousel ? (
+                                                <TableRow><TableCell colSpan={4} className="h-32 text-center text-gray-500">Cargando datos...</TableCell></TableRow>
+                                            ) : carouselItems.length === 0 ? (
+                                                <TableRow><TableCell colSpan={4} className="h-32 text-center text-gray-500">No hay items registrados.</TableCell></TableRow>
+                                            ) : (
+                                                carouselItems.map(item => (
+                                                    <TableRow key={item.id} className="hover:bg-gray-50/80 transition-colors border-b border-gray-100">
+                                                        <TableCell className="py-5 pl-8 font-bold">{item.orden}</TableCell>
+                                                        <TableCell className="py-5 text-gray-800 font-medium">{item.titulo}</TableCell>
+                                                        <TableCell className="py-5">
+                                                            {item.imagen?.nombreArchivo ? (
+                                                                <img src={getImageUrl(item.imagen.nombreArchivo)} className="h-10 w-20 object-cover rounded" />
+                                                            ) : 'Sin imagen'}
+                                                        </TableCell>
+                                                        <TableCell className="py-5 text-right pr-8">
+                                                            <div className="flex justify-end gap-2">
+                                                                <Button variant="ghost" size="icon" className="h-10 w-10 hover:bg-indigo-50" onClick={() => { setCurrentCar(item); setIsCarDialogOpen(true); }}>
+                                                                    <Pencil className="h-5 w-5" />
+                                                                </Button>
+                                                                <Button variant="ghost" size="icon" className="h-10 w-10 text-gray-400" onClick={() => handleDeleteCarousel(item.id!)}>
+                                                                    <Trash2 className="h-5 w-5" />
+                                                                </Button>
+                                                            </div>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))
+                                            )}
+                                        </TableBody>
+                                    </Table>
+                                </CardContent>
+                            </Card>
+                        )}
+
+                        {activeTab === 'sistema' && (
+                            <Card className="bg-white border-0 shadow-xl overflow-hidden rounded-2xl">
+                                <CardHeader className="border-b border-gray-100 bg-white p-6 flex flex-row items-center justify-between">
+                                    <div>
+                                        <CardTitle className="text-2xl font-bold text-gray-800">Variables del Sistema</CardTitle>
+                                        <p className="text-gray-500 text-sm mt-1">Configuración técnica y operativa global.</p>
+                                    </div>
+                                    <Button
+                                        onClick={() => { setCurrentSys({}); setIsSysDialogOpen(true); }}
+                                        className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-md rounded-full px-6 transition-all hover:scale-105"
+                                    >
+                                        <Plus className="mr-2 h-5 w-5" /> Nueva Config
+                                    </Button>
+                                </CardHeader>
+                                <CardContent className="p-0">
+                                    <Table>
+                                        <TableHeader className="bg-gray-50">
+                                            <TableRow>
+                                                <TableHead className="font-bold text-gray-600 py-5 pl-8">CLAVE</TableHead>
+                                                <TableHead className="font-bold text-gray-600 py-5">TIPO</TableHead>
+                                                <TableHead className="font-bold text-gray-600 py-5">VALOR</TableHead>
+                                                <TableHead className="font-bold text-gray-600 py-5 text-right pr-8">ACCIONES</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {isLoadingSistema ? (
+                                                <TableRow><TableCell colSpan={4} className="h-32 text-center text-gray-500">Cargando datos...</TableCell></TableRow>
+                                            ) : configuraciones.length === 0 ? (
+                                                <TableRow><TableCell colSpan={4} className="h-32 text-center text-gray-500">No hay configuraciones.</TableCell></TableRow>
+                                            ) : (
+                                                configuraciones.map(sys => (
+                                                    <TableRow key={sys.id} className="hover:bg-gray-50/80 transition-colors border-b border-gray-100">
+                                                        <TableCell className="py-5 pl-8 font-mono text-xs">{sys.clave}</TableCell>
+                                                        <TableCell className="py-5"><Badge variant="outline">{sys.tipo}</Badge></TableCell>
+                                                        <TableCell className="py-5 text-gray-600 text-sm truncate max-w-xs">{sys.valor}</TableCell>
+                                                        <TableCell className="py-5 text-right pr-8">
+                                                            <div className="flex justify-end gap-2">
+                                                                <Button variant="ghost" size="icon" className="h-10 w-10 hover:bg-indigo-50" onClick={() => { setCurrentSys(sys); setIsSysDialogOpen(true); }}>
+                                                                    <Pencil className="h-5 w-5" />
+                                                                </Button>
+                                                                <Button variant="ghost" size="icon" className="h-10 w-10 text-gray-400" onClick={() => handleDeleteSistema(sys.id!)}>
+                                                                    <Trash2 className="h-5 w-5" />
+                                                                </Button>
+                                                            </div>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))
+                                            )}
+                                        </TableBody>
+                                    </Table>
+                                </CardContent>
+                            </Card>
+                        )}
+
                         {/* UNIFIED PAGINATION */}
                         <div className="flex items-center justify-end gap-4 px-6 pb-6 pt-4 bg-white/50 rounded-xl">
                             <span className="text-sm text-gray-500">
@@ -438,8 +692,8 @@ export const AdminConfiguracion = () => {
                                 <Input
                                     type="number"
                                     step="0.01"
-                                    value={currentCat.precioBase || ''}
-                                    onChange={e => setCurrentCat({ ...currentCat, precioBase: e.target.value })}
+                                    value={currentCat.precioBase?.toString() || ''}
+                                    onChange={e => setCurrentCat({ ...currentCat, precioBase: parseFloat(e.target.value) })}
                                     required
                                     className="font-mono"
                                 />
@@ -488,6 +742,98 @@ export const AdminConfiguracion = () => {
                             <DialogFooter>
                                 <Button type="button" variant="ghost" onClick={() => setIsEstDialogOpen(false)}>Cancelar</Button>
                                 <Button type="submit" className="bg-indigo-600 hover:bg-indigo-700 text-white">Guardar Cambios</Button>
+                            </DialogFooter>
+                        </form>
+                    </DialogContent>
+                </Dialog>
+
+                <Dialog open={isSysDialogOpen} onOpenChange={setIsSysDialogOpen}>
+                    <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                            <DialogTitle className="text-xl font-bold">{currentSys.id ? 'Editar' : 'Crear'} Configuración</DialogTitle>
+                        </DialogHeader>
+                        <form onSubmit={handleSaveSistema} className="grid gap-4 py-4">
+                            <div className="grid gap-2">
+                                <Label>Clave Única</Label>
+                                <Input value={currentSys.clave || ''} onChange={e => setCurrentSys({ ...currentSys, clave: e.target.value })} placeholder="hotel_name" required />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Tipo</Label>
+                                <Select value={currentSys.tipo} onValueChange={val => setCurrentSys({ ...currentSys, tipo: val as TipoConfiguracion })}>
+                                    <SelectTrigger><SelectValue placeholder="Seleccione..." /></SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="TEXT">TEXTO</SelectItem>
+                                        <SelectItem value="NUMBER">NÚMERO</SelectItem>
+                                        <SelectItem value="BOOLEAN">BOOLEANO</SelectItem>
+                                        <SelectItem value="IMAGE">IMAGEN</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Valor</Label>
+                                <Input value={currentSys.valor || ''} onChange={e => setCurrentSys({ ...currentSys, valor: e.target.value })} placeholder="Valor de la config" />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Imagen (Opcional si tipo es IMAGE)</Label>
+                                <Select
+                                    value={currentSys.imagen?.id?.toString() || 'none'}
+                                    onValueChange={val => {
+                                        const img = imagenes.find(i => i.id?.toString() === val);
+                                        setCurrentSys({ ...currentSys, imagen: img || null });
+                                    }}
+                                >
+                                    <SelectTrigger><SelectValue placeholder="Vincular imagen" /></SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="none">Ninguna</SelectItem>
+                                        {imagenes.map(i => <SelectItem key={i.id} value={i.id?.toString() || ''}>{i.nombre}</SelectItem>)}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <DialogFooter>
+                                <Button type="button" variant="ghost" onClick={() => setIsSysDialogOpen(false)}>Cancelar</Button>
+                                <Button type="submit" className="bg-indigo-600 hover:bg-indigo-700 text-white">Guardar</Button>
+                            </DialogFooter>
+                        </form>
+                    </DialogContent>
+                </Dialog>
+
+                <Dialog open={isCarDialogOpen} onOpenChange={setIsCarDialogOpen}>
+                    <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                            <DialogTitle className="text-xl font-bold">{currentCar.id ? 'Editar' : 'Nuevo'} Item de Carrusel</DialogTitle>
+                        </DialogHeader>
+                        <form onSubmit={handleSaveCarousel} className="grid gap-4 py-4">
+                            <div className="grid gap-2">
+                                <Label>Título</Label>
+                                <Input value={currentCar.titulo || ''} onChange={e => setCurrentCar({ ...currentCar, titulo: e.target.value })} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Descripción</Label>
+                                <Input value={currentCar.descripcion || ''} onChange={e => setCurrentCar({ ...currentCar, descripcion: e.target.value })} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Orden de aparición</Label>
+                                <Input type="number" value={currentCar.orden || ''} onChange={e => setCurrentCar({ ...currentCar, orden: parseInt(e.target.value) })} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Imagen del Carrusel</Label>
+                                <Select
+                                    value={currentCar.imagen?.id?.toString() || 'none'}
+                                    onValueChange={val => {
+                                        const img = imagenes.find(i => i.id?.toString() === val);
+                                        setCurrentCar({ ...currentCar, imagen: img || null });
+                                    }}
+                                >
+                                    <SelectTrigger><SelectValue placeholder="Seleccione imagen" /></SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="none">Ninguna</SelectItem>
+                                        {imagenes.map(i => <SelectItem key={i.id} value={i.id?.toString() || ''}>{i.nombre}</SelectItem>)}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <DialogFooter>
+                                <Button type="button" variant="ghost" onClick={() => setIsCarDialogOpen(false)}>Cancelar</Button>
+                                <Button type="submit" className="bg-indigo-600 hover:bg-indigo-700 text-white">Guardar</Button>
                             </DialogFooter>
                         </form>
                     </DialogContent>
