@@ -92,6 +92,7 @@ jhipster:
 # ===================================================================
 
 application:
+  image-path: images/
   keycloak:
     server-url: http://localhost:9080
     realm: jhipster
