@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CalendarDays, Plus, MapPin, DollarSign, Calendar, Info, ChevronLeft, ChevronRight, XCircle } from 'lucide-react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { ClienteService, ReservaService, ReservaDetalleService } from '../../services';
 import type { ReservaDTO, ReservaDetalleDTO } from '../../types/api';
@@ -15,6 +15,7 @@ import { Footer } from '../../components/ui/Footer';
 export const ClientReservas = () => {
     const { user } = useAuth();
     const [searchParams, setSearchParams] = useSearchParams();
+    const navigate = useNavigate();
 
     const [loading, setLoading] = useState(true);
     const [reservas, setReservas] = useState<ReservaDTO[]>([]);
@@ -190,17 +191,16 @@ export const ClientReservas = () => {
         }
     };
 
-    const handleCancelReserva = async (reservaId: number) => {
-        if (!window.confirm("¿Está seguro que desea cancelar esta reserva? Esta acción no se puede deshacer.")) return;
+    const handleCancelReserva = (reservaId: number) => {
+        const confirmMsg = "Esta acción podría suponer cargos no deseados, por cancelar una reservación confirmada, será enviada a soporte para realizar su solicitud y esperar que un empleado la contacte";
+        if (!window.confirm(confirmMsg)) return;
         
-        try {
-            await ReservaService.partialUpdateReserva(reservaId, { id: reservaId, estado: 'CANCELADA' });
-            toast.success("Reserva cancelada correctamente");
-            loadMyReservas();
-        } catch (error) {
-            console.error(error);
-            toast.error("Error al cancelar la reserva");
-        }
+        navigate('/client/soporte', {
+            state: {
+                action: 'cancelRequest',
+                reservaId: reservaId
+            }
+        });
     };
 
     return (
