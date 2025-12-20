@@ -13,7 +13,7 @@ export const Home = () => {
       <Navbar />
       <HeroSection />
 
-      <section className="py-20 px-6 md:px-20 bg-gray-50">
+      <section id="habitaciones-section" className="py-20 px-6 md:px-20 bg-gray-50">
         <div className="text-center mb-16">
           <span className="text-yellow-600 font-bold tracking-widest uppercase text-xs mb-2 block">
             Descubre
@@ -44,7 +44,7 @@ export const Home = () => {
 
 
               return (
-                <CardRoom 
+                <CardRoom
                   key={hab.id}
                   habitacion={hab}
                 />
