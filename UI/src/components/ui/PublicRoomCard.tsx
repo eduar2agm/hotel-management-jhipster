@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { BedDouble, DollarSign, Image as ImageIcon, Info } from 'lucide-react';
 import { useState } from 'react';
+import { getImageUrl } from '../../utils/imageUtils';
 
 interface PublicRoomCardProps {
     titulo: string;
@@ -22,9 +23,9 @@ export const PublicRoomCard = ({ titulo, precio, capacidad, imagen, descripcion 
             <Card className="overflow-hidden hover:shadow-xl transition-all group border-gray-200 h-full flex flex-col">
                 <div className="relative h-48 w-full bg-gray-200 overflow-hidden">
                     {imagen ? (
-                        <img 
-                            src={imagen} 
-                            alt={titulo} 
+                        <img
+                            src={getImageUrl(imagen)}
+                            alt={titulo}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         />
                     ) : (
@@ -34,7 +35,7 @@ export const PublicRoomCard = ({ titulo, precio, capacidad, imagen, descripcion 
                         </div>
                     )}
                 </div>
-                
+
                 <CardContent className="p-5 flex-1 flex flex-col">
                     <div className="flex justify-between items-start mb-3">
                         <div>
@@ -45,18 +46,18 @@ export const PublicRoomCard = ({ titulo, precio, capacidad, imagen, descripcion 
                             </p>
                         </div>
                         <div className="flex items-center text-gray-500 text-xs font-medium bg-gray-100 px-2 py-1 rounded">
-                                <BedDouble className="h-3.5 w-3.5 mr-1" />
-                                {capacidad} pax
+                            <BedDouble className="h-3.5 w-3.5 mr-1" />
+                            {capacidad} pax
                         </div>
                     </div>
-                    
+
                     <p className="text-gray-500 text-sm line-clamp-2 mb-4 h-10">
                         {descripcion || 'Sin descripción detallada disponible.'}
                     </p>
 
                     <div className="mt-auto pt-4 border-t border-gray-100">
-                        <Button 
-                            variant="outline" 
+                        <Button
+                            variant="outline"
                             className="w-full text-blue-600 border-blue-200 hover:bg-blue-50"
                             onClick={() => setIsDetailsOpen(true)}
                         >
@@ -79,13 +80,13 @@ export const PublicRoomCard = ({ titulo, precio, capacidad, imagen, descripcion 
                     </DialogHeader>
                     <div className="space-y-4">
                         <div className="relative h-56 w-full rounded-lg overflow-hidden bg-gray-100">
-                             {imagen ? (
-                                <img src={imagen} alt={`Full ${titulo}`} className="w-full h-full object-cover" />
-                             ) : (
+                            {imagen ? (
+                                <img src={getImageUrl(imagen)} alt={`Full ${titulo}`} className="w-full h-full object-cover" />
+                            ) : (
                                 <div className="flex items-center justify-center h-full text-gray-400">
                                     <ImageIcon className="h-12 w-12" />
                                 </div>
-                             )}
+                            )}
                         </div>
                         <div className="grid grid-cols-2 gap-4 text-sm">
                             <div>
