@@ -15,14 +15,15 @@ export const Navbar = () => {
 
       {/* Menú Central */}
       <div className="hidden md:flex space-x-4 text-xs font-bold uppercase tracking-widest">
-        
+
         {isAuthenticated && isClient() && (
           <>
             <Link to="/client/" className="hover:text-yellow-400 transition-colors">Home</Link>
             <Link to="/client/reservas" className="hover:text-yellow-400 transition-colors">Reservas</Link>
             <Link to="/client/perfil" className="hover:text-yellow-400 transition-colors">Mi perfil</Link>
             <Link to="/client/soporte" className="hover:text-yellow-400 transition-colors">Soporte</Link>
-            <Link to="/client/servicos" className="hover:text-yellow-400 transition-colors">Servicios</Link>
+            <Link to="/client/servicios" className="hover:text-yellow-400 transition-colors">Servicios</Link>
+            <Link to="/client/mis-servicios" className="hover:text-yellow-400 transition-colors">Mis Servicios</Link>
           </>
         )}
         {isAuthenticated && isEmployee() && (
@@ -30,8 +31,9 @@ export const Navbar = () => {
             <Link to="/" className="hover:text-yellow-400 transition-colors">Home</Link>
             <Link to="/employee/dashboard" className="hover:text-yellow-400 transition-colors">Dashboard</Link>
             <Link to="/employee/clientes" className="hover:text-yellow-400 transition-colors">Clientes</Link>
-            <Link to="/employee/checkin" className="hover:text-yellow-400 transition-colors">Check-in/Out</Link>
+            <Link to="/employee/checkin" className="hover:text-yellow-400 transition-colors">Check-in</Link>
             <Link to="/employee/reservas" className="hover:text-yellow-400 transition-colors">Reservas</Link>
+            <Link to="/employee/servicios-contratados" className="hover:text-yellow-400 transition-colors">Servicios</Link>
             <Link to="/employee/soporte" className="hover:text-yellow-400 transition-colors">Soporte</Link>
           </>
         )}
@@ -40,11 +42,13 @@ export const Navbar = () => {
             <Link to="/" className="hover:text-yellow-400 transition-colors">Home</Link>
             <Link to="/admin/dashboard" className="hover:text-yellow-400 transition-colors">Dashboard</Link>
             <Link to="/admin/habitaciones" className="hover:text-yellow-400 transition-colors">Habitaciones</Link>
-            <Link to="/admin/clientes" className="hover:text-yellow-400 transition-colors">clientes</Link>
+            <Link to="/admin/clientes" className="hover:text-yellow-400 transition-colors">Clientes</Link>
             <Link to="/admin/reservas" className="hover:text-yellow-400 transition-colors">Reservas</Link>
+            <Link to="/admin/servicios" className="hover:text-yellow-400 transition-colors">Servicios</Link>
+            <Link to="/admin/servicios-contratados" className="hover:text-yellow-400 transition-colors">Solicitudes</Link>
             <Link to="/admin/reportes" className="hover:text-yellow-400 transition-colors">Reportes</Link>
             <Link to="/admin/soporte" className="hover:text-yellow-400 transition-colors">Soporte</Link>
-            <Link to="/admin/configuracion" className="hover:text-yellow-400 transition-colors">Configuración</Link>
+            <Link to="/admin/configuracion" className="hover:text-yellow-400 transition-colors">Config</Link>
           </>
         )}
       </div>
@@ -53,17 +57,17 @@ export const Navbar = () => {
       <div>
         {isAuthenticated ? (
           <div className="flex items-center gap-4">
-             
-             <span className="hidden lg:block text-xs text-gray-300 font-medium">
-                Hola, {user?.firstName || 'Usuario'}
-             </span>
-             
-             <button 
-               onClick={() => logout()} 
-               className="border border-red-500 text-red-100 bg-red-500/20 px-4 py-2 text-xs uppercase font-bold hover:bg-red-600 hover:text-white transition-all"
-             >
-               Logout
-             </button>
+
+            <span className="hidden lg:block text-xs text-gray-300 font-medium">
+              Hola, {user?.firstName || 'Usuario'}
+            </span>
+
+            <button
+              onClick={() => logout()}
+              className="border border-red-500 text-red-100 bg-red-500/20 px-4 py-2 text-xs uppercase font-bold hover:bg-red-600 hover:text-white transition-all"
+            >
+              Logout
+            </button>
           </div>
         ) : (
 

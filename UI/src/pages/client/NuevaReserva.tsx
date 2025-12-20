@@ -84,33 +84,12 @@ export const NuevaReserva = () => {
 
     const onSearch = async (values: SearchFormValues) => {
         setIsLoading(true);
-        setSelectedRooms([]); // Reset selection on new search
         try {
-            const [roomsRes, reservasRes] = await Promise.all([
-                HabitacionService.getHabitacions({ 'activo.equals': true, size: 100 }),
-                ReservaService.getReservas({ size: 1000 })
-            ]);
+            const startStr = `${values.start}T00:00:00Z`;
+            const endStr = `${values.end}T00:00:00Z`;
 
-            const start = new Date(values.start);
-            const end = new Date(values.end);
-
-            // Filter conflicting reservations
-            const conflictingReservas = reservasRes.data.filter(r => {
-                if (r.estado === 'CANCELADA') return false;
-                const rStart = new Date(r.fechaInicio!);
-                const rEnd = new Date(r.fechaFin!);
-                return start < rEnd && end > rStart;
-            });
-
-            let occupiedRoomIds: number[] = [];
-            if (conflictingReservas.length > 0) {
-                const conflictingIds = conflictingReservas.map(r => r.id).join(',');
-                const detailsRes = await ReservaDetalleService.getReservaDetalles({ 'reservaId.in': conflictingIds });
-                occupiedRoomIds = detailsRes.data.map(d => d.habitacion?.id).filter(id => id !== undefined) as number[];
-            }
-
-            const available = roomsRes.data.filter(room => !occupiedRoomIds.includes(room.id!));
-            setAvailableRooms(available);
+            const res = await HabitacionService.getAvailableHabitaciones(startStr, endStr, { size: 100 });
+            setAvailableRooms(res.data);
             setStep(2);
         } catch (error) {
             console.error(error);
@@ -200,9 +179,10 @@ export const NuevaReserva = () => {
 
             {/* --- HERO SECTION ---  */}
             <div className="relative bg-[#0F172A] pt-32 pb-20 px-4 md:px-8 lg:px-20 overflow-hidden shadow-xl">
-                 <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-blue-900/10 to-transparent pointer-events-none"></div>
-                 
-                 <div className="relative max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-end md:items-center gap-6">
+                {/* Efecto de fondo sutil */}
+                <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-blue-900/10 to-transparent pointer-events-none"></div>
+
+                <div className="relative max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-end md:items-center gap-6">
                     <div>
                         <span className="text-yellow-500 font-bold tracking-[0.2em] uppercase text-xs mb-3 block animate-in fade-in slide-in-from-bottom-2 duration-500">
                             Experiencias Inolvidables
@@ -214,12 +194,12 @@ export const NuevaReserva = () => {
                             Encuentre su refugio perfecto. Consulte disponibilidad y asegure su momento de relax con nosotros.
                         </p>
                     </div>
-                 </div>
+                </div>
             </div>
 
             <main className="flex-grow py-12 px-4 md:px-8 lg:px-20 relative z-10">
-                <div className="max-w-7xl mx-auto -mt-12">
-                    
+                <div className="max-w-6xl mx-auto -mt-12">
+
                     {step === 1 && (
                         <div className="max-w-2xl mx-auto">
                             <div className="bg-white shadow-2xl rounded-sm overflow-hidden">
@@ -245,10 +225,10 @@ export const NuevaReserva = () => {
                                                                 <CalendarDays className="w-4 h-4 text-yellow-600" /> Llegada
                                                             </FormLabel>
                                                             <FormControl>
-                                                                <Input 
-                                                                    type="date" 
-                                                                    min={new Date().toISOString().split('T')[0]} 
-                                                                    {...field} 
+                                                                <Input
+                                                                    type="date"
+                                                                    min={new Date().toISOString().split('T')[0]}
+                                                                    {...field}
                                                                     className="h-12 border-gray-200 focus:border-yellow-600 focus:ring-yellow-600/20 bg-gray-50/50"
                                                                 />
                                                             </FormControl>
@@ -265,10 +245,10 @@ export const NuevaReserva = () => {
                                                                 <CalendarDays className="w-4 h-4 text-yellow-600" /> Salida
                                                             </FormLabel>
                                                             <FormControl>
-                                                                <Input 
-                                                                    type="date" 
-                                                                    min={form.getValues('start') || new Date().toISOString().split('T')[0]} 
-                                                                    {...field} 
+                                                                <Input
+                                                                    type="date"
+                                                                    min={form.getValues('start') || new Date().toISOString().split('T')[0]}
+                                                                    {...field}
                                                                     className="h-12 border-gray-200 focus:border-yellow-600 focus:ring-yellow-600/20 bg-gray-50/50"
                                                                 />
                                                             </FormControl>
@@ -278,8 +258,8 @@ export const NuevaReserva = () => {
                                                 />
                                             </div>
 
-                                            <Button 
-                                                type="submit" 
+                                            <Button
+                                                type="submit"
                                                 disabled={isLoading}
                                                 className="w-full bg-gray-900 hover:bg-gray-800 text-white h-14 text-base uppercase tracking-widest transition-all duration-300 shadow-lg hover:shadow-xl rounded-none"
                                             >
@@ -314,8 +294,8 @@ export const NuevaReserva = () => {
                                                 Para las fechas: <span className="font-semibold">{new Date(form.getValues('start')).toLocaleDateString()}</span> - <span className="font-semibold">{new Date(form.getValues('end')).toLocaleDateString()}</span>
                                             </p>
                                         </div>
-                                        <Button 
-                                            variant="outline" 
+                                        <Button
+                                            variant="outline"
                                             onClick={() => setStep(1)}
                                             className="mt-4 md:mt-0 border-gray-300 hover:bg-gray-50 hover:text-gray-900 rounded-none uppercase text-xs tracking-widest"
                                         >
@@ -336,8 +316,8 @@ export const NuevaReserva = () => {
                                             {availableRooms.map(room => {
                                                 const isSelected = selectedRooms.some(r => r.id === room.id);
                                                 return (
-                                                    <div 
-                                                        key={room.id} 
+                                                    <div
+                                                        key={room.id}
                                                         className={`group bg-white rounded-sm overflow-hidden border transition-all duration-300 flex flex-col h-full
                                                             ${isSelected ? 'border-yellow-500 ring-2 ring-yellow-500 ring-offset-2 shadow-xl' : 'border-gray-200 hover:border-yellow-600 hover:shadow-lg'}
                                                         `}
@@ -391,8 +371,8 @@ export const NuevaReserva = () => {
                                                                         <span className="text-xs text-gray-500">/ noche</span>
                                                                     </div>
                                                                 </div>
-                                                                
-                                                                <Button 
+            
+                                                                <Button
                                                                     onClick={() => toggleRoomSelection(room)}
                                                                     variant={isSelected ? "secondary" : "default"}
                                                                     className={`rounded-none px-4 shadow-md transition-all 

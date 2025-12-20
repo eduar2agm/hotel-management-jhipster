@@ -1,0 +1,39 @@
+enum TipoServicio {
+  GRATUITO,
+  PAGO
+}
+
+enum EstadoServicioContratado {
+  PENDIENTE,
+  CONFIRMADO,
+  CANCELADO,
+  COMPLETADO
+}
+
+entity Servicio {
+  nombre String required maxlength(100)
+  descripcion String maxlength(1000)
+  tipo TipoServicio required
+  precio BigDecimal required min(0)
+  disponible Boolean required
+  urlImage String maxlength(255)
+}
+
+entity ServicioContratado {
+  fechaContratacion Instant required
+  cantidad Integer required min(1)
+  precioUnitario BigDecimal required min(0)
+  estado EstadoServicioContratado required
+  observaciones String maxlength(500)
+}
+
+relationship ManyToOne {
+  ServicioContratado{servicio(nombre)} to Servicio
+  ServicioContratado{reserva} to Reserva with builtInEntity
+  ServicioContratado{cliente(nombre)} to Cliente with builtInEntity
+  ServicioContratado{pago} to Pago with builtInEntity
+}
+
+paginate * with pagination
+dto * with mapstruct
+service * with serviceImpl
