@@ -123,7 +123,7 @@ export const AdminReportes = () => {
         setMonthlyData(monthly);
 
         // 2. Status Distribution
-        const statuses = ['CONFIRMADA', 'PENDIENTE', 'CANCELADA'];
+        const statuses = ['CONFIRMADA', 'PENDIENTE', 'CANCELADA', 'FINALIZADA'];
         const statusDist = statuses.map(status => ({
             name: status,
             value: reservas.filter(r => r.estado === status).length

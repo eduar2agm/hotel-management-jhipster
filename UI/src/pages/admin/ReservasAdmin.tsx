@@ -279,6 +279,8 @@ export const AdminReservas = () => {
     const errorMessages: Record<string, string> = {
         'error.reservaNoCancelada': 'Solo se puede desactivar una reserva que esté cancelada',
         'error.reservaNoCanceladaEliminar': 'Solo se puede eliminar una reserva que esté cancelada',
+        'error.reservaFinalizadaEliminar': 'Una reserva finalizada no se puede eliminar físicamente',
+        'error.reservaFinalizadaDeactivate': 'Una reserva finalizada no se puede desactivar',
         'error.inactive': 'La entidad está inactiva',
     };
 
@@ -782,10 +784,12 @@ export const AdminReservas = () => {
                                                     "shadow-sm border-0 px-2 py-0.5",
                                                     reserva.estado === 'CONFIRMADA' ? "bg-green-100 text-green-700 hover:bg-green-200" :
                                                         reserva.estado === 'CANCELADA' ? "bg-red-100 text-red-700 hover:bg-red-200" :
-                                                            "bg-yellow-100 text-yellow-700 hover:bg-yellow-200"
+                                                            reserva.estado === 'FINALIZADA' ? "bg-blue-100 text-blue-700 hover:bg-blue-200" :
+                                                                "bg-yellow-100 text-yellow-700 hover:bg-yellow-200"
                                                 )}>
                                                     {reserva.estado === 'CONFIRMADA' && <Check className="h-3 w-3 mr-1" />}
                                                     {reserva.estado === 'CANCELADA' && <AlertCircle className="h-3 w-3 mr-1" />}
+                                                    {reserva.estado === 'FINALIZADA' && <CheckCircle2 className="h-3 w-3 mr-1" />}
                                                     {reserva.estado === 'PENDIENTE' && <RefreshCcw className="h-3 w-3 mr-1" />}
                                                     {reserva.estado || 'PENDIENTE'}
                                                 </Badge>
@@ -1105,6 +1109,7 @@ export const AdminReservas = () => {
                                                     <SelectItem value="PENDIENTE">PENDIENTE</SelectItem>
                                                     <SelectItem value="CONFIRMADA">CONFIRMADA</SelectItem>
                                                     <SelectItem value="CANCELADA">CANCELADA</SelectItem>
+                                                    <SelectItem value="FINALIZADA">FINALIZADA</SelectItem>
                                                 </SelectContent>
                                             </Select>
                                             <FormMessage />
@@ -1153,7 +1158,8 @@ export const AdminReservas = () => {
                                 "text-sm px-3 py-1",
                                 selectedReserva?.estado === 'CONFIRMADA' ? "bg-green-500 text-white" :
                                     selectedReserva?.estado === 'CANCELADA' ? "bg-red-500 text-white" :
-                                        "bg-yellow-500 text-black"
+                                        selectedReserva?.estado === 'FINALIZADA' ? "bg-blue-500 text-white" :
+                                            "bg-yellow-500 text-black"
                             )}>
                                 {selectedReserva?.estado}
                             </Badge>
@@ -1179,7 +1185,8 @@ export const AdminReservas = () => {
                                         "px-3 py-1 text-sm",
                                         selectedReserva.estado === 'CONFIRMADA' ? "bg-green-100 text-green-700" :
                                             selectedReserva.estado === 'CANCELADA' ? "bg-red-100 text-red-700" :
-                                                "bg-yellow-100 text-yellow-700"
+                                                selectedReserva.estado === 'FINALIZADA' ? "bg-blue-100 text-blue-700" :
+                                                    "bg-yellow-100 text-yellow-700"
                                     )}>
                                         {selectedReserva.estado || 'PENDIENTE'}
                                     </Badge>

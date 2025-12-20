@@ -1,9 +1,12 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { HabitacionService, CategoriaHabitacionService, EstadoHabitacionService } from '../../services';
+import { HabitacionService } from '../../services/habitacion.service';
+import { CategoriaHabitacionService } from '../../services/categoria-habitacion.service';
+import { EstadoHabitacionService } from '../../services/estado-habitacion.service';
 import type { HabitacionDTO, CategoriaHabitacionDTO, EstadoHabitacionDTO } from '../../types/api';
+import { getImageUrl } from '../../utils/imageUtils';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -19,7 +22,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Plus, Search, ChevronsUpDown, Check, Hotel, Image as ImageIcon, Pencil, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, Search, ChevronsUpDown, Check, Hotel, Image as ImageIcon, Pencil, ChevronLeft, ChevronRight, Upload, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { Textarea } from '@/components/ui/textarea';
@@ -57,6 +60,9 @@ export const AdminHabitaciones = () => {
     const [openCategoryPopover, setOpenCategoryPopover] = useState(false);
     const [searchFilter, setSearchFilter] = useState('');
     const [showInactive, setShowInactive] = useState(false);
+    const [localPreview, setLocalPreview] = useState<string | null>(null);
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const form = useForm<HabitacionFormValues>({
         resolver: zodResolver(habitacionSchema) as any,
@@ -96,14 +102,16 @@ export const AdminHabitaciones = () => {
 
     useEffect(() => { loadData(); }, [currentPage, showInactive]);
 
-    // Reset form when dialog opens/closes or mode changes
     useEffect(() => {
         if (!isDialogOpen) {
             form.reset();
+            setLocalPreview(null);
+            setSelectedFile(null);
         }
     }, [isDialogOpen, form]);
 
     const onSubmit = async (data: HabitacionFormValues) => {
+        setLoading(true);
         try {
             const payload: any = {
                 ...data,
@@ -114,10 +122,18 @@ export const AdminHabitaciones = () => {
             delete payload.estadoHabitacionId;
 
             if (isEditing && data.id) {
-                await HabitacionService.updateHabitacion(data.id, payload as HabitacionDTO);
+                if (selectedFile) {
+                    await HabitacionService.updateHabitacionWithImage(data.id, payload as HabitacionDTO, selectedFile);
+                } else {
+                    await HabitacionService.updateHabitacion(data.id, payload as HabitacionDTO);
+                }
                 toast.success('Habitación actualizada correctamente');
             } else {
-                await HabitacionService.createHabitacion(payload as any);
+                if (selectedFile) {
+                    await HabitacionService.createHabitacionWithImage(payload, selectedFile);
+                } else {
+                    await HabitacionService.createHabitacion(payload as any);
+                }
                 toast.success('Habitación creada exitosamente');
             }
             setIsDialogOpen(false);
@@ -125,10 +141,33 @@ export const AdminHabitaciones = () => {
         } catch (error) {
             toast.error('Error al guardar habitación');
             console.error(error);
+        } finally {
+            setLoading(false);
         }
     };
 
-    // Mapa de mensajes de error del backend
+    const handleDirectUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Validations
+        if (file.size > 5 * 1024 * 1024) {
+            toast.error('La imagen no debe superar los 5MB');
+            return;
+        }
+
+        setSelectedFile(file);
+
+        // Mark as having a pending image with the correct folder prefix
+        form.setValue('imagen', `habitaciones/${file.name}`);
+
+        // Set instant local preview
+        const objectUrl = URL.createObjectURL(file);
+        setLocalPreview(objectUrl);
+
+        toast.info('Imagen seleccionada. Se guardará al actualizar la habitación.');
+    };
+
     const errorMessages: Record<string, string> = {
         'error.habitacionOcupada': 'No se puede desactivar la habitación porque hay un cliente hospedado actualmente',
         'error.habitacionOcupadaEliminar': 'No se puede eliminar la habitación porque hay un cliente hospedado actualmente',
@@ -148,7 +187,6 @@ export const AdminHabitaciones = () => {
             loadData();
         } catch (error: any) {
             const data = error?.response?.data;
-            // Buscar el mensaje en el mapa usando el errorKey
             const errorKey = data?.message;
             const backendMessage = errorMessages[errorKey]
                 || data?.detail
@@ -222,7 +260,6 @@ export const AdminHabitaciones = () => {
         <div className="font-sans text-gray-900 bg-gray-50 min-h-screen flex flex-col">
             <Navbar />
 
-            {/* HERO SECTION */}
             <div className="bg-[#0F172A] pt-32 pb-20 px-4 md:px-8 lg:px-20 relative overflow-hidden shadow-xl">
                 <div className="absolute top-0 right-0 p-12 opacity-5 scale-150 pointer-events-none">
                     <Hotel className="w-96 h-96 text-white" />
@@ -294,7 +331,6 @@ export const AdminHabitaciones = () => {
                             )}
                         </div>
 
-                        {/* PAGINATION */}
                         <div className="mt-8 flex items-center justify-end gap-4 border-t pt-4">
                             <span className="text-sm text-gray-500">
                                 Página {currentPage + 1} de {Math.max(1, Math.ceil(totalItems / itemsPerPage))}
@@ -334,11 +370,11 @@ export const AdminHabitaciones = () => {
                         </DialogHeader>
 
                         <div className="p-6 bg-white overflow-y-auto max-h-[80vh]">
-                            <Form {...(form as any)}>
+                            <Form {...form}>
                                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
                                     <div className="grid grid-cols-2 gap-4">
                                         <FormField
-                                            control={form.control as any}
+                                            control={form.control}
                                             name="numero"
                                             render={({ field }) => (
                                                 <FormItem>
@@ -351,7 +387,7 @@ export const AdminHabitaciones = () => {
                                             )}
                                         />
                                         <FormField
-                                            control={form.control as any}
+                                            control={form.control}
                                             name="capacidad"
                                             render={({ field }) => (
                                                 <FormItem>
@@ -366,7 +402,7 @@ export const AdminHabitaciones = () => {
                                     </div>
 
                                     <FormField
-                                        control={form.control as any}
+                                        control={form.control}
                                         name="categoriaHabitacionId"
                                         render={({ field }) => (
                                             <FormItem className="flex flex-col">
@@ -433,51 +469,118 @@ export const AdminHabitaciones = () => {
                                         )}
                                     />
 
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <FormField
-                                            control={form.control as any}
-                                            name="estadoHabitacionId"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel className="text-xs font-bold text-gray-500 uppercase tracking-widest">Estado</FormLabel>
-                                                    <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
-                                                        <FormControl>
-                                                            <SelectTrigger className="h-9">
-                                                                <SelectValue placeholder="Seleccione..." />
-                                                            </SelectTrigger>
-                                                        </FormControl>
-                                                        <SelectContent>
-                                                            {estados.filter(e => e.activo !== false).map(e => (
-                                                                <SelectItem key={e.id} value={String(e.id)}>
-                                                                    {e.nombre}
-                                                                </SelectItem>
-                                                            ))}
-                                                        </SelectContent>
-                                                    </Select>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
-                                        <FormField
-                                            control={form.control as any}
-                                            name="imagen"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel className="text-xs font-bold text-gray-500 uppercase tracking-widest">URL Imagen</FormLabel>
+                                    <FormField
+                                        control={form.control}
+                                        name="estadoHabitacionId"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel className="text-xs font-bold text-gray-500 uppercase tracking-widest">Estado</FormLabel>
+                                                <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
                                                     <FormControl>
-                                                        <div className="relative">
-                                                            <ImageIcon className="absolute left-2 top-2.5 h-4 w-4 text-gray-400" />
-                                                            <Input placeholder="https://..." className="pl-8 h-9" {...field} />
-                                                        </div>
+                                                        <SelectTrigger className="h-9">
+                                                            <SelectValue placeholder="Seleccione..." />
+                                                        </SelectTrigger>
                                                     </FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
-                                    </div>
+                                                    <SelectContent>
+                                                        {estados.filter(e => e.activo !== false).map(e => (
+                                                            <SelectItem key={e.id} value={String(e.id)}>
+                                                                {e.nombre}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
 
                                     <FormField
-                                        control={form.control as any}
+                                        control={form.control}
+                                        name="imagen"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel className="text-xs font-bold text-gray-500 uppercase tracking-widest">Imagen de la Habitación</FormLabel>
+                                                <FormControl>
+                                                    <div className="space-y-4">
+                                                        <div
+                                                            className={cn(
+                                                                "relative overflow-hidden rounded-xl border-2 border-dashed transition-all duration-300 group",
+                                                                (field.value || localPreview) ? "border-yellow-600/50" : "border-gray-200 hover:border-yellow-400"
+                                                            )}
+                                                        >
+                                                            {field.value || localPreview ? (
+                                                                <div className="relative aspect-video w-full bg-gray-50">
+                                                                    <img
+                                                                        src={localPreview || getImageUrl(field.value)}
+                                                                        className="h-full w-full object-cover"
+                                                                        onError={(e) => {
+                                                                            if (!localPreview) {
+                                                                                e.currentTarget.src = 'https://placehold.co/400x200?text=Error+al+cargar';
+                                                                            }
+                                                                        }}
+                                                                    />
+                                                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center backdrop-blur-[2px]">
+                                                                        <Button
+                                                                            type="button"
+                                                                            onClick={() => fileInputRef.current?.click()}
+                                                                            variant="secondary"
+                                                                            className="gap-2 font-bold shadow-2xl"
+                                                                            disabled={loading}
+                                                                        >
+                                                                            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                                                                            Cambiar imagen
+                                                                        </Button>
+                                                                    </div>
+                                                                </div>
+                                                            ) : (
+                                                                <div
+                                                                    onClick={() => fileInputRef.current?.click()}
+                                                                    className="aspect-video w-full flex flex-col items-center justify-center cursor-pointer bg-gray-50/50 hover:bg-gray-50 transition-colors py-10"
+                                                                >
+                                                                    <div className="h-12 w-12 rounded-full bg-yellow-50 flex items-center justify-center mb-3">
+                                                                        {loading ? <Loader2 className="h-6 w-6 animate-spin text-yellow-600" /> : <ImageIcon className="h-6 w-6 text-yellow-600" />}
+                                                                    </div>
+                                                                    <p className="text-sm font-bold text-gray-600 uppercase tracking-tight">
+                                                                        {loading ? 'Guardando habitación...' : 'Haga clic para subir una imagen'}
+                                                                    </p>
+                                                                    <p className="text-[10px] text-gray-400 uppercase tracking-widest mt-1">Formatos sugeridos: JPG, PNG • Max 5MB</p>
+                                                                </div>
+                                                            )}
+                                                            <input
+                                                                type="file"
+                                                                accept="image/*"
+                                                                className="hidden"
+                                                                ref={fileInputRef}
+                                                                onChange={handleDirectUpload}
+                                                                disabled={loading}
+                                                            />
+                                                        </div>
+                                                        {field.value && (
+                                                            <div className="flex justify-between items-center px-1">
+                                                                <span className="text-[10px] text-gray-400 font-mono truncate max-w-[200px]">{field.value}</span>
+                                                                <Button
+                                                                    type="button"
+                                                                    variant="ghost"
+                                                                    size="sm"
+                                                                    className="h-6 text-[10px] font-bold text-red-500 hover:text-red-600 hover:bg-red-50"
+                                                                    onClick={() => {
+                                                                        field.onChange('');
+                                                                        setLocalPreview(null);
+                                                                    }}
+                                                                >
+                                                                    Eliminar
+                                                                </Button>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+
+                                    <FormField
+                                        control={form.control}
                                         name="descripcion"
                                         render={({ field }) => (
                                             <FormItem>
@@ -495,7 +598,7 @@ export const AdminHabitaciones = () => {
                                     />
 
                                     <FormField
-                                        control={form.control as any}
+                                        control={form.control}
                                         name="activo"
                                         render={({ field }) => (
                                             <FormItem className="flex flex-row items-center justify-between rounded-lg border border-gray-100 bg-gray-50 p-3">

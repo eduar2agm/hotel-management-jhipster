@@ -26,9 +26,9 @@ export const CardRoom = ({ habitacion: h }: CardRoomProps) => {
                 {/* Image Section */}
                 <div className="relative h-64 w-full overflow-hidden bg-gray-100">
                     {h.imagen ? (
-                        <img 
-                            src={h.imagen} 
-                            alt={`Habitación ${h.numero}`} 
+                        <img
+                            src={h.imagen.startsWith('http') ? h.imagen : `/images/${h.imagen}`}
+                            alt={`Habitación ${h.numero}`}
                             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                         />
                     ) : (
@@ -37,20 +37,20 @@ export const CardRoom = ({ habitacion: h }: CardRoomProps) => {
                             <span className="mt-2 text-xs font-medium uppercase tracking-wider">No Imagen</span>
                         </div>
                     )}
-                    
+
                     {/* Badges Overlay */}
                     <div className="absolute top-4 left-4 flex gap-2">
-                         <Badge className={cn(
+                        <Badge className={cn(
                             "px-3 py-1 text-xs font-bold uppercase tracking-wider shadow-sm backdrop-blur-md",
-                            isDisponible 
-                                ? "bg-green-500/90 hover:bg-green-600 text-white" 
+                            isDisponible
+                                ? "bg-green-500/90 hover:bg-green-600 text-white"
                                 : "bg-gray-800/90 text-white"
                         )}>
                             {estado}
                         </Badge>
                     </div>
 
-                     <div className="absolute top-4 right-4">
+                    <div className="absolute top-4 right-4">
                         <Badge variant="secondary" className="bg-white/90 text-gray-900 font-bold shadow-sm backdrop-blur-sm">
                             #{h.numero}
                         </Badge>
@@ -75,33 +75,33 @@ export const CardRoom = ({ habitacion: h }: CardRoomProps) => {
                     </div>
 
                     <div className="mb-6 flex-1">
-                         <p className="text-sm leading-relaxed text-gray-500 line-clamp-3">
+                        <p className="text-sm leading-relaxed text-gray-500 line-clamp-3">
                             {h.descripcion || "Disfruta de una experiencia única con todas las comodidades que necesitas para tu descanso."}
                         </p>
                     </div>
 
                     <div className="mt-auto space-y-4">
-                         {/* Price */}
-                         <div className="flex items-end gap-1 border-t border-gray-100 pt-4">
+                        {/* Price */}
+                        <div className="flex items-end gap-1 border-t border-gray-100 pt-4">
                             <span className="text-2xl font-black text-gray-900">${precioBase}</span>
                             <span className="mb-1 text-sm font-medium text-gray-400">/ noche</span>
                         </div>
 
                         {/* Actions */}
                         <div className="grid grid-cols-2 gap-3">
-                             <Button 
-                                variant="outline" 
+                            <Button
+                                variant="outline"
                                 className="w-full border-gray-200 hover:bg-gray-50 hover:text-gray-900"
                                 onClick={() => setIsDetailsOpen(true)}
                             >
                                 <Info className="mr-2 h-4 w-4" />
                                 Detalles
                             </Button>
-                            <Button 
+                            <Button
                                 className={cn(
                                     "w-full text-white shadow-md transition-all hover:shadow-lg focus:ring-2 focus:ring-offset-2",
-                                    isDisponible 
-                                        ? "bg-yellow-600 hover:bg-yellow-700 focus:ring-yellow-500" 
+                                    isDisponible
+                                        ? "bg-yellow-600 hover:bg-yellow-700 focus:ring-yellow-500"
                                         : "bg-gray-800 hover:bg-gray-900 cursor-not-allowed opacity-80"
                                 )}
                                 disabled={!isDisponible}
@@ -113,22 +113,22 @@ export const CardRoom = ({ habitacion: h }: CardRoomProps) => {
                 </CardContent>
             </Card>
 
-             {/* Details Dialog */}
-             <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
+            {/* Details Dialog */}
+            <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
                 <DialogContent className="max-w-2xl overflow-hidden p-0 gap-0 border-0 rounded-2xl">
-                     <div className="grid md:grid-cols-2">
+                    <div className="grid md:grid-cols-2">
                         {/* Image Side */}
                         <div className="relative h-64 md:h-full bg-gray-100">
                             {h.imagen ? (
-                                <img src={h.imagen} alt={h.numero} className="h-full w-full object-cover" />
+                                <img src={h.imagen.startsWith('http') ? h.imagen : `/images/${h.imagen}`} alt={h.numero} className="h-full w-full object-cover" />
                             ) : (
                                 <div className="flex h-full items-center justify-center">
                                     <ImageIcon className="h-16 w-16 text-gray-300" />
                                 </div>
                             )}
-                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-6 md:hidden">
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-6 md:hidden">
                                 <h2 className="text-white text-2xl font-bold">{nombreCategoria}</h2>
-                             </div>
+                            </div>
                         </div>
 
                         {/* Info Side */}
@@ -141,8 +141,8 @@ export const CardRoom = ({ habitacion: h }: CardRoomProps) => {
                                     Habitación {h.numero}
                                 </DialogTitle>
                                 <div className="flex items-center gap-2 mt-2">
-                                     <span className="text-2xl font-bold text-gray-900">${precioBase}</span>
-                                     <span className="text-gray-500 text-sm">/ noche</span>
+                                    <span className="text-2xl font-bold text-gray-900">${precioBase}</span>
+                                    <span className="text-gray-500 text-sm">/ noche</span>
                                 </div>
                             </DialogHeader>
 
@@ -163,10 +163,10 @@ export const CardRoom = ({ habitacion: h }: CardRoomProps) => {
                                         <div className="flex items-center gap-2 text-sm text-gray-600">
                                             <Tv className="h-4 w-4 text-yellow-600" /> Smart TV 55"
                                         </div>
-                                         <div className="flex items-center gap-2 text-sm text-gray-600">
+                                        <div className="flex items-center gap-2 text-sm text-gray-600">
                                             <Coffee className="h-4 w-4 text-yellow-600" /> Coffee Maker
                                         </div>
-                                         <div className="flex items-center gap-2 text-sm text-gray-600">
+                                        <div className="flex items-center gap-2 text-sm text-gray-600">
                                             <BedDouble className="h-4 w-4 text-yellow-600" /> Capacidad {h.capacidad}
                                         </div>
                                     </div>
@@ -179,7 +179,7 @@ export const CardRoom = ({ habitacion: h }: CardRoomProps) => {
                                 </div>
                             </div>
                         </div>
-                     </div>
+                    </div>
                 </DialogContent>
             </Dialog>
         </>

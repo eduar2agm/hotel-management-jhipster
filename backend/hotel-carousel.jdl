@@ -1,0 +1,15 @@
+entity CarouselItem {
+  titulo String maxlength(150)
+  descripcion String maxlength(500)
+  orden Integer required
+  activo Boolean required
+}
+
+relationship ManyToOne {
+  CarouselItem{imagen(nombre)} to Imagen with builtInEntity
+  CarouselItem{configuracion(clave)} to ConfiguracionSistema with builtInEntity
+}
+
+dto CarouselItem with mapstruct
+service CarouselItem with serviceImpl
+paginate CarouselItem with pagination

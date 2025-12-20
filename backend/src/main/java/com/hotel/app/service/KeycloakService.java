@@ -96,6 +96,41 @@ public class KeycloakService {
         return null;
     }
 
+    public void updateUser(String userId, String email, String firstName, String lastName) {
+        Keycloak keycloak = null;
+        try {
+            keycloak = KeycloakBuilder.builder()
+                    .serverUrl(serverUrl)
+                    .realm(realm)
+                    .clientId(clientId)
+                    .username(username)
+                    .password(password)
+                    .build();
+
+            // 1. Obtenemos la representación actual del usuario
+            UserRepresentation user = keycloak.realm(realm).users().get(userId).toRepresentation();
+
+            // 2. Modificamos solo los campos permitidos
+            user.setEmail(email);
+            user.setFirstName(firstName);
+            user.setLastName(lastName);
+            // No tocamos user.setUsername() para evitar el error 400 si "Edit Username"
+            // está en OFF
+
+            // 3. Enviamos la actualización
+            keycloak.realm(realm).users().get(userId).update(user);
+            LOG.info("Sincronización exitosa con Keycloak para el usuario: {}", userId);
+
+        } catch (Exception e) {
+            LOG.error("Error al sincronizar con Keycloak (ID: {}): {}", userId, e.getMessage());
+            // No lanzamos excepción para que la App siga funcionando aunque Keycloak falle
+        } finally {
+            if (keycloak != null) {
+                keycloak.close();
+            }
+        }
+    }
+
     public void updateUserStatus(String userId, boolean enabled) {
         Keycloak keycloak = null;
         try {

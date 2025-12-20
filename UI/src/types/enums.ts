@@ -12,7 +12,8 @@ export type TipoIdentificacion = typeof TipoIdentificacion[keyof typeof TipoIden
 export const EstadoReserva = {
     PENDIENTE: 'PENDIENTE',
     CONFIRMADA: 'CONFIRMADA',
-    CANCELADA: 'CANCELADA'
+    CANCELADA: 'CANCELADA',
+    FINALIZADA: 'FINALIZADA'
 } as const;
 export type EstadoReserva = typeof EstadoReserva[keyof typeof EstadoReserva];
 

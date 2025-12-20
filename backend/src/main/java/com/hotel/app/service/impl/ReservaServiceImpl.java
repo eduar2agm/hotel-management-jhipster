@@ -94,8 +94,15 @@ public class ReservaServiceImpl implements ReservaService {
     public void delete(Long id) {
         LOG.debug("Request to delete Reserva with all associated details: {}", id);
 
-        // Verificar que la reserva esté cancelada antes de eliminar
+        // Verificar que la reserva no esté finalizada y que esté cancelada antes de
+        // eliminar
         reservaRepository.findById(id).ifPresent(reserva -> {
+            if (reserva.getEstado() == EstadoReserva.FINALIZADA) {
+                throw new BadRequestAlertException(
+                        "Una reserva finalizada no se puede eliminar físicamente",
+                        "reserva",
+                        "reservaFinalizadaEliminar");
+            }
             if (reserva.getEstado() != EstadoReserva.CANCELADA) {
                 throw new BadRequestAlertException(
                         "Solo se puede eliminar una reserva que esté cancelada",
@@ -157,7 +164,14 @@ public class ReservaServiceImpl implements ReservaService {
         reservaRepository
                 .findById(id)
                 .ifPresent(reserva -> {
-                    // Verificar que la reserva esté cancelada antes de desactivar
+                    // Verificar bloqueo para reservas finalizadas o no canceladas
+                    if (reserva.getEstado() == EstadoReserva.FINALIZADA) {
+                        throw new BadRequestAlertException(
+                                "Una reserva finalizada no se puede desactivar",
+                                "reserva",
+                                "reservaFinalizadaDeactivate");
+                    }
+
                     if (reserva.getEstado() != EstadoReserva.CANCELADA) {
                         throw new BadRequestAlertException(
                                 "Solo se puede desactivar una reserva que esté cancelada",

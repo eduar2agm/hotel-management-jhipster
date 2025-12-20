@@ -1,79 +1,34 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Navbar } from '../../components/ui/Navbar';
 import { Footer } from '../../components/ui/Footer';
 import { PublicRoomCard } from '../../components/ui/PublicRoomCard';
 import { Search, SlidersHorizontal, X } from 'lucide-react';
+import { HabitacionService } from '../../services/habitacion.service';
+import type { HabitacionDTO } from '../../types/api';
 
-const HABITACIONES_MOCK: any[] = [
-  {
-    id: 1,
-    numero: "101",
-    capacidad: 4,
-    imagen: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&q=80&w=800",
-    descripcion: "Suite Presidencial. Vista al mar y jacuzzi.",
-    activo: true,
-    estadoHabitacion: { nombre: "DISPONIBLE" },
-    categoriaHabitacion: { nombre: "SUITE", precioBase: "350" }
-  },
-  {
-    id: 2,
-    numero: "102",
-    capacidad: 2,
-    imagen: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&q=80&w=800",
-    descripcion: "Doble Deluxe. Espaciosa y moderna.",
-    activo: true,
-    estadoHabitacion: { nombre: "DISPONIBLE" },
-    categoriaHabitacion: { nombre: "DOBLE", precioBase: "120" }
-  },
-  {
-    id: 3,
-    numero: "103",
-    capacidad: 1,
-    imagen: "https://images.unsplash.com/photo-1566665797739-1674de7a421a?auto=format&fit=crop&q=80&w=800",
-    descripcion: "Sencilla Standard. Ideal para negocios.",
-    activo: true,
-    estadoHabitacion: { nombre: "DISPONIBLE" },
-    categoriaHabitacion: { nombre: "SENCILLA", precioBase: "85" }
-  },
-  {
-    id: 4,
-    numero: "104",
-    capacidad: 5,
-    imagen: "https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&q=80&w=800",
-    descripcion: "Suite Familiar. Dos ambientes conectados.",
-    activo: true,
-    estadoHabitacion: { nombre: "DISPONIBLE" },
-    categoriaHabitacion: { nombre: "SUITE", precioBase: "280" }
-  },
-  {
-    id: 5,
-    numero: "105",
-    capacidad: 2,
-    imagen: "https://images.unsplash.com/photo-1596394516093-501ba68a0ba6?auto=format&fit=crop&q=80&w=800",
-    descripcion: "Doble Twin. Dos camas individuales.",
-    activo: true,
-    estadoHabitacion: { nombre: "DISPONIBLE" },
-    categoriaHabitacion: { nombre: "DOBLE", precioBase: "110" }
-  },
-  {
-    id: 6,
-    numero: "106",
-    capacidad: 6,
-    imagen: "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?auto=format&fit=crop&q=80&w=800",
-    descripcion: "Penthouse. La joya del hotel.",
-    activo: true,
-    estadoHabitacion: { nombre: "DISPONIBLE" },
-    categoriaHabitacion: { nombre: "SUITE", precioBase: "550" }
-  },
-];
+// MOCK eliminado para usar datos reales
 
 export const Habitaciones = () => {
   const [busqueda, setBusqueda] = useState("");
   const [categoriaSelec, setCategoriaSelec] = useState("TODAS");
   const [precioMax, setPrecioMax] = useState(600);
+  const [habitaciones, setHabitaciones] = useState<HabitacionDTO[]>([]);
+  const [cargando, setCargando] = useState(true);
+
+  useEffect(() => {
+    HabitacionService.getHabitacions()
+      .then(res => {
+        setHabitaciones(res.data.filter(h => h.activo));
+        setCargando(false);
+      })
+      .catch(err => {
+        console.error("Error al cargar habitaciones:", err);
+        setCargando(false);
+      });
+  }, []);
 
   const habitacionesFiltradas = useMemo(() => {
-    return HABITACIONES_MOCK.filter(hab => {
+    return habitaciones.filter(hab => {
       // Búsqueda en descripción o categoría
       const matchTexto =
         (hab.descripcion || "").toLowerCase().includes(busqueda.toLowerCase()) ||
@@ -81,12 +36,20 @@ export const Habitaciones = () => {
 
       const matchCategoria = categoriaSelec === "TODAS" || hab.categoriaHabitacion?.nombre === categoriaSelec;
 
-      const precio = parseFloat(hab.categoriaHabitacion?.precioBase || "0");
+      const precio = hab.categoriaHabitacion?.precioBase || 0;
       const matchPrecio = precio <= precioMax;
 
       return matchTexto && matchCategoria && matchPrecio;
     });
-  }, [busqueda, categoriaSelec, precioMax]);
+  }, [busqueda, categoriaSelec, precioMax, habitaciones]);
+
+  if (cargando) {
+    return (
+      <div className="bg-gray-50 min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-gray-50 min-h-screen font-sans">
@@ -189,9 +152,13 @@ export const Habitaciones = () => {
             */
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
               {habitacionesFiltradas.map((hab) => (
-                <RoomCard
+                <PublicRoomCard
                   key={hab.id}
-                  habitacion={hab}
+                  titulo={`Habitación ${hab.numero} - ${hab.categoriaHabitacion?.nombre}`}
+                  precio={hab.categoriaHabitacion?.precioBase || 0}
+                  capacidad={hab.capacidad || 0}
+                  imagen={hab.imagen ? (hab.imagen.startsWith('http') ? hab.imagen : `/images/${hab.imagen}`) : ''}
+                  descripcion={hab.descripcion || ''}
                 />
               ))}
             </div>

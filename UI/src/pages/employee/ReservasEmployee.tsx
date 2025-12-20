@@ -114,7 +114,7 @@ export const EmployeeReservas = () => {
     const [isPaymentMethodOpen, setIsPaymentMethodOpen] = useState(false);
     const [isCashPaymentOpen, setIsCashPaymentOpen] = useState(false);
     const [isStripePaymentOpen, setIsStripePaymentOpen] = useState(false);
-    
+
     const [paymentReserva, setPaymentReserva] = useState<ReservaDTO | null>(null);
     const [paymentTotal, setPaymentTotal] = useState(0);
     const [stripeClientSecret, setStripeClientSecret] = useState<string | null>(null);
@@ -453,7 +453,7 @@ export const EmployeeReservas = () => {
     });
 
     // --- PAYMENT HANDLERS ---
-    
+
     const handleOpenPayment = async (reserva: ReservaDTO) => {
         try {
             setIsLoading(true);
@@ -479,7 +479,7 @@ export const EmployeeReservas = () => {
             setPaymentReserva(reserva);
             setPaymentTotal(calculatedTotal);
             setCashAmount(calculatedTotal.toString()); // Pre-fill
-            
+
             setIsPaymentMethodOpen(true);
         } catch (error) {
             console.error(error);
@@ -500,11 +500,11 @@ export const EmployeeReservas = () => {
         try {
             const response = await apiClient.post('/stripe/payment-intent', {
                 amount: paymentTotal,
-                currency: 'usd', 
+                currency: 'usd',
                 reservaId: paymentReserva.id,
                 description: `Pago Empleado Reserva #${paymentReserva.id}`
             });
-            
+
             setStripeClientSecret(response.data.clientSecret);
             setIsPaymentMethodOpen(false);
             setIsStripePaymentOpen(true);
@@ -519,7 +519,7 @@ export const EmployeeReservas = () => {
     const submitCashPayment = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!paymentReserva) return;
-        
+
         try {
             setIsProcessingPayment(true);
             const monto = parseFloat(cashAmount);
@@ -532,13 +532,13 @@ export const EmployeeReservas = () => {
                 fechaPago: new Date().toISOString(),
                 monto: cashAmount,
                 metodoPago: 'EFECTIVO',
-                estado: 'COMPLETADO', 
+                estado: 'COMPLETADO',
                 activo: true,
                 reserva: { id: paymentReserva.id }
             });
 
             if (paymentReserva.estado !== 'CONFIRMADA') {
-                 await ReservaService.partialUpdateReserva(paymentReserva.id!, { id: paymentReserva.id, estado: 'CONFIRMADA' });
+                await ReservaService.partialUpdateReserva(paymentReserva.id!, { id: paymentReserva.id, estado: 'CONFIRMADA' });
             }
 
             toast.success('Pago en efectivo registrado correctamente');
@@ -556,9 +556,9 @@ export const EmployeeReservas = () => {
         toast.success("Pago con tarjeta completado");
         setIsStripePaymentOpen(false);
         if (paymentReserva && paymentReserva.estado !== 'CONFIRMADA') {
-             try {
+            try {
                 await ReservaService.partialUpdateReserva(paymentReserva.id!, { id: paymentReserva.id, estado: 'CONFIRMADA' });
-             } catch (e) { console.error("Error auto-confirming", e); }
+            } catch (e) { console.error("Error auto-confirming", e); }
         }
         loadData(currentPage);
     };
@@ -688,7 +688,8 @@ export const EmployeeReservas = () => {
                                                         ${reserva.estado === 'CONFIRMADA' ? 'bg-green-100 text-green-700 hover:bg-green-100 border-green-200' : ''}
                                                         ${reserva.estado === 'PENDIENTE' ? 'bg-yellow-50 text-yellow-700 hover:bg-yellow-50 border-yellow-200' : ''}
                                                         ${reserva.estado === 'CANCELADA' ? 'bg-red-50 text-red-700 hover:bg-red-50 border-red-200' : ''}
-                                                    `}
+                                                        ${reserva.estado === 'FINALIZADA' ? 'bg-blue-50 text-blue-700 hover:bg-blue-50 border-blue-200' : ''}
+                                                     `}
                                                         variant="secondary"
                                                     >
                                                         {reserva.estado || 'PENDIENTE'}
@@ -954,6 +955,7 @@ export const EmployeeReservas = () => {
                                                 <SelectItem value="PENDIENTE">PENDIENTE</SelectItem>
                                                 <SelectItem value="CONFIRMADA">CONFIRMADA</SelectItem>
                                                 <SelectItem value="CANCELADA">CANCELADA</SelectItem>
+                                                <SelectItem value="FINALIZADA">FINALIZADA</SelectItem>
                                             </SelectContent>
                                         </Select>
                                         <FormMessage />
@@ -1004,7 +1006,8 @@ export const EmployeeReservas = () => {
                                         "px-3 py-1 text-sm",
                                         selectedReserva.estado === 'CONFIRMADA' ? "bg-green-100 text-green-700" :
                                             selectedReserva.estado === 'CANCELADA' ? "bg-red-100 text-red-700" :
-                                                "bg-yellow-100 text-yellow-700"
+                                                selectedReserva.estado === 'FINALIZADA' ? "bg-blue-100 text-blue-700" :
+                                                    "bg-yellow-100 text-yellow-700"
                                     )}>
                                         {selectedReserva.estado || 'PENDIENTE'}
                                     </Badge>
@@ -1110,13 +1113,13 @@ export const EmployeeReservas = () => {
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
                         <DialogTitle className="text-xl font-bold text-center">Seleccionar Método de Pago</DialogTitle>
-                         <p className="text-center text-sm text-gray-500">
+                        <p className="text-center text-sm text-gray-500">
                             Reserva #{paymentReserva?.id} • Total a Pagar: <span className="font-bold text-gray-900">${paymentTotal.toFixed(2)}</span>
                         </p>
                     </DialogHeader>
-                    
+
                     <div className="grid grid-cols-2 gap-4 py-4">
-                        <button 
+                        <button
                             onClick={handleSelectStripe}
                             disabled={isProcessingPayment}
                             className="flex flex-col items-center justify-center p-6 border-2 border-gray-100 rounded-xl hover:border-yellow-500 hover:bg-yellow-50 transition-all gap-3 group"
@@ -1128,11 +1131,11 @@ export const EmployeeReservas = () => {
                             <span className="text-xs text-gray-400">Tarjeta Crédito/Débito</span>
                         </button>
 
-                        <button 
+                        <button
                             onClick={handleSelectCash}
                             className="flex flex-col items-center justify-center p-6 border-2 border-gray-100 rounded-xl hover:border-green-500 hover:bg-green-50 transition-all gap-3 group"
                         >
-                             <div className="bg-white p-3 rounded-full shadow-sm group-hover:scale-110 transition-transform">
+                            <div className="bg-white p-3 rounded-full shadow-sm group-hover:scale-110 transition-transform">
                                 <Banknote className="h-8 w-8 text-green-600" />
                             </div>
                             <span className="font-bold text-gray-800">Efectivo</span>
@@ -1149,7 +1152,7 @@ export const EmployeeReservas = () => {
                         <DialogTitle className="flex items-center gap-2">
                             <Wallet className="w-5 h-5 text-green-600" /> Registrar Pago Efectivo
                         </DialogTitle>
-                         <p className="text-sm text-gray-500">
+                        <p className="text-sm text-gray-500">
                             Ingrese el monto recibido del cliente.
                         </p>
                     </DialogHeader>
@@ -1173,11 +1176,11 @@ export const EmployeeReservas = () => {
                             <label className="text-xs font-bold uppercase text-gray-500">Monto A Recibir ($)</label>
                             <div className="relative">
                                 <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                                <Input 
+                                <Input
                                     className="pl-9 text-lg font-bold"
-                                    type="number" 
-                                    step="0.01" 
-                                    value={cashAmount} 
+                                    type="number"
+                                    step="0.01"
+                                    value={cashAmount}
                                     onChange={(e) => setCashAmount(e.target.value)}
                                     autoFocus
                                 />
@@ -1201,28 +1204,28 @@ export const EmployeeReservas = () => {
                         <DialogTitle className="flex items-center gap-2">
                             <CreditCard className="w-5 h-5 text-yellow-600" /> Procesar Pago con Tarjeta
                         </DialogTitle>
-                         <p className="text-sm text-gray-500">
-                             Complete los datos de la tarjeta para la Reserva #{paymentReserva?.id}.
+                        <p className="text-sm text-gray-500">
+                            Complete los datos de la tarjeta para la Reserva #{paymentReserva?.id}.
                         </p>
                     </DialogHeader>
-                    
+
                     <div className="py-4">
-                         {stripeClientSecret && (
-                             <Elements stripe={stripePromise} options={{ 
-                                 clientSecret: stripeClientSecret,
-                                 appearance: { theme: 'stripe', variables: { colorPrimary: '#ca8a04' } }
-                             }}>
-                                 <StripePaymentForm 
+                        {stripeClientSecret && (
+                            <Elements stripe={stripePromise} options={{
+                                clientSecret: stripeClientSecret,
+                                appearance: { theme: 'stripe', variables: { colorPrimary: '#ca8a04' } }
+                            }}>
+                                <StripePaymentForm
                                     onSuccess={handleStripeSuccess}
-                                    returnUrl={window.location.href} 
-                                 />
-                             </Elements>
-                         )}
-                         {!stripeClientSecret && (
-                             <div className="flex justify-center py-10">
-                                 <div className="animate-spin h-8 w-8 border-b-2 border-yellow-600 rounded-full"></div>
-                             </div>
-                         )}
+                                    returnUrl={window.location.href}
+                                />
+                            </Elements>
+                        )}
+                        {!stripeClientSecret && (
+                            <div className="flex justify-center py-10">
+                                <div className="animate-spin h-8 w-8 border-b-2 border-yellow-600 rounded-full"></div>
+                            </div>
+                        )}
                     </div>
                 </DialogContent>
             </Dialog>

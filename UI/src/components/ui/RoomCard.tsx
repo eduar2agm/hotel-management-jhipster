@@ -7,6 +7,8 @@ import { cn } from '@/lib/utils';
 import { BedDouble, DollarSign, Image as ImageIcon, Pencil, Trash2, Eye, Info, CheckCircle2, XCircle } from 'lucide-react';
 import { useState } from 'react';
 
+import { getImageUrl } from '../../utils/imageUtils';
+
 interface RoomCardProps {
     habitacion: HabitacionDTO;
     onEdit?: (h: HabitacionDTO) => void;
@@ -23,7 +25,7 @@ export const RoomCard = ({ habitacion: h, onEdit, onDelete, onToggleActive }: Ro
                 <div className="relative h-48 w-full bg-gray-200 overflow-hidden">
                     {h.imagen ? (
                         <img
-                            src={h.imagen}
+                            src={getImageUrl(h.imagen)}
                             alt={`Habitación ${h.numero}`}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         />
@@ -136,7 +138,7 @@ export const RoomCard = ({ habitacion: h, onEdit, onDelete, onToggleActive }: Ro
                     <div className="space-y-4">
                         <div className="relative h-56 w-full rounded-lg overflow-hidden bg-gray-100">
                             {h.imagen ? (
-                                <img src={h.imagen} alt={`Full ${h.numero}`} className="w-full h-full object-cover" />
+                                <img src={getImageUrl(h.imagen)} alt={`Full ${h.numero}`} className="w-full h-full object-cover" />
                             ) : (
                                 <div className="flex items-center justify-center h-full text-gray-400">
                                     <ImageIcon className="h-12 w-12" />

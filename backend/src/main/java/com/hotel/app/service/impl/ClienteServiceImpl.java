@@ -48,7 +48,22 @@ public class ClienteServiceImpl implements ClienteService {
         LOG.debug("Request to update Cliente : {}", clienteDTO);
         Cliente cliente = clienteMapper.toEntity(clienteDTO);
         cliente = clienteRepository.save(cliente);
+        syncWithKeycloak(cliente);
         return clienteMapper.toDto(cliente);
+    }
+
+    private void syncWithKeycloak(Cliente cliente) {
+        if (cliente.getKeycloakId() != null) {
+            try {
+                keycloakService.updateUser(
+                        cliente.getKeycloakId(),
+                        cliente.getCorreo(),
+                        cliente.getNombre(),
+                        cliente.getApellido());
+            } catch (Exception e) {
+                LOG.error("Failed to sync client {} with Keycloak", cliente.getId(), e);
+            }
+        }
     }
 
     @Override
@@ -63,6 +78,10 @@ public class ClienteServiceImpl implements ClienteService {
                     return existingCliente;
                 })
                 .map(clienteRepository::save)
+                .map(savedCliente -> {
+                    syncWithKeycloak(savedCliente);
+                    return savedCliente;
+                })
                 .map(clienteMapper::toDto);
     }
 

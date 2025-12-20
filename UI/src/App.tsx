@@ -18,6 +18,7 @@ import { AdminConfiguracion } from './pages/admin/Configuracion';
 import { AdminServicios } from './pages/admin/Servicios';
 import { AdminServiciosContratados } from './pages/admin/ServiciosContratados';
 import { AdminContratarServicio } from './pages/admin/ContratarServicio';
+import { AdminImagenes } from './pages/admin/Imagenes';
 
 import { EmployeeDashboard } from './pages/employee/EmployeeDashboard';
 import { CheckIn } from './pages/employee/CheckIn';
@@ -34,19 +35,19 @@ import { ClientMensajesSoporte } from './pages/client/MensajesSoporte';
 import { Servicios } from './pages/client/Servicios';
 import { MisServicios } from './pages/client/MisServicios';
 import { Menu } from './pages/client/Menu';
-import { StripeTest } from './pages/client/StripeTest';
-
 import { Toaster } from 'sonner';
 import { AuthTokenSync } from './components/AuthTokenSync';
 import './api/axios-interceptors';
 import './App.css';
 import { Home } from './pages/HomePage';
-
+import { StripeTest } from './pages/client/StripeTest';
+import { ProfileCompletionModal } from './components/modals/ProfileCompletionModal';
 
 function App() {
   return (
     <AuthProvider {...oidcConfig}>
       <AuthTokenSync />
+      <ProfileCompletionModal />
       <Toaster position="top-right" />
       <BrowserRouter>
         <Routes>
@@ -70,6 +71,7 @@ function App() {
           <Route path="/admin/servicios" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN']}><AdminServicios /></ProtectedRoute>} />
           <Route path="/admin/servicios-contratados" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN']}><AdminServiciosContratados basePath="/admin" /></ProtectedRoute>} />
           <Route path="/admin/servicios/contratar" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN']}><AdminContratarServicio returnPath="/admin/servicios-contratados" /></ProtectedRoute>} />
+          <Route path="/admin/imagenes" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN']}><AdminImagenes /></ProtectedRoute>} />
 
           {/* Employee Routes */}
           <Route path="/employee/dashboard" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN', 'ROLE_EMPLOYEE']}><EmployeeDashboard /></ProtectedRoute>} />
