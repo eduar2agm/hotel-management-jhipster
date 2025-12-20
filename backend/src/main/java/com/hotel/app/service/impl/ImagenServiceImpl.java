@@ -5,8 +5,6 @@ import com.hotel.app.repository.HabitacionRepository;
 import com.hotel.app.repository.ImagenRepository;
 import com.hotel.app.repository.ServicioRepository;
 import com.hotel.app.domain.Imagen;
-import com.hotel.app.domain.Habitacion;
-import com.hotel.app.domain.Servicio;
 import com.hotel.app.service.ImagenService;
 import com.hotel.app.service.dto.ImagenDTO;
 import com.hotel.app.service.mapper.ImagenMapper;
@@ -201,6 +199,20 @@ public class ImagenServiceImpl implements ImagenService {
                 deleteFileFromLocal(imagen.getNombreArchivo());
             }
             imagenRepository.delete(imagen);
+        });
+    }
+
+    @Override
+    public void deleteByHabitacionId(Long habitacionId) {
+        imagenRepository.findByHabitacionId(habitacionId).forEach(imagen -> {
+            delete(imagen.getId());
+        });
+    }
+
+    @Override
+    public void deleteByServicioId(Long servicioId) {
+        imagenRepository.findByServicioId(servicioId).forEach(imagen -> {
+            delete(imagen.getId());
         });
     }
 }
