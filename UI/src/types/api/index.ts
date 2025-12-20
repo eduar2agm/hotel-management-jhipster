@@ -7,3 +7,4 @@ export * from './EstadoHabitacion';
 export * from './Pago';
 export * from './MensajeSoporte';
 export * from './CheckInCheckOut';
+export * from './Servicio';
