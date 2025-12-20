@@ -26,10 +26,7 @@ public interface ImagenRepository extends JpaRepository<Imagen, Long> {
         return this.findAllWithToOneRelationships(pageable);
     }
 
-    @Query(
-        value = "select imagen from Imagen imagen left join fetch imagen.habitacion left join fetch imagen.servicio",
-        countQuery = "select count(imagen) from Imagen imagen"
-    )
+    @Query(value = "select imagen from Imagen imagen left join fetch imagen.habitacion left join fetch imagen.servicio", countQuery = "select count(imagen) from Imagen imagen")
     Page<Imagen> findAllWithToOneRelationships(Pageable pageable);
 
     @Query("select imagen from Imagen imagen left join fetch imagen.habitacion left join fetch imagen.servicio")
@@ -37,4 +34,8 @@ public interface ImagenRepository extends JpaRepository<Imagen, Long> {
 
     @Query("select imagen from Imagen imagen left join fetch imagen.habitacion left join fetch imagen.servicio where imagen.id =:id")
     Optional<Imagen> findOneWithToOneRelationships(@Param("id") Long id);
+
+    List<Imagen> findByHabitacionId(Long habitacionId);
+
+    List<Imagen> findByServicioId(Long servicioId);
 }
