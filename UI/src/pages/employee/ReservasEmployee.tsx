@@ -57,15 +57,8 @@ import { type ReservaDTO } from '../../types/api/Reserva';
 import { type ClienteDTO } from '../../types/api/Cliente';
 import { type HabitacionDTO } from '../../types/api/Habitacion';
 import { toast } from 'sonner';
-import { Pencil, Plus, Edit, CalendarCheck, User, BedDouble, ChevronLeft, ChevronRight, Eye, Check, ChevronsUpDown, Search, CreditCard, Banknote, Wallet, DollarSign } from 'lucide-react';
-import { PagoService } from '../../services/pago.service';
-import { loadStripe } from '@stripe/stripe-js';
-import { Elements } from '@stripe/react-stripe-js';
-import { StripePaymentForm } from '../../components/stripe/StripePaymentForm';
-import { apiClient } from '../../api/axios-instance';
-
-// Initialize Stripe (Lazy load)
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
+import { Pencil, Plus, Edit, CalendarCheck, User, BedDouble, ChevronLeft, ChevronRight, Eye, Check, ChevronsUpDown, Search, CreditCard } from 'lucide-react';
+import { PaymentModal } from '../../components/modals/PaymentModal';
 import { Badge } from '@/components/ui/badge';
 import { Navbar } from '../../components/ui/Navbar';
 import { Footer } from '../../components/ui/Footer';
@@ -111,15 +104,9 @@ export const EmployeeReservas = () => {
     const [detailClient, setDetailClient] = useState<ClienteDTO | null>(null);
 
     // Payment State
-    const [isPaymentMethodOpen, setIsPaymentMethodOpen] = useState(false);
-    const [isCashPaymentOpen, setIsCashPaymentOpen] = useState(false);
-    const [isStripePaymentOpen, setIsStripePaymentOpen] = useState(false);
-
+    const [isPaymentOpen, setIsPaymentOpen] = useState(false);
     const [paymentReserva, setPaymentReserva] = useState<ReservaDTO | null>(null);
     const [paymentTotal, setPaymentTotal] = useState(0);
-    const [stripeClientSecret, setStripeClientSecret] = useState<string | null>(null);
-    const [cashAmount, setCashAmount] = useState('');
-    const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
     // Filter State
     const [searchTerm, setSearchTerm] = useState('');
@@ -430,12 +417,24 @@ export const EmployeeReservas = () => {
                         nota: 'Reserva Empleado'
                     });
                 }
-                toast.success('Reserva Creada');
+                toast.success('Reserva Creada - Iniciando Pago');
+
+                // --- TRIGGER PAYMENT FLOW ---
+                setIsDialogOpen(false);
+                loadData(currentPage);
+
+                const fullClient = clientes.find(c => c.id === data.clienteId);
+                if (fullClient) {
+                    savedReserva.cliente = fullClient as any;
+                }
+
+                await handleOpenPayment(savedReserva);
             }
 
-            setIsDialogOpen(false);
-
-            loadData(currentPage);
+            if (isEditing) {
+                 setIsDialogOpen(false);
+                 loadData(currentPage);
+            }
 
         } catch (error) {
             console.error(error);
@@ -478,9 +477,7 @@ export const EmployeeReservas = () => {
 
             setPaymentReserva(reserva);
             setPaymentTotal(calculatedTotal);
-            setCashAmount(calculatedTotal.toString()); // Pre-fill
-
-            setIsPaymentMethodOpen(true);
+            setIsPaymentOpen(true);
         } catch (error) {
             console.error(error);
             toast.error('Error al preparar pago');
@@ -489,78 +486,16 @@ export const EmployeeReservas = () => {
         }
     };
 
-    const handleSelectCash = () => {
-        setIsPaymentMethodOpen(false);
-        setIsCashPaymentOpen(true);
-    };
-
-    const handleSelectStripe = async () => {
-        if (!paymentReserva || !paymentTotal) return;
-        setIsProcessingPayment(true);
-        try {
-            const response = await apiClient.post('/stripe/payment-intent', {
-                amount: paymentTotal,
-                currency: 'usd',
-                reservaId: paymentReserva.id,
-                description: `Pago Empleado Reserva #${paymentReserva.id}`
-            });
-
-            setStripeClientSecret(response.data.clientSecret);
-            setIsPaymentMethodOpen(false);
-            setIsStripePaymentOpen(true);
-        } catch (error) {
-            console.error(error);
-            toast.error('Error al conectar con pasarela de pago');
-        } finally {
-            setIsProcessingPayment(false);
-        }
-    };
-
-    const submitCashPayment = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!paymentReserva) return;
-
-        try {
-            setIsProcessingPayment(true);
-            const monto = parseFloat(cashAmount);
-            if (isNaN(monto) || monto <= 0) {
-                toast.error('Monto inválido');
-                return;
-            }
-
-            await PagoService.createPago({
-                fechaPago: new Date().toISOString(),
-                monto: cashAmount,
-                metodoPago: 'EFECTIVO',
-                estado: 'COMPLETADO',
-                activo: true,
-                reserva: { id: paymentReserva.id }
-            });
-
-            if (paymentReserva.estado !== 'CONFIRMADA') {
-                await ReservaService.partialUpdateReserva(paymentReserva.id!, { id: paymentReserva.id, estado: 'CONFIRMADA' });
-            }
-
-            toast.success('Pago en efectivo registrado correctamente');
-            setIsCashPaymentOpen(false);
-            loadData(currentPage);
-        } catch (error) {
-            console.error(error);
-            toast.error('Error al registrar pago');
-        } finally {
-            setIsProcessingPayment(false);
-        }
-    };
-
-    const handleStripeSuccess = async () => {
-        toast.success("Pago con tarjeta completado");
-        setIsStripePaymentOpen(false);
+    const handlePaymentSuccess = async () => {
+        // Auto-refresh logic or state update
         if (paymentReserva && paymentReserva.estado !== 'CONFIRMADA') {
             try {
-                await ReservaService.partialUpdateReserva(paymentReserva.id!, { id: paymentReserva.id, estado: 'CONFIRMADA' });
-            } catch (e) { console.error("Error auto-confirming", e); }
-        }
-        loadData(currentPage);
+               await ReservaService.partialUpdateReserva(paymentReserva.id!, { id: paymentReserva.id, estado: 'CONFIRMADA' });
+            } catch (e) {
+                console.error("Error confirming reservation after payment", e);
+            }
+       }
+       loadData(currentPage);
     };
 
     return (
@@ -968,7 +903,7 @@ export const EmployeeReservas = () => {
                                     Cancelar
                                 </Button>
                                 <Button type="submit" className="h-11 bg-slate-900 hover:bg-slate-800 text-white min-w-[120px]">
-                                    Guardar
+                                    {isEditing ? 'Guardar' : 'Pagar'}
                                 </Button>
                             </DialogFooter>
                         </form>
@@ -1107,128 +1042,13 @@ export const EmployeeReservas = () => {
                 </DialogContent>
             </Dialog>
 
-
-            {/* --- PAYMENT METHOD SELECTION DIALOG --- */}
-            <Dialog open={isPaymentMethodOpen} onOpenChange={setIsPaymentMethodOpen}>
-                <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                        <DialogTitle className="text-xl font-bold text-center">Seleccionar Método de Pago</DialogTitle>
-                        <p className="text-center text-sm text-gray-500">
-                            Reserva #{paymentReserva?.id} • Total a Pagar: <span className="font-bold text-gray-900">${paymentTotal.toFixed(2)}</span>
-                        </p>
-                    </DialogHeader>
-
-                    <div className="grid grid-cols-2 gap-4 py-4">
-                        <button
-                            onClick={handleSelectStripe}
-                            disabled={isProcessingPayment}
-                            className="flex flex-col items-center justify-center p-6 border-2 border-gray-100 rounded-xl hover:border-yellow-500 hover:bg-yellow-50 transition-all gap-3 group"
-                        >
-                            <div className="bg-white p-3 rounded-full shadow-sm group-hover:scale-110 transition-transform">
-                                <CreditCard className="h-8 w-8 text-yellow-600" />
-                            </div>
-                            <span className="font-bold text-gray-800">Pasarela de Pago</span>
-                            <span className="text-xs text-gray-400">Tarjeta Crédito/Débito</span>
-                        </button>
-
-                        <button
-                            onClick={handleSelectCash}
-                            className="flex flex-col items-center justify-center p-6 border-2 border-gray-100 rounded-xl hover:border-green-500 hover:bg-green-50 transition-all gap-3 group"
-                        >
-                            <div className="bg-white p-3 rounded-full shadow-sm group-hover:scale-110 transition-transform">
-                                <Banknote className="h-8 w-8 text-green-600" />
-                            </div>
-                            <span className="font-bold text-gray-800">Efectivo</span>
-                            <span className="text-xs text-gray-400">Pago presencial</span>
-                        </button>
-                    </div>
-                </DialogContent>
-            </Dialog>
-
-            {/* --- CASH PAYMENT DIALOG --- */}
-            <Dialog open={isCashPaymentOpen} onOpenChange={setIsCashPaymentOpen}>
-                <DialogContent className="sm:max-w-sm">
-                    <DialogHeader>
-                        <DialogTitle className="flex items-center gap-2">
-                            <Wallet className="w-5 h-5 text-green-600" /> Registrar Pago Efectivo
-                        </DialogTitle>
-                        <p className="text-sm text-gray-500">
-                            Ingrese el monto recibido del cliente.
-                        </p>
-                    </DialogHeader>
-                    <form onSubmit={submitCashPayment} className="space-y-4 pt-2">
-                        <div className="bg-gray-50 p-3 rounded text-sm space-y-1">
-                            <div className="flex justify-between">
-                                <span className="text-gray-500">Cliente:</span>
-                                <span className="font-medium text-gray-900">{paymentReserva?.cliente?.nombre || 'Desconocido'}</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-gray-500">Reserva:</span>
-                                <span className="font-medium text-gray-900">#{paymentReserva?.id}</span>
-                            </div>
-                            <div className="flex justify-between border-t border-gray-200 pt-1 mt-1">
-                                <span className="text-gray-500 font-bold">Total Esperado:</span>
-                                <span className="font-bold text-yellow-600">${paymentTotal.toFixed(2)}</span>
-                            </div>
-                        </div>
-
-                        <div className="space-y-2">
-                            <label className="text-xs font-bold uppercase text-gray-500">Monto A Recibir ($)</label>
-                            <div className="relative">
-                                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                                <Input
-                                    className="pl-9 text-lg font-bold"
-                                    type="number"
-                                    step="0.01"
-                                    value={cashAmount}
-                                    onChange={(e) => setCashAmount(e.target.value)}
-                                    autoFocus
-                                />
-                            </div>
-                        </div>
-
-                        <div className="flex justify-end gap-2 pt-2">
-                            <Button type="button" variant="ghost" onClick={() => setIsCashPaymentOpen(false)}>Cancelar</Button>
-                            <Button type="submit" className="bg-green-600 hover:bg-green-700 text-white font-bold" disabled={isProcessingPayment}>
-                                {isProcessingPayment ? 'Registrando...' : 'Confirmar Pago'}
-                            </Button>
-                        </div>
-                    </form>
-                </DialogContent>
-            </Dialog>
-
-            {/* --- STRIPE PAYMENT DIALOG --- */}
-            <Dialog open={isStripePaymentOpen} onOpenChange={setIsStripePaymentOpen}>
-                <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                        <DialogTitle className="flex items-center gap-2">
-                            <CreditCard className="w-5 h-5 text-yellow-600" /> Procesar Pago con Tarjeta
-                        </DialogTitle>
-                        <p className="text-sm text-gray-500">
-                            Complete los datos de la tarjeta para la Reserva #{paymentReserva?.id}.
-                        </p>
-                    </DialogHeader>
-
-                    <div className="py-4">
-                        {stripeClientSecret && (
-                            <Elements stripe={stripePromise} options={{
-                                clientSecret: stripeClientSecret,
-                                appearance: { theme: 'stripe', variables: { colorPrimary: '#ca8a04' } }
-                            }}>
-                                <StripePaymentForm
-                                    onSuccess={handleStripeSuccess}
-                                    returnUrl={window.location.href}
-                                />
-                            </Elements>
-                        )}
-                        {!stripeClientSecret && (
-                            <div className="flex justify-center py-10">
-                                <div className="animate-spin h-8 w-8 border-b-2 border-yellow-600 rounded-full"></div>
-                            </div>
-                        )}
-                    </div>
-                </DialogContent>
-            </Dialog>
+            <PaymentModal 
+                open={isPaymentOpen}
+                onOpenChange={setIsPaymentOpen}
+                reserva={paymentReserva}
+                total={paymentTotal}
+                onSuccess={handlePaymentSuccess}
+            />
 
         </div >
     );
