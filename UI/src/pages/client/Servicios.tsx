@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Navbar } from '../../components/ui/Navbar';
 import { Footer } from '../../components/ui/Footer';
-import { Sparkles, Utensils, Calendar, Plus, Save } from 'lucide-react';
+import { Sparkles, Utensils } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ServicioService } from '../../services/servicio.service';
 import { ReservaService } from '../../services/reserva.service';
@@ -16,19 +16,19 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import { toast } from 'sonner';
 import { format } from 'date-fns';
@@ -179,7 +179,7 @@ export const Servicios = () => {
               <Card key={servicio.id} className="overflow-hidden border-0 shadow-lg group hover:shadow-xl transition-all duration-300 flex flex-col h-full bg-white">
                 <div className="relative h-64 overflow-hidden">
                   <img
-                    src={servicio.urlImage || "https://images.unsplash.com/photo-1540555700478-4be289fbecef?q=80&w=2000&auto=format&fit=crop"} // Fallback image
+                    src={servicio.urlImage ? (servicio.urlImage.startsWith('http') ? servicio.urlImage : `/images/${servicio.urlImage}`) : "https://images.unsplash.com/photo-1540555700478-4be289fbecef?q=80&w=2000&auto=format&fit=crop"} // Fallback image
                     alt={servicio.nombre}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
@@ -232,7 +232,7 @@ export const Servicios = () => {
                 <div key={servicio.id} className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-100 flex flex-col items-center text-center">
                   <div className="w-14 h-14 bg-yellow-50 rounded-full flex items-center justify-center text-yellow-600 mb-4 overflow-hidden">
                     {servicio.urlImage ? (
-                      <img src={servicio.urlImage} alt={servicio.nombre} className="w-full h-full object-cover" />
+                      <img src={servicio.urlImage.startsWith('http') ? servicio.urlImage : `/images/${servicio.urlImage}`} alt={servicio.nombre} className="w-full h-full object-cover" />
                     ) : (
                       <Sparkles size={24} />
                     )}
