@@ -239,7 +239,7 @@ export const ClientReservas = () => {
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                         
                         {/* --- LEFT SIDEBAR (Sticky) --- */}
-                        <div className="lg:col-span-4 lg:sticky lg:top-32 order-1 z-20">
+                        <div className="lg:col-span-4 lg:sticky lg:-top-20 order-1 z-20">
                             <CheckoutSidebar 
                                 reserva={activeReserva || null}
                                 details={activeReservaDetails}
