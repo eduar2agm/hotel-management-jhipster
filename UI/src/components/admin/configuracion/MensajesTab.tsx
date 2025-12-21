@@ -20,7 +20,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Pencil, Trash2, Info, Code } from 'lucide-react';
 import { toast } from 'sonner';
 import { ConfiguracionSistemaService } from '../../../services/configuracion-sistema.service';
 import { type ConfiguracionSistemaDTO, type NewConfiguracionSistemaDTO } from '../../../types/api/ConfiguracionSistema';
@@ -143,6 +143,74 @@ export const MensajesTab = () => {
                             )}
                         </TableBody>
                     </Table>
+                </CardContent>
+            </Card>
+
+            {/* Variables Disponibles */}
+            <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 shadow-lg overflow-hidden rounded-2xl mt-6">
+                <CardHeader className="border-b border-blue-200 bg-white/60 backdrop-blur-sm p-6">
+                    <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-lg bg-blue-600 flex items-center justify-center">
+                            <Info className="h-5 w-5 text-white" />
+                        </div>
+                        <div>
+                            <CardTitle className="text-xl font-bold text-gray-800">Variables Disponibles</CardTitle>
+                            <p className="text-gray-600 text-sm mt-0.5">Utilice estas variables en sus plantillas de mensajes</p>
+                        </div>
+                    </div>
+                </CardHeader>
+                <CardContent className="p-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {PREDEFINED_KEYS.map((item) => {
+                            const variablesMatch = item.description.match(/Variables: (.+)/);
+                            const variables = variablesMatch ? variablesMatch[1].split(',').map(v => v.trim()) : [];
+
+                            return (
+                                <div key={item.key} className="bg-white rounded-xl p-5 border border-blue-100 shadow-sm hover:shadow-md transition-shadow">
+                                    <div className="flex items-start gap-3">
+                                        <div className="h-8 w-8 rounded-lg bg-indigo-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                            <Code className="h-4 w-4 text-indigo-600" />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <h4 className="font-bold text-gray-800 text-sm mb-1">{item.label}</h4>
+                                            <code className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">{item.key}</code>
+
+                                            {variables.length > 0 ? (
+                                                <div className="mt-3 space-y-2">
+                                                    <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Variables:</p>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {variables.map((variable) => (
+                                                            <span
+                                                                key={variable}
+                                                                className="inline-flex items-center gap-1 text-xs font-mono bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-2.5 py-1 rounded-md shadow-sm"
+                                                            >
+                                                                {variable}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <p className="text-xs text-gray-500 italic mt-3">Sin variables dinámicas</p>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                        <div className="flex gap-3">
+                            <Info className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                            <div>
+                                <p className="text-sm font-semibold text-amber-900 mb-1">💡 Cómo usar las variables</p>
+                                <p className="text-xs text-amber-800">
+                                    Las variables se reemplazan automáticamente con datos reales al enviar el mensaje.
+                                    Por ejemplo, <code className="bg-amber-100 px-1.5 py-0.5 rounded text-amber-900">{'{clienteNombre}'}</code> se sustituirá por el nombre del cliente.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
                 </CardContent>
             </Card>
 
