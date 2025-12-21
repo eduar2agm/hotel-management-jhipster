@@ -19,7 +19,8 @@ import {
     FormMessage,
 } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Search, Pencil, Briefcase, Upload, Loader2, Image as ImageIcon } from 'lucide-react';
+import { Plus, Search, Pencil, Briefcase, Upload, Loader2, Image as ImageIcon, Clock } from 'lucide-react';
+import { ServicioDisponibilidadManager } from '../../components/admin/servicios/ServicioDisponibilidadManager';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { Textarea } from '@/components/ui/textarea';
@@ -54,6 +55,9 @@ export const ServiciosList = ({ readOnly = false }: { readOnly?: boolean }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [searchFilter, setSearchFilter] = useState('');
     const [showInactive, setShowInactive] = useState(false);
+
+    const [isAvailabilityDialogOpen, setIsAvailabilityDialogOpen] = useState(false);
+    const [selectedService, setSelectedService] = useState<ServicioDTO | null>(null);
 
     const form = useForm<ServicioFormValues>({
         resolver: zodResolver(servicioSchema) as any,
@@ -204,6 +208,12 @@ export const ServiciosList = ({ readOnly = false }: { readOnly?: boolean }) => {
         }
     };
 
+    const handleManageAvailability = (servicio: ServicioDTO) => {
+        if (readOnly) return;
+        setSelectedService(servicio);
+        setIsAvailabilityDialogOpen(true);
+    };
+
     const filteredServicios = servicios.filter(s => {
         if (!searchFilter) return true;
         const searchLower = searchFilter.toLowerCase();
@@ -284,6 +294,7 @@ export const ServiciosList = ({ readOnly = false }: { readOnly?: boolean }) => {
                                         onEdit={handleEdit}
                                         onDelete={handleDelete}
                                         onToggleActive={handleToggleActive}
+                                        onManageAvailability={handleManageAvailability}
                                         readOnly={readOnly}
                                     />
                                 ))
@@ -503,6 +514,25 @@ export const ServiciosList = ({ readOnly = false }: { readOnly?: boolean }) => {
                         </DialogContent>
                     </Dialog>
                 )}
+                <Dialog open={isAvailabilityDialogOpen} onOpenChange={setIsAvailabilityDialogOpen}>
+                    <DialogContent className="max-w-4xl p-0 overflow-hidden border-0 shadow-2xl">
+                        <DialogHeader className="bg-[#0F172A] text-white p-6">
+                            <DialogTitle className="text-xl font-bold flex items-center gap-2">
+                                <Clock className="h-5 w-5 text-yellow-500" />
+                                Gestión de Disponibilidad
+                            </DialogTitle>
+                            <DialogDescription className="text-slate-400">
+                                {selectedService?.nombre} - Configure los horarios y cupos.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="p-6 bg-white overflow-y-auto max-h-[80vh]">
+                            {selectedService && <ServicioDisponibilidadManager servicio={selectedService} />}
+                        </div>
+                        <div className="p-4 bg-gray-50 border-t flex justify-end">
+                            <Button variant="outline" onClick={() => setIsAvailabilityDialogOpen(false)}>Cerrar</Button>
+                        </div>
+                    </DialogContent>
+                </Dialog>
             </main>
         </div>
     );

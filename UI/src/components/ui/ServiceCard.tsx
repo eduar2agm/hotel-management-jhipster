@@ -4,7 +4,7 @@ import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { Pencil, Trash2, Image as ImageIcon } from 'lucide-react';
+import { Pencil, Trash2, Image as ImageIcon, Clock } from 'lucide-react';
 import { getImageUrl } from '../../utils/imageUtils';
 
 interface ServiceCardProps {
@@ -12,10 +12,11 @@ interface ServiceCardProps {
     onEdit?: (servicio: ServicioDTO) => void;
     onDelete?: (id: number) => void;
     onToggleActive?: (id: number, currentStatus: boolean | undefined) => void;
+    onManageAvailability?: (servicio: ServicioDTO) => void;
     readOnly?: boolean;
 }
 
-export const ServiceCard = ({ servicio, onEdit, onDelete, onToggleActive, readOnly = false }: ServiceCardProps) => {
+export const ServiceCard = ({ servicio, onEdit, onDelete, onToggleActive, onManageAvailability, readOnly = false }: ServiceCardProps) => {
     return (
         <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300 group border-gray-200">
             <div className="relative h-48 bg-gray-100 overflow-hidden">
@@ -85,6 +86,20 @@ export const ServiceCard = ({ servicio, onEdit, onDelete, onToggleActive, readOn
                             onClick={() => onEdit(servicio)}
                         >
                             <Pencil className="h-4 w-4" />
+                        </Button>
+                    )}
+                    {onManageAvailability && servicio.tipo === TipoServicio.PAGO && (
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            className="h-8 w-8 text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50 border-yellow-200"
+                            onClick={() => onManageAvailability(servicio)}
+                            title="Gestionar Disponibilidad"
+                        >
+                            <div className="relative">
+                                <Pencil className="h-3 w-3 absolute -top-1 -right-1 opacity-50" />
+                                <Clock className="h-4 w-4" />
+                            </div>
                         </Button>
                     )}
                     {onDelete && (
