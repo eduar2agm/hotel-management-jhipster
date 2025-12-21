@@ -33,7 +33,9 @@ import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { toast } from 'sonner';
 
-export const AdminReportes = () => {
+export const AdminReportes = ({ isEmbedded = false }: { isEmbedded?: boolean }) => {
+    // ... (existing state) ...
+
     const [stats, setStats] = useState({
         income: 0,
         reservations: 0,
@@ -225,43 +227,48 @@ export const AdminReportes = () => {
 
     const COLORS = ['#10B981', '#EAB308', '#EF4444', '#3B82F6'];
 
+    const ExportButtons = () => (
+        <div className="flex gap-3">
+             <Button
+                onClick={exportToPDF}
+                className="bg-red-600 hover:bg-red-700 text-white border-0 shadow-lg transition-all rounded-sm h-10 px-4 uppercase tracking-wider font-bold text-xs"
+            >
+                <FileText className="mr-2 h-4 w-4" /> PDF
+            </Button>
+            <Button
+                onClick={exportToExcel}
+                className="bg-green-600 hover:bg-green-700 text-white border-0 shadow-lg transition-all rounded-sm h-10 px-4 uppercase tracking-wider font-bold text-xs"
+            >
+                <FileSpreadsheet className="mr-2 h-4 w-4" /> Excel
+            </Button>
+        </div>
+    );
+
     return (
-        <div className="font-sans text-gray-900 bg-gray-50 min-h-screen flex flex-col">
+        <div className={`font-sans text-gray-900 bg-gray-50 flex flex-col ${isEmbedded ? '' : 'min-h-screen'}`}>
 
-            {/* HERO SECTION */}
-            <div className="bg-[#0F172A] pt-32 pb-20 px-4 md:px-8 lg:px-20 relative overflow-hidden shadow-xl">
-                <div className="absolute top-0 right-0 p-12 opacity-5 scale-150 pointer-events-none">
-                    <Activity className="w-96 h-96 text-white" />
-                </div>
-                <div className="relative max-w-7xl mx-auto z-10 flex flex-col md:flex-row justify-between items-center gap-6">
-                    <div>
-                        <span className="text-yellow-500 font-bold tracking-[0.2em] uppercase text-xs mb-2 block">Administración</span>
-                        <h1 className="text-3xl md:text-5xl font-black text-white tracking-tight mb-2">
-                            Reportes y Métricas
-                        </h1>
-                        <p className="text-slate-400 text-lg max-w-2xl">
-                            Análisis detallado del rendimiento financiero y operativo del hotel.
-                        </p>
-                    </div>
-                    <div className="flex gap-3">
-                        <Button
-                            onClick={exportToPDF}
-                            className="bg-red-600 hover:bg-red-700 text-white border-0 shadow-lg transition-all rounded-sm h-12 px-6 uppercase tracking-wider font-bold text-xs"
-                        >
-                            <FileText className="mr-2 h-4 w-4" /> Exportar PDF
-                        </Button>
-                        <Button
-                            onClick={exportToExcel}
-                            className="bg-green-600 hover:bg-green-700 text-white border-0 shadow-lg transition-all rounded-sm h-12 px-6 uppercase tracking-wider font-bold text-xs"
-                        >
-                            <FileSpreadsheet className="mr-2 h-4 w-4" /> Exportar Excel
-                        </Button>
+            {/* HERO SECTION - Only show if not embedded */}
+            {!isEmbedded && (
+                <div className="bg-[#0F172A] pt-32 pb-20 px-4 md:px-8 lg:px-20 relative overflow-hidden shadow-xl">
+                    <div className="relative max-w-7xl mx-auto z-10 flex flex-col md:flex-row justify-between items-center gap-6">
+                        
+                        <ExportButtons />
                     </div>
                 </div>
-            </div>
+            )}
 
-            <main className="flex-grow py-5 px-4 md:px-8 lg:px-20 -mt-10 relative z-10">
-                <div className="max-w-7xl mx-auto space-y-6">
+            {/* EMBEDDED HEADER */}
+            {isEmbedded && (
+                <div className="flex justify-between items-center mb-6 pl-1">
+                     <div>
+                        <h2 className="text-xl font-bold text-gray-800">Detalles de Reportes</h2>
+                        <p className="text-sm text-gray-500">Métricas avanzadas y exportación de datos</p>
+                     </div>
+                     <ExportButtons />
+                </div>
+            )}
+
+                <div className={`${isEmbedded ? 'w-full' : 'max-w-7xl mx-auto'} space-y-6`}>
 
                     {/* STATS GRID */}
                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
@@ -427,7 +434,6 @@ export const AdminReportes = () => {
                     </Card>
 
                 </div>
-            </main>
         </div>
     );
 };
