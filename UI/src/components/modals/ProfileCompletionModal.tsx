@@ -211,7 +211,7 @@ export const ProfileCompletionModal = () => {
                                     <SelectTrigger className="h-12 border-gray-200 focus:ring-yellow-600/20">
                                         <SelectValue placeholder="Seleccione tipo" />
                                     </SelectTrigger>
-                                    <SelectContent>
+                                    <SelectContent className="z-[99999]">
                                         {IDENTIFICATION_TYPES.map(type => (
                                             <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
                                         ))}
