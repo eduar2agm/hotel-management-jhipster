@@ -44,6 +44,7 @@ import type { HabitacionDTO } from '../../../types/api/Habitacion';
 import { toast } from 'sonner';
 import { Pencil, Plus, User, Calendar, Check, ChevronsUpDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { PriceRangeFilter } from '@/components/common/PriceRangeFilter';
 
 const reservaSchema = z.object({
     id: z.number().optional(),
@@ -78,6 +79,10 @@ export const ReservaFormDialog = ({
     const isEditing = !!reserva;
     const [habitaciones, setHabitaciones] = useState<HabitacionDTO[]>([]);
     const [openClientCombo, setOpenClientCombo] = useState(false);
+    const [minPrecio, setMinPrecio] = useState('');
+    const [maxPrecio, setMaxPrecio] = useState('');
+    const [appliedMin, setAppliedMin] = useState('');
+    const [appliedMax, setAppliedMax] = useState('');
 
     const form = useForm<ReservaFormValues>({
         resolver: zodResolver(reservaSchema) as any,
@@ -136,8 +141,8 @@ export const ReservaFormDialog = ({
             if (!watchedFechaInicio || !watchedFechaFin) {
                 // If invalid dates, show all (fallback)
                 if (open && !isEditing) {
-                   // If creating, maybe reset to empty or all? Defaulting to all for now so they see options
-                   // But arguably we should clear availability if no date selected.
+                    // If creating, maybe reset to empty or all? Defaulting to all for now so they see options
+                    // But arguably we should clear availability if no date selected.
                 }
                 return;
             }
@@ -145,7 +150,7 @@ export const ReservaFormDialog = ({
             const start = new Date(watchedFechaInicio);
             const end = new Date(watchedFechaFin);
 
-            if (start >= end) return; 
+            if (start >= end) return;
 
             try {
                 const startStr = `${watchedFechaInicio}T00:00:00Z`;
@@ -160,7 +165,7 @@ export const ReservaFormDialog = ({
                 // Current backend probably doesn't support "exclude reservationId".
                 // So for Edit, we might just show ALL rooms and let backend validation fail if double booked?
                 // Or: merge available + currently selected.
-                
+
                 if (isEditing) {
                     const allRes = await HabitacionService.getHabitacions({ size: 100 });
                     setHabitaciones(allRes.data);
@@ -226,7 +231,7 @@ export const ReservaFormDialog = ({
                     if (det.id) await ReservaDetalleService.deleteReservaDetalle(det.id);
                 }
                 toast.success('Reserva Actualizada');
-                onSuccess(undefined); 
+                onSuccess(undefined);
             } else {
                 // CREATE
                 const res = await ReservaService.createReserva(reservaToSave as any);
@@ -239,8 +244,8 @@ export const ReservaFormDialog = ({
                     // Fallback fetch if not in list? Unlikely if UI worked.
                     let roomEntity = roomFn;
                     if (!roomEntity) {
-                         const r = await HabitacionService.getHabitacion(roomId);
-                         roomEntity = r.data;
+                        const r = await HabitacionService.getHabitacion(roomId);
+                        roomEntity = r.data;
                     }
 
                     await ReservaDetalleService.createReservaDetalle({
@@ -393,56 +398,82 @@ export const ReservaFormDialog = ({
                                                 Seleccione una o más habitaciones para esta reserva.
                                             </FormDescription>
                                         </div>
+
+                                        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6">
+                                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest text-center block mb-4">Rango de Precio</label>
+                                            <PriceRangeFilter
+                                                minPrice={minPrecio}
+                                                maxPrice={maxPrecio}
+                                                onMinChange={setMinPrecio}
+                                                onMaxChange={setMaxPrecio}
+                                                variant="horizontal"
+                                                onSearch={() => {
+                                                    setAppliedMin(minPrecio);
+                                                    setAppliedMax(maxPrecio);
+                                                }}
+                                                className="!p-0 shadow-none border-0 bg-transparent"
+                                            />
+                                        </div>
+
                                         <div className="border rounded-lg p-4 max-h-64 overflow-y-auto bg-gray-50">
                                             <div className="grid grid-cols-2 gap-3">
-                                                {habitaciones.map((hab) => (
-                                                    <FormField
-                                                        key={hab.id}
-                                                        control={form.control}
-                                                        name="roomIds"
-                                                        render={({ field }) => {
-                                                            const isChecked = field.value?.includes(hab.id!);
-                                                            return (
-                                                                <FormItem
-                                                                    key={hab.id}
-                                                                    className={cn(
-                                                                        "flex flex-row items-start space-x-3 space-y-0 p-3 rounded-md border-2 transition-all cursor-pointer",
-                                                                        isChecked
-                                                                            ? "bg-white border-green-500 shadow-sm"
-                                                                            : "bg-white border-gray-200 hover:border-gray-300"
-                                                                    )}
-                                                                >
-                                                                    <FormControl>
-                                                                        <Checkbox
-                                                                            checked={isChecked}
-                                                                            onCheckedChange={(checked) => {
-                                                                                return checked
-                                                                                    ? field.onChange([...field.value, hab.id])
-                                                                                    : field.onChange(
-                                                                                        field.value?.filter(
-                                                                                            (value: number) => value !== hab.id
+                                                {/* ... existing code ... */}
+                                                {habitaciones
+                                                    .filter(hab => {
+                                                        const price = hab.categoriaHabitacion?.precioBase || 0;
+                                                        const matchesMin = !appliedMin || price >= Number(appliedMin);
+                                                        const matchesMax = !appliedMax || price <= Number(appliedMax);
+                                                        return matchesMin && matchesMax;
+                                                    })
+                                                    .map((hab) => (
+                                                        <FormField
+                                                            key={hab.id}
+                                                            control={form.control}
+                                                            name="roomIds"
+                                                            render={({ field }) => {
+                                                                const isChecked = field.value?.includes(hab.id!);
+                                                                return (
+                                                                    <FormItem
+                                                                        key={hab.id}
+                                                                        className={cn(
+                                                                            "flex flex-row items-start space-x-3 space-y-0 p-3 rounded-md border-2 transition-all cursor-pointer",
+                                                                            isChecked
+                                                                                ? "bg-white border-green-500 shadow-sm"
+                                                                                : "bg-white border-gray-200 hover:border-gray-300"
+                                                                        )}
+                                                                    >
+                                                                        <FormControl>
+                                                                            <Checkbox
+                                                                                checked={isChecked}
+                                                                                onCheckedChange={(checked) => {
+                                                                                    return checked
+                                                                                        ? field.onChange([...field.value, hab.id])
+                                                                                        : field.onChange(
+                                                                                            field.value?.filter(
+                                                                                                (value: number) => value !== hab.id
+                                                                                            )
                                                                                         )
-                                                                                    )
-                                                                            }}
-                                                                            className="mt-0.5"
-                                                                        />
-                                                                    </FormControl>
-                                                                    <div className="flex-1 space-y-1">
-                                                                        <FormLabel className="font-semibold text-sm cursor-pointer text-gray-900">
-                                                                            Habitación {hab.numero}
-                                                                        </FormLabel>
-                                                                        <div className="text-xs text-gray-600 space-y-0.5">
-                                                                            <div>{hab.categoriaHabitacion?.nombre || 'Sin categoría'}</div>
-                                                                            <div className="font-medium text-gray-900">
-                                                                                ${hab.categoriaHabitacion?.precioBase || '0'}
+                                                                                }}
+                                                                                className="mt-0.5"
+                                                                            />
+                                                                        </FormControl>
+                                                                        <div className="flex-1 space-y-1">
+                                                                            <FormLabel className="font-semibold text-sm cursor-pointer text-gray-900">
+                                                                                Habitación {hab.numero}
+                                                                            </FormLabel>
+                                                                            <div className="text-xs text-gray-600 space-y-0.5">
+                                                                                <div>{hab.categoriaHabitacion?.nombre || 'Sin categoría'}</div>
+                                                                                <div className="font-medium text-gray-900">
+                                                                                    ${hab.categoriaHabitacion?.precioBase || '0'}
+                                                                                </div>
                                                                             </div>
                                                                         </div>
-                                                                    </div>
-                                                                </FormItem>
-                                                            )
-                                                        }}
-                                                    />
-                                                ))}
+                                                                    </FormItem>
+                                                                )
+                                                            }}
+                                                        />
+                                                    ))
+                                                }
                                             </div>
                                         </div>
                                         <FormMessage />
