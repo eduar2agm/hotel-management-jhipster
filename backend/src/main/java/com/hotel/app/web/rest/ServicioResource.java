@@ -159,7 +159,7 @@ public class ServicioResource {
      *         of servicios in body.
      */
     @GetMapping("")
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_EMPLOYEE', 'ROLE_CLIENT')")
+
     public ResponseEntity<List<ServicioDTO>> getAllServicios(
             @org.springdoc.core.annotations.ParameterObject Pageable pageable) {
         LOG.debug("REST request to get a page of Servicios");
@@ -177,7 +177,7 @@ public class ServicioResource {
      *         of servicios in body.
      */
     @GetMapping("/disponibles")
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_EMPLOYEE', 'ROLE_CLIENT')")
+
     public ResponseEntity<List<ServicioDTO>> getServiciosDisponibles(
             @org.springdoc.core.annotations.ParameterObject Pageable pageable) {
         LOG.debug("REST request to get a page of Available Servicios");
@@ -195,7 +195,7 @@ public class ServicioResource {
      *         of servicios in body.
      */
     @GetMapping("/gratuitos")
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_EMPLOYEE', 'ROLE_CLIENT')")
+
     public ResponseEntity<List<ServicioDTO>> getServiciosGratuitos(
             @org.springdoc.core.annotations.ParameterObject Pageable pageable) {
         LOG.debug("REST request to get a page of Free Servicios");
@@ -213,7 +213,7 @@ public class ServicioResource {
      *         of servicios in body.
      */
     @GetMapping("/pago")
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_EMPLOYEE', 'ROLE_CLIENT')")
+
     public ResponseEntity<List<ServicioDTO>> getServiciosPago(
             @org.springdoc.core.annotations.ParameterObject Pageable pageable) {
         LOG.debug("REST request to get a page of Paid Servicios");
@@ -231,7 +231,7 @@ public class ServicioResource {
      *         the servicioDTO, or with status {@code 404 (Not Found)}.
      */
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_EMPLOYEE', 'ROLE_CLIENT')")
+
     public ResponseEntity<ServicioDTO> getServicio(@PathVariable("id") Long id) {
         LOG.debug("REST request to get Servicio : {}", id);
         Optional<ServicioDTO> servicioDTO = servicioService.findOne(id);

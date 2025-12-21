@@ -53,6 +53,7 @@ public class SecurityConfiguration {
                             .requestMatchers(mvc.pattern("/api/authenticate")).permitAll()
                             .requestMatchers(mvc.pattern("/api/auth-info")).permitAll()
                             .requestMatchers(mvc.pattern("/api/habitacions/**")).permitAll()
+                            .requestMatchers(mvc.pattern("/api/servicios/**")).permitAll()
                             .requestMatchers(mvc.pattern("/images/**")).permitAll()
                             .requestMatchers(mvc.pattern("/api/admin/**")).hasAuthority(AuthoritiesConstants.ADMIN)
                             .requestMatchers(mvc.pattern("/api/**")).authenticated();
