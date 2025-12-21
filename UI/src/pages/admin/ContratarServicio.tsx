@@ -30,6 +30,8 @@ const contratoSchema = z.object({
     reservaId: z.string().min(1, 'Debe seleccionar una reserva'),
     servicioId: z.string().min(1, 'Debe seleccionar un servicio'),
     cantidad: z.number().min(1, 'La cantidad mínima es 1'),
+    fecha: z.string().min(1, 'Fecha requerida'),
+    hora: z.string().min(1, 'Hora requerida'),
     observaciones: z.string().optional()
 });
 
@@ -52,7 +54,9 @@ export const AdminContratarServicio = ({ returnPath = '/admin/servicios-contrata
             reservaId: '',
             servicioId: '',
             cantidad: 1,
-            observaciones: ''
+            observaciones: '',
+            fecha: new Date().toISOString().split('T')[0],
+            hora: '09:00'
         }
     });
 
@@ -92,11 +96,14 @@ export const AdminContratarServicio = ({ returnPath = '/admin/servicios-contrata
 
     const onSubmit = async (data: ContratoFormValues) => {
         try {
+            const fechaServicio = new Date(`${data.fecha}T${data.hora}`).toISOString();
+
             const payload = {
                 fechaContratacion: new Date().toISOString(),
+                fechaServicio: fechaServicio, // NEW FIELD
                 cantidad: data.cantidad,
                 precioUnitario: selectedServicio?.precio || 0,
-                estado: EstadoServicioContratado.PENDIENTE, // Admin manually creating usually means confirmed but let's stick to flow
+                estado: EstadoServicioContratado.PENDIENTE,
                 observaciones: data.observaciones,
                 servicio: { id: Number(data.servicioId) },
                 reserva: { id: Number(data.reservaId) },
@@ -215,6 +222,35 @@ export const AdminContratarServicio = ({ returnPath = '/admin/servicios-contrata
                                         </FormItem>
                                     )}
                                 />
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <FormField
+                                        control={form.control}
+                                        name="fecha"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel className="text-sm font-bold text-gray-700">Fecha Servicio</FormLabel>
+                                                <FormControl>
+                                                    <Input type="date" min={new Date().toISOString().split('T')[0]} {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name="hora"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel className="text-sm font-bold text-gray-700">Hora</FormLabel>
+                                                <FormControl>
+                                                    <Input type="time" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                </div>
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <FormField

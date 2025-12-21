@@ -46,9 +46,12 @@ export const Servicios = () => {
   const [selectedReservaId, setSelectedReservaId] = useState<string>('');
   const [cantidad, setCantidad] = useState<number>(1);
   const [observaciones, setObservaciones] = useState<string>('');
+  const [fecha, setFecha] = useState<string>('');
+  const [hora, setHora] = useState<string>('09:00');
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
+    // ... useEffect content remains same, just ensuring we are inside the component body ...
     const loadDat = async () => {
       try {
         const [serviciosRes, reservasRes] = await Promise.all([
@@ -86,6 +89,9 @@ export const Servicios = () => {
     setContractingService(servicio);
     setCantidad(1);
     setObservaciones('');
+    setFecha(new Date().toISOString().split('T')[0]);
+    setHora('09:00');
+
     // Pre-seleccionar si solo hay una reserva
     if (reservas.length === 1 && reservas[0].id) {
       setSelectedReservaId(String(reservas[0].id));
@@ -103,17 +109,30 @@ export const Servicios = () => {
     const reserva = reservas.find(r => String(r.id) === selectedReservaId);
     if (!reserva || !contractingService) return;
 
+    if (!fecha || !hora) {
+      toast.error("Seleccione fecha y hora del servicio.");
+      return;
+    }
+
+    // Construct full ISO string for backend ZonedDateTime
+    // Assuming local time for simplicity, or append 'Z' if UTC desired but backend expects ZonedDateTime usually with offset or Z
+    // A simple approach: `${fecha}T${hora}:00Z` (treating as UTC) or just send ISO local if backend handles it.
+    // Given JHipster defaults, Instant/ZonedDateTime often expects specific format.
+    // Let's use a safe format: new Date(fecha + 'T' + hora).toISOString()
+    const fechaServicio = new Date(`${fecha}T${hora}`).toISOString();
+
     setSubmitting(true);
     try {
       const payload = {
         fechaContratacion: new Date().toISOString(),
+        fechaServicio: fechaServicio, // NEW FIELD
         cantidad: cantidad,
         precioUnitario: contractingService.precio,
         estado: EstadoServicioContratado.PENDIENTE,
         observaciones: observaciones,
         servicio: contractingService,
         reserva: { id: Number(selectedReservaId) },
-        cliente: reserva.cliente // Usar el cliente de la reserva
+        cliente: reserva.cliente
       };
 
       await ServicioContratadoService.create(payload as any);
@@ -319,6 +338,25 @@ export const Servicios = () => {
                 value={observaciones}
                 onChange={(e) => setObservaciones(e.target.value)}
               />
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="fecha">Fecha y Hora del Servicio</Label>
+              <div className="flex gap-2">
+                <Input
+                  type="date"
+                  className="flex-1"
+                  min={new Date().toISOString().split('T')[0]}
+                  value={fecha}
+                  onChange={(e) => setFecha(e.target.value)}
+                />
+                <Input
+                  type="time"
+                  className="w-32"
+                  value={hora}
+                  onChange={(e) => setHora(e.target.value)}
+                />
+              </div>
             </div>
 
             <div className="flex items-center justify-between p-4 bg-yellow-50 rounded-lg">
