@@ -20,6 +20,7 @@ import { Search, ArrowLeft, CalendarDays, ShoppingBag, Trash2, BedDouble } from 
 import { CardRoom } from '../../components/ui/CardRoom';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../../components/common/PageHeader';
+import { PriceRangeFilter } from '@/components/common/PriceRangeFilter';
 
 // --- LOGICA ORIGINAL ---
 const searchSchema = z.object({
@@ -51,6 +52,8 @@ export const NuevaReserva = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false); // New loading state for submit
     const [clienteId, setClienteId] = useState<number | null>(null);
+    const [minPrecio, setMinPrecio] = useState('');
+    const [maxPrecio, setMaxPrecio] = useState('');
 
     const form = useForm<SearchFormValues>({
         resolver: zodResolver(searchSchema),
@@ -87,7 +90,7 @@ export const NuevaReserva = () => {
                 console.error("Error fetching free services:", error);
             }
         };
-        
+
         checkProfile();
         fetchFreeServices();
     }, [user, navigate]);
@@ -145,7 +148,7 @@ export const NuevaReserva = () => {
         setIsSubmitting(true);
         try {
             const dates = form.getValues();
-            
+
             // 1. Create ONE Master Reservation
             const newReserva: NewReservaDTO = {
                 fechaReserva: new Date().toISOString(),
@@ -163,7 +166,7 @@ export const NuevaReserva = () => {
 
             // 2. Create Details for EACH selected room
             // Execute in parallel for speed
-            await Promise.all(selectedRooms.map(room => 
+            await Promise.all(selectedRooms.map(room =>
                 ReservaDetalleService.createReservaDetalle({
                     reserva: { id: savedReserva.id },
                     habitacion: room,
@@ -280,8 +283,8 @@ export const NuevaReserva = () => {
 
                     {step === 2 && (
                         <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-                             
-                             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+
+                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                                 {/* --- LEFT: RESULTS GRID --- */}
                                 <div className="lg:col-span-8 order-2 lg:order-1">
                                     {/* Header de Resultados */}
@@ -301,6 +304,16 @@ export const NuevaReserva = () => {
                                         </Button>
                                     </div>
 
+                                    <div className="mb-8">
+                                        <PriceRangeFilter
+                                            minPrice={minPrecio}
+                                            maxPrice={maxPrecio}
+                                            onMinChange={setMinPrecio}
+                                            onMaxChange={setMaxPrecio}
+                                            className="bg-gray-50/50 border-gray-200"
+                                        />
+                                    </div>
+
                                     {availableRooms.length === 0 ? (
                                         <div className="bg-white p-16 text-center shadow-sm border border-gray-200 rounded-sm">
                                             <div className="bg-gray-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -311,19 +324,26 @@ export const NuevaReserva = () => {
                                         </div>
                                     ) : (
                                         <div className="grid gap-6 md:grid-cols-2">
-                                            {availableRooms.map(room => {
-                                                const isSelected = selectedRooms.some(r => r.id === room.id);
-                                                return (
-                                                    <CardRoom
-                                                        key={room.id}
-                                                        habitacion={room}
-                                                        variant="selection"
-                                                        isSelected={isSelected}
-                                                        onAction={toggleRoomSelection}
-                                                        services={freeServices}
-                                                    />
-                                                );
-                                            })}
+                                            {availableRooms
+                                                .filter(room => {
+                                                    const price = room.categoriaHabitacion?.precioBase || 0;
+                                                    const matchesMin = !minPrecio || price >= Number(minPrecio);
+                                                    const matchesMax = !maxPrecio || price <= Number(maxPrecio);
+                                                    return matchesMin && matchesMax;
+                                                })
+                                                .map(room => {
+                                                    const isSelected = selectedRooms.some(r => r.id === room.id);
+                                                    return (
+                                                        <CardRoom
+                                                            key={room.id}
+                                                            habitacion={room}
+                                                            variant="selection"
+                                                            isSelected={isSelected}
+                                                            onAction={toggleRoomSelection}
+                                                            services={freeServices}
+                                                        />
+                                                    );
+                                                })}
                                         </div>
                                     )}
                                 </div>
@@ -365,7 +385,7 @@ export const NuevaReserva = () => {
                                                 <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 flex justify-between items-center">
                                                     Habitaciones ({selectedRooms.length})
                                                     {selectedRooms.length > 0 && (
-                                                        <button 
+                                                        <button
                                                             onClick={() => setSelectedRooms([])}
                                                             className="text-red-500 hover:text-red-700 cursor-pointer flex items-center gap-1 text-[10px] normal-case"
                                                         >
@@ -373,7 +393,7 @@ export const NuevaReserva = () => {
                                                         </button>
                                                     )}
                                                 </h4>
-                                                
+
                                                 {selectedRooms.length === 0 ? (
                                                     <div className="text-center py-8 text-gray-400 bg-gray-50 rounded-lg border border-dashed border-gray-200">
                                                         <p className="text-sm italic">Ninguna habitación seleccionada.</p>
@@ -390,7 +410,7 @@ export const NuevaReserva = () => {
                                                                     <div className="font-bold text-gray-900">
                                                                         ${((room.categoriaHabitacion?.precioBase || 0) * calculateNights()).toFixed(2)}
                                                                     </div>
-                                                                    <button 
+                                                                    <button
                                                                         onClick={() => toggleRoomSelection(room)}
                                                                         className="text-xs text-red-500 hover:text-red-700 underline opacity-0 group-hover:opacity-100 transition-opacity"
                                                                     >
@@ -412,7 +432,7 @@ export const NuevaReserva = () => {
                                                     </span>
                                                 </div>
 
-                                                <Button 
+                                                <Button
                                                     onClick={confirmReservation}
                                                     disabled={selectedRooms.length === 0 || isSubmitting}
                                                     className="w-full bg-yellow-600 hover:bg-yellow-700 text-white h-12 text-sm uppercase font-bold tracking-widest shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
@@ -430,7 +450,7 @@ export const NuevaReserva = () => {
                                     </div>
                                 </div>
 
-                             </div>
+                            </div>
                         </div>
                     )}
                 </div>

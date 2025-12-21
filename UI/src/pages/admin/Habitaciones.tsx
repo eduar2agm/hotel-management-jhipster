@@ -13,6 +13,9 @@ import { ActiveFilter } from '@/components/ui/ActiveFilter';
 import { PageHeader } from '../../components/common/PageHeader';
 import { HabitacionFormDialog } from '../../components/admin/habitaciones/HabitacionFormDialog';
 import { PaginationControl } from '@/components/common/PaginationControl';
+import { PriceRangeFilter } from '@/components/common/PriceRangeFilter';
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Filter } from 'lucide-react';
 
 export const AdminHabitaciones = () => {
     const [habitaciones, setHabitaciones] = useState<HabitacionDTO[]>([]);
@@ -28,6 +31,10 @@ export const AdminHabitaciones = () => {
     const [currentHabitacion, setCurrentHabitacion] = useState<HabitacionDTO | null>(null);
 
     const [searchFilter, setSearchFilter] = useState('');
+    const [minPrecio, setMinPrecio] = useState('');
+    const [maxPrecio, setMaxPrecio] = useState('');
+    const [appliedMin, setAppliedMin] = useState('');
+    const [appliedMax, setAppliedMax] = useState('');
     const [showInactive, setShowInactive] = useState(false);
 
     const loadData = useCallback(async () => {
@@ -116,89 +123,137 @@ export const AdminHabitaciones = () => {
     };
 
     const filteredHabitaciones = habitaciones.filter(h => {
-        if (!searchFilter) return true;
+        // Text Search
         const searchLower = searchFilter.toLowerCase();
-        return (
+        const matchesText = !searchFilter || (
             h.numero?.toLowerCase().includes(searchLower) ||
             h.categoriaHabitacion?.nombre?.toLowerCase().includes(searchLower) ||
-            h.estadoHabitacion?.nombre?.toLowerCase().includes(searchLower)
+            h.estadoHabitacion?.nombre?.toLowerCase().includes(searchLower) ||
+            h.categoriaHabitacion?.precioBase?.toString().includes(searchLower)
         );
+
+        // Price Range
+        const price = h.categoriaHabitacion?.precioBase || 0;
+        const matchesMin = !appliedMin || price >= Number(appliedMin);
+        const matchesMax = !appliedMax || price <= Number(appliedMax);
+
+        return matchesText && matchesMin && matchesMax;
     });
 
     return (
         <div className="font-sans text-gray-900 bg-gray-50 min-h-screen flex flex-col">
-            
+
             <PageHeader
                 title="Gestión de Habitaciones"
                 subtitle="Configure y administre el inventario de habitaciones, categorías y estados."
                 category="ADMINISTRACIÓN"
                 icon={Hotel}
             >
-                <Button
-                    onClick={handleCreate}
-                    className="bg-yellow-600 hover:bg-yellow-700 text-white border-0 shadow-lg hover:shadow-yellow-600/20 transition-all rounded-sm px-6 py-4 md:py-6 text-xs md:text-sm uppercase tracking-widest font-bold"
-                >
-                    <Plus className="mr-2 h-4 w-4 md:h-5 md:w-5" /> <span className="hidden md:inline">Nueva Habitación</span><span className="md:hidden">Nueva</span>
-                </Button>
+                <div className="flex flex-col md:flex-row gap-4">
+                    <Button
+                        onClick={handleCreate}
+                        className="bg-yellow-600 hover:bg-yellow-700 text-white border-0 shadow-lg hover:shadow-yellow-600/20 transition-all rounded-sm px-6 py-4 md:py-6 text-xs md:text-sm uppercase tracking-widest font-bold"
+                    >
+                        <Plus className="mr-2 h-4 w-4 md:h-5 md:w-5" /> <span className="hidden md:inline">Nueva Habitación</span><span className="md:hidden">Nueva</span>
+                    </Button>
+                </div>
             </PageHeader>
 
             <main className="flex-grow py-5 px-4 md:px-8 lg:px-20 -mt-10 relative z-10 w-full">
-                <Card className="max-w-7xl mx-auto border-t-4 border-yellow-600 shadow-xl bg-white">
-                    <CardHeader className="border-b bg-gray-50/50 pb-6">
-                        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-                            <div>
-                                <CardTitle className="text-xl font-bold text-gray-800">Inventario de Habitaciones</CardTitle>
-                                <CardDescription>Total de unidades: {totalItems}</CardDescription>
-                            </div>
-                            <div className="flex flex-col md:flex-row gap-4 items-center w-full md:w-auto">
-                                <ActiveFilter showInactive={showInactive} onChange={(val) => { setShowInactive(val); setCurrentPage(0); }} />
-                                <div className="relative w-full md:w-96 group">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-yellow-600 transition-colors" />
-                                    <Input
-                                        placeholder="Buscar por número, categoría..."
-                                        value={searchFilter}
-                                        onChange={(e) => setSearchFilter(e.target.value)}
-                                        className="pl-10 border-gray-200 focus:border-yellow-600 focus:ring-yellow-600/20 h-11 transition-all"
-                                    />
+                <div className="max-w-7xl mx-auto">
+                    {/* --- MAIN CONTENT --- */}
+                    <Card className="border-t-4 border-yellow-600 shadow-xl bg-white">
+                        <CardHeader className="border-b bg-gray-50/50 pb-6 px-6 md:px-10">
+                            <div className="flex flex-col xl:flex-row justify-between xl:items-center gap-6">
+                                <div>
+                                    <CardTitle className="text-xl font-bold text-gray-800">Inventario de Habitaciones</CardTitle>
+                                    <CardDescription>Visualizando {filteredHabitaciones.length} de {totalItems} unidades</CardDescription>
                                 </div>
-                            </div>
-                        </div>
-                    </CardHeader>
-                    <CardContent className="p-6 md:p-10">
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                            {loading ? (
-                                <div className="col-span-full h-32 flex flex-col items-center justify-center text-gray-500">
-                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-600 mb-2"></div>
-                                    <span>Cargando inventario...</span>
-                                </div>
-                            ) : filteredHabitaciones.length === 0 ? (
-                                <div className="col-span-full h-32 flex items-center justify-center text-gray-500 border-2 border-dashed rounded-lg">
-                                    No se encontraron habitaciones
-                                </div>
-                            ) : (
-                                filteredHabitaciones.map((h) => (
-                                    <RoomCard
-                                        key={h.id}
-                                        habitacion={h}
-                                        onEdit={handleEdit}
-                                        onDelete={(id) => handleDelete(id)}
-                                        onToggleActive={handleToggleActivo}
-                                    />
-                                ))
-                            )}
-                        </div>
 
-                        <div className="mt-8">
-                            <PaginationControl
-                                currentPage={currentPage}
-                                totalItems={totalItems}
-                                itemsPerPage={itemsPerPage}
-                                onPageChange={setCurrentPage}
-                                isLoading={loading}
-                            />
-                        </div>
-                    </CardContent>
-                </Card>
+                                <div className="flex flex-col md:flex-row items-center gap-4">
+                                    {/* Búsqueda rápida */}
+                                    <div className="relative group w-full md:w-64">
+                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-yellow-600 transition-colors" />
+                                        <Input
+                                            placeholder="Búsqueda rápida..."
+                                            value={searchFilter}
+                                            onChange={(e) => setSearchFilter(e.target.value)}
+                                            className="pl-10 border-gray-200 focus:border-yellow-600 focus:ring-yellow-600/20 h-10 transition-all bg-white"
+                                        />
+                                    </div>
+
+                                    {/* Estado Filter */}
+                                    <div className="flex items-center gap-2 bg-white border border-gray-200 p-1 rounded-md h-10">
+                                        <ActiveFilter
+                                            showInactive={showInactive}
+                                            onChange={(val) => { setShowInactive(val); setCurrentPage(0); }}
+                                        />
+                                    </div>
+
+                                    {/* Price Filter Popover */}
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Button variant="outline" className="h-10 gap-2 border-gray-200 hover:bg-gray-50 text-gray-700">
+                                                <Filter className="h-4 w-4" />
+                                                <span>Filtro</span>
+                                                {(appliedMin || appliedMax) && (
+                                                    <span className="flex h-2 w-2 rounded-full bg-yellow-600" />
+                                                )}
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-80 p-0" align="end">
+                                            <PriceRangeFilter
+                                                minPrice={minPrecio}
+                                                maxPrice={maxPrecio}
+                                                onMinChange={setMinPrecio}
+                                                onMaxChange={setMaxPrecio}
+                                                onSearch={() => {
+                                                    setAppliedMin(minPrecio);
+                                                    setAppliedMax(maxPrecio);
+                                                }}
+                                                className="border-0 shadow-none"
+                                            />
+                                        </PopoverContent>
+                                    </Popover>
+                                </div>
+                            </div>
+                        </CardHeader>
+                        <CardContent className="p-6 md:p-10">
+                            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+                                {loading ? (
+                                    <div className="col-span-full h-32 flex flex-col items-center justify-center text-gray-500">
+                                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-600 mb-2"></div>
+                                        <span>Cargando inventario...</span>
+                                    </div>
+                                ) : filteredHabitaciones.length === 0 ? (
+                                    <div className="col-span-full h-32 flex items-center justify-center text-gray-500 border-2 border-dashed rounded-lg">
+                                        No se encontraron habitaciones para los filtros seleccionados
+                                    </div>
+                                ) : (
+                                    filteredHabitaciones.map((h) => (
+                                        <RoomCard
+                                            key={h.id}
+                                            habitacion={h}
+                                            onEdit={handleEdit}
+                                            onDelete={(id) => handleDelete(id)}
+                                            onToggleActive={handleToggleActivo}
+                                        />
+                                    ))
+                                )}
+                            </div>
+
+                            <div className="mt-8">
+                                <PaginationControl
+                                    currentPage={currentPage}
+                                    totalItems={totalItems}
+                                    itemsPerPage={itemsPerPage}
+                                    onPageChange={setCurrentPage}
+                                    isLoading={loading}
+                                />
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
 
                 <HabitacionFormDialog
                     open={isDialogOpen}

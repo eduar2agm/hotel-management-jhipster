@@ -21,4 +21,6 @@ public interface CheckInCheckOutRepository extends JpaRepository<CheckInCheckOut
      *         contrario
      */
     boolean existsByReservaDetalle_Habitacion_IdAndFechaHoraCheckOutIsNullAndActivoTrue(Long habitacionId);
+
+    java.util.Optional<CheckInCheckOut> findByReservaDetalleId(Long reservaDetalleId);
 }
