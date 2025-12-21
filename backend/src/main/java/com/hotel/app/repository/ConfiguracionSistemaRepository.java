@@ -26,17 +26,14 @@ public interface ConfiguracionSistemaRepository extends JpaRepository<Configurac
         return this.findAllWithToOneRelationships(pageable);
     }
 
-    @Query(
-        value = "select configuracionSistema from ConfiguracionSistema configuracionSistema left join fetch configuracionSistema.imagen",
-        countQuery = "select count(configuracionSistema) from ConfiguracionSistema configuracionSistema"
-    )
+    @Query(value = "select configuracionSistema from ConfiguracionSistema configuracionSistema left join fetch configuracionSistema.imagen", countQuery = "select count(configuracionSistema) from ConfiguracionSistema configuracionSistema")
     Page<ConfiguracionSistema> findAllWithToOneRelationships(Pageable pageable);
 
     @Query("select configuracionSistema from ConfiguracionSistema configuracionSistema left join fetch configuracionSistema.imagen")
     List<ConfiguracionSistema> findAllWithToOneRelationships();
 
-    @Query(
-        "select configuracionSistema from ConfiguracionSistema configuracionSistema left join fetch configuracionSistema.imagen where configuracionSistema.id =:id"
-    )
+    @Query("select configuracionSistema from ConfiguracionSistema configuracionSistema left join fetch configuracionSistema.imagen where configuracionSistema.id =:id")
     Optional<ConfiguracionSistema> findOneWithToOneRelationships(@Param("id") Long id);
+
+    Optional<ConfiguracionSistema> findByClave(String clave);
 }

@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useMemo } from 'react';
 import { useAuth } from '../../hooks/useAuth';
-import { MensajeSoporteService, ClienteService } from '../../services';
+import { MensajeSoporteService, ClienteService, ConfiguracionSistemaService } from '../../services';
 import type { MensajeSoporteDTO, ClienteDTO } from '../../types/api';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Search, User, CheckCircle2, Send, ChevronRight, MessageCircle, MessageCircleOff, MessageCircleDashed, MessageCirclePlus } from 'lucide-react';
+import { Plus, Search, User, CheckCircle2, Send, ChevronRight, MessageCircle, MessageCircleOff, MessageCircleDashed, MessageCirclePlus, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import { Navbar } from '../../components/layout/Navbar';
 import { PaginationControl } from '@/components/common/PaginationControl';
@@ -219,6 +219,44 @@ export const EmployeeMensajesSoporte = () => {
 
         } catch (error) {
             toast.error('Error al enviar respuesta');
+        }
+    };
+
+    const handleSendWelcome = async () => {
+        if (!currentConversation) return;
+
+        try {
+            // Fetch welcome message template
+            let welcomeText = '👋 ¡Bienvenido a nuestro servicio de soporte!\n\nEstamos aquí para ayudarle con cualquier consulta o necesidad durante su estancia.\n\nNormalmente respondemos en pocos minutos.';
+
+            try {
+                const configRes = await ConfiguracionSistemaService.getConfiguracionByClave('MSG_WELCOME_CHAT');
+                if (configRes.data && configRes.data.valor) {
+                    welcomeText = configRes.data.valor;
+                }
+            } catch (configError) {
+                console.log('Using default welcome message');
+            }
+
+            const payload = {
+                userId: user?.id || 'employee',
+                userName: 'Sistema',
+                fechaMensaje: new Date().toISOString(),
+                remitente: Remitente.SISTEMA,
+                leido: false,
+                activo: true,
+                mensaje: welcomeText,
+                reserva: currentConversation.messages.find(m => m.reserva)?.reserva,
+                destinatarioId: currentConversation.otherPartyId,
+                destinatarioName: currentConversation.otherPartyName
+            };
+
+            const resp = await MensajeSoporteService.createMensaje(payload as any);
+            const newMsg = resp.data;
+            setMensajes(prev => [...prev, newMsg]);
+            toast.success('Mensaje de bienvenida enviado');
+        } catch (error) {
+            toast.error('Error al enviar mensaje de bienvenida');
         }
     };
 
@@ -453,6 +491,16 @@ export const EmployeeMensajesSoporte = () => {
 
                     {/* Reply Area */}
                     <div className="p-4 bg-white border-t border-gray-100 flex-shrink-0">
+                        <div className="flex gap-2 items-center mb-3">
+                            <Button
+                                onClick={handleSendWelcome}
+                                variant="outline"
+                                size="sm"
+                                className="text-xs border-purple-200 text-purple-700 hover:bg-purple-50"
+                            >
+                                <Sparkles className="h-3 w-3 mr-1" /> Enviar Bienvenida
+                            </Button>
+                        </div>
                         <form
                             onSubmit={(e) => {
                                 e.preventDefault();

@@ -23,7 +23,7 @@ public class MensajeSoporte implements Serializable {
     private Long id;
 
     @NotNull
-    @Column(name = "mensaje", nullable = false)
+    @Column(name = "mensaje", nullable = false, length = 4096)
     private String mensaje;
 
     @NotNull
