@@ -1,11 +1,18 @@
 package com.hotel.app.service.impl;
 
 import com.hotel.app.domain.ServicioContratado;
+import com.hotel.app.domain.enumeration.DiaSemana;
+import com.hotel.app.repository.ReservaRepository;
 import com.hotel.app.repository.ServicioContratadoRepository;
+import com.hotel.app.repository.ServicioDisponibilidadRepository;
 import com.hotel.app.service.ServicioContratadoService;
 import com.hotel.app.service.dto.ServicioContratadoDTO;
 import com.hotel.app.service.mapper.ServicioContratadoMapper;
+import com.hotel.app.web.rest.errors.BadRequestAlertException;
+import java.time.ZonedDateTime;
 import java.util.Optional;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -27,16 +34,79 @@ public class ServicioContratadoServiceImpl implements ServicioContratadoService 
 
     private final ServicioContratadoMapper servicioContratadoMapper;
 
+    private final ReservaRepository reservaRepository;
+
+    private final ServicioDisponibilidadRepository servicioDisponibilidadRepository;
+
     public ServicioContratadoServiceImpl(
             ServicioContratadoRepository servicioContratadoRepository,
-            ServicioContratadoMapper servicioContratadoMapper) {
+            ServicioContratadoMapper servicioContratadoMapper,
+            ReservaRepository reservaRepository,
+            ServicioDisponibilidadRepository servicioDisponibilidadRepository) {
         this.servicioContratadoRepository = servicioContratadoRepository;
         this.servicioContratadoMapper = servicioContratadoMapper;
+        this.reservaRepository = reservaRepository;
+        this.servicioDisponibilidadRepository = servicioDisponibilidadRepository;
     }
 
     @Override
     public ServicioContratadoDTO save(ServicioContratadoDTO servicioContratadoDTO) {
         LOG.debug("Request to save ServicioContratado : {}", servicioContratadoDTO);
+
+        // Validation Logic
+        if (servicioContratadoDTO.getReserva() != null && servicioContratadoDTO.getFechaServicio() != null) {
+            var reserva = reservaRepository.findById(servicioContratadoDTO.getReserva().getId())
+                    .orElseThrow(() -> new BadRequestAlertException("Reserva not found", "reserva", "idnotfound"));
+
+            // 1. Validate Date Range
+            if (servicioContratadoDTO.getFechaServicio().toInstant().isBefore(reserva.getFechaInicio()) ||
+                    servicioContratadoDTO.getFechaServicio().toInstant().isAfter(reserva.getFechaFin())) {
+                throw new BadRequestAlertException("Service date must be within reservation dates",
+                        "servicioContratado", "servicedateoutofrange");
+            }
+
+            // 2. Validate Service Availability
+            if (servicioContratadoDTO.getServicio() != null) {
+                ZonedDateTime fechaServicio = servicioContratadoDTO.getFechaServicio();
+                DiaSemana diaSemana = mapDayOfWeek(fechaServicio.getDayOfWeek());
+
+                var disponibilidades = servicioDisponibilidadRepository
+                        .findByServicioIdAndDiaSemanaAndActivoTrue(servicioContratadoDTO.getServicio().getId(),
+                                diaSemana);
+
+                if (disponibilidades.isEmpty()) {
+                    throw new BadRequestAlertException("Service not available on this day", "servicioContratado",
+                            "servicenotavailable");
+                }
+
+                // Check time
+                boolean timeValid = false;
+                for (var disp : disponibilidades) {
+                    if (Boolean.TRUE.equals(disp.getHoraFija())) {
+                        if (disp.getHoraInicio().getHour() == fechaServicio.getHour() &&
+                                disp.getHoraInicio().getMinute() == fechaServicio.getMinute()) {
+                            timeValid = true;
+                        }
+                    } else {
+                        // Range
+                        if (!fechaServicio.toLocalTime().isBefore(disp.getHoraInicio()) &&
+                                (disp.getHoraFin() == null
+                                        || !fechaServicio.toLocalTime().isAfter(disp.getHoraFin()))) {
+                            timeValid = true;
+                        }
+                    }
+
+                    if (timeValid)
+                        break;
+                }
+
+                if (!timeValid) {
+                    throw new BadRequestAlertException("Service not available at this time", "servicioContratado",
+                            "servicetimeinvalid");
+                }
+            }
+        }
+
         ServicioContratado servicioContratado = servicioContratadoMapper.toEntity(servicioContratadoDTO);
         servicioContratado = servicioContratadoRepository.save(servicioContratado);
         return servicioContratadoMapper.toDto(servicioContratado);
@@ -92,20 +162,20 @@ public class ServicioContratadoServiceImpl implements ServicioContratadoService 
 
     @Override
     @Transactional(readOnly = true)
-    public java.util.List<ServicioContratadoDTO> findByReservaId(Long reservaId) {
+    public List<ServicioContratadoDTO> findByReservaId(Long reservaId) {
         LOG.debug("Request to get ServicioContratados by Reserva : {}", reservaId);
         return servicioContratadoRepository.findByReservaId(reservaId).stream()
                 .map(servicioContratadoMapper::toDto)
-                .collect(java.util.stream.Collectors.toList());
+                .collect(Collectors.toList());
     }
 
     @Override
     @Transactional(readOnly = true)
-    public java.util.List<ServicioContratadoDTO> findByClienteId(Long clienteId) {
+    public List<ServicioContratadoDTO> findByClienteId(Long clienteId) {
         LOG.debug("Request to get ServicioContratados by Cliente : {}", clienteId);
         return servicioContratadoRepository.findByClienteId(clienteId).stream()
                 .map(servicioContratadoMapper::toDto)
-                .collect(java.util.stream.Collectors.toList());
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -133,5 +203,26 @@ public class ServicioContratadoServiceImpl implements ServicioContratadoService 
             servicioContratado.setEstado(com.hotel.app.domain.enumeration.EstadoServicioContratado.CANCELADO);
             servicioContratadoRepository.save(servicioContratado);
         });
+    }
+
+    private DiaSemana mapDayOfWeek(java.time.DayOfWeek dayOfWeek) {
+        switch (dayOfWeek) {
+            case MONDAY:
+                return DiaSemana.LUNES;
+            case TUESDAY:
+                return DiaSemana.MARTES;
+            case WEDNESDAY:
+                return DiaSemana.MIERCOLES;
+            case THURSDAY:
+                return DiaSemana.JUEVES;
+            case FRIDAY:
+                return DiaSemana.VIERNES;
+            case SATURDAY:
+                return DiaSemana.SABADO;
+            case SUNDAY:
+                return DiaSemana.DOMINGO;
+            default:
+                throw new IllegalArgumentException("Invalid day");
+        }
     }
 }
