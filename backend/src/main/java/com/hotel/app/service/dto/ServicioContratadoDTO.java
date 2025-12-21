@@ -5,6 +5,7 @@ import jakarta.validation.constraints.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.ZonedDateTime;
 import java.util.Objects;
 
 /**
@@ -17,6 +18,13 @@ public class ServicioContratadoDTO implements Serializable {
 
     @NotNull
     private Instant fechaContratacion;
+
+    @NotNull
+    private ZonedDateTime fechaServicio;
+
+    @NotNull
+    @Min(value = 1)
+    private Integer numeroPersonas;
 
     @NotNull
     @Min(value = 1)
@@ -54,6 +62,22 @@ public class ServicioContratadoDTO implements Serializable {
 
     public void setFechaContratacion(Instant fechaContratacion) {
         this.fechaContratacion = fechaContratacion;
+    }
+
+    public ZonedDateTime getFechaServicio() {
+        return fechaServicio;
+    }
+
+    public void setFechaServicio(ZonedDateTime fechaServicio) {
+        this.fechaServicio = fechaServicio;
+    }
+
+    public Integer getNumeroPersonas() {
+        return numeroPersonas;
+    }
+
+    public void setNumeroPersonas(Integer numeroPersonas) {
+        this.numeroPersonas = numeroPersonas;
     }
 
     public Integer getCantidad() {
@@ -145,16 +169,18 @@ public class ServicioContratadoDTO implements Serializable {
     @Override
     public String toString() {
         return "ServicioContratadoDTO{" +
-            "id=" + getId() +
-            ", fechaContratacion='" + getFechaContratacion() + "'" +
-            ", cantidad=" + getCantidad() +
-            ", precioUnitario=" + getPrecioUnitario() +
-            ", estado='" + getEstado() + "'" +
-            ", observaciones='" + getObservaciones() + "'" +
-            ", servicio=" + getServicio() +
-            ", reserva=" + getReserva() +
-            ", cliente=" + getCliente() +
-            ", pago=" + getPago() +
-            "}";
+                "id=" + getId() +
+                ", fechaContratacion='" + getFechaContratacion() + "'" +
+                ", fechaServicio='" + getFechaServicio() + "'" +
+                ", numeroPersonas=" + getNumeroPersonas() +
+                ", cantidad=" + getCantidad() +
+                ", precioUnitario=" + getPrecioUnitario() +
+                ", estado='" + getEstado() + "'" +
+                ", observaciones='" + getObservaciones() + "'" +
+                ", servicio=" + getServicio() +
+                ", reserva=" + getReserva() +
+                ", cliente=" + getCliente() +
+                ", pago=" + getPago() +
+                "}";
     }
 }
