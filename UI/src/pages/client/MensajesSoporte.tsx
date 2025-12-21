@@ -43,7 +43,22 @@ export const ClientMensajesSoporte = () => {
                     detailsPart = `\n📅 Detalles de la Reserva:\nCheck-in: ${formatDate(reservaDetails.fechaInicio)}\nCheck-out: ${formatDate(reservaDetails.fechaFin)}`;
                 }
 
-                const msg = `⚠️ SOLICITUD DE CANCELACIÓN\n\nHola, me gustaría solicitar la cancelación de mi reserva con ID: #${reservaId}.${detailsPart}\n\nPor favor, indíquenme los pasos a seguir y si existen cargos aplicables. Quedo a la espera de su confirmación.`;
+                let msg = `⚠️ SOLICITUD DE CANCELACIÓN\n\nHola, me gustaría solicitar la cancelación de mi reserva con ID: #${reservaId}.${detailsPart}\n\nPor favor, indíquenme los pasos a seguir y si existen cargos aplicables. Quedo a la espera de su confirmación.`;
+
+                try {
+                    // Try to fetch custom message template
+                    const { data: config } = await import('../../services/configuracion-sistema.service')
+                        .then(m => m.ConfiguracionSistemaService.getConfiguracionByClave('MSG_CANCEL_REQUEST'));
+
+                    if (config && config.valor) {
+                        msg = config.valor
+                            .replace('{reservaId}', reservaId.toString())
+                            .replace('{details}', detailsPart);
+                    }
+                } catch (error) {
+                    // Fallback to default if config not found or error
+                    console.log('Using default cancellation message');
+                }
 
                 await sendMessage(msg);
 
