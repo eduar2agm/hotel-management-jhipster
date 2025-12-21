@@ -5,8 +5,12 @@ import com.hotel.app.domain.enumeration.DiaSemana;
 import com.hotel.app.repository.ReservaRepository;
 import com.hotel.app.repository.ServicioContratadoRepository;
 import com.hotel.app.repository.ServicioDisponibilidadRepository;
+import com.hotel.app.service.ConfiguracionSistemaService;
+import com.hotel.app.service.MensajeSoporteService;
 import com.hotel.app.service.ServicioContratadoService;
+import com.hotel.app.service.dto.MensajeSoporteDTO;
 import com.hotel.app.service.dto.ServicioContratadoDTO;
+import java.time.Instant;
 import com.hotel.app.service.mapper.ServicioContratadoMapper;
 import com.hotel.app.web.rest.errors.BadRequestAlertException;
 import java.time.ZonedDateTime;
@@ -38,15 +42,23 @@ public class ServicioContratadoServiceImpl implements ServicioContratadoService 
 
     private final ServicioDisponibilidadRepository servicioDisponibilidadRepository;
 
+    private final MensajeSoporteService mensajeSoporteService;
+
+    private final ConfiguracionSistemaService configuracionSistemaService;
+
     public ServicioContratadoServiceImpl(
             ServicioContratadoRepository servicioContratadoRepository,
             ServicioContratadoMapper servicioContratadoMapper,
             ReservaRepository reservaRepository,
-            ServicioDisponibilidadRepository servicioDisponibilidadRepository) {
+            ServicioDisponibilidadRepository servicioDisponibilidadRepository,
+            MensajeSoporteService mensajeSoporteService,
+            ConfiguracionSistemaService configuracionSistemaService) {
         this.servicioContratadoRepository = servicioContratadoRepository;
         this.servicioContratadoMapper = servicioContratadoMapper;
         this.reservaRepository = reservaRepository;
         this.servicioDisponibilidadRepository = servicioDisponibilidadRepository;
+        this.mensajeSoporteService = mensajeSoporteService;
+        this.configuracionSistemaService = configuracionSistemaService;
     }
 
     @Override
@@ -184,6 +196,7 @@ public class ServicioContratadoServiceImpl implements ServicioContratadoService 
         servicioContratadoRepository.findById(id).ifPresent(servicioContratado -> {
             servicioContratado.setEstado(com.hotel.app.domain.enumeration.EstadoServicioContratado.CONFIRMADO);
             servicioContratadoRepository.save(servicioContratado);
+            sendMessage(servicioContratado, "MSG_SERVICE_CONFIRMADO");
         });
     }
 
@@ -193,6 +206,7 @@ public class ServicioContratadoServiceImpl implements ServicioContratadoService 
         servicioContratadoRepository.findById(id).ifPresent(servicioContratado -> {
             servicioContratado.setEstado(com.hotel.app.domain.enumeration.EstadoServicioContratado.COMPLETADO);
             servicioContratadoRepository.save(servicioContratado);
+            sendMessage(servicioContratado, "MSG_SERVICE_COMPLETADO");
         });
     }
 
@@ -202,7 +216,41 @@ public class ServicioContratadoServiceImpl implements ServicioContratadoService 
         servicioContratadoRepository.findById(id).ifPresent(servicioContratado -> {
             servicioContratado.setEstado(com.hotel.app.domain.enumeration.EstadoServicioContratado.CANCELADO);
             servicioContratadoRepository.save(servicioContratado);
+            sendMessage(servicioContratado, "MSG_SERVICE_CANCELADO");
         });
+    }
+
+    private void sendMessage(ServicioContratado servicio, String key) {
+        if (servicio.getCliente() != null) {
+            String msgText = "Actualización de servicio: " + key;
+            try {
+                var configOpt = configuracionSistemaService.findByClave(key);
+                if (configOpt.isPresent() && configOpt.get().getValor() != null) {
+                    msgText = configOpt.get().getValor()
+                            .replace("{servicioNombre}",
+                                    servicio.getServicio() != null ? servicio.getServicio().getNombre() : "")
+                            .replace("{fechaServicio}",
+                                    servicio.getFechaServicio() != null ? servicio.getFechaServicio().toString() : "")
+                            .replace("{total}",
+                                    servicio.getPrecioUnitario() != null && servicio.getCantidad() != null
+                                            ? String.valueOf(servicio.getPrecioUnitario()
+                                                    .multiply(java.math.BigDecimal.valueOf(servicio.getCantidad())))
+                                            : "");
+                }
+            } catch (Exception e) {
+                LOG.error("Error fetching message template for key: {}", key, e);
+            }
+
+            MensajeSoporteDTO mensaje = new MensajeSoporteDTO();
+            mensaje.setMensaje(msgText);
+            mensaje.setFechaMensaje(Instant.now());
+            mensaje.setUserId(servicio.getCliente().getKeycloakId());
+            mensaje.setUserName(servicio.getCliente().getNombre() + " " + servicio.getCliente().getApellido());
+            mensaje.setLeido(false);
+            mensaje.setActivo(true);
+            mensaje.setRemitente("SISTEMA");
+            mensajeSoporteService.save(mensaje);
+        }
     }
 
     private DiaSemana mapDayOfWeek(java.time.DayOfWeek dayOfWeek) {
