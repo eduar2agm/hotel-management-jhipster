@@ -43,5 +43,7 @@
     <include file="config/liquibase/changelog/20251221153000_increase_mensaje_length.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20251221183907_insert_default_messages.xml" relativeToChangelogFile="false"/>
     <!-- jhipster-needle-liquibase-add-constraints-changelog - JHipster will add liquibase constraints changelogs here -->
+    <include file="config/liquibase/changelog/20241221174000_added_entity_ServicioDisponibilidad.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20241221174100_add_mensajes_servicios.xml" relativeToChangelogFile="false"/>
     <!-- jhipster-needle-liquibase-add-incremental-changelog - JHipster will add incremental liquibase changelogs here -->
 </databaseChangeLog>
