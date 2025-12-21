@@ -19,15 +19,14 @@ import {
     FormMessage,
 } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Search, Pencil, ChevronLeft, ChevronRight, Briefcase, Upload, Loader2, Image as ImageIcon } from 'lucide-react';
+import { Plus, Search, Pencil, Briefcase, Upload, Loader2, Image as ImageIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { Navbar } from '../../components/ui/Navbar';
-import { Footer } from '../../components/ui/Footer';
 import { ServiceCard } from '@/components/ui/ServiceCard';
 import { ActiveFilter } from '@/components/ui/ActiveFilter';
+import { PaginationControl } from '@/components/common/PaginationControl';
 
 const servicioSchema = z.object({
     id: z.number().optional(),
@@ -216,7 +215,6 @@ export const ServiciosList = ({ readOnly = false }: { readOnly?: boolean }) => {
 
     return (
         <div className="font-sans text-gray-900 bg-gray-50 min-h-screen flex flex-col">
-            <Navbar />
 
             <div className="bg-[#0F172A] pt-32 pb-20 px-4 md:px-8 lg:px-20 relative overflow-hidden shadow-xl">
                 <div className="absolute top-0 right-0 p-12 opacity-5 scale-150 pointer-events-none">
@@ -292,28 +290,14 @@ export const ServiciosList = ({ readOnly = false }: { readOnly?: boolean }) => {
                             )}
                         </div>
 
-                        <div className="mt-8 flex items-center justify-end gap-4 border-t pt-4">
-                            <span className="text-sm text-gray-500">
-                                Página {currentPage + 1} de {Math.max(1, Math.ceil(totalItems / itemsPerPage))}
-                            </span>
-                            <div className="flex gap-2">
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
-                                    disabled={currentPage === 0 || loading}
-                                >
-                                    <ChevronLeft className="h-4 w-4" /> Anterior
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => setCurrentPage(p => p + 1)}
-                                    disabled={(currentPage + 1) * itemsPerPage >= totalItems || loading}
-                                >
-                                    Siguiente <ChevronRight className="h-4 w-4" />
-                                </Button>
-                            </div>
+                        <div className="mt-8">
+                            <PaginationControl
+                                currentPage={currentPage}
+                                totalItems={totalItems}
+                                itemsPerPage={itemsPerPage}
+                                onPageChange={setCurrentPage}
+                                isLoading={loading}
+                            />
                         </div>
                     </CardContent>
                 </Card>
@@ -520,7 +504,6 @@ export const ServiciosList = ({ readOnly = false }: { readOnly?: boolean }) => {
                     </Dialog>
                 )}
             </main>
-            <Footer />
         </div>
     );
 };

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Navbar } from '../../components/ui/Navbar';
-import { Footer } from '../../components/ui/Footer';
+import { Navbar } from '../../components/layout/Navbar';
+import { Footer } from '../../components/layout/Footer';
 import { Sparkles, Utensils } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ServicioService } from '../../services/servicio.service';
@@ -32,6 +32,8 @@ import {
 } from "@/components/ui/select";
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+
+import { PageHeader } from '../../components/common/PageHeader';
 
 export const Servicios = () => {
   const navigate = useNavigate();
@@ -140,29 +142,17 @@ export const Servicios = () => {
     );
   }
 
+
   return (
     <div className="bg-white min-h-screen font-sans text-gray-900 flex flex-col">
       <Navbar />
 
-      {/* HERO SECTION */}
-      <div className="relative h-[60vh] w-full overflow-hidden flex items-center justify-center">
-        <div className="absolute inset-0">
-          <img
-            src="https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=2070&auto=format&fit=crop"
-            alt="Servicios Hotel"
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-black/50"></div>
-        </div>
-        <div className="relative z-10 text-center px-6">
-          <h1 className="text-4xl md:text-6xl font-black text-white uppercase tracking-wider mb-4">
-            Experiencias & Servicios
-          </h1>
-          <p className="text-gray-200 text-lg max-w-2xl mx-auto">
-            Elevamos tu estancia con detalles pensados para tu confort.
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title="Experiencias & Servicios"
+        subtitle="Elevamos tu estancia con detalles pensados para tu confort."
+        category="Catálogo Exclusivo"
+        className="bg-[#0F172A]"
+      />
 
       {/* SECCIÓN 1: SERVICIOS PREMIUM (PAGO) */}
       <section className="py-20 px-6 max-w-[1600px] mx-auto">

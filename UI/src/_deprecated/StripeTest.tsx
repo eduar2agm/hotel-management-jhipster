@@ -6,7 +6,7 @@ import {
   useStripe,
   useElements,
 } from '@stripe/react-stripe-js';
-import { apiClient } from '../../api/axios-instance';
+import { apiClient } from '../api/axios-instance';
 import { toast } from 'sonner';
 
 // Load Stripe outside of a component’s render to avoid recreating the Stripe object on every render.

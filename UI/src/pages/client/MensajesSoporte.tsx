@@ -7,14 +7,17 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Search, MessageSquare, Clock, Send, CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, Search, MessageSquare } from 'lucide-react';
 import { toast } from 'sonner';
-import { Badge } from '@/components/ui/badge';
+import { SupportMessageCard } from '../../components/client/support/SupportMessageCard';
 import { useAuth } from '../../hooks/useAuth';
+import { PaginationControl } from '@/components/common/PaginationControl';
 
 // Importamos los componentes de UI del Hotel
-import { Navbar } from '../../components/ui/Navbar';
-import { Footer } from '../../components/ui/Footer';
+import { Navbar } from '../../components/layout/Navbar';
+import { Footer } from '../../components/layout/Footer';
+
+import { PageHeader } from '../../components/common/PageHeader';
 
 export const ClientMensajesSoporte = () => {
     // --- LÓGICA ORIGINAL INTACTA ---
@@ -111,31 +114,17 @@ export const ClientMensajesSoporte = () => {
         <div className="font-sans text-gray-900 bg-gray-50 min-h-screen flex flex-col">
             <Navbar />
 
-            {/* --- HERO SECTION --- 
-                Agregamos pt-32 (padding top) para compensar el Navbar absoluto y evitar que tape el contenido.
-                Fondo azul marino oscuro (#0f172a = slate-900) solicitado.
-            */}
-            <div className="relative bg-[#0F172A] pt-32 pb-20 px-4 md:px-8 lg:px-20 overflow-hidden shadow-xl">
-                {/* Efecto de fondo sutil */}
-                <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-blue-900/10 to-transparent pointer-events-none"></div>
-
-                <div className="relative max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-end md:items-center gap-6">
-                    <div>
-                        <span className="text-yellow-500 font-bold tracking-[0.2em] uppercase text-xs mb-3 block animate-in fade-in slide-in-from-bottom-2 duration-500">
-                            Concierge Digital
-                        </span>
-                        <h2 className="text-4xl md:text-5xl font-black text-white tracking-tight mb-4">
-                            Asistencia al Huésped
-                        </h2>
-                        <p className="text-slate-400 font-light text-lg max-w-xl leading-relaxed">
-                            Estamos aquí para resolver sus dudas y peticiones especiales. Su satisfacción es nuestra prioridad.
-                        </p>
-                    </div>
-                </div>
-            </div>
+            {/* --- HERO SECTION --- */}
+            <PageHeader
+                title="Asistencia al Huésped"
+                subtitle="Estamos aquí para resolver sus dudas y peticiones especiales. Su satisfacción es nuestra prioridad."
+                category="Concierge Digital"
+                className="bg-[#0F172A]"
+            />
 
             <main className="flex-grow py-12 px-4 md:px-8 lg:px-20 relative z-10">
                 <div className="max-w-5xl mx-auto -mt-8">
+
 
                     {/* Barra de Herramientas */}
                     <div className="flex flex-col md:flex-row gap-4 justify-between items-center mb-8">
@@ -208,52 +197,11 @@ export const ClientMensajesSoporte = () => {
                                     const isSentByUser = msg.userId === user?.id;
 
                                     return (
-                                        <div
+                                        <SupportMessageCard
                                             key={msg.id}
-                                            className={`bg-white p-6 rounded-sm border transition-all duration-300 hover:shadow-md
-                                                ${!msg.leido && !isSentByUser ? 'border-l-4 border-l-yellow-500 shadow-sm' : 'border-l-4 border-l-gray-200 border-gray-100'}
-                                            `}
-                                        >
-                                            <div className="flex flex-col md:flex-row justify-between gap-4">
-                                                <div className="flex-grow space-y-2">
-                                                    <div className="flex items-center gap-2 mb-2">
-                                                        {isSentByUser ? (
-                                                            <Badge variant="outline" className="bg-blue-50 text-blue-800 border-blue-100 rounded-full px-3 py-0.5 text-[10px] uppercase tracking-wider font-bold">
-                                                                <Send className="w-3 h-3 mr-1" /> Enviado
-                                                            </Badge>
-                                                        ) : (
-                                                            <Badge variant="outline" className="bg-emerald-50 text-emerald-800 border-emerald-100 rounded-full px-3 py-0.5 text-[10px] uppercase tracking-wider font-bold">
-                                                                <MessageSquare className="w-3 h-3 mr-1" /> Respuesta
-                                                            </Badge>
-                                                        )}
-
-                                                        <span className="text-xs text-gray-400 flex items-center gap-1">
-                                                            <Clock className="w-3 h-3" />
-                                                            {new Date(msg.fechaMensaje!).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-                                                            {' • '}
-                                                            {new Date(msg.fechaMensaje!).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
-                                                        </span>
-                                                    </div>
-
-                                                    <p className="text-gray-700 leading-relaxed text-sm md:text-base">
-                                                        {msg.mensaje}
-                                                    </p>
-                                                </div>
-
-                                                <div className="flex items-center md:flex-col md:items-end md:justify-center min-w-[120px] pt-4 md:pt-0 border-t md:border-t-0 md:border-l border-gray-100 pl-0 md:pl-6 gap-2">
-                                                    <span className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Estado</span>
-                                                    {msg.leido ? (
-                                                        <div className="flex items-center text-emerald-600 text-xs font-medium bg-emerald-50 px-3 py-1 rounded-full">
-                                                            <CheckCircle2 className="w-3 h-3 mr-1" /> Visto
-                                                        </div>
-                                                    ) : (
-                                                        <div className="flex items-center text-gray-500 text-xs font-medium bg-gray-100 px-3 py-1 rounded-full">
-                                                            Enviado
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
+                                            message={msg}
+                                            isSentByUser={!!isSentByUser}
+                                        />
                                     );
                                 })}
                             </div>
@@ -262,35 +210,18 @@ export const ClientMensajesSoporte = () => {
 
                     {/* Pagination Footer */}
                     {filteredMensajes.length > 0 && (
-                        <div className="flex items-center justify-end gap-4 mt-8">
-                            <span className="text-sm text-gray-500">
-                                Página {currentPage + 1} de {Math.max(1, Math.ceil(totalItems / itemsPerPage))}
-                            </span>
-                            <div className="flex gap-2">
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
-                                    disabled={currentPage === 0 || loading}
-                                    className="bg-white border-gray-200"
-                                >
-                                    <ChevronLeft className="h-4 w-4" /> Anterior
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => setCurrentPage(p => p + 1)}
-                                    disabled={(currentPage + 1) * itemsPerPage >= totalItems || loading}
-                                    className="bg-white border-gray-200"
-                                >
-                                    Siguiente <ChevronRight className="h-4 w-4" />
-                                </Button>
-                            </div>
+                        <div className="mt-8">
+                            <PaginationControl
+                                currentPage={currentPage}
+                                totalItems={totalItems}
+                                itemsPerPage={itemsPerPage}
+                                onPageChange={setCurrentPage}
+                                isLoading={loading}
+                            />
                         </div>
                     )}
                 </div>
             </main>
-
             <Footer />
         </div>
     );

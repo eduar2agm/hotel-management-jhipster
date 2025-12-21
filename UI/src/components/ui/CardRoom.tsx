@@ -1,18 +1,31 @@
 
-import type { HabitacionDTO } from '../../types/api/Habitacion';
+import type { HabitacionDTO, ServicioDTO } from '../../types/api';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
-import { BedDouble, Image as ImageIcon, Info, Wifi, Tv, Coffee } from 'lucide-react';
+import { BedDouble, Image as ImageIcon, Info, Wifi, Tv, Coffee, Check, X } from 'lucide-react';
 import { useState } from 'react';
+import { getImageUrl } from '../../utils/imageUtils';
 
 interface CardRoomProps {
     habitacion: HabitacionDTO;
+    variant?: 'display' | 'selection';
+    isSelected?: boolean;
+    onAction?: (habitacion: HabitacionDTO) => void;
+    actionLabel?: string;
+    services?: ServicioDTO[];
 }
 
-export const CardRoom = ({ habitacion: h }: CardRoomProps) => {
+export const CardRoom = ({
+    habitacion: h,
+    variant = 'display',
+    isSelected = false,
+    onAction,
+    actionLabel,
+    services = []
+}: CardRoomProps) => {
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
     const precioBase = Number(h.categoriaHabitacion?.precioBase || 0).toFixed(2);
@@ -22,12 +35,17 @@ export const CardRoom = ({ habitacion: h }: CardRoomProps) => {
 
     return (
         <>
-            <Card className="group overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col h-full">
+            <Card className={cn(
+                "group overflow-hidden rounded-xl border bg-white shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col h-full",
+                isSelected
+                    ? "border-yellow-500 ring-2 ring-yellow-500 ring-offset-2"
+                    : "border-gray-100"
+            )}>
                 {/* Image Section */}
                 <div className="relative h-64 w-full overflow-hidden bg-gray-100">
                     {h.imagen ? (
                         <img
-                            src={h.imagen.startsWith('http') ? h.imagen : `/images/${h.imagen}`}
+                            src={getImageUrl(h.imagen)}
                             alt={`Habitación ${h.numero}`}
                             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                         />
@@ -35,6 +53,15 @@ export const CardRoom = ({ habitacion: h }: CardRoomProps) => {
                         <div className="flex h-full w-full flex-col items-center justify-center bg-gray-50 text-gray-400">
                             <ImageIcon className="h-12 w-12 opacity-20" />
                             <span className="mt-2 text-xs font-medium uppercase tracking-wider">No Imagen</span>
+                        </div>
+                    )}
+
+                    {/* Selection Overlay */}
+                    {isSelected && (
+                        <div className="absolute inset-0 bg-yellow-900/40 flex items-center justify-center backdrop-blur-[2px] animate-in fade-in">
+                            <div className="bg-white text-yellow-700 px-4 py-2 rounded-full font-bold shadow-lg flex items-center gap-2">
+                                <Check className="w-5 h-5" /> Seleccionada
+                            </div>
                         </div>
                     )}
 
@@ -97,17 +124,41 @@ export const CardRoom = ({ habitacion: h }: CardRoomProps) => {
                                 <Info className="mr-2 h-4 w-4" />
                                 Detalles
                             </Button>
-                            <Button
-                                className={cn(
-                                    "w-full text-white shadow-md transition-all hover:shadow-lg focus:ring-2 focus:ring-offset-2",
-                                    isDisponible
-                                        ? "bg-yellow-600 hover:bg-yellow-700 focus:ring-yellow-500"
-                                        : "bg-gray-800 hover:bg-gray-900 cursor-not-allowed opacity-80"
-                                )}
-                                disabled={!isDisponible}
-                            >
-                                {isDisponible ? "Reservar" : "Ocupada"}
-                            </Button>
+
+                            {variant === 'display' ? (
+                                <Button
+                                    className={cn(
+                                        "w-full text-white shadow-md transition-all hover:shadow-lg focus:ring-2 focus:ring-offset-2",
+                                        isDisponible
+                                            ? "bg-yellow-600 hover:bg-yellow-700 focus:ring-yellow-500"
+                                            : "bg-gray-800 hover:bg-gray-900 cursor-not-allowed opacity-80"
+                                    )}
+                                    disabled={!isDisponible}
+                                /* Logic here typically handled by parent via routing or another handler, but kept as is for display */
+                                >
+                                    {isDisponible ? "Reservar" : "Ocupada"}
+                                </Button>
+                            ) : (
+                                <Button
+                                    className={cn(
+                                        "w-full text-white shadow-md transition-all hover:shadow-lg",
+                                        isSelected
+                                            ? "bg-gray-200 text-gray-700 hover:bg-red-100 hover:text-red-700"
+                                            : "bg-yellow-600 hover:bg-yellow-700"
+                                    )}
+                                    onClick={() => onAction && onAction(h)}
+                                >
+                                    {isSelected ? (
+                                        <span className="flex items-center gap-2">
+                                            <X className="h-4 w-4" /> Quitar
+                                        </span>
+                                    ) : (
+                                        <span className="flex items-center gap-2">
+                                            <Check className="h-4 w-4" /> Agregar
+                                        </span>
+                                    )}
+                                </Button>
+                            )}
                         </div>
                     </div>
                 </CardContent>
@@ -120,7 +171,7 @@ export const CardRoom = ({ habitacion: h }: CardRoomProps) => {
                         {/* Image Side */}
                         <div className="relative h-64 md:h-full bg-gray-100">
                             {h.imagen ? (
-                                <img src={h.imagen.startsWith('http') ? h.imagen : `/images/${h.imagen}`} alt={h.numero} className="h-full w-full object-cover" />
+                                <img src={getImageUrl(h.imagen)} alt={h.numero} className="h-full w-full object-cover" />
                             ) : (
                                 <div className="flex h-full items-center justify-center">
                                     <ImageIcon className="h-16 w-16 text-gray-300" />
@@ -156,26 +207,53 @@ export const CardRoom = ({ habitacion: h }: CardRoomProps) => {
 
                                 <div>
                                     <h4 className="text-sm font-bold uppercase tracking-wider text-gray-400 mb-3">Comodidades</h4>
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                                            <Wifi className="h-4 w-4 text-yellow-600" /> Wifi High-Speed
+                                    {services.length > 0 ? (
+                                        <div className="grid grid-cols-2 gap-3">
+                                            {services.map(s => (
+                                                <div key={s.id} className="flex items-center gap-2 text-sm text-gray-600">
+                                                    <Check className="h-4 w-4 text-yellow-600" /> {s.nombre}
+                                                </div>
+                                            ))}
                                         </div>
-                                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                                            <Tv className="h-4 w-4 text-yellow-600" /> Smart TV 55"
+                                    ) : (
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                                                <Wifi className="h-4 w-4 text-yellow-600" /> Wifi High-Speed
+                                            </div>
+                                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                                                <Tv className="h-4 w-4 text-yellow-600" /> Smart TV 55"
+                                            </div>
+                                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                                                <Coffee className="h-4 w-4 text-yellow-600" /> Coffee Maker
+                                            </div>
+                                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                                                <BedDouble className="h-4 w-4 text-yellow-600" /> Capacidad {h.capacidad}
+                                            </div>
                                         </div>
-                                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                                            <Coffee className="h-4 w-4 text-yellow-600" /> Coffee Maker
-                                        </div>
-                                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                                            <BedDouble className="h-4 w-4 text-yellow-600" /> Capacidad {h.capacidad}
-                                        </div>
-                                    </div>
+                                    )}
                                 </div>
 
                                 <div className="pt-6 mt-6 border-t border-gray-100">
-                                    <Button className="w-full bg-yellow-600 hover:bg-yellow-700 text-white h-12 text-lg font-semibold shadow-lg shadow-yellow-200">
-                                        Reservar Ahora
-                                    </Button>
+                                    {variant === 'selection' ? (
+                                        <Button
+                                            className={cn(
+                                                "w-full h-12 text-lg font-semibold shadow-lg",
+                                                isSelected
+                                                    ? "bg-gray-200 text-gray-800 hover:bg-red-100 hover:text-red-700"
+                                                    : "bg-yellow-600 hover:bg-yellow-700 text-white shadow-yellow-200"
+                                            )}
+                                            onClick={() => {
+                                                if (onAction) onAction(h);
+                                                setIsDetailsOpen(false);
+                                            }}
+                                        >
+                                            {actionLabel || (isSelected ? 'Quitar de la Selección' : 'Agregar a Reserva')}
+                                        </Button>
+                                    ) : (
+                                        <Button className="w-full bg-yellow-600 hover:bg-yellow-700 text-white h-12 text-lg font-semibold shadow-lg shadow-yellow-200">
+                                            {actionLabel || "Reservar Ahora"}
+                                        </Button>
+                                    )}
                                 </div>
                             </div>
                         </div>

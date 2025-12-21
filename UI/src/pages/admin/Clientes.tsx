@@ -5,13 +5,13 @@ import { useAuth } from '../../hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Mail, Phone, Plus, Search, Pencil, Trash2, User, UserCircle, MapPin, ShieldCheck, CheckCircle2, XCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Mail, Phone, Plus, Search, Pencil, Trash2, User, UserCircle, MapPin, ShieldCheck, CheckCircle2, XCircle } from 'lucide-react';
+import { PaginationControl } from '@/components/common/PaginationControl';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { Navbar } from '../../components/ui/Navbar';
-import { Footer } from '../../components/ui/Footer';
+import { PageHeader } from '@/components/common/PageHeader';
 import {
     Dialog,
     DialogContent,
@@ -198,33 +198,23 @@ export const AdminClientes = () => {
 
     return (
         <div className="font-sans text-gray-900 bg-gray-50 min-h-screen flex flex-col">
-            <Navbar />
 
             {/* HERO SECTION */}
-            <div className="bg-[#0F172A] pt-32 pb-16 px-4 md:px-8 lg:px-20 shadow-xl relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-12 opacity-5 scale-150 pointer-events-none">
-                    <UserCircle className="w-96 h-96 text-white" />
-                </div>
-                <div className="relative max-w-7xl mx-auto z-10 flex flex-col md:flex-row justify-between items-center gap-6">
-                    <div>
-                        <span className="text-yellow-500 font-bold tracking-[0.2em] uppercase text-xs mb-2 block">Administración</span>
-                        <h1 className="text-3xl md:text-5xl font-black text-white tracking-tight mb-2">
-                            Gestión de Clientes
-                        </h1>
-                        <p className="text-slate-400 text-lg max-w-2xl">
-                            Administre la base de datos de huéspedes, perfiles y estados de cuenta.
-                        </p>
-                    </div>
-                    <div>
-                        <Button
-                            onClick={handleCreate}
-                            className="bg-yellow-600 hover:bg-yellow-700 text-white border-0 shadow-lg hover:shadow-yellow-600/20 transition-all rounded-sm px-6 py-6 text-sm uppercase tracking-widest font-bold"
-                        >
-                            <Plus className="mr-2 h-5 w-5" /> Nuevo Cliente
-                        </Button>
-                    </div>
-                </div>
-            </div>
+
+            <PageHeader
+                title="Gestión de Clientes"
+                icon={UserCircle}
+                subtitle="Administre la base de datos de huéspedes, perfiles y estados de cuenta."
+                category="Administración"
+                className="bg-[#0F172A]"
+            >
+                <Button
+                    onClick={handleCreate}
+                    className="bg-yellow-600 hover:bg-yellow-700 text-white rounded-none px-6 py-6 shadow-lg transition-all border border-yellow-600/30 text-lg"
+                >
+                    <Plus className="mr-2 h-5 w-5" /> Nuevo cliente
+                </Button>
+            </PageHeader>
 
             <main className="flex-grow py-10 px-4 md:px-8 lg:px-20 -mt-10 relative z-10">
                 <Card className="max-w-7xl mx-auto border-t-4 border-yellow-600 shadow-xl bg-white">
@@ -380,30 +370,14 @@ export const AdminClientes = () => {
                 </Card>
 
                 {/* PAGINATION */}
-                <div className="mt-4 flex items-center justify-end gap-4 max-w-7xl mx-auto px-10">
-                    <span className="text-sm text-gray-500">
-                        Página {currentPage + 1} de {Math.max(1, Math.ceil(totalItems / itemsPerPage))}
-                    </span>
-                    <div className="flex gap-2">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
-                            disabled={currentPage === 0 || loading}
-                            className="bg-white border-gray-200"
-                        >
-                            <ChevronLeft className="h-4 w-4" /> Anterior
-                        </Button>
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setCurrentPage(p => p + 1)}
-                            disabled={(currentPage + 1) * itemsPerPage >= totalItems || loading}
-                            className="bg-white border-gray-200"
-                        >
-                            Siguiente <ChevronRight className="h-4 w-4" />
-                        </Button>
-                    </div>
+                <div className="mt-4 max-w-7xl mx-auto px-10">
+                    <PaginationControl
+                        currentPage={currentPage}
+                        totalItems={totalItems}
+                        itemsPerPage={itemsPerPage}
+                        onPageChange={setCurrentPage}
+                        isLoading={loading}
+                    />
                 </div>
 
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -523,7 +497,6 @@ export const AdminClientes = () => {
                 </Dialog>
             </main>
 
-            <Footer />
         </div >
     );
 };

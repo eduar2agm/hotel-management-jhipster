@@ -4,6 +4,7 @@ import { ServicioContratadoService } from '../../services/servicio-contratado.se
 import type { ServicioContratadoDTO } from '../../types/api/ServicioContratado';
 import { EstadoServicioContratado } from '../../types/api/ServicioContratado';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { PageHeader } from '@/components/common/PageHeader';
 import {
     Table,
     TableBody,
@@ -17,8 +18,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search, MoreVertical, CheckCircle, XCircle, PlayCircle, Briefcase, Plus } from 'lucide-react';
 import { toast } from 'sonner';
-import { Navbar } from '../../components/ui/Navbar';
-import { Footer } from '../../components/ui/Footer';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -28,6 +27,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { format } from 'date-fns';
+import { PaginationControl } from '@/components/common/PaginationControl';
 
 export const AdminServiciosContratados = ({ basePath = '/admin' }: { basePath?: string }) => {
     const navigate = useNavigate();
@@ -89,10 +89,23 @@ export const AdminServiciosContratados = ({ basePath = '/admin' }: { basePath?: 
 
     return (
         <div className="font-sans text-gray-900 bg-gray-50 min-h-screen flex flex-col">
-            <Navbar />
-
             {/* HERO SECTION */}
-            <div className="bg-[#0F172A] pt-32 pb-20 px-4 md:px-8 lg:px-20 relative overflow-hidden shadow-xl">
+             <PageHeader
+                title="Gestión de Reservas"
+                icon={Briefcase}
+                subtitle="Controle y planifique las estancias. Asigne habitaciones y gestione fechas."
+                category="Administración"
+                className="bg-[#0F172A]"
+            >
+                <Button
+                     onClick={() => navigate(`${basePath}/servicios/contratar`)}
+                    className="bg-yellow-600 hover:bg-yellow-700 text-white rounded-none px-6 py-6 shadow-lg transition-all border border-yellow-600/30 text-lg"
+                >
+                    <Plus className="mr-2 h-5 w-5" /> Nuevo contrato
+                </Button>
+            </PageHeader>
+
+            {/* <div className="bg-[#0F172A] pt-32 pb-20 px-4 md:px-8 lg:px-20 relative overflow-hidden shadow-xl">
                 <div className="absolute top-0 right-0 p-12 opacity-5 scale-150 pointer-events-none">
                     <Briefcase className="w-96 h-96 text-white" />
                 </div>
@@ -115,7 +128,7 @@ export const AdminServiciosContratados = ({ basePath = '/admin' }: { basePath?: 
                         </Button>
                     </div>
                 </div>
-            </div>
+            </div> */}
 
             <main className="flex-grow py-5 px-4 md:px-8 lg:px-20 -mt-10 relative z-10">
                 <Card className="max-w-7xl mx-auto border-t-4 border-yellow-600 shadow-xl bg-white">
@@ -136,7 +149,7 @@ export const AdminServiciosContratados = ({ basePath = '/admin' }: { basePath?: 
                             </div>
                         </div>
                     </CardHeader>
-                    <CardContent className="p-0">
+                    <CardContent className="p-10">
                         <div className="overflow-x-auto">
                             <Table>
                                 <TableHeader>
@@ -218,33 +231,19 @@ export const AdminServiciosContratados = ({ basePath = '/admin' }: { basePath?: 
                         </div>
 
                         {/* PAGINATION */}
-                        <div className="p-4 flex items-center justify-end gap-4 border-t">
-                            <span className="text-sm text-gray-500">
-                                Página {currentPage + 1} de {Math.max(1, Math.ceil(totalItems / itemsPerPage))}
-                            </span>
-                            <div className="flex gap-2">
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
-                                    disabled={currentPage === 0 || loading}
-                                >
-                                    Anterior
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => setCurrentPage(p => p + 1)}
-                                    disabled={(currentPage + 1) * itemsPerPage >= totalItems || loading}
-                                >
-                                    Siguiente
-                                </Button>
-                            </div>
+                        <div className="p-4 border-t">
+                            <PaginationControl
+                                currentPage={currentPage}
+                                totalItems={totalItems}
+                                itemsPerPage={itemsPerPage}
+                                onPageChange={setCurrentPage}
+                                isLoading={loading}
+                            />
                         </div>
                     </CardContent>
                 </Card>
             </main>
-            <Footer />
+
         </div>
     );
 };

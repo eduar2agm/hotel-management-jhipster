@@ -17,8 +17,10 @@ import {
 } from '../../utils/identification';
 
 // Importamos los componentes de UI del Hotel
-import { Navbar } from '../../components/ui/Navbar';
-import { Footer } from '../../components/ui/Footer';
+import { Navbar } from '../../components/layout/Navbar';
+import { Footer } from '../../components/layout/Footer';
+
+import { PageHeader } from '../../components/common/PageHeader';
 
 export const Perfil = () => {
     // --- LÓGICA ORIGINAL INTACTA ---
@@ -150,21 +152,12 @@ export const Perfil = () => {
             <Navbar />
 
             {/* --- HERO SECTION --- */}
-            <div className="relative bg-[#0F172A] pt-32 pb-20 px-4 md:px-8 lg:px-20 overflow-hidden shadow-xl">
-                <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-blue-900/10 to-transparent pointer-events-none"></div>
-
-                <div className="relative max-w-4xl mx-auto text-center md:text-left">
-                    <span className="text-yellow-500 font-bold tracking-[0.2em] uppercase text-xs mb-3 block animate-in fade-in slide-in-from-bottom-2 duration-500">
-                        Configuración
-                    </span>
-                    <h2 className="text-4xl md:text-5xl font-black text-white tracking-tight mb-4">
-                        Mi Perfil Personal
-                    </h2>
-                    <p className="text-slate-400 font-light text-lg max-w-xl leading-relaxed mx-auto md:mx-0">
-                        Mantenga su información actualizada para agilizar su proceso de check-in y disfrutar de una experiencia personalizada.
-                    </p>
-                </div>
-            </div>
+            <PageHeader
+                title="Mi Perfil Personal"
+                subtitle="Mantenga su información actualizada para agilizar su proceso de check-in y disfrutar de una experiencia personalizada."
+                category="Configuración"
+                className="bg-[#0F172A]"
+            />
 
             <main className="flex-grow py-12 px-4 md:px-8 lg:px-20 relative z-10">
                 <div className="max-w-4xl mx-auto -mt-8">

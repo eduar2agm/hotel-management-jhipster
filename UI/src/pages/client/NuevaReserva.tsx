@@ -16,12 +16,10 @@ import { useAuth } from '../../hooks/useAuth';
 import { ClienteService, HabitacionService, ReservaService, ReservaDetalleService, ServicioService } from '../../services';
 import type { HabitacionDTO, NewReservaDTO, ServicioDTO } from '../../types/api';
 import { toast } from 'sonner';
-import { BedDouble, Search, ArrowLeft, CalendarDays, Check, ShoppingBag, X, Trash2 } from 'lucide-react';
+import { Search, ArrowLeft, CalendarDays, ShoppingBag, Trash2, BedDouble } from 'lucide-react';
+import { CardRoom } from '../../components/ui/CardRoom';
 import { useNavigate } from 'react-router-dom';
-
-// Importamos los componentes de UI del Hotel
-import { Navbar } from '../../components/ui/Navbar';
-import { Footer } from '../../components/ui/Footer';
+import { PageHeader } from '../../components/common/PageHeader';
 
 // --- LOGICA ORIGINAL ---
 const searchSchema = z.object({
@@ -187,29 +185,17 @@ export const NuevaReserva = () => {
 
     return (
         <div className="font-sans text-gray-900 bg-gray-50 min-h-screen flex flex-col">
-            <Navbar />
 
             {/* --- HERO SECTION ---  */}
-            <div className="relative bg-[#0F172A] pt-32 pb-20 px-4 md:px-8 lg:px-20 overflow-hidden shadow-xl">
-                {/* Efecto de fondo sutil */}
-                <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-blue-900/10 to-transparent pointer-events-none"></div>
+            <PageHeader
+                title="Reservar Estancia"
+                icon={BedDouble}
+                subtitle="Encuentre su refugio perfecto. Consulte disponibilidad y asegure su momento de relax con nosotros."
+                category="Experiencias Inolvidables"
+                className="bg-[#0F172A]"
+            />
 
-                <div className="relative max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-end md:items-center gap-6">
-                    <div>
-                        <span className="text-yellow-500 font-bold tracking-[0.2em] uppercase text-xs mb-3 block animate-in fade-in slide-in-from-bottom-2 duration-500">
-                            Experiencias Inolvidables
-                        </span>
-                        <h2 className="text-4xl md:text-5xl font-black text-white tracking-tight mb-4">
-                            Reservar Estancia
-                        </h2>
-                        <p className="text-slate-400 font-light text-lg max-w-xl leading-relaxed">
-                            Encuentre su refugio perfecto. Consulte disponibilidad y asegure su momento de relax con nosotros.
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            <main className="flex-grow py-12 px-4 md:px-8 lg:px-20 relative z-10">
+            <main className="flex-grow py-7 px-4 md:px-8 lg:px-20 relative z-10">
                 <div className="max-w-6xl mx-auto -mt-12">
 
                     {step === 1 && (
@@ -328,97 +314,14 @@ export const NuevaReserva = () => {
                                             {availableRooms.map(room => {
                                                 const isSelected = selectedRooms.some(r => r.id === room.id);
                                                 return (
-                                                    <div
+                                                    <CardRoom
                                                         key={room.id}
-                                                        className={`group bg-white rounded-sm overflow-hidden border transition-all duration-300 flex flex-col h-full
-                                                            ${isSelected ? 'border-yellow-500 ring-2 ring-yellow-500 ring-offset-2 shadow-xl' : 'border-gray-200 hover:border-yellow-600 hover:shadow-lg'}
-                                                        `}
-                                                    >
-                                                        {/* Imagen */}
-                                                        <div className="h-56 bg-gray-200 relative overflow-hidden">
-                                                            {room.imagen ? (
-                                                                <img
-                                                                    src={room.imagen}
-                                                                    alt={`Habitación ${room.numero}`}
-                                                                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                                                                />
-                                                            ) : (
-                                                                <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                                                                    <BedDouble className="h-12 w-12 text-gray-300" />
-                                                                </div>
-                                                            )}
-                                                            <div className="absolute top-4 right-4">
-                                                                <span className="bg-white/90 backdrop-blur-md text-gray-900 text-[10px] font-bold px-3 py-1.5 uppercase tracking-widest shadow-sm">
-                                                                    {room.categoriaHabitacion?.nombre}
-                                                                </span>
-                                                            </div>
-                                                            {isSelected && (
-                                                                <div className="absolute inset-0 bg-yellow-900/40 flex items-center justify-center backdrop-blur-[2px] transition-all animate-in fade-in">
-                                                                    <div className="bg-white text-yellow-700 px-4 py-2 rounded-full font-bold shadow-lg flex items-center gap-2">
-                                                                        <Check className="w-5 h-5" /> Seleccionada
-                                                                    </div>
-                                                                </div>
-                                                            )}
-                                                        </div>
-
-                                                        {/* Contenido */}
-                                                        <div className="p-5 flex flex-col flex-grow">
-                                                            <div className="flex justify-between items-start mb-3">
-                                                                <h3 className="text-lg font-bold text-gray-900 font-serif">
-                                                                    Habitación {room.numero}
-                                                                </h3>
-                                                            </div>
-
-                                                            <p className="text-gray-500 text-sm leading-relaxed mb-4 line-clamp-2">
-                                                                {room.descripcion || 'Disfrute de un confort inigualable y servicios de primera clase en nuestra exclusiva habitación.'}
-                                                            </p>
-
-                                                            {freeServices.length > 0 && (
-                                                                <div className="mb-4 text-sm text-gray-500">
-                                                                    <span className="font-bold text-gray-700">Servicios: </span>
-                                                                    
-                                                                    {/* Contenedor con un pequeño margen superior */}
-                                                                    <div className="mt-1 flex flex-col gap-1"> 
-                                                                    {freeServices.map((s, index) => (
-                                                                        <span key={s.id || index} className="block">
-                                                                        {s.nombre}
-                                                                        </span>
-                                                                    ))}
-                                                                    </div>
-                                                                </div>
-                                                                )}
-
-                                                            <div className="mt-auto pt-4 border-t border-gray-100 flex items-end justify-between">
-                                                                <div>
-                                                                    <span className="block text-xs text-gray-400 uppercase tracking-widest">Desde</span>
-                                                                    <div className="flex items-baseline gap-1">
-                                                                        <span className="text-xl font-bold text-gray-900 font-serif">
-                                                                            ${room.categoriaHabitacion?.precioBase || '0'}
-                                                                        </span>
-                                                                        <span className="text-xs text-gray-500">/ noche</span>
-                                                                    </div>
-                                                                </div>
-            
-                                                                <Button
-                                                                    onClick={() => toggleRoomSelection(room)}
-                                                                    variant={isSelected ? "secondary" : "default"}
-                                                                    className={`rounded-none px-4 shadow-md transition-all 
-                                                                        ${isSelected ? 'bg-gray-200 text-gray-700 hover:bg-red-100 hover:text-red-700' : 'bg-yellow-600 hover:bg-yellow-700 text-white'}
-                                                                    `}
-                                                                >
-                                                                    {isSelected ? (
-                                                                        <span className="flex items-center gap-2">
-                                                                             <X className="h-4 w-4" /> Quitar
-                                                                        </span>
-                                                                    ) : (
-                                                                        <span className="flex items-center gap-2">
-                                                                             <Check className="h-4 w-4" /> Agregar
-                                                                        </span>
-                                                                    )}
-                                                                </Button>
-                                                            </div>
-                                                        </div>
-                                                    </div>
+                                                        habitacion={room}
+                                                        variant="selection"
+                                                        isSelected={isSelected}
+                                                        onAction={toggleRoomSelection}
+                                                        services={freeServices}
+                                                    />
                                                 );
                                             })}
                                         </div>
@@ -533,7 +436,6 @@ export const NuevaReserva = () => {
                 </div>
             </main>
 
-            <Footer />
         </div>
     );
 };

@@ -13,10 +13,12 @@ import {
     TableRow,
 } from "@/components/ui/table"
 import { Badge } from '@/components/ui/badge';
-import { Navbar } from '../../components/ui/Navbar';
-import { Footer } from '../../components/ui/Footer';
+import { Navbar } from '../../components/layout/Navbar';
+import { Footer } from '../../components/layout/Footer';
 import { format } from 'date-fns';
 import { Sparkles } from 'lucide-react';
+
+import { PageHeader } from '../../components/common/PageHeader';
 
 export const MisServicios = () => {
     const [items, setItems] = useState<ServicioContratadoDTO[]>([]);
@@ -71,16 +73,12 @@ export const MisServicios = () => {
         <div className="font-sans text-gray-900 bg-gray-50 min-h-screen flex flex-col">
             <Navbar />
 
-            <div className="bg-[#0F172A] pt-32 pb-20 px-4 md:px-8 lg:px-20 relative overflow-hidden shadow-xl">
-                <div className="relative max-w-7xl mx-auto z-10">
-                    <h1 className="text-3xl md:text-5xl font-black text-white tracking-tight mb-2">
-                        Mis Servicios Contratados
-                    </h1>
-                    <p className="text-slate-400 text-lg max-w-2xl">
-                        Historial de servicios adicionales y amenidades.
-                    </p>
-                </div>
-            </div>
+            <PageHeader
+                title="Mis Servicios Contratados"
+                subtitle="Historial de servicios adicionales y amenidades."
+                category="Servicios y Amenidades"
+                className="bg-[#0F172A]"
+            />
 
             <main className="flex-grow py-5 px-4 md:px-8 lg:px-20 -mt-10 relative z-10">
                 <Card className="max-w-7xl mx-auto border-t-4 border-yellow-600 shadow-xl bg-white">
