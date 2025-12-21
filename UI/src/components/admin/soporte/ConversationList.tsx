@@ -18,7 +18,7 @@ interface ConversationListProps {
     isLoading: boolean;
     onSelect: (conv: Conversation) => void;
     onToggleActivo: (msg: any) => void;
-    
+
     // Pagination
     currentPage: number;
     totalItems: number;
@@ -26,10 +26,10 @@ interface ConversationListProps {
     onPageChange: (page: number) => void;
 }
 
-export const ConversationList = ({ 
-    conversations, 
-    isLoading, 
-    onSelect, 
+export const ConversationList = ({
+    conversations,
+    isLoading,
+    onSelect,
     onToggleActivo,
     currentPage,
     totalItems,
@@ -89,9 +89,11 @@ export const ConversationList = ({
                                             <span className={`text-sm ${conv.unreadCount > 0 ? 'font-bold text-slate-900' : 'font-medium text-slate-700'}`}>
                                                 {conv.otherPartyName}
                                             </span>
-                                            <div className="flex items-center gap-1 text-xs text-slate-400">
-                                                <User className="h-3 w-3" /> ID: {conv.otherPartyId.substring(0, 8)}...
-                                            </div>
+                                            {conv.otherPartyId !== 'unknown' && (
+                                                <div className="flex items-center gap-1 text-xs text-slate-400">
+                                                    <User className="h-3 w-3" /> ID: {conv.otherPartyId.substring(0, 8)}...
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 </TableCell>
@@ -133,9 +135,9 @@ export const ConversationList = ({
                     )}
                 </TableBody>
             </Table>
-             
-             {/* Pagination */}
-             <div className="bg-gray-50/50">
+
+            {/* Pagination */}
+            <div className="bg-gray-50/50">
                 <PaginationControl
                     currentPage={currentPage}
                     totalItems={totalItems}

@@ -12,33 +12,36 @@ import { ChatDialog } from '@/components/admin/soporte/ChatDialog';
 import { NewConversationDialog } from '@/components/admin/soporte/NewConversationDialog';
 
 export const AdminMensajesSoporte = () => {
-    const { 
-        conversations, 
-        loading, 
-        showInactive, 
-        setShowInactive, 
-        searchTerm, 
+    const {
+        conversations,
+        loading,
+        showInactive,
+        setShowInactive,
+        searchTerm,
         setSearchTerm,
-        markAsRead, 
-        addMessage, 
-        toggleActivo, 
+        markAsRead,
+        addMessage,
+        toggleActivo,
         clientes,
         loadData // In case we need to reload manually
     } = useAdminChat();
 
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
     const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
-    const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
+    const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
 
     // Pagination
     const [currentPage, setCurrentPage] = useState(0);
     const itemsPerPage = 10;
-    
+
     // Derived pagination
     const paginatedConversations = conversations.slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage);
 
+    // Derived selected conversation - finds the fresh object from the updated list
+    const selectedConversation = conversations.find(c => c.otherPartyId === selectedConversationId) || null;
+
     const handleSelectConversation = (conv: Conversation) => {
-        setSelectedConversation(conv);
+        setSelectedConversationId(conv.otherPartyId);
         setIsViewDialogOpen(true);
         markAsRead(conv);
     };
@@ -60,8 +63,8 @@ export const AdminMensajesSoporte = () => {
     return (
         <div className="font-sans text-gray-900 bg-gray-50 min-h-screen flex flex-col">
 
-            <PageHeader 
-                title="Centro de Soporte" 
+            <PageHeader
+                title="Centro de Soporte"
                 subtitle="Gestione todas las consultas y solicitudes de soporte de los clientes."
                 category="ADMINISTRACIÓN"
             />
@@ -96,7 +99,7 @@ export const AdminMensajesSoporte = () => {
                         </div>
 
                         {/* CONVERSATION LIST */}
-                        <ConversationList 
+                        <ConversationList
                             conversations={paginatedConversations}
                             isLoading={loading}
                             onSelect={handleSelectConversation}
@@ -109,14 +112,14 @@ export const AdminMensajesSoporte = () => {
                     </div>
                 </div>
 
-                <ChatDialog 
+                <ChatDialog
                     open={isViewDialogOpen}
                     onOpenChange={setIsViewDialogOpen}
                     conversation={selectedConversation}
                     onMessageSent={handleMessageSent}
                 />
 
-                <NewConversationDialog 
+                <NewConversationDialog
                     open={isCreateDialogOpen}
                     onOpenChange={setIsCreateDialogOpen}
                     clientes={clientes}

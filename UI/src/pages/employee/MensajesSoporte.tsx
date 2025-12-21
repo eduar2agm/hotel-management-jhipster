@@ -50,7 +50,7 @@ export const EmployeeMensajesSoporte = () => {
         setLoading(true);
         try {
             const [msgsRes, clientesRes] = await Promise.all([
-                MensajeSoporteService.getMyMensajes({ page: 0, size: 500, sort: 'fechaMensaje,desc' }),
+                MensajeSoporteService.getMensajes({ page: 0, size: 500, sort: 'fechaMensaje,desc' }),
                 ClienteService.getClientes()
             ]);
             setMensajes(msgsRes.data);
@@ -72,12 +72,28 @@ export const EmployeeMensajesSoporte = () => {
         const groups = new Map<string, Conversation>();
 
         mensajes.forEach(msg => {
-            const isMe = msg.userId === user?.id;
-            let otherId = isMe ? msg.destinatarioId : msg.userId;
-            let otherName = isMe ? msg.destinatarioName : msg.userName;
+            let otherId = '';
+            let otherName = '';
+
+            // Use same consistent logic as Admin view
+            if (msg.remitente === Remitente.CLIENTE) {
+                otherId = msg.userId || 'unknown';
+                otherName = msg.userName || 'Cliente Desconocido';
+            } else if (msg.remitente === Remitente.ADMINISTRATIVO) {
+                otherId = msg.destinatarioId || 'unknown';
+                otherName = msg.destinatarioName || 'Cliente';
+            } else {
+                otherId = msg.destinatarioId || msg.userId || 'unknown';
+                otherName = msg.destinatarioName || msg.userName || 'System';
+            }
 
             if (!otherId) otherId = 'unknown';
-            if (!otherName) otherName = 'Usuario Desconocido';
+
+            // Resolve Real Name
+            const matchedClient = clientes.find(c => c.keycloakId === otherId || c.id?.toString() === otherId);
+            if (matchedClient) {
+                otherName = `${matchedClient.nombre} ${matchedClient.apellido}`;
+            }
 
             if (!groups.has(otherId)) {
                 groups.set(otherId, {
@@ -92,7 +108,15 @@ export const EmployeeMensajesSoporte = () => {
             const group = groups.get(otherId)!;
             group.messages.push(msg);
 
-            if (!msg.leido && !isMe) {
+            // Update name if we have a better one (e.g. from a request with populated name)
+            // But prefer the resolved client name if we found one
+            if (matchedClient) {
+                group.otherPartyName = `${matchedClient.nombre} ${matchedClient.apellido}`;
+            } else if (otherName && otherName !== 'Cliente' && otherName !== 'Cliente Desconocido') {
+                group.otherPartyName = otherName;
+            }
+
+            if (!msg.leido && msg.remitente === Remitente.CLIENTE) {
                 group.unreadCount++;
             }
         });
@@ -108,7 +132,7 @@ export const EmployeeMensajesSoporte = () => {
 
         // Sort conversations by latest activity (desc)
         return result.sort((a, b) => new Date(b.lastMessage.fechaMensaje!).getTime() - new Date(a.lastMessage.fechaMensaje!).getTime());
-    }, [mensajes, user]);
+    }, [mensajes, user, clientes]);
 
     // 2. Filter for display list
     const filteredConversations = useMemo(() => {
@@ -402,17 +426,18 @@ export const EmployeeMensajesSoporte = () => {
                     {/* Chat Messages */}
                     <div className="flex-1 overflow-y-auto p-6 bg-slate-50 space-y-4">
                         {currentConversation?.messages.map((msg, idx) => {
-                            const isMe = msg.userId === user?.id;
+                            // Display as "Me" (Right/Blue) if it is from ANY Administrative staff (Admin or Employee)
+                            const isStaff = msg.remitente === Remitente.ADMINISTRATIVO;
                             return (
-                                <div key={idx} className={`flex ${isMe ? 'justify-end' : 'justify-start'} animate-in slide-in-from-bottom-2`}>
-                                    <div className={`max-w-[80%] rounded-2xl p-3 px-4 text-sm shadow-sm ${isMe
+                                <div key={idx} className={`flex ${isStaff ? 'justify-end' : 'justify-start'} animate-in slide-in-from-bottom-2`}>
+                                    <div className={`max-w-[80%] rounded-2xl p-3 px-4 text-sm shadow-sm ${isStaff
                                         ? 'bg-blue-600 text-white rounded-tr-none'
                                         : 'bg-white text-slate-800 border border-gray-100 rounded-tl-none'
                                         }`}>
                                         <p className="whitespace-pre-wrap leading-relaxed">{msg.mensaje}</p>
-                                        <div className={`flex items-center gap-1 mt-1 text-[10px] ${isMe ? 'text-blue-200 justify-end' : 'text-gray-400'}`}>
-                                            {new Date(msg.fechaMensaje).toLocaleDateString()} {new Date(msg.fechaMensaje).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                            {isMe && msg.leido && <CheckCircle2 className="h-3 w-3 ml-1" />}
+                                        <div className={`flex items-center gap-1 mt-1 text-[10px] ${isStaff ? 'text-blue-200 justify-end' : 'text-gray-400'}`}>
+                                            {new Date(msg.fechaMensaje!).toLocaleDateString()} {new Date(msg.fechaMensaje!).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            {isStaff && msg.leido && <CheckCircle2 className="h-3 w-3 ml-1" />}
                                         </div>
                                     </div>
                                 </div>
