@@ -22,7 +22,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Plus, Search, ChevronsUpDown, Check, Hotel, Image as ImageIcon, Pencil, ChevronLeft, ChevronRight, Upload, Loader2 } from 'lucide-react';
+import { Plus, Search, ChevronsUpDown, Check, Hotel, Image as ImageIcon, Pencil, ChevronLeft, ChevronRight, Upload, Loader2, SlidersHorizontal } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { Textarea } from '@/components/ui/textarea';
@@ -31,6 +31,7 @@ import { Navbar } from '../../components/ui/Navbar';
 import { Footer } from '../../components/ui/Footer';
 import { RoomCard } from '@/components/ui/RoomCard';
 import { ActiveFilter } from '@/components/ui/ActiveFilter';
+import { PriceRangeFilter } from '@/components/ui/PriceRangeFilter';
 
 const habitacionSchema = z.object({
     id: z.number().optional(),
@@ -62,6 +63,8 @@ export const AdminHabitaciones = () => {
     const [showInactive, setShowInactive] = useState(false);
     const [localPreview, setLocalPreview] = useState<string | null>(null);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [minPrice, setMinPrice] = useState<string>('');
+    const [maxPrice, setMaxPrice] = useState<string>('');
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const form = useForm<HabitacionFormValues>({
@@ -247,13 +250,21 @@ export const AdminHabitaciones = () => {
     };
 
     const filteredHabitaciones = habitaciones.filter(h => {
-        if (!searchFilter) return true;
+        const precio = h.categoriaHabitacion?.precioBase || 0;
+        const matchMin = minPrice === '' || precio >= Number(minPrice);
+        const matchMax = maxPrice === '' || precio <= Number(maxPrice);
+
+        if (!searchFilter) return matchMin && matchMax;
+
         const searchLower = searchFilter.toLowerCase();
-        return (
+        const matchText = (
             h.numero?.toLowerCase().includes(searchLower) ||
             h.categoriaHabitacion?.nombre?.toLowerCase().includes(searchLower) ||
-            h.estadoHabitacion?.nombre?.toLowerCase().includes(searchLower)
+            h.estadoHabitacion?.nombre?.toLowerCase().includes(searchLower) ||
+            h.categoriaHabitacion?.precioBase?.toString().includes(searchLower)
         );
+
+        return matchText && matchMin && matchMax;
     });
 
     return (
@@ -298,12 +309,39 @@ export const AdminHabitaciones = () => {
                                 <div className="relative w-full md:w-96 group">
                                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-yellow-600 transition-colors" />
                                     <Input
-                                        placeholder="Buscar por número, categoría..."
+                                        placeholder="Buscar por número, categoría, precio..."
                                         value={searchFilter}
                                         onChange={(e) => setSearchFilter(e.target.value)}
                                         className="pl-10 border-gray-200 focus:border-yellow-600 focus:ring-yellow-600/20 h-11 transition-all"
                                     />
                                 </div>
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <Button variant="outline" className="h-11 border-gray-200 gap-2 text-gray-600">
+                                            <SlidersHorizontal className="h-4 w-4" />
+                                            Precios
+                                            {(minPrice || maxPrice) && <span className="w-2 h-2 rounded-full bg-yellow-600" />}
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-80 p-6" align="end">
+                                        <PriceRangeFilter
+                                            minPrice={minPrice}
+                                            maxPrice={maxPrice}
+                                            onMinPriceChange={setMinPrice}
+                                            onMaxPriceChange={setMaxPrice}
+                                        />
+                                        <div className="mt-4 pt-4 border-t flex justify-end">
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="text-[10px] font-bold uppercase text-gray-400 hover:text-red-500"
+                                                onClick={() => { setMinPrice(''); setMaxPrice(''); }}
+                                            >
+                                                Limpiar
+                                            </Button>
+                                        </div>
+                                    </PopoverContent>
+                                </Popover>
                             </div>
                         </div>
                     </CardHeader>
