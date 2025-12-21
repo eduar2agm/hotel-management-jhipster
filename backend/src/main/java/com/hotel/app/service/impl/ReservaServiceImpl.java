@@ -8,6 +8,7 @@ import com.hotel.app.repository.ReservaRepository;
 import com.hotel.app.service.ReservaService;
 import com.hotel.app.service.dto.ReservaDTO;
 import com.hotel.app.service.MensajeSoporteService;
+import com.hotel.app.service.ConfiguracionSistemaService;
 import com.hotel.app.service.dto.MensajeSoporteDTO;
 import java.time.Instant;
 import com.hotel.app.service.mapper.ReservaMapper;
@@ -38,12 +39,16 @@ public class ReservaServiceImpl implements ReservaService {
 
     private final MensajeSoporteService mensajeSoporteService;
 
+    private final ConfiguracionSistemaService configuracionSistemaService;
+
     public ReservaServiceImpl(ReservaRepository reservaRepository, ReservaMapper reservaMapper,
-            ReservaDetalleRepository reservaDetalleRepository, MensajeSoporteService mensajeSoporteService) {
+            ReservaDetalleRepository reservaDetalleRepository, MensajeSoporteService mensajeSoporteService,
+            ConfiguracionSistemaService configuracionSistemaService) {
         this.reservaRepository = reservaRepository;
         this.reservaMapper = reservaMapper;
         this.reservaDetalleRepository = reservaDetalleRepository;
         this.mensajeSoporteService = mensajeSoporteService;
+        this.configuracionSistemaService = configuracionSistemaService;
     }
 
     @Override
@@ -209,9 +214,29 @@ public class ReservaServiceImpl implements ReservaService {
 
     private void sendFinalizadaMessage(Reserva reserva) {
         if (reserva.getCliente() != null) {
+            String msgText = "Su reserva con ID " + reserva.getId() + " ha sido finalizada. Gracias por su estancia.";
+
+            // Try to fetch custom message template
+            try {
+                var configOpt = configuracionSistemaService.findByClave("MSG_ADMIN_FINALIZE");
+                if (configOpt.isPresent() && configOpt.get().getValor() != null) {
+                    String template = configOpt.get().getValor();
+                    msgText = template
+                            .replace("{clienteNombre}",
+                                    reserva.getCliente().getNombre() != null ? reserva.getCliente().getNombre()
+                                            : "Cliente")
+                            .replace("{reservaId}", reserva.getId() != null ? reserva.getId().toString() : "")
+                            .replace("{fechaInicio}",
+                                    reserva.getFechaInicio() != null ? reserva.getFechaInicio().toString() : "")
+                            .replace("{fechaFin}",
+                                    reserva.getFechaFin() != null ? reserva.getFechaFin().toString() : "");
+                }
+            } catch (Exception e) {
+                LOG.debug("Using default finalization message", e);
+            }
+
             MensajeSoporteDTO mensaje = new MensajeSoporteDTO();
-            mensaje.setMensaje(
-                    "Su reserva con ID " + reserva.getId() + " ha sido finalizada. Gracias por su estancia.");
+            mensaje.setMensaje(msgText);
             mensaje.setFechaMensaje(Instant.now());
             mensaje.setUserId(reserva.getCliente().getKeycloakId());
             mensaje.setUserName(reserva.getCliente().getNombre() + " " + reserva.getCliente().getApellido());
@@ -221,6 +246,36 @@ public class ReservaServiceImpl implements ReservaService {
 
             // Set the reservation in the message if needed.
             // Note: Use a new DTO or map existing one carefully to avoid issues
+            ReservaDTO reservaDTO = reservaMapper.toDto(reserva);
+            mensaje.setReserva(reservaDTO);
+
+            mensajeSoporteService.save(mensaje);
+        }
+    }
+
+    private void sendWelcomeMessage(Reserva reserva) {
+        if (reserva.getCliente() != null) {
+            String msgText = "👋 ¡Bienvenido a nuestro servicio de soporte!\n\nEstamos aquí para ayudarle con cualquier consulta o necesidad durante su estancia.\n\nNormalmente respondemos en pocos minutos.";
+
+            // Try to fetch custom welcome message template
+            try {
+                var configOpt = configuracionSistemaService.findByClave("MSG_WELCOME_CHAT");
+                if (configOpt.isPresent() && configOpt.get().getValor() != null) {
+                    msgText = configOpt.get().getValor();
+                }
+            } catch (Exception e) {
+                LOG.debug("Using default welcome message", e);
+            }
+
+            MensajeSoporteDTO mensaje = new MensajeSoporteDTO();
+            mensaje.setMensaje(msgText);
+            mensaje.setFechaMensaje(Instant.now());
+            mensaje.setUserId(reserva.getCliente().getKeycloakId());
+            mensaje.setUserName(reserva.getCliente().getNombre() + " " + reserva.getCliente().getApellido());
+            mensaje.setLeido(false);
+            mensaje.setActivo(true);
+            mensaje.setRemitente("SISTEMA");
+
             ReservaDTO reservaDTO = reservaMapper.toDto(reserva);
             mensaje.setReserva(reservaDTO);
 
