@@ -117,17 +117,20 @@ export const ChatDialog = ({ open, onOpenChange, conversation, onMessageSent }: 
                 {/* Chat Messages */}
                 <div className="flex-1 overflow-y-auto p-6 bg-slate-50 space-y-4">
                     {conversation.messages.map((msg, idx) => {
-                        const isAdmin = msg.remitente === Remitente.ADMINISTRATIVO;
+                        const isAdminOrSystem = msg.remitente === Remitente.ADMINISTRATIVO || msg.remitente === Remitente.SISTEMA;
+                        const isSystem = msg.remitente === Remitente.SISTEMA;
                         return (
-                            <div key={idx} className={`flex ${isAdmin ? 'justify-end' : 'justify-start'} animate-in slide-in-from-bottom-2`}>
-                                <div className={`max-w-[80%] rounded-2xl p-3 px-4 text-sm shadow-sm ${isAdmin
-                                    ? 'bg-blue-600 text-white rounded-tr-none'
+                            <div key={idx} className={`flex ${isAdminOrSystem ? 'justify-end' : 'justify-start'} animate-in slide-in-from-bottom-2`}>
+                                <div className={`max-w-[80%] rounded-2xl p-3 px-4 text-sm shadow-sm ${isAdminOrSystem
+                                    ? isSystem
+                                        ? 'bg-purple-600 text-white rounded-tr-none'
+                                        : 'bg-blue-600 text-white rounded-tr-none'
                                     : 'bg-white text-slate-800 border border-gray-100 rounded-tl-none'
                                     }`}>
                                     <p className="whitespace-pre-wrap leading-relaxed">{msg.mensaje}</p>
-                                    <div className={`flex items-center gap-1 mt-1 text-[10px] ${isAdmin ? 'text-blue-200 justify-end' : 'text-gray-400'}`}>
+                                    <div className={`flex items-center gap-1 mt-1 text-[10px] ${isAdminOrSystem ? 'text-blue-200 justify-end' : 'text-gray-400'}`}>
                                         {new Date(msg.fechaMensaje!).toLocaleDateString()} {new Date(msg.fechaMensaje!).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                        {isAdmin && msg.leido && <CheckCircle2 className="h-3 w-3 ml-1" />}
+                                        {isAdminOrSystem && msg.leido && <CheckCircle2 className="h-3 w-3 ml-1" />}
                                     </div>
                                 </div>
                             </div>

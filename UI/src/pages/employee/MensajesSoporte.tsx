@@ -9,11 +9,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Search, User, CheckCircle2, Send, ChevronRight, MessageCircle, MessageCircleOff, MessageCircleDashed, MessageCirclePlus, Sparkles } from 'lucide-react';
+import { Plus, Search, User, CheckCircle2, Send, ChevronRight, MessageCircle, MessageCirclePlus, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
-import { Navbar } from '../../components/layout/Navbar';
 import { PaginationControl } from '@/components/common/PaginationControl';
-import { Footer } from '../../components/layout/Footer';
 import { Remitente } from '../../types/enums';
 import { PageHeader } from '../../components/common/PageHeader';
 
@@ -464,18 +462,21 @@ export const EmployeeMensajesSoporte = () => {
                     {/* Chat Messages */}
                     <div className="flex-1 overflow-y-auto p-6 bg-slate-50 space-y-4">
                         {currentConversation?.messages.map((msg, idx) => {
-                            // Display as "Me" (Right/Blue) if it is from ANY Administrative staff (Admin or Employee)
-                            const isStaff = msg.remitente === Remitente.ADMINISTRATIVO;
+                            // Display as "Me" (Right/Blue) if it is from ANY Administrative staff or SYSTEM
+                            const isStaffOrSystem = msg.remitente === Remitente.ADMINISTRATIVO || msg.remitente === Remitente.SISTEMA;
+                            const isSystem = msg.remitente === Remitente.SISTEMA;
                             return (
-                                <div key={idx} className={`flex ${isStaff ? 'justify-end' : 'justify-start'} animate-in slide-in-from-bottom-2`}>
-                                    <div className={`max-w-[80%] rounded-2xl p-3 px-4 text-sm shadow-sm ${isStaff
-                                        ? 'bg-blue-600 text-white rounded-tr-none'
+                                <div key={idx} className={`flex ${isStaffOrSystem ? 'justify-end' : 'justify-start'} animate-in slide-in-from-bottom-2`}>
+                                    <div className={`max-w-[80%] rounded-2xl p-3 px-4 text-sm shadow-sm ${isStaffOrSystem
+                                        ? isSystem
+                                            ? 'bg-purple-600 text-white rounded-tr-none'
+                                            : 'bg-blue-600 text-white rounded-tr-none'
                                         : 'bg-white text-slate-800 border border-gray-100 rounded-tl-none'
                                         }`}>
                                         <p className="whitespace-pre-wrap leading-relaxed">{msg.mensaje}</p>
-                                        <div className={`flex items-center gap-1 mt-1 text-[10px] ${isStaff ? 'text-blue-200 justify-end' : 'text-gray-400'}`}>
+                                        <div className={`flex items-center gap-1 mt-1 text-[10px] ${isStaffOrSystem ? 'text-blue-200 justify-end' : 'text-gray-400'}`}>
                                             {new Date(msg.fechaMensaje!).toLocaleDateString()} {new Date(msg.fechaMensaje!).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                            {isStaff && msg.leido && <CheckCircle2 className="h-3 w-3 ml-1" />}
+                                            {isStaffOrSystem && msg.leido && <CheckCircle2 className="h-3 w-3 ml-1" />}
                                         </div>
                                     </div>
                                 </div>
