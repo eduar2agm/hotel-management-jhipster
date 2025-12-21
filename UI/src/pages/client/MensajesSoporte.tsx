@@ -5,12 +5,15 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useClientChat } from '../../hooks/useClientChat';
 import { Remitente } from '../../types/enums';
+import { useLocation } from 'react-router-dom';
 
 export const ClientMensajesSoporte = () => {
     const { messages, loading, sendMessage, sending, user } = useClientChat();
     const [inputText, setInputText] = useState('');
     const containerRef = useRef<HTMLDivElement>(null);
     const prevMessagesLen = useRef(0);
+    const location = useLocation();
+    const hasAutoSentRef = useRef(false);
 
     // Smart auto-scroll: Only scroll if new messages arrived
     useEffect(() => {
@@ -22,6 +25,35 @@ export const ClientMensajesSoporte = () => {
             }
         }
     }, [messages, loading]);
+
+    // Handle auto-send message from navigation state (e.g., Cancellation Request)
+    useEffect(() => {
+        const handleAutoSend = async () => {
+            if (
+                location.state?.action === 'cancelRequest' &&
+                location.state?.reservaId &&
+                !hasAutoSentRef.current
+            ) {
+                hasAutoSentRef.current = true;
+                const { reservaId, reservaDetails } = location.state;
+
+                let detailsPart = '';
+                if (reservaDetails) {
+                    const formatDate = (d: string) => d ? new Date(d).toLocaleDateString() : '?';
+                    detailsPart = `\n📅 Detalles de la Reserva:\nCheck-in: ${formatDate(reservaDetails.fechaInicio)}\nCheck-out: ${formatDate(reservaDetails.fechaFin)}`;
+                }
+
+                const msg = `⚠️ SOLICITUD DE CANCELACIÓN\n\nHola, me gustaría solicitar la cancelación de mi reserva con ID: #${reservaId}.${detailsPart}\n\nPor favor, indíquenme los pasos a seguir y si existen cargos aplicables. Quedo a la espera de su confirmación.`;
+
+                await sendMessage(msg);
+
+                // Clear state to prevent double sending on refresh
+                window.history.replaceState({}, document.title);
+            }
+        };
+
+        handleAutoSend();
+    }, [location.state, sendMessage]);
 
     const handleSend = async () => {
         if (!inputText.trim()) return;
