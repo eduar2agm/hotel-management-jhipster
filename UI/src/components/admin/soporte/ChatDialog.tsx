@@ -2,10 +2,11 @@ import { useRef, useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { User, CheckCircle2, Send } from 'lucide-react';
+import { User, CheckCircle2, Send, Sparkles } from 'lucide-react';
 import { Remitente } from '../../../types/enums';
 import { type Conversation } from '../../../hooks/useAdminChat';
 import { MensajeSoporteService } from '../../../services/mensaje-soporte.service';
+import { ConfiguracionSistemaService } from '../../../services/configuracion-sistema.service';
 import { useAuth } from '../../../hooks/useAuth';
 import { toast } from 'sonner';
 
@@ -51,6 +52,43 @@ export const ChatDialog = ({ open, onOpenChange, conversation, onMessageSent }: 
             setReplyText('');
         } catch (error) {
             toast.error('Error al enviar respuesta');
+        }
+    };
+
+    const handleSendWelcome = async () => {
+        if (!conversation) return;
+
+        try {
+            // Fetch welcome message template
+            let welcomeText = '👋 ¡Bienvenido a nuestro servicio de soporte!\n\nEstamos aquí para ayudarle con cualquier consulta o necesidad durante su estancia.\n\nNormalmente respondemos en pocos minutos.';
+
+            try {
+                const configRes = await ConfiguracionSistemaService.getConfiguracionByClave('MSG_WELCOME_CHAT');
+                if (configRes.data && configRes.data.valor) {
+                    welcomeText = configRes.data.valor;
+                }
+            } catch (configError) {
+                console.log('Using default welcome message');
+            }
+
+            const payload = {
+                userId: user?.id || 'admin',
+                userName: 'Sistema',
+                fechaMensaje: new Date().toISOString(),
+                remitente: Remitente.SISTEMA,
+                leido: false,
+                activo: true,
+                mensaje: welcomeText,
+                reserva: conversation.messages.find(m => m.reserva)?.reserva,
+                destinatarioId: conversation.otherPartyId,
+                destinatarioName: conversation.otherPartyName
+            };
+
+            const resp = await MensajeSoporteService.createMensaje(payload as any);
+            onMessageSent(resp.data);
+            toast.success('Mensaje de bienvenida enviado');
+        } catch (error) {
+            toast.error('Error al enviar mensaje de bienvenida');
         }
     };
 
@@ -101,6 +139,16 @@ export const ChatDialog = ({ open, onOpenChange, conversation, onMessageSent }: 
 
                 {/* Reply Area */}
                 <div className="p-4 bg-white border-t border-gray-100 flex-shrink-0">
+                    <div className="flex gap-2 items-center mb-3">
+                        <Button
+                            onClick={handleSendWelcome}
+                            variant="outline"
+                            size="sm"
+                            className="text-xs border-purple-200 text-purple-700 hover:bg-purple-50"
+                        >
+                            <Sparkles className="h-3 w-3 mr-1" /> Enviar Bienvenida
+                        </Button>
+                    </div>
                     <div className="flex gap-3 items-end">
                         <Textarea
                             value={replyText}
