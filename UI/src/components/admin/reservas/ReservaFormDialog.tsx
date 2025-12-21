@@ -39,6 +39,7 @@ import { ReservaService } from '../../../services/reserva.service';
 import { HabitacionService } from '../../../services/habitacion.service';
 import { ReservaDetalleService } from '../../../services/reserva-detalle.service';
 import { MensajeSoporteService } from '../../../services/mensaje-soporte.service';
+import { ConfiguracionSistemaService } from '../../../services/configuracion-sistema.service';
 import { Remitente } from '../../../types/enums';
 import type { ReservaDTO } from '../../../types/api/Reserva';
 import type { ClienteDTO } from '../../../types/api/Cliente';
@@ -235,7 +236,22 @@ export const ReservaFormDialog = ({
                     const client = clientes.find(c => c.id === data.clienteId);
                     if (client && client.keycloakId) {
                         try {
-                            const msgText = `Estimado(a) ${client.nombre || 'Cliente'},\n\nLe informamos que su reserva #${savedReserva.id} ha sido CANCELADA por la administración.\nSi tiene dudas, por favor contáctenos.\n\nAtentamente,\nAdministración del Hotel.`;
+                            // Try to fetch custom message template
+                            let msgText = `Estimado(a) ${client.nombre || 'Cliente'},\n\nLe informamos que su reserva #${savedReserva.id} ha sido CANCELADA por la administración.\nSi tiene dudas, por favor contáctenos.\n\nAtentamente,\nAdministración del Hotel.`;
+
+                            try {
+                                const configRes = await ConfiguracionSistemaService.getConfiguracionByClave('MSG_ADMIN_CANCEL');
+                                if (configRes.data && configRes.data.valor) {
+                                    msgText = configRes.data.valor
+                                        .replace('{clienteNombre}', client.nombre || 'Cliente')
+                                        .replace('{reservaId}', savedReserva.id?.toString() || '')
+                                        .replace('{fechaInicio}', new Date(savedReserva.fechaInicio!).toLocaleDateString())
+                                        .replace('{fechaFin}', new Date(savedReserva.fechaFin!).toLocaleDateString());
+                                }
+                            } catch (configError) {
+                                // Use default message if config not found
+                                console.log('Using default cancellation message');
+                            }
 
                             await MensajeSoporteService.createMensaje({
                                 userId: client.keycloakId,
