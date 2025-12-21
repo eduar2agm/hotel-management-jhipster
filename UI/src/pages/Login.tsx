@@ -42,18 +42,18 @@ export const Login = () => {
 
     return (
         <div className="w-full min-h-screen flex font-sans">
-            
+
             {/* --- COLUMNA IZQUIERDA (IMAGEN & BRANDING) --- */}
             <div className="hidden lg:flex w-1/2 relative bg-slate-900 items-center justify-center overflow-hidden">
                 <div className="absolute inset-0 z-0">
-                    <img 
-                        src="https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?q=80&w=2070&auto=format&fit=crop" 
-                        alt="Luxury Hotel Lobby" 
+                    <img
+                        src="https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?q=80&w=2070&auto=format&fit=crop"
+                        alt="Luxury Hotel Lobby"
                         className="w-full h-full object-cover opacity-60"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/50 to-transparent"></div>
                 </div>
-                
+
                 <div className="relative z-10 text-center px-12 max-w-xl">
                     <div className="mb-8 flex justify-center">
                         <div className="p-4 bg-white/10 backdrop-blur-md rounded-full border border-white/20">
@@ -61,14 +61,14 @@ export const Login = () => {
                         </div>
                     </div>
                     <h2 className="text-4xl font-black text-white mb-6 tracking-tight leading-tight">
-                        Experiencia y Confort <br/> 
+                        Experiencia y Confort <br />
                         <span className="text-yellow-500">Redefinidos.</span>
                     </h2>
                     <p className="text-slate-300 text-lg leading-relaxed">
                         Gestiona tus reservas, servicios y preferencias en una plataforma diseñada para la excelencia operativa y la satisfacción del huésped.
                     </p>
                 </div>
-                
+
                 <div className="absolute bottom-8 text-slate-500 text-xs tracking-wider">
                     © {new Date().getFullYear()} Hotel Management System. All rights reserved.
                 </div>
@@ -111,8 +111,8 @@ export const Login = () => {
                             <p className="text-sm text-slate-600 font-medium">
                                 Utilizamos autenticación centralizada para garantizar la seguridad de tus datos.
                             </p>
-                            
-                            <Button 
+
+                            <Button
                                 className="w-full h-12 bg-slate-900 hover:bg-yellow-500 hover:text-white text-white font-bold tracking-wide transition-all shadow-lg shadow-slate-900/20 hover:shadow-yellow-500/30 text-base"
                                 onClick={() => void login()}
                             >

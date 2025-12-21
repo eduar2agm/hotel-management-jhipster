@@ -9,11 +9,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Search, User, CheckCircle2, Send, ChevronRight, MessageCircle, ChevronLeft } from 'lucide-react';
+import { Plus, Search, User, CheckCircle2, Send, ChevronRight, MessageCircle, MessageCircleOff, MessageCircleDashed, MessageCirclePlus } from 'lucide-react';
 import { toast } from 'sonner';
-import { Navbar } from '../../components/ui/Navbar';
-import { Footer } from '../../components/ui/Footer';
+import { Navbar } from '../../components/layout/Navbar';
+import { PaginationControl } from '@/components/common/PaginationControl';
+import { Footer } from '../../components/layout/Footer';
 import { Remitente } from '../../types/enums';
+import { PageHeader } from '../../components/common/PageHeader';
 
 interface Conversation {
     otherPartyId: string;
@@ -48,7 +50,7 @@ export const EmployeeMensajesSoporte = () => {
         setLoading(true);
         try {
             const [msgsRes, clientesRes] = await Promise.all([
-                MensajeSoporteService.getMyMensajes({ page: 0, size: 500, sort: 'fechaMensaje,desc' }),
+                MensajeSoporteService.getMensajes({ page: 0, size: 500, sort: 'fechaMensaje,desc' }),
                 ClienteService.getClientes()
             ]);
             setMensajes(msgsRes.data);
@@ -70,12 +72,28 @@ export const EmployeeMensajesSoporte = () => {
         const groups = new Map<string, Conversation>();
 
         mensajes.forEach(msg => {
-            const isMe = msg.userId === user?.id;
-            let otherId = isMe ? msg.destinatarioId : msg.userId;
-            let otherName = isMe ? msg.destinatarioName : msg.userName;
+            let otherId = '';
+            let otherName = '';
+
+            // Use same consistent logic as Admin view
+            if (msg.remitente === Remitente.CLIENTE) {
+                otherId = msg.userId || 'unknown';
+                otherName = msg.userName || 'Cliente Desconocido';
+            } else if (msg.remitente === Remitente.ADMINISTRATIVO) {
+                otherId = msg.destinatarioId || 'unknown';
+                otherName = msg.destinatarioName || 'Cliente';
+            } else {
+                otherId = msg.destinatarioId || msg.userId || 'unknown';
+                otherName = msg.destinatarioName || msg.userName || 'System';
+            }
 
             if (!otherId) otherId = 'unknown';
-            if (!otherName) otherName = 'Usuario Desconocido';
+
+            // Resolve Real Name
+            const matchedClient = clientes.find(c => c.keycloakId === otherId || c.id?.toString() === otherId);
+            if (matchedClient) {
+                otherName = `${matchedClient.nombre} ${matchedClient.apellido}`;
+            }
 
             if (!groups.has(otherId)) {
                 groups.set(otherId, {
@@ -90,7 +108,15 @@ export const EmployeeMensajesSoporte = () => {
             const group = groups.get(otherId)!;
             group.messages.push(msg);
 
-            if (!msg.leido && !isMe) {
+            // Update name if we have a better one (e.g. from a request with populated name)
+            // But prefer the resolved client name if we found one
+            if (matchedClient) {
+                group.otherPartyName = `${matchedClient.nombre} ${matchedClient.apellido}`;
+            } else if (otherName && otherName !== 'Cliente' && otherName !== 'Cliente Desconocido') {
+                group.otherPartyName = otherName;
+            }
+
+            if (!msg.leido && msg.remitente === Remitente.CLIENTE) {
                 group.unreadCount++;
             }
         });
@@ -106,7 +132,7 @@ export const EmployeeMensajesSoporte = () => {
 
         // Sort conversations by latest activity (desc)
         return result.sort((a, b) => new Date(b.lastMessage.fechaMensaje!).getTime() - new Date(a.lastMessage.fechaMensaje!).getTime());
-    }, [mensajes, user]);
+    }, [mensajes, user, clientes]);
 
     // 2. Filter for display list
     const filteredConversations = useMemo(() => {
@@ -238,33 +264,22 @@ export const EmployeeMensajesSoporte = () => {
 
     return (
         <div className="font-sans text-gray-900 bg-gray-50 min-h-screen flex flex-col">
-            <Navbar />
 
             {/* --- HERO SECTION --- */}
-            <div className="relative bg-[#0F172A] pt-32 pb-20 px-4 md:px-8 lg:px-20 overflow-hidden shadow-xl">
-                <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-blue-900/10 to-transparent pointer-events-none"></div>
-
-                <div className="relative max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-end md:items-center gap-6">
-                    <div>
-                        <span className="text-yellow-500 font-bold tracking-[0.2em] uppercase text-xs mb-3 block animate-in fade-in slide-in-from-bottom-2 duration-500">
-                            Atención al Huésped
-                        </span>
-                        <h2 className="text-4xl md:text-5xl font-black text-white tracking-tight mb-4">
-                            Centro de Mensajes
-                        </h2>
-                        <p className="text-slate-400 font-light text-lg max-w-xl leading-relaxed">
-                            Gestione los hilos de conversación con sus clientes en un solo lugar.
-                        </p>
-                    </div>
-
-                    <Button
-                        onClick={handleCreate}
-                        className="bg-yellow-600 hover:bg-yellow-700 text-white rounded-none px-6 py-6 shadow-lg transition-all border border-yellow-600/30 text-lg"
-                    >
-                        <Plus className="mr-2 h-5 w-5" /> Iniciar Conversación
-                    </Button>
-                </div>
-            </div>
+            <PageHeader
+                title="Centro de Mensajes"
+                icon={MessageCirclePlus}
+                subtitle="Gestione los hilos de conversación con sus clientes en un solo lugar."
+                category="Atención al Huésped"
+                className="bg-[#0F172A]"
+            >
+                <Button
+                    onClick={handleCreate}
+                    className="bg-yellow-600 hover:bg-yellow-700 text-white rounded-none px-6 py-6 shadow-lg transition-all border border-yellow-600/30 text-lg"
+                >
+                    <Plus className="mr-2 h-5 w-5" /> Iniciar Conversación
+                </Button>
+            </PageHeader>
 
             <main className="flex-grow py-12 px-4 md:px-8 lg:px-20 relative z-10">
                 <div className="max-w-6xl mx-auto -mt-16">
@@ -374,36 +389,17 @@ export const EmployeeMensajesSoporte = () => {
                     </div>
 
                     {/* PAGINATION */}
-                    <div className="flex items-center justify-end gap-4 mt-4">
-                        <span className="text-sm text-gray-500">
-                            Página {currentPage + 1} de {Math.max(1, Math.ceil(filteredConversations.length / itemsPerPage))}
-                        </span>
-                        <div className="flex gap-2">
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
-                                disabled={currentPage === 0}
-                                className="bg-white border-gray-200"
-                            >
-                                <ChevronLeft className="h-4 w-4" /> Anterior
-                            </Button>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setCurrentPage(p => p + 1)}
-                                disabled={(currentPage + 1) * itemsPerPage >= filteredConversations.length}
-                                className="bg-white border-gray-200"
-                            >
-                                Siguiente <ChevronRight className="h-4 w-4" />
-                            </Button>
-                        </div>
+                    <div className="mt-4">
+                        <PaginationControl
+                            currentPage={currentPage}
+                            totalItems={filteredConversations.length}
+                            itemsPerPage={itemsPerPage}
+                            onPageChange={setCurrentPage}
+                        />
                     </div>
                 </div>
 
             </main >
-
-            <Footer />
 
             {/* --- CHAT DIALOG --- */}
             <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
@@ -430,17 +426,18 @@ export const EmployeeMensajesSoporte = () => {
                     {/* Chat Messages */}
                     <div className="flex-1 overflow-y-auto p-6 bg-slate-50 space-y-4">
                         {currentConversation?.messages.map((msg, idx) => {
-                            const isMe = msg.userId === user?.id;
+                            // Display as "Me" (Right/Blue) if it is from ANY Administrative staff (Admin or Employee)
+                            const isStaff = msg.remitente === Remitente.ADMINISTRATIVO;
                             return (
-                                <div key={idx} className={`flex ${isMe ? 'justify-end' : 'justify-start'} animate-in slide-in-from-bottom-2`}>
-                                    <div className={`max-w-[80%] rounded-2xl p-3 px-4 text-sm shadow-sm ${isMe
+                                <div key={idx} className={`flex ${isStaff ? 'justify-end' : 'justify-start'} animate-in slide-in-from-bottom-2`}>
+                                    <div className={`max-w-[80%] rounded-2xl p-3 px-4 text-sm shadow-sm ${isStaff
                                         ? 'bg-blue-600 text-white rounded-tr-none'
                                         : 'bg-white text-slate-800 border border-gray-100 rounded-tl-none'
                                         }`}>
                                         <p className="whitespace-pre-wrap leading-relaxed">{msg.mensaje}</p>
-                                        <div className={`flex items-center gap-1 mt-1 text-[10px] ${isMe ? 'text-blue-200 justify-end' : 'text-gray-400'}`}>
-                                            {new Date(msg.fechaMensaje).toLocaleDateString()} {new Date(msg.fechaMensaje).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                            {isMe && msg.leido && <CheckCircle2 className="h-3 w-3 ml-1" />}
+                                        <div className={`flex items-center gap-1 mt-1 text-[10px] ${isStaff ? 'text-blue-200 justify-end' : 'text-gray-400'}`}>
+                                            {new Date(msg.fechaMensaje!).toLocaleDateString()} {new Date(msg.fechaMensaje!).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            {isStaff && msg.leido && <CheckCircle2 className="h-3 w-3 ml-1" />}
                                         </div>
                                     </div>
                                 </div>

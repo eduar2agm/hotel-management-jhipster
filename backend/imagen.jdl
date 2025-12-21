@@ -1,0 +1,17 @@
+entity Imagen {
+  nombre String required
+  descripcion String maxlength(500)
+  fichero ImageBlob required
+  nombreArchivo String
+  activo Boolean required
+  fechaCreacion Instant
+}
+
+relationship ManyToOne {
+  Imagen{habitacion(numero)} to Habitacion with builtInEntity
+  Imagen{servicio(nombre)} to Servicio with builtInEntity
+}
+
+dto Imagen with mapstruct
+service Imagen with serviceImpl
+paginate Imagen with pagination

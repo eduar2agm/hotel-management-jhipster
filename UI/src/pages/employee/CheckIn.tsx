@@ -6,11 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Search, LogIn, LogOut, CheckCircle, Clock, User, Calendar, BedDouble, ArrowRight, XCircle, AlertCircle } from 'lucide-react';
+import { Search, LogIn, LogOut, CheckCircle, Clock, User, Calendar, BedDouble, ArrowRight, XCircle, AlertCircle, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { EstadoCheckInCheckOut } from '../../types/enums';
-import { Navbar } from '../../components/ui/Navbar';
-import { Footer } from '../../components/ui/Footer';
 import {
     Dialog,
     DialogContent,
@@ -19,6 +17,7 @@ import {
     DialogFooter,
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
+import { PageHeader } from '../../components/common/PageHeader';
 
 export const CheckIn = () => {
     // --- STATE ---
@@ -166,23 +165,15 @@ export const CheckIn = () => {
 
     return (
         <div className="font-sans text-gray-900 bg-gray-50 min-h-screen flex flex-col">
-            <Navbar />
 
             {/* --- HERO SECTION --- */}
-            <div className="relative bg-[#0F172A] pt-32 pb-20 px-4 md:px-8 lg:px-20 overflow-hidden shadow-xl">
-                 <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-blue-900/10 to-transparent pointer-events-none"></div>
-                 <div className="relative max-w-6xl mx-auto">
-                    <span className="text-yellow-500 font-bold tracking-[0.2em] uppercase text-xs mb-3 block animate-in fade-in slide-in-from-bottom-2 duration-500">
-                        Gestión de Huéspedes
-                    </span>
-                    <h2 className="text-4xl md:text-5xl font-black text-white tracking-tight mb-4">
-                        Recepción y Check-In
-                    </h2>
-                    <p className="text-slate-400 font-light text-lg max-w-xl leading-relaxed">
-                        Administre la entrada y salida de huéspedes. Verifique identidades y asigne llaves.
-                    </p>
-                 </div>
-            </div>
+            <PageHeader
+                title="Recepción y Check-In"
+                icon={Check}
+                subtitle="Administre la entrada y salida de huéspedes. Verifique identidades y asigne llaves."
+                category="Gestión de Huéspedes"
+                className="bg-[#0F172A]"
+            />
 
             <main className="flex-grow py-12 px-4 md:px-8 lg:px-20 relative z-10">
                 <div className="max-w-4xl mx-auto -mt-16 space-y-8">
@@ -368,8 +359,6 @@ export const CheckIn = () => {
                     )}
                 </div>
             </main>
-
-            <Footer />
 
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogContent className="sm:max-w-md">

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd
+                        http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
+    <!--
+        Added the constraints for entity Imagen.
+    -->
+    <changeSet id="20251219230612-2" author="jhipster">
+
+        <addForeignKeyConstraint baseColumnNames="habitacion_id"
+                                 baseTableName="imagen"
+                                 constraintName="fk_imagen__habitacion_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="habitacion"
+                                 />
+
+        <addForeignKeyConstraint baseColumnNames="servicio_id"
+                                 baseTableName="imagen"
+                                 constraintName="fk_imagen__servicio_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="servicio"
+                                 />
+    </changeSet>
+</databaseChangeLog>

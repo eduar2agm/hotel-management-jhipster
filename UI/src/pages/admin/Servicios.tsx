@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { ServicioService } from '../../services/servicio.service';
-import type { ServicioDTO, NewServicioDTO } from '../../types/api/Servicio';
+import { ServicioService, ImagenService } from '../../services';
+import type { ServicioDTO, NewServicioDTO } from '../../types/api';
+import { getImageUrl } from '../../utils/imageUtils';
 import { TipoServicio } from '../../types/api/Servicio';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -18,14 +19,14 @@ import {
     FormMessage,
 } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Search, Image as ImageIcon, Pencil, ChevronLeft, ChevronRight, Briefcase } from 'lucide-react';
+import { Plus, Search, Pencil, Briefcase, Upload, Loader2, Image as ImageIcon } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { Navbar } from '../../components/ui/Navbar';
-import { Footer } from '../../components/ui/Footer';
 import { ServiceCard } from '@/components/ui/ServiceCard';
 import { ActiveFilter } from '@/components/ui/ActiveFilter';
+import { PaginationControl } from '@/components/common/PaginationControl';
 
 const servicioSchema = z.object({
     id: z.number().optional(),
@@ -42,18 +43,20 @@ type ServicioFormValues = z.infer<typeof servicioSchema>;
 export const ServiciosList = ({ readOnly = false }: { readOnly?: boolean }) => {
     const [servicios, setServicios] = useState<ServicioDTO[]>([]);
     const [loading, setLoading] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
+    const [localPreview, setLocalPreview] = useState<string | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
     const [currentPage, setCurrentPage] = useState(0);
     const [totalItems, setTotalItems] = useState(0);
     const itemsPerPage = 8;
 
-    // Dialog & Form State
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [searchFilter, setSearchFilter] = useState('');
     const [showInactive, setShowInactive] = useState(false);
 
     const form = useForm<ServicioFormValues>({
-        resolver: zodResolver(servicioSchema),
+        resolver: zodResolver(servicioSchema) as any,
         defaultValues: {
             nombre: '',
             descripcion: '',
@@ -67,12 +70,12 @@ export const ServiciosList = ({ readOnly = false }: { readOnly?: boolean }) => {
     const loadData = async () => {
         setLoading(true);
         try {
-            const response = showInactive
-                ? await ServicioService.getServicios({ page: currentPage, size: itemsPerPage, sort: 'id,asc' })
-                : await ServicioService.getServiciosDisponibles({ page: currentPage, size: itemsPerPage, sort: 'id,asc' });
+            const servRes = await (showInactive
+                ? ServicioService.getServicios({ page: currentPage, size: itemsPerPage, sort: 'id,asc' })
+                : ServicioService.getServiciosDisponibles({ page: currentPage, size: itemsPerPage, sort: 'id,asc' }));
 
-            setServicios(response.data);
-            const total = parseInt(response.headers['x-total-count'] || '0', 10);
+            setServicios(servRes.data);
+            const total = parseInt(servRes.headers['x-total-count'] || '0', 10);
             setTotalItems(total);
         } catch (error) {
             toast.error('Error al cargar servicios');
@@ -86,6 +89,7 @@ export const ServiciosList = ({ readOnly = false }: { readOnly?: boolean }) => {
     useEffect(() => {
         if (!isDialogOpen) {
             form.reset();
+            setLocalPreview(null);
         }
     }, [isDialogOpen, form]);
 
@@ -103,6 +107,48 @@ export const ServiciosList = ({ readOnly = false }: { readOnly?: boolean }) => {
         } catch (error) {
             toast.error('Error al guardar servicio');
             console.error(error);
+        }
+    };
+
+    const handleDirectUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Set instant local preview
+        const objectUrl = URL.createObjectURL(file);
+        setLocalPreview(objectUrl);
+
+        setIsUploading(true);
+        try {
+            const formData = new FileReader();
+            formData.onload = async (event) => {
+                const base64String = (event.target?.result as string).split(',')[1];
+
+                try {
+                    const newImg = await ImagenService.createImagen({
+                        nombre: file.name,
+                        fichero: base64String,
+                        ficheroContentType: file.type,
+                        activo: true,
+                        servicio: form.getValues('id') ? { id: form.getValues('id') } : {}
+                    } as any);
+
+                    if (newImg.data.nombreArchivo) {
+                        form.setValue('urlImage', newImg.data.nombreArchivo);
+                        toast.success('Imagen subida correctamente');
+                    }
+                } catch (err) {
+                    toast.error('Error al guardar la imagen en el servidor');
+                    setLocalPreview(null);
+                } finally {
+                    setIsUploading(false);
+                }
+            };
+            formData.readAsDataURL(file);
+        } catch (error) {
+            toast.error('Error al leer el archivo');
+            setIsUploading(false);
+            setLocalPreview(null);
         }
     };
 
@@ -150,7 +196,6 @@ export const ServiciosList = ({ readOnly = false }: { readOnly?: boolean }) => {
     const handleToggleActive = async (id: number, currentStatus: boolean | undefined) => {
         if (readOnly) return;
         try {
-            // Partial update
             await ServicioService.partialUpdateServicio(id, { disponible: currentStatus });
             toast.success(`Servicio ${currentStatus ? 'activado' : 'desactivado'}`);
             loadData();
@@ -170,9 +215,7 @@ export const ServiciosList = ({ readOnly = false }: { readOnly?: boolean }) => {
 
     return (
         <div className="font-sans text-gray-900 bg-gray-50 min-h-screen flex flex-col">
-            <Navbar />
 
-            {/* HERO SECTION */}
             <div className="bg-[#0F172A] pt-32 pb-20 px-4 md:px-8 lg:px-20 relative overflow-hidden shadow-xl">
                 <div className="absolute top-0 right-0 p-12 opacity-5 scale-150 pointer-events-none">
                     <Briefcase className="w-96 h-96 text-white" />
@@ -209,7 +252,7 @@ export const ServiciosList = ({ readOnly = false }: { readOnly?: boolean }) => {
                                 <CardDescription>Total de servicios: {totalItems}</CardDescription>
                             </div>
                             <div className="flex flex-col md:flex-row gap-4 items-center w-full md:w-auto">
-                                {!readOnly && <ActiveFilter showInactive={showInactive} onChange={(val) => { setShowInactive(val); setCurrentPage(0); }} label="Mostrar no disponibles" />}
+                                {!readOnly && <ActiveFilter showInactive={showInactive} onChange={(val) => { setShowInactive(val); setCurrentPage(0); }} inactiveLabel="Mostrar no disponibles" />}
                                 <div className="relative w-full md:w-96 group">
                                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-yellow-600 transition-colors" />
                                     <Input
@@ -247,29 +290,14 @@ export const ServiciosList = ({ readOnly = false }: { readOnly?: boolean }) => {
                             )}
                         </div>
 
-                        {/* PAGINATION */}
-                        <div className="mt-8 flex items-center justify-end gap-4 border-t pt-4">
-                            <span className="text-sm text-gray-500">
-                                Página {currentPage + 1} de {Math.max(1, Math.ceil(totalItems / itemsPerPage))}
-                            </span>
-                            <div className="flex gap-2">
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
-                                    disabled={currentPage === 0 || loading}
-                                >
-                                    <ChevronLeft className="h-4 w-4" /> Anterior
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => setCurrentPage(p => p + 1)}
-                                    disabled={(currentPage + 1) * itemsPerPage >= totalItems || loading}
-                                >
-                                    Siguiente <ChevronRight className="h-4 w-4" />
-                                </Button>
-                            </div>
+                        <div className="mt-8">
+                            <PaginationControl
+                                currentPage={currentPage}
+                                totalItems={totalItems}
+                                itemsPerPage={itemsPerPage}
+                                onPageChange={setCurrentPage}
+                                isLoading={loading}
+                            />
                         </div>
                     </CardContent>
                 </Card>
@@ -288,10 +316,10 @@ export const ServiciosList = ({ readOnly = false }: { readOnly?: boolean }) => {
                             </DialogHeader>
 
                             <div className="p-6 bg-white overflow-y-auto max-h-[80vh]">
-                                <Form {...form}>
-                                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+                                <Form {...(form as any)}>
+                                    <form onSubmit={form.handleSubmit(onSubmit as any)} className="space-y-5">
                                         <FormField
-                                            control={form.control}
+                                            control={form.control as any}
                                             name="nombre"
                                             render={({ field }) => (
                                                 <FormItem>
@@ -305,7 +333,7 @@ export const ServiciosList = ({ readOnly = false }: { readOnly?: boolean }) => {
                                         />
 
                                         <FormField
-                                            control={form.control}
+                                            control={form.control as any}
                                             name="descripcion"
                                             render={({ field }) => (
                                                 <FormItem>
@@ -324,7 +352,7 @@ export const ServiciosList = ({ readOnly = false }: { readOnly?: boolean }) => {
 
                                         <div className="grid grid-cols-2 gap-4">
                                             <FormField
-                                                control={form.control}
+                                                control={form.control as any}
                                                 name="tipo"
                                                 render={({ field }) => (
                                                     <FormItem>
@@ -346,7 +374,7 @@ export const ServiciosList = ({ readOnly = false }: { readOnly?: boolean }) => {
                                             />
 
                                             <FormField
-                                                control={form.control}
+                                                control={form.control as any}
                                                 name="precio"
                                                 render={({ field }) => (
                                                     <FormItem>
@@ -361,15 +389,83 @@ export const ServiciosList = ({ readOnly = false }: { readOnly?: boolean }) => {
                                         </div>
 
                                         <FormField
-                                            control={form.control}
+                                            control={form.control as any}
                                             name="urlImage"
                                             render={({ field }) => (
                                                 <FormItem>
-                                                    <FormLabel className="text-xs font-bold text-gray-500 uppercase tracking-widest">URL Imagen</FormLabel>
+                                                    <FormLabel className="text-xs font-bold text-gray-500 uppercase tracking-widest">Imagen del Servicio</FormLabel>
                                                     <FormControl>
-                                                        <div className="relative">
-                                                            <ImageIcon className="absolute left-2 top-2.5 h-4 w-4 text-gray-400" />
-                                                            <Input placeholder="https://..." className="pl-8 h-9" {...field} />
+                                                        <div className="space-y-4">
+                                                            <div
+                                                                className={cn(
+                                                                    "relative overflow-hidden rounded-xl border-2 border-dashed transition-all duration-300 group",
+                                                                    (field.value || localPreview) ? "border-yellow-600/50" : "border-gray-200 hover:border-yellow-400"
+                                                                )}
+                                                            >
+                                                                {field.value || localPreview ? (
+                                                                    <div className="relative aspect-video w-full bg-gray-50">
+                                                                        <img
+                                                                            src={localPreview || getImageUrl(field.value)}
+                                                                            className="h-full w-full object-cover"
+                                                                            onError={(e) => {
+                                                                                if (!localPreview) {
+                                                                                    e.currentTarget.src = 'https://placehold.co/400x200?text=Error+al+cargar';
+                                                                                }
+                                                                            }}
+                                                                        />
+                                                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center backdrop-blur-[2px]">
+                                                                            <Button
+                                                                                type="button"
+                                                                                onClick={() => fileInputRef.current?.click()}
+                                                                                variant="secondary"
+                                                                                className="gap-2 font-bold shadow-2xl"
+                                                                                disabled={isUploading}
+                                                                            >
+                                                                                {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                                                                                Cambiar imagen
+                                                                            </Button>
+                                                                        </div>
+                                                                    </div>
+                                                                ) : (
+                                                                    <div
+                                                                        onClick={() => fileInputRef.current?.click()}
+                                                                        className="aspect-video w-full flex flex-col items-center justify-center cursor-pointer bg-gray-50/50 hover:bg-gray-50 transition-colors py-10"
+                                                                    >
+                                                                        <div className="h-12 w-12 rounded-full bg-yellow-50 flex items-center justify-center mb-3">
+                                                                            {isUploading ? <Loader2 className="h-6 w-6 animate-spin text-yellow-600" /> : <ImageIcon className="h-6 w-6 text-yellow-600" />}
+                                                                        </div>
+                                                                        <p className="text-sm font-bold text-gray-600 uppercase tracking-tight">
+                                                                            {isUploading ? 'Subiendo archivo...' : 'Haga clic para subir una imagen'}
+                                                                        </p>
+                                                                        <p className="text-[10px] text-gray-400 uppercase tracking-widest mt-1">Formatos sugeridos: JPG, PNG • Max 5MB</p>
+                                                                    </div>
+                                                                )}
+                                                                <input
+                                                                    type="file"
+                                                                    accept="image/*"
+                                                                    className="hidden"
+                                                                    ref={fileInputRef}
+                                                                    onChange={handleDirectUpload}
+                                                                    disabled={isUploading}
+                                                                />
+                                                            </div>
+                                                            {field.value && (
+                                                                <div className="flex justify-between items-center px-1">
+                                                                    <span className="text-[10px] text-gray-400 font-mono truncate max-w-[200px]">{field.value}</span>
+                                                                    <Button
+                                                                        type="button"
+                                                                        variant="ghost"
+                                                                        size="sm"
+                                                                        className="h-6 text-[10px] font-bold text-red-500 hover:text-red-600 hover:bg-red-50"
+                                                                        onClick={() => {
+                                                                            field.onChange('');
+                                                                            setLocalPreview(null);
+                                                                        }}
+                                                                    >
+                                                                        Eliminar
+                                                                    </Button>
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     </FormControl>
                                                     <FormMessage />
@@ -378,7 +474,7 @@ export const ServiciosList = ({ readOnly = false }: { readOnly?: boolean }) => {
                                         />
 
                                         <FormField
-                                            control={form.control}
+                                            control={form.control as any}
                                             name="disponible"
                                             render={({ field }) => (
                                                 <FormItem className="flex flex-row items-center justify-between rounded-lg border border-gray-100 bg-gray-50 p-3">
@@ -408,7 +504,6 @@ export const ServiciosList = ({ readOnly = false }: { readOnly?: boolean }) => {
                     </Dialog>
                 )}
             </main>
-            <Footer />
         </div>
     );
 };

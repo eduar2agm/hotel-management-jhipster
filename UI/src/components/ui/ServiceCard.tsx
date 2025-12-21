@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Pencil, Trash2, Image as ImageIcon } from 'lucide-react';
+import { getImageUrl } from '../../utils/imageUtils';
 
 interface ServiceCardProps {
     servicio: ServicioDTO;
@@ -20,7 +21,7 @@ export const ServiceCard = ({ servicio, onEdit, onDelete, onToggleActive, readOn
             <div className="relative h-48 bg-gray-100 overflow-hidden">
                 {servicio.urlImage ? (
                     <img
-                        src={servicio.urlImage}
+                        src={getImageUrl(servicio.urlImage)}
                         alt={servicio.nombre}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />

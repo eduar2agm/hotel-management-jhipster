@@ -1,0 +1,24 @@
+enum TipoConfiguracion {
+  TEXT
+  NUMBER
+  BOOLEAN
+  IMAGE
+}
+
+entity ConfiguracionSistema {
+  clave String required unique maxlength(100)
+  valor String maxlength(2000)
+  tipo TipoConfiguracion required
+  categoria String maxlength(50)
+  descripcion String maxlength(500)
+  activo Boolean required
+  fechaModificacion Instant
+}
+
+relationship ManyToOne {
+  ConfiguracionSistema{imagen(nombre)} to Imagen with builtInEntity
+}
+
+dto ConfiguracionSistema with mapstruct
+service ConfiguracionSistema with serviceImpl
+paginate ConfiguracionSistema with pagination

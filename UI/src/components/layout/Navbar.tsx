@@ -1,9 +1,20 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import { useUnreadSupport } from '../../hooks/useUnreadSupport';
 import logo from '../../assets/logoN.png';
 
 export const Navbar = () => {
   const { isAuthenticated, login, logout, user, isClient, isEmployee, isAdmin } = useAuth();
+  const { unreadCount } = useUnreadSupport();
+
+  const Badge = ({ count }: { count: number }) => {
+    if (count === 0) return null;
+    return (
+      <span className="absolute -top-2 -right-3 inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-bold leading-none text-white transform bg-red-600 rounded-full">
+        {count > 99 ? '99+' : count}
+      </span>
+    );
+  };
 
   return (
     <nav className="absolute top-0 left-0 w-full z-50 flex bg-black/50 backdrop-blur-sm justify-between items-center px-10 py-6 text-white">
@@ -21,7 +32,10 @@ export const Navbar = () => {
             <Link to="/client/" className="hover:text-yellow-400 transition-colors">Home</Link>
             <Link to="/client/reservas" className="hover:text-yellow-400 transition-colors">Reservas</Link>
             <Link to="/client/perfil" className="hover:text-yellow-400 transition-colors">Mi perfil</Link>
-            <Link to="/client/soporte" className="hover:text-yellow-400 transition-colors">Soporte</Link>
+            <div className="relative inline-block">
+              <Link to="/client/soporte" className="hover:text-yellow-400 transition-colors">Soporte</Link>
+              <Badge count={unreadCount} />
+            </div>
             <Link to="/client/servicios" className="hover:text-yellow-400 transition-colors">Servicios</Link>
             <Link to="/client/mis-servicios" className="hover:text-yellow-400 transition-colors">Mis Servicios</Link>
           </>
@@ -34,7 +48,10 @@ export const Navbar = () => {
             <Link to="/employee/checkin" className="hover:text-yellow-400 transition-colors">Check-in</Link>
             <Link to="/employee/reservas" className="hover:text-yellow-400 transition-colors">Reservas</Link>
             <Link to="/employee/servicios-contratados" className="hover:text-yellow-400 transition-colors">Servicios</Link>
-            <Link to="/employee/soporte" className="hover:text-yellow-400 transition-colors">Soporte</Link>
+            <div className="relative inline-block">
+              <Link to="/employee/soporte" className="hover:text-yellow-400 transition-colors">Soporte</Link>
+              <Badge count={unreadCount} />
+            </div>
           </>
         )}
         {isAuthenticated && isAdmin() && (
@@ -46,8 +63,11 @@ export const Navbar = () => {
             <Link to="/admin/reservas" className="hover:text-yellow-400 transition-colors">Reservas</Link>
             <Link to="/admin/servicios" className="hover:text-yellow-400 transition-colors">Servicios</Link>
             <Link to="/admin/servicios-contratados" className="hover:text-yellow-400 transition-colors">Solicitudes</Link>
-            <Link to="/admin/reportes" className="hover:text-yellow-400 transition-colors">Reportes</Link>
-            <Link to="/admin/soporte" className="hover:text-yellow-400 transition-colors">Soporte</Link>
+            <Link to="/admin/imagenes" className="hover:text-yellow-400 transition-colors">Imágenes</Link>
+            <div className="relative inline-block">
+              <Link to="/admin/soporte" className="hover:text-yellow-400 transition-colors">Soporte</Link>
+              <Badge count={unreadCount} />
+            </div>
             <Link to="/admin/configuracion" className="hover:text-yellow-400 transition-colors">Config</Link>
           </>
         )}

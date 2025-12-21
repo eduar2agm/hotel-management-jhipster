@@ -1,64 +1,26 @@
-import { Navbar } from '../components/ui/Navbar';
+import { Navbar } from '../components/layout/Navbar';
 import { HeroSection } from '../components/ui/HeroSection';
-import { CardRoom } from '../components/ui/CardRoom';
-import { Footer } from '../components/ui/Footer';
+import { Footer } from '../components/layout/Footer';
 import { useHabitaciones } from '../hooks/useHabitaciones';
+import { ImageCarousel } from '../components/ui/ImageCarousel';
+import { ServicesCarousel } from '../components/ui/ServicesCarousel';
 
 export const Home = () => {
-  // 1. Usar el hook para obtener datos reales
-  const { habitaciones, loading, error } = useHabitaciones();
+  
+  const {  } = useHabitaciones();
 
   return (
     <div className="font-sans text-gray-900">
       <Navbar />
       <HeroSection />
-
-      <section className="py-20 px-6 md:px-20 bg-gray-50">
-        <div className="text-center mb-16">
-          <span className="text-yellow-600 font-bold tracking-widest uppercase text-xs mb-2 block">
-            Descubre
-          </span>
-          <h2 className="text-4xl font-black text-gray-900">Nuestras Habitaciones</h2>
-        </div>
-
-        {/* 2. Manejo de Estados de Carga y Error */}
-        {loading && (
-          <div className="text-center py-10">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-600 mx-auto"></div>
-            <p className="mt-4 text-gray-500">Cargando disponibilidad...</p>
-          </div>
-        )}
-
-        {error && (
-          <div className="text-center text-red-500 py-10">
-            <p>Error al cargar habitaciones: {error}</p>
-          </div>
-        )}
-
-        {/* 3. Renderizado de Datos Reales */}
-        {!loading && !error && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 container mx-auto">
-            {habitaciones.map((hab) => {
-              // Lógica de Mapeo: Backend -> Frontend Card
-              // Si no tiene imagen, la card manejará un fallback
-
-
-              return (
-                <CardRoom 
-                  key={hab.id}
-                  habitacion={hab}
-                />
-              );
-            })}
-          </div>
-        )}
-
-        {!loading && habitaciones.length === 0 && (
-          <div className="text-center text-gray-500">No hay habitaciones disponibles en este momento.</div>
-        )}
-
-      </section>
-
+      <div>
+        <h2 className="text-4xl bg-gray-900 text-white font-bold text-center p-6 ">Nuestras Habitaciones</h2>
+      </div>
+      <ImageCarousel />
+      <div>
+        <h2 className="text-4xl bg-gray-900 text-white font-bold text-center p-6 ">Nuestros Servicios</h2>
+      </div>
+      <ServicesCarousel />
       <Footer />
     </div>
   );
