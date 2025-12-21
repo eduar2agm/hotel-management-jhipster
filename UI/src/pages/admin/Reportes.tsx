@@ -1,6 +1,4 @@
 import { useEffect, useState } from 'react';
-import { Navbar } from '../../components/ui/Navbar';
-import { Footer } from '../../components/ui/Footer';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { PagoService } from '../../services/pago.service';
@@ -16,9 +14,8 @@ import {
     FileText,
     Activity,
     CreditCard,
-    ChevronLeft,
-    ChevronRight,
 } from 'lucide-react';
+import { PaginationControl } from '@/components/common/PaginationControl';
 import {
     XAxis,
     YAxis,
@@ -230,7 +227,6 @@ export const AdminReportes = () => {
 
     return (
         <div className="font-sans text-gray-900 bg-gray-50 min-h-screen flex flex-col">
-            <Navbar />
 
             {/* HERO SECTION */}
             <div className="bg-[#0F172A] pt-32 pb-20 px-4 md:px-8 lg:px-20 relative overflow-hidden shadow-xl">
@@ -419,36 +415,19 @@ export const AdminReportes = () => {
                                 {pagos.length === 0 && <p className="text-center text-gray-400 py-8">No hay transacciones recientes.</p>}
                             </div>
                         </CardContent>
-                        <div className="flex items-center justify-end gap-4 px-6 pb-6 border-t pt-4">
-                            <span className="text-sm text-gray-500">
-                                Página {currentPage + 1} de {Math.max(1, Math.ceil(pagos.length / itemsPerPage))}
-                            </span>
-                            <div className="flex gap-2">
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
-                                    disabled={currentPage === 0}
-                                    className="bg-white border-gray-200"
-                                >
-                                    <ChevronLeft className="h-4 w-4" /> Anterior
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => setCurrentPage(p => Math.min(Math.ceil(pagos.length / itemsPerPage) - 1, p + 1))}
-                                    disabled={currentPage >= Math.ceil(pagos.length / itemsPerPage) - 1}
-                                    className="bg-white border-gray-200"
-                                >
-                                    Siguiente <ChevronRight className="h-4 w-4" />
-                                </Button>
-                            </div>
+                        <div className="px-6 pb-6 border-t pt-4">
+                            <PaginationControl
+                                currentPage={currentPage}
+                                totalItems={pagos.length}
+                                itemsPerPage={itemsPerPage}
+                                onPageChange={setCurrentPage}
+                                isLoading={isLoading}
+                            />
                         </div>
                     </Card>
 
                 </div>
             </main>
-            <Footer />
         </div>
     );
 };

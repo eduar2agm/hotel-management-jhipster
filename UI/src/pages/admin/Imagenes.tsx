@@ -1,6 +1,4 @@
 import { useEffect, useState } from 'react';
-import { Navbar } from '../../components/ui/Navbar';
-import { Footer } from '../../components/ui/Footer';
 import { Button } from '@/components/ui/button';
 import {
     Table,
@@ -30,9 +28,10 @@ import {
 import { ImagenService, HabitacionService, ServicioService } from '../../services';
 import type { ImagenDTO, NewImagenDTO, HabitacionDTO, ServicioDTO } from '../../types/api';
 import { toast } from 'sonner';
-import { Pencil, Trash2, Plus, Image as ImageIcon, ChevronLeft, ChevronRight, FileUp } from 'lucide-react';
+import { Pencil, Trash2, Plus, Image as ImageIcon, FileUp } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { getImageUrl } from '../../utils/imageUtils';
+import { PaginationControl } from '@/components/common/PaginationControl';
 
 export const AdminImagenes = () => {
     const [imagenes, setImagenes] = useState<ImagenDTO[]>([]);
@@ -121,7 +120,6 @@ export const AdminImagenes = () => {
 
     return (
         <div className="font-sans text-gray-900 bg-gray-50 min-h-screen flex flex-col">
-            <Navbar />
 
             <div className="bg-[#0F172A] pt-32 pb-20 px-4 md:px-8 lg:px-20 relative overflow-hidden shadow-xl">
                 <div className="absolute top-0 right-0 p-12 opacity-5 scale-150 pointer-events-none">
@@ -229,28 +227,14 @@ export const AdminImagenes = () => {
                         </CardContent>
                     </Card>
 
-                    <div className="flex items-center justify-end gap-4 px-6 pb-6 pt-4 bg-white/50 rounded-xl">
-                        <span className="text-sm text-gray-500">
-                            Página {currentPage + 1} de {Math.max(1, Math.ceil(totalItems / itemsPerPage))}
-                        </span>
-                        <div className="flex gap-2">
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
-                                disabled={currentPage === 0 || isLoading}
-                            >
-                                <ChevronLeft className="h-4 w-4" /> Anterior
-                            </Button>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setCurrentPage(p => p + 1)}
-                                disabled={(currentPage + 1) * itemsPerPage >= totalItems || isLoading}
-                            >
-                                Siguiente <ChevronRight className="h-4 w-4" />
-                            </Button>
-                        </div>
+                    <div className="bg-white/50 rounded-xl px-6 pb-6 pt-4">
+                        <PaginationControl
+                            currentPage={currentPage}
+                            totalItems={totalItems}
+                            itemsPerPage={itemsPerPage}
+                            onPageChange={setCurrentPage}
+                            isLoading={isLoading}
+                        />
                     </div>
                 </div>
 
@@ -349,7 +333,6 @@ export const AdminImagenes = () => {
                     </DialogContent>
                 </Dialog>
             </main>
-            <Footer />
         </div>
     );
 };

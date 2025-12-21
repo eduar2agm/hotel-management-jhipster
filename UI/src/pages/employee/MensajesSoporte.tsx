@@ -9,11 +9,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Search, User, CheckCircle2, Send, ChevronRight, MessageCircle, ChevronLeft } from 'lucide-react';
+import { Plus, Search, User, CheckCircle2, Send, ChevronRight, MessageCircle, MessageCircleOff, MessageCircleDashed, MessageCirclePlus } from 'lucide-react';
 import { toast } from 'sonner';
-import { Navbar } from '../../components/ui/Navbar';
-import { Footer } from '../../components/ui/Footer';
+import { Navbar } from '../../components/layout/Navbar';
+import { PaginationControl } from '@/components/common/PaginationControl';
+import { Footer } from '../../components/layout/Footer';
 import { Remitente } from '../../types/enums';
+import { PageHeader } from '../../components/common/PageHeader';
 
 interface Conversation {
     otherPartyId: string;
@@ -238,33 +240,22 @@ export const EmployeeMensajesSoporte = () => {
 
     return (
         <div className="font-sans text-gray-900 bg-gray-50 min-h-screen flex flex-col">
-            <Navbar />
 
             {/* --- HERO SECTION --- */}
-            <div className="relative bg-[#0F172A] pt-32 pb-20 px-4 md:px-8 lg:px-20 overflow-hidden shadow-xl">
-                <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-blue-900/10 to-transparent pointer-events-none"></div>
-
-                <div className="relative max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-end md:items-center gap-6">
-                    <div>
-                        <span className="text-yellow-500 font-bold tracking-[0.2em] uppercase text-xs mb-3 block animate-in fade-in slide-in-from-bottom-2 duration-500">
-                            Atención al Huésped
-                        </span>
-                        <h2 className="text-4xl md:text-5xl font-black text-white tracking-tight mb-4">
-                            Centro de Mensajes
-                        </h2>
-                        <p className="text-slate-400 font-light text-lg max-w-xl leading-relaxed">
-                            Gestione los hilos de conversación con sus clientes en un solo lugar.
-                        </p>
-                    </div>
-
-                    <Button
-                        onClick={handleCreate}
-                        className="bg-yellow-600 hover:bg-yellow-700 text-white rounded-none px-6 py-6 shadow-lg transition-all border border-yellow-600/30 text-lg"
-                    >
-                        <Plus className="mr-2 h-5 w-5" /> Iniciar Conversación
-                    </Button>
-                </div>
-            </div>
+            <PageHeader
+                title="Centro de Mensajes"
+                icon={MessageCirclePlus}
+                subtitle="Gestione los hilos de conversación con sus clientes en un solo lugar."
+                category="Atención al Huésped"
+                className="bg-[#0F172A]"
+            >
+                <Button
+                    onClick={handleCreate}
+                    className="bg-yellow-600 hover:bg-yellow-700 text-white rounded-none px-6 py-6 shadow-lg transition-all border border-yellow-600/30 text-lg"
+                >
+                    <Plus className="mr-2 h-5 w-5" /> Iniciar Conversación
+                </Button>
+            </PageHeader>
 
             <main className="flex-grow py-12 px-4 md:px-8 lg:px-20 relative z-10">
                 <div className="max-w-6xl mx-auto -mt-16">
@@ -374,36 +365,17 @@ export const EmployeeMensajesSoporte = () => {
                     </div>
 
                     {/* PAGINATION */}
-                    <div className="flex items-center justify-end gap-4 mt-4">
-                        <span className="text-sm text-gray-500">
-                            Página {currentPage + 1} de {Math.max(1, Math.ceil(filteredConversations.length / itemsPerPage))}
-                        </span>
-                        <div className="flex gap-2">
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
-                                disabled={currentPage === 0}
-                                className="bg-white border-gray-200"
-                            >
-                                <ChevronLeft className="h-4 w-4" /> Anterior
-                            </Button>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setCurrentPage(p => p + 1)}
-                                disabled={(currentPage + 1) * itemsPerPage >= filteredConversations.length}
-                                className="bg-white border-gray-200"
-                            >
-                                Siguiente <ChevronRight className="h-4 w-4" />
-                            </Button>
-                        </div>
+                    <div className="mt-4">
+                        <PaginationControl
+                            currentPage={currentPage}
+                            totalItems={filteredConversations.length}
+                            itemsPerPage={itemsPerPage}
+                            onPageChange={setCurrentPage}
+                        />
                     </div>
                 </div>
 
             </main >
-
-            <Footer />
 
             {/* --- CHAT DIALOG --- */}
             <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>

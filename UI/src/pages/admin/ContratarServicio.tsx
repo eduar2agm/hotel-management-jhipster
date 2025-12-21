@@ -24,8 +24,6 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, Briefcase, User, Calendar, Plus, Save } from 'lucide-react';
 import { toast } from 'sonner';
-import { Navbar } from '../../components/ui/Navbar';
-import { Footer } from '../../components/ui/Footer';
 import { format } from 'date-fns';
 
 const contratoSchema = z.object({
@@ -115,7 +113,7 @@ export const AdminContratarServicio = ({ returnPath = '/admin/servicios-contrata
 
     return (
         <div className="font-sans text-gray-900 bg-gray-50 min-h-screen flex flex-col">
-            <Navbar />
+
             <div className="bg-[#0F172A] pt-32 pb-20 px-4 md:px-8 lg:px-20 relative shadow-xl">
                 <div className="relative max-w-7xl mx-auto z-10">
                     <span className="text-yellow-500 font-bold tracking-[0.2em] uppercase text-xs mb-2 block">Administración</span>
@@ -267,7 +265,6 @@ export const AdminContratarServicio = ({ returnPath = '/admin/servicios-contrata
                     </CardContent>
                 </Card>
             </main>
-            <Footer />
         </div>
     );
 };

@@ -57,13 +57,16 @@ import { type ReservaDTO } from '../../types/api/Reserva';
 import { type ClienteDTO } from '../../types/api/Cliente';
 import { type HabitacionDTO } from '../../types/api/Habitacion';
 import { toast } from 'sonner';
-import { Pencil, Plus, Edit, CalendarCheck, User, BedDouble, ChevronLeft, ChevronRight, Eye, Check, ChevronsUpDown, Search, CreditCard } from 'lucide-react';
+import { Pencil, Plus, Edit, CalendarCheck, User, BedDouble, Eye, Check, ChevronsUpDown, Search, CreditCard } from 'lucide-react';
 import { PaymentModal } from '../../components/modals/PaymentModal';
 import { Badge } from '@/components/ui/badge';
-import { Navbar } from '../../components/ui/Navbar';
-import { Footer } from '../../components/ui/Footer';
+import { Navbar } from '../../components/layout/Navbar';
+import { Footer } from '../../components/layout/Footer';
 import { cn } from '@/lib/utils';
 import { ActiveFilter } from '@/components/ui/ActiveFilter';
+import { PaginationControl } from '@/components/common/PaginationControl';
+import { PageHeader } from '../../components/common/PageHeader';
+import { ReservaDetailsDialog } from '../../components/admin/reservas/ReservaDetailsDialog';
 
 const reservaSchema = z.object({
     id: z.number().optional(),
@@ -100,8 +103,6 @@ export const EmployeeReservas = () => {
     // Details View State
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
     const [selectedReserva, setSelectedReserva] = useState<ReservaDTO | null>(null);
-    const [selectedReservaRooms, setSelectedReservaRooms] = useState<HabitacionDTO[]>([]);
-    const [detailClient, setDetailClient] = useState<ClienteDTO | null>(null);
 
     // Payment State
     const [isPaymentOpen, setIsPaymentOpen] = useState(false);
@@ -124,92 +125,9 @@ export const EmployeeReservas = () => {
         }
     });
 
-    const handleViewDetails = async (reserva: ReservaDTO) => {
+    const handleViewDetails = (reserva: ReservaDTO) => {
         setSelectedReserva(reserva);
-        setSelectedReservaRooms([]); // Reset previous
-        setDetailClient(null); // Reset previous
         setIsDetailsOpen(true);
-
-        try {
-            // Parallel Fetch: Details + Client (always fetch)
-            const detailsPromise = ReservaDetalleService.getReservaDetalles({ 'reservaId.equals': reserva.id });
-
-            let clientPromise: Promise<any> | null = null;
-            const cId = reserva.clienteId || reserva.cliente?.id;
-
-            if (cId) {
-                clientPromise = ClienteService.getCliente(cId);
-            }
-
-            const [detailsRes, clientRes] = await Promise.all([
-                detailsPromise,
-                clientPromise ? clientPromise : Promise.resolve(null)
-            ]);
-
-            if (clientRes) {
-                setDetailClient(clientRes.data);
-            }
-
-            // Extract unique room IDs
-            const roomIds = detailsRes.data
-                .map(d => d.habitacion?.id)
-                .filter((id): id is number => id !== undefined);
-
-            const uniqueRoomIds = Array.from(new Set(roomIds));
-
-            // Map to full room objects from our loaded state to ensure we have capacity/price
-            // Strategy: Check which source has the full data
-            const resolvedRooms = await Promise.all(uniqueRoomIds.map(async (id) => {
-                let candidate: HabitacionDTO | undefined;
-
-                try {
-                    const roomRes = await HabitacionService.getHabitacion(id);
-                    candidate = roomRes.data;
-                } catch (e) {
-                    console.error('Error fetching room', id, e);
-                }
-
-                const detailWithRoom = detailsRes.data.find(d => d.habitacion?.id === id)?.habitacion;
-                const stateRoom = habitaciones.find(h => h.id === id);
-
-                // Smart Merge Strategy
-                const base = candidate || stateRoom || detailWithRoom;
-                if (!base) return undefined;
-
-                const result: HabitacionDTO = { ...base };
-
-                // 1. Ensure Capacity
-                if (!result.capacidad && result.capacidad !== 0) {
-                    if (stateRoom?.capacidad) result.capacidad = stateRoom.capacidad;
-                    else if (detailWithRoom?.capacidad) result.capacidad = detailWithRoom.capacidad;
-                }
-
-                // 2. Ensure Category (with Price)
-                const hasValidPrice = (cat?: any) => cat?.precioBase !== undefined && cat?.precioBase !== null;
-
-                if (!result.categoriaHabitacion || !hasValidPrice(result.categoriaHabitacion)) {
-                    if (stateRoom?.categoriaHabitacion && hasValidPrice(stateRoom.categoriaHabitacion)) {
-                        result.categoriaHabitacion = stateRoom.categoriaHabitacion;
-                    } else if (detailWithRoom?.categoriaHabitacion && hasValidPrice(detailWithRoom.categoriaHabitacion)) {
-                        result.categoriaHabitacion = detailWithRoom.categoriaHabitacion;
-                    }
-                }
-
-                // 3. Ensure Number
-                if (!result.numero) {
-                    if (stateRoom?.numero) result.numero = stateRoom.numero;
-                    else if (detailWithRoom?.numero) result.numero = detailWithRoom.numero;
-                }
-
-                return result;
-            }));
-
-            const validRooms = resolvedRooms.filter((h): h is HabitacionDTO => !!h);
-            setSelectedReservaRooms(validRooms);
-        } catch (error) {
-            console.error('Error fetching details', error);
-            toast.error('Error al cargar detalles de la reserva');
-        }
     };
 
     const loadData = async (page: number) => {
@@ -500,33 +418,22 @@ export const EmployeeReservas = () => {
 
     return (
         <div className="font-sans text-gray-900 bg-gray-50 min-h-screen flex flex-col">
-            <Navbar />
 
             {/* --- HERO SECTION --- */}
-            <div className="relative bg-[#0F172A] pt-32 pb-20 px-4 md:px-8 lg:px-20 overflow-hidden shadow-xl">
-                <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-blue-900/10 to-transparent pointer-events-none"></div>
-
-                <div className="relative max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-end md:items-center gap-6">
-                    <div>
-                        <span className="text-yellow-500 font-bold tracking-[0.2em] uppercase text-xs mb-3 block animate-in fade-in slide-in-from-bottom-2 duration-500">
-                            Administración
-                        </span>
-                        <h2 className="text-4xl md:text-5xl font-black text-white tracking-tight mb-4">
-                            Gestión de Reservas
-                        </h2>
-                        <p className="text-slate-400 font-light text-lg max-w-xl leading-relaxed">
-                            Controle y planifique las estancias. Asigne habitaciones y gestione fechas.
-                        </p>
-                    </div>
-
-                    <Button
-                        onClick={handleCreate}
-                        className="bg-yellow-600 hover:bg-yellow-700 text-white rounded-none px-6 py-6 shadow-lg transition-all border border-yellow-600/30 text-lg"
-                    >
-                        <Plus className="mr-2 h-5 w-5" /> Nueva Reserva
-                    </Button>
-                </div>
-            </div>
+            <PageHeader
+                title="Gestión de Reservas"
+                icon={CalendarCheck}
+                subtitle="Controle y planifique las estancias. Asigne habitaciones y gestione fechas."
+                category="Administración"
+                className="bg-[#0F172A]"
+            >
+                <Button
+                    onClick={handleCreate}
+                    className="bg-yellow-600 hover:bg-yellow-700 text-white rounded-none px-6 py-6 shadow-lg transition-all border border-yellow-600/30 text-lg"
+                >
+                    <Plus className="mr-2 h-5 w-5" /> Nueva Reserva
+                </Button>
+            </PageHeader>
 
             <main className="flex-grow py-12 px-4 md:px-8 lg:px-20 relative z-10">
                 <div className="max-w-6xl mx-auto -mt-16">
@@ -668,36 +575,18 @@ export const EmployeeReservas = () => {
 
 
                         {/* PAGINATION */}
-                        <div className="flex items-center justify-end gap-4 px-10 pb-10">
-                            <span className="text-sm text-gray-500">
-                                Página {currentPage + 1} de {Math.max(1, Math.ceil(totalItems / itemsPerPage))}
-                            </span>
-                            <div className="flex gap-2">
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
-                                    disabled={currentPage === 0 || isLoading}
-                                    className="bg-white border-gray-200 shadow-sm"
-                                >
-                                    <ChevronLeft className="h-4 w-4" /> Anterior
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => setCurrentPage(p => p + 1)}
-                                    disabled={(currentPage + 1) * itemsPerPage >= totalItems || isLoading}
-                                    className="bg-white border-gray-200 shadow-sm"
-                                >
-                                    Siguiente <ChevronRight className="h-4 w-4" />
-                                </Button>
-                            </div>
+                        <div className="px-10 pb-10">
+                            <PaginationControl
+                                currentPage={currentPage}
+                                totalItems={totalItems}
+                                itemsPerPage={itemsPerPage}
+                                onPageChange={setCurrentPage}
+                                isLoading={isLoading}
+                            />
                         </div>
                     </div>
                 </div>
             </main >
-
-            <Footer />
 
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
@@ -910,137 +799,13 @@ export const EmployeeReservas = () => {
                     </Form>
                 </DialogContent>
             </Dialog>
+
             {/* DETAILS DIALOG */}
-            <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-                <DialogContent className="sm:max-w-[700px] bg-slate-50 p-0 overflow-hidden border-0 shadow-2xl">
-                    <DialogHeader className="p-6 bg-white border-b border-gray-100">
-                        <DialogTitle className="text-xl font-black text-slate-800 flex items-center gap-3">
-                            <div className="bg-blue-600 rounded-lg p-2 text-white shadow-lg shadow-blue-200">
-                                <CalendarCheck className="w-5 h-5" />
-                            </div>
-                            Detalle de Reserva #{selectedReserva?.id}
-                        </DialogTitle>
-                    </DialogHeader>
-
-                    {selectedReserva && (
-                        <div className="p-6 bg-white space-y-8 max-h-[70vh] overflow-y-auto">
-                            {/* TOP META ROW */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-b pb-6">
-                                <div>
-                                    <span className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-1">Fecha de Reserva</span>
-                                    <span className="text-gray-900 font-medium">
-                                        {selectedReserva.fechaReserva ?
-                                            new Date(selectedReserva.fechaReserva).toLocaleString('es-ES', { dateStyle: 'long', timeStyle: 'short' })
-                                            : <span className="text-gray-400 italic">No registrada</span>
-                                        }
-                                    </span>
-                                </div>
-                                <div className="md:text-left">
-                                    <span className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-1">Estado</span>
-                                    <Badge className={cn(
-                                        "px-3 py-1 text-sm",
-                                        selectedReserva.estado === 'CONFIRMADA' ? "bg-green-100 text-green-700" :
-                                            selectedReserva.estado === 'CANCELADA' ? "bg-red-100 text-red-700" :
-                                                selectedReserva.estado === 'FINALIZADA' ? "bg-blue-100 text-blue-700" :
-                                                    "bg-yellow-100 text-yellow-700"
-                                    )}>
-                                        {selectedReserva.estado || 'PENDIENTE'}
-                                    </Badge>
-                                </div>
-                            </div>
-
-                            {/* CLIENT SECTION */}
-                            <div className="flex items-start gap-5">
-                                <div className="h-16 w-16 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold text-2xl shadow-sm border border-slate-200">
-                                    {(detailClient?.nombre || selectedReserva.cliente?.nombre)?.charAt(0) || <User />}
-                                </div>
-                                <div className="space-y-1 w-full">
-                                    <h3 className="text-xl font-bold text-gray-900 border-b border-dashed border-gray-200 pb-1 mb-2">
-                                        {detailClient?.nombre || selectedReserva.cliente?.nombre || 'Cliente'} {detailClient?.apellido || selectedReserva.cliente?.apellido || ''}
-                                    </h3>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2 text-sm text-gray-600">
-                                        <div className="flex items-center gap-2">
-                                            <span className="font-semibold text-gray-400/80 w-20">Email:</span>
-                                            <span className="text-gray-900">{detailClient?.correo || <span className="text-gray-300">-</span>}</span>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <span className="font-semibold text-gray-400/80 w-20">Teléfono:</span>
-                                            <span className="text-gray-900">{detailClient?.telefono || <span className="text-gray-300">-</span>}</span>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <span className="font-semibold text-gray-400/80 w-20">Doc:</span>
-                                            <span className="text-gray-900 uppercase font-mono">{detailClient?.numeroIdentificacion || <span className="text-gray-300">-</span>}</span>
-                                        </div>
-                                        <div className="flex items-center gap-2 sm:col-span-2">
-                                            <span className="font-semibold text-gray-400/80 w-20">Dirección:</span>
-                                            <span className="text-gray-900 truncate max-w-[400px]" title={detailClient?.direccion || ''}>{detailClient?.direccion || <span className="text-gray-300">-</span>}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-8 border-t border-b border-gray-100 py-6 bg-slate-50/50 px-4 rounded-lg">
-                                <div>
-                                    <span className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-1">Entrada</span>
-                                    <span className="text-xl font-bold text-gray-800">
-                                        {new Date(selectedReserva.fechaInicio!).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
-                                    </span>
-                                </div>
-                                <div className="text-right">
-                                    <span className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-1">Salida</span>
-                                    <span className="text-xl font-bold text-gray-800">
-                                        {new Date(selectedReserva.fechaFin!).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
-                                    </span>
-                                </div>
-                            </div>
-
-                            {/* ROOMS SECTION */}
-                            <div>
-                                <h4 className="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2 uppercase tracking-wider">
-                                    <span className="bg-yellow-100 p-1 rounded text-yellow-700"><Check className="h-3 w-3" /></span>
-                                    Habitaciones Reservadas ({selectedReservaRooms.length})
-                                </h4>
-                                {selectedReservaRooms.length > 0 ? (
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                        {selectedReservaRooms.map((room, index) => (
-                                            <div key={room.id || index} className="flex flex-col gap-2 p-4 rounded-lg border border-gray-100 bg-white shadow-sm hover:shadow-md transition-shadow">
-                                                <div className="flex justify-between items-center border-b border-gray-50 pb-2">
-                                                    <span className="font-mono font-bold text-lg text-yellow-600">Hab {room.numero}</span>
-                                                    <span className="text-xs bg-yellow-50 text-yellow-700 border border-yellow-200 px-2 py-1 rounded-full font-medium">
-                                                        {room.categoriaHabitacion?.nombre || 'Estándar'}
-                                                    </span>
-                                                </div>
-                                                <div className="flex justify-between items-end text-sm">
-                                                    <div className="text-gray-500">
-                                                        <p>Capacidad: <span className="font-medium text-gray-800">{room.capacidad ?? '?'} pax</span></p>
-                                                    </div>
-                                                    <div className="font-bold text-gray-900">
-                                                        ${room.categoriaHabitacion?.precioBase ? Number(room.categoriaHabitacion.precioBase).toLocaleString() : '0'} <span className="text-xs font-normal text-gray-400">/noche</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <div className="text-center py-8 text-gray-400 bg-gray-50 rounded border border-dashed">
-                                        No hay información de habitaciones disponible
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    )}
-
-                    <DialogFooter className="p-4 bg-gray-50 border-t justify-center">
-                        <Button
-                            variant="outline"
-                            onClick={() => setIsDetailsOpen(false)}
-                            className="bg-white hover:bg-gray-100 text-gray-700 font-medium px-8 w-full sm:w-auto"
-                        >
-                            Cerrar
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+            <ReservaDetailsDialog 
+                open={isDetailsOpen}
+                onOpenChange={setIsDetailsOpen}
+                reserva={selectedReserva}
+            />
 
             <PaymentModal 
                 open={isPaymentOpen}

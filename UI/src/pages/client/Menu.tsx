@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Navbar } from '../../components/ui/Navbar';
-import { Footer } from '../../components/ui/Footer';
+import { Navbar } from '../../components/layout/Navbar';
+import { Footer } from '../../components/layout/Footer';
 import { Coffee, Utensils, Wine } from 'lucide-react';
 
 // --- MOCK DATA DEL MENÚ ---
