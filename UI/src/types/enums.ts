@@ -59,3 +59,14 @@ export const Remitente = {
     SISTEMA: 'SISTEMA'
 } as const;
 export type Remitente = typeof Remitente[keyof typeof Remitente];
+
+export const DiaSemana = {
+    LUNES: 'LUNES',
+    MARTES: 'MARTES',
+    MIERCOLES: 'MIERCOLES',
+    JUEVES: 'JUEVES',
+    VIERNES: 'VIERNES',
+    SABADO: 'SABADO',
+    DOMINGO: 'DOMINGO'
+} as const;
+export type DiaSemana = typeof DiaSemana[keyof typeof DiaSemana];
