@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { MensajeSoporteService } from '../services/mensaje-soporte.service';
 import { type MensajeSoporteDTO } from '../types/api/MensajeSoporte';
+import { ConfiguracionSistemaService } from '../services/configuracion-sistema.service';
 import { Remitente } from '../types/enums';
 import { useAuth } from './useAuth';
 
@@ -11,6 +12,7 @@ export const useClientChat = () => {
     const [messages, setMessages] = useState<MensajeSoporteDTO[]>([]);
     const [loading, setLoading] = useState(false);
     const [sending, setSending] = useState(false);
+    const [hasCheckedWelcome, setHasCheckedWelcome] = useState(false);
 
     // Helper to mark messages as read
     const markMessagesAsRead = async (msgs: MensajeSoporteDTO[]) => {
@@ -41,8 +43,45 @@ export const useClientChat = () => {
 
             // Mark unread messages as read
             markMessagesAsRead(fetchedMessages);
+
+            // Send welcome message if this is the first time and chat is empty
+            if (!hasCheckedWelcome && fetchedMessages.length === 0) {
+                setHasCheckedWelcome(true);
+                await sendWelcomeMessage();
+            }
         } catch (error) {
             console.error("Error loading messages", error);
+        }
+    };
+
+    const sendWelcomeMessage = async () => {
+        try {
+            // Fetch welcome message template
+            let welcomeText = '👋 ¡Bienvenido a nuestro servicio de soporte!\n\nEstamos aquí para ayudarle con cualquier consulta o necesidad durante su estancia.\n\nNormalmente respondemos en pocos minutos.';
+
+            try {
+                const configRes = await ConfiguracionSistemaService.getConfiguracionByClave('MSG_WELCOME_CHAT');
+                if (configRes.data && configRes.data.valor) {
+                    welcomeText = configRes.data.valor;
+                }
+            } catch (configError) {
+                console.log('Using default welcome message');
+            }
+
+            const payload = {
+                userId: user?.id || 'client',
+                userName: 'Sistema',
+                fechaMensaje: new Date().toISOString(),
+                remitente: Remitente.SISTEMA,
+                leido: false,
+                activo: true,
+                mensaje: welcomeText
+            };
+
+            const res = await MensajeSoporteService.createMensaje(payload as any);
+            setMessages([res.data]);
+        } catch (error) {
+            console.error('Error sending welcome message', error);
         }
     };
 

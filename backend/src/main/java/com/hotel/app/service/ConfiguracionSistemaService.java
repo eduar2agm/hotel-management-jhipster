@@ -6,7 +6,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 /**
- * Service Interface for managing {@link com.hotel.app.domain.ConfiguracionSistema}.
+ * Service Interface for managing
+ * {@link com.hotel.app.domain.ConfiguracionSistema}.
  */
 public interface ConfiguracionSistemaService {
     /**
@@ -42,7 +43,8 @@ public interface ConfiguracionSistemaService {
     Page<ConfiguracionSistemaDTO> findAll(Pageable pageable);
 
     /**
-     * Get all the configuracionSistemas with eager load of many-to-many relationships.
+     * Get all the configuracionSistemas with eager load of many-to-many
+     * relationships.
      *
      * @param pageable the pagination information.
      * @return the list of entities.
@@ -63,4 +65,12 @@ public interface ConfiguracionSistemaService {
      * @param id the id of the entity.
      */
     void delete(Long id);
+
+    /**
+     * Get configuracionSistema by its unique "clave".
+     *
+     * @param clave the unique key of the configuration.
+     * @return the entity.
+     */
+    Optional<ConfiguracionSistemaDTO> findByClave(String clave);
 }
