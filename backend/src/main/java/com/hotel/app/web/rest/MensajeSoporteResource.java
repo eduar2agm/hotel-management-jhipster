@@ -68,6 +68,40 @@ public class MensajeSoporteResource {
             throw new BadRequestAlertException("A new mensajeSoporte cannot already have an ID", ENTITY_NAME,
                     "idexists");
         }
+
+        // Enforce User ID and Name from Security Context
+        String userId = org.springframework.security.core.context.SecurityContextHolder.getContext()
+                .getAuthentication().getName();
+        String userName = userId;
+
+        var authentication = org.springframework.security.core.context.SecurityContextHolder.getContext()
+                .getAuthentication();
+        if (authentication.getPrincipal() instanceof org.springframework.security.oauth2.jwt.Jwt) {
+            org.springframework.security.oauth2.jwt.Jwt jwt = (org.springframework.security.oauth2.jwt.Jwt) authentication
+                    .getPrincipal();
+            userId = jwt.getSubject();
+            userName = jwt.getClaimAsString("preferred_username");
+            if (userName == null) {
+                userName = jwt.getClaimAsString("email");
+            }
+        }
+
+        // Fill missing or placeholder fields
+        if (mensajeSoporteDTO.getUserId() == null || mensajeSoporteDTO.getUserId().isBlank()
+                || "client".equalsIgnoreCase(mensajeSoporteDTO.getUserId())) {
+            mensajeSoporteDTO.setUserId(userId);
+        }
+
+        if (mensajeSoporteDTO.getUserName() == null || mensajeSoporteDTO.getUserName().isBlank()
+                || "client".equalsIgnoreCase(mensajeSoporteDTO.getUserName())) {
+            mensajeSoporteDTO.setUserName(userName);
+        }
+
+        // Ensure timestamp is present
+        if (mensajeSoporteDTO.getFechaMensaje() == null) {
+            mensajeSoporteDTO.setFechaMensaje(java.time.Instant.now());
+        }
+
         mensajeSoporteDTO = mensajeSoporteService.save(mensajeSoporteDTO);
         return ResponseEntity.created(new URI("/api/mensaje-soportes/" + mensajeSoporteDTO.getId()))
                 .headers(HeaderUtil.createEntityCreationAlert(applicationName, false, ENTITY_NAME,

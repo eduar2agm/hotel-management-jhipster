@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, DollarSign, XCircle, MapPin, Info } from 'lucide-react';
 import type { ReservaDTO, ReservaDetalleDTO } from '@/types/api';
+import { getImageUrl } from '@/utils/imageUtils';
 
 interface ClientReservationCardProps {
     reserva: ReservaDTO;
@@ -116,7 +117,7 @@ export const ClientReservationCard = ({
                             {/* Image Thumbnail */}
                             <div className="h-16 w-24 bg-gray-200 rounded overflow-hidden flex-shrink-0">
                                 {detalle.habitacion?.imagen ? (
-                                    <img src={detalle.habitacion.imagen} alt="Room" className="w-full h-full object-cover" />
+                                    <img src={getImageUrl(detalle.habitacion.imagen)} alt="Room" className="w-full h-full object-cover" />
                                 ) : (
                                     <div className="w-full h-full flex items-center justify-center text-gray-400">
                                         <Info className="w-6 h-6 opacity-30" />

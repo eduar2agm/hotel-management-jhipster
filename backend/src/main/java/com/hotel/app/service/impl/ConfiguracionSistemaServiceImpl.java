@@ -14,7 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Service Implementation for managing {@link com.hotel.app.domain.ConfiguracionSistema}.
+ * Service Implementation for managing
+ * {@link com.hotel.app.domain.ConfiguracionSistema}.
  */
 @Service
 @Transactional
@@ -27,9 +28,8 @@ public class ConfiguracionSistemaServiceImpl implements ConfiguracionSistemaServ
     private final ConfiguracionSistemaMapper configuracionSistemaMapper;
 
     public ConfiguracionSistemaServiceImpl(
-        ConfiguracionSistemaRepository configuracionSistemaRepository,
-        ConfiguracionSistemaMapper configuracionSistemaMapper
-    ) {
+            ConfiguracionSistemaRepository configuracionSistemaRepository,
+            ConfiguracionSistemaMapper configuracionSistemaMapper) {
         this.configuracionSistemaRepository = configuracionSistemaRepository;
         this.configuracionSistemaMapper = configuracionSistemaMapper;
     }
@@ -55,14 +55,14 @@ public class ConfiguracionSistemaServiceImpl implements ConfiguracionSistemaServ
         LOG.debug("Request to partially update ConfiguracionSistema : {}", configuracionSistemaDTO);
 
         return configuracionSistemaRepository
-            .findById(configuracionSistemaDTO.getId())
-            .map(existingConfiguracionSistema -> {
-                configuracionSistemaMapper.partialUpdate(existingConfiguracionSistema, configuracionSistemaDTO);
+                .findById(configuracionSistemaDTO.getId())
+                .map(existingConfiguracionSistema -> {
+                    configuracionSistemaMapper.partialUpdate(existingConfiguracionSistema, configuracionSistemaDTO);
 
-                return existingConfiguracionSistema;
-            })
-            .map(configuracionSistemaRepository::save)
-            .map(configuracionSistemaMapper::toDto);
+                    return existingConfiguracionSistema;
+                })
+                .map(configuracionSistemaRepository::save)
+                .map(configuracionSistemaMapper::toDto);
     }
 
     @Override
@@ -73,7 +73,8 @@ public class ConfiguracionSistemaServiceImpl implements ConfiguracionSistemaServ
     }
 
     public Page<ConfiguracionSistemaDTO> findAllWithEagerRelationships(Pageable pageable) {
-        return configuracionSistemaRepository.findAllWithEagerRelationships(pageable).map(configuracionSistemaMapper::toDto);
+        return configuracionSistemaRepository.findAllWithEagerRelationships(pageable)
+                .map(configuracionSistemaMapper::toDto);
     }
 
     @Override
@@ -87,5 +88,12 @@ public class ConfiguracionSistemaServiceImpl implements ConfiguracionSistemaServ
     public void delete(Long id) {
         LOG.debug("Request to delete ConfiguracionSistema : {}", id);
         configuracionSistemaRepository.deleteById(id);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<ConfiguracionSistemaDTO> findByClave(String clave) {
+        LOG.debug("Request to get ConfiguracionSistema by clave : {}", clave);
+        return configuracionSistemaRepository.findByClave(clave).map(configuracionSistemaMapper::toDto);
     }
 }
