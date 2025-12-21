@@ -41,6 +41,7 @@
     <include file="config/liquibase/changelog/20251219234509_added_entity_constraints_ConfiguracionSistema.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20251219235557_added_entity_constraints_CarouselItem.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20251221153000_increase_mensaje_length.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20251221183907_insert_default_messages.xml" relativeToChangelogFile="false"/>
     <!-- jhipster-needle-liquibase-add-constraints-changelog - JHipster will add liquibase constraints changelogs here -->
     <!-- jhipster-needle-liquibase-add-incremental-changelog - JHipster will add incremental liquibase changelogs here -->
 </databaseChangeLog>
