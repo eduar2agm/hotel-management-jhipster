@@ -38,11 +38,13 @@ import {
 import { ReservaService } from '../../../services/reserva.service';
 import { HabitacionService } from '../../../services/habitacion.service';
 import { ReservaDetalleService } from '../../../services/reserva-detalle.service';
+import { MensajeSoporteService } from '../../../services/mensaje-soporte.service';
+import { Remitente } from '../../../types/enums';
 import type { ReservaDTO } from '../../../types/api/Reserva';
 import type { ClienteDTO } from '../../../types/api/Cliente';
 import type { HabitacionDTO } from '../../../types/api/Habitacion';
 import { toast } from 'sonner';
-import { Pencil, Plus, User, Calendar, Check, ChevronsUpDown } from 'lucide-react';
+import { Pencil, Plus, User, Calendar, Check, ChevronsUpDown, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const reservaSchema = z.object({
@@ -76,6 +78,7 @@ export const ReservaFormDialog = ({
     onSuccess
 }: ReservaFormDialogProps) => {
     const isEditing = !!reserva;
+    const isReadOnly = reserva?.estado === 'CANCELADA' || reserva?.estado === 'FINALIZADA';
     const [habitaciones, setHabitaciones] = useState<HabitacionDTO[]>([]);
     const [openClientCombo, setOpenClientCombo] = useState(false);
 
@@ -136,8 +139,8 @@ export const ReservaFormDialog = ({
             if (!watchedFechaInicio || !watchedFechaFin) {
                 // If invalid dates, show all (fallback)
                 if (open && !isEditing) {
-                   // If creating, maybe reset to empty or all? Defaulting to all for now so they see options
-                   // But arguably we should clear availability if no date selected.
+                    // If creating, maybe reset to empty or all? Defaulting to all for now so they see options
+                    // But arguably we should clear availability if no date selected.
                 }
                 return;
             }
@@ -145,7 +148,7 @@ export const ReservaFormDialog = ({
             const start = new Date(watchedFechaInicio);
             const end = new Date(watchedFechaFin);
 
-            if (start >= end) return; 
+            if (start >= end) return;
 
             try {
                 const startStr = `${watchedFechaInicio}T00:00:00Z`;
@@ -160,7 +163,7 @@ export const ReservaFormDialog = ({
                 // Current backend probably doesn't support "exclude reservationId".
                 // So for Edit, we might just show ALL rooms and let backend validation fail if double booked?
                 // Or: merge available + currently selected.
-                
+
                 if (isEditing) {
                     const allRes = await HabitacionService.getHabitacions({ size: 100 });
                     setHabitaciones(allRes.data);
@@ -182,6 +185,7 @@ export const ReservaFormDialog = ({
     }, [watchedFechaInicio, watchedFechaFin, open, isEditing]);
 
     const onSubmit = async (data: ReservaFormValues) => {
+        if (isReadOnly) return;
         try {
             const [yearInicio, monthInicio, dayInicio] = data.fechaInicio.split('-').map(Number);
             const [yearFin, monthFin, dayFin] = data.fechaFin.split('-').map(Number);
@@ -225,8 +229,31 @@ export const ReservaFormDialog = ({
                 for (const det of toRemove) {
                     if (det.id) await ReservaDetalleService.deleteReservaDetalle(det.id);
                 }
+
+                // Check for Cancellation notification
+                if (data.estado === 'CANCELADA' && reserva?.estado !== 'CANCELADA') {
+                    const client = clientes.find(c => c.id === data.clienteId);
+                    if (client && client.keycloakId) {
+                        try {
+                            const msgText = `Estimado(a) ${client.nombre || 'Cliente'},\n\nLe informamos que su reserva #${savedReserva.id} ha sido CANCELADA por la administración.\nSi tiene dudas, por favor contáctenos.\n\nAtentamente,\nAdministración del Hotel.`;
+
+                            await MensajeSoporteService.createMensaje({
+                                userId: client.keycloakId,
+                                mensaje: msgText,
+                                remitente: Remitente.ADMINISTRATIVO,
+                                leido: false,
+                                activo: true,
+                                fechaMensaje: new Date().toISOString()
+                            } as any);
+                            toast.info("Notificación de cancelación enviada al cliente.");
+                        } catch (e) {
+                            console.error("Error sending cancellation message", e);
+                        }
+                    }
+                }
+
                 toast.success('Reserva Actualizada');
-                onSuccess(undefined); 
+                onSuccess(undefined);
             } else {
                 // CREATE
                 const res = await ReservaService.createReserva(reservaToSave as any);
@@ -239,8 +266,8 @@ export const ReservaFormDialog = ({
                     // Fallback fetch if not in list? Unlikely if UI worked.
                     let roomEntity = roomFn;
                     if (!roomEntity) {
-                         const r = await HabitacionService.getHabitacion(roomId);
-                         roomEntity = r.data;
+                        const r = await HabitacionService.getHabitacion(roomId);
+                        roomEntity = r.data;
                     }
 
                     await ReservaDetalleService.createReservaDetalle({
@@ -269,6 +296,7 @@ export const ReservaFormDialog = ({
                     <DialogTitle className="text-2xl font-bold flex items-center gap-2">
                         {isEditing ? <Pencil className="h-5 w-5 text-green-600" /> : <Plus className="h-5 w-5 text-green-600" />}
                         {isEditing ? 'Editar Reserva' : 'Nueva Reserva'}
+                        {isReadOnly && <span className="text-sm font-normal text-red-500 bg-red-50 border border-red-200 px-2 py-0.5 rounded ml-auto flex items-center"><AlertTriangle className="w-3 h-3 mr-1" /> Solo Lectura (Finalizada/Cancelada)</span>}
                     </DialogTitle>
                 </DialogHeader>
 
@@ -296,6 +324,7 @@ export const ReservaFormDialog = ({
                                                             "w-full justify-between h-11 bg-white border-gray-300",
                                                             !field.value && "text-muted-foreground"
                                                         )}
+                                                        disabled={isReadOnly}
                                                     >
                                                         {field.value
                                                             ? (() => {
@@ -356,7 +385,7 @@ export const ReservaFormDialog = ({
                                             <FormItem>
                                                 <FormLabel className="text-xs font-semibold text-gray-600 uppercase">Fecha Entrada</FormLabel>
                                                 <FormControl>
-                                                    <Input type="date" className="h-11" {...field} />
+                                                    <Input type="date" className="h-11" {...field} disabled={isReadOnly} />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -369,7 +398,7 @@ export const ReservaFormDialog = ({
                                             <FormItem>
                                                 <FormLabel className="text-xs font-semibold text-gray-600 uppercase">Fecha Salida</FormLabel>
                                                 <FormControl>
-                                                    <Input type="date" className="h-11" {...field} />
+                                                    <Input type="date" className="h-11" {...field} disabled={isReadOnly} />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -409,7 +438,8 @@ export const ReservaFormDialog = ({
                                                                         "flex flex-row items-start space-x-3 space-y-0 p-3 rounded-md border-2 transition-all cursor-pointer",
                                                                         isChecked
                                                                             ? "bg-white border-green-500 shadow-sm"
-                                                                            : "bg-white border-gray-200 hover:border-gray-300"
+                                                                            : "bg-white border-gray-200 hover:border-gray-300",
+                                                                        isReadOnly && "opacity-60 cursor-not-allowed"
                                                                     )}
                                                                 >
                                                                     <FormControl>
@@ -425,6 +455,7 @@ export const ReservaFormDialog = ({
                                                                                     )
                                                                             }}
                                                                             className="mt-0.5"
+                                                                            disabled={isReadOnly}
                                                                         />
                                                                     </FormControl>
                                                                     <div className="flex-1 space-y-1">
@@ -457,7 +488,12 @@ export const ReservaFormDialog = ({
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel className="text-sm font-semibold text-gray-700">Estado de Reserva</FormLabel>
-                                        <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
+                                        <Select
+                                            onValueChange={field.onChange}
+                                            defaultValue={field.value}
+                                            value={field.value}
+                                            disabled={isReadOnly}
+                                        >
                                             <FormControl>
                                                 <SelectTrigger className="h-11">
                                                     <SelectValue placeholder="Seleccione estado" />
@@ -483,14 +519,16 @@ export const ReservaFormDialog = ({
                                     onClick={() => onOpenChange(false)}
                                     className="h-11 px-6"
                                 >
-                                    Cancelar
+                                    {isReadOnly ? 'Cerrar' : 'Cancelar'}
                                 </Button>
-                                <Button
-                                    type="submit"
-                                    className="bg-slate-900 hover:bg-slate-800 text-white h-11 px-8"
-                                >
-                                    {isEditing ? 'Guardar' : 'Crear y Pagar'}
-                                </Button>
+                                {!isReadOnly && (
+                                    <Button
+                                        type="submit"
+                                        className="bg-slate-900 hover:bg-slate-800 text-white h-11 px-8"
+                                    >
+                                        {isEditing ? 'Guardar' : 'Crear y Pagar'}
+                                    </Button>
+                                )}
                             </div>
                         </form>
                     </Form>

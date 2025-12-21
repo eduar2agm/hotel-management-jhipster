@@ -7,6 +7,9 @@ import com.hotel.app.repository.ReservaDetalleRepository;
 import com.hotel.app.repository.ReservaRepository;
 import com.hotel.app.service.ReservaService;
 import com.hotel.app.service.dto.ReservaDTO;
+import com.hotel.app.service.MensajeSoporteService;
+import com.hotel.app.service.dto.MensajeSoporteDTO;
+import java.time.Instant;
 import com.hotel.app.service.mapper.ReservaMapper;
 import com.hotel.app.web.rest.errors.BadRequestAlertException;
 import java.util.List;
@@ -33,11 +36,14 @@ public class ReservaServiceImpl implements ReservaService {
 
     private final ReservaDetalleRepository reservaDetalleRepository;
 
+    private final MensajeSoporteService mensajeSoporteService;
+
     public ReservaServiceImpl(ReservaRepository reservaRepository, ReservaMapper reservaMapper,
-            ReservaDetalleRepository reservaDetalleRepository) {
+            ReservaDetalleRepository reservaDetalleRepository, MensajeSoporteService mensajeSoporteService) {
         this.reservaRepository = reservaRepository;
         this.reservaMapper = reservaMapper;
         this.reservaDetalleRepository = reservaDetalleRepository;
+        this.mensajeSoporteService = mensajeSoporteService;
     }
 
     @Override
@@ -51,6 +57,14 @@ public class ReservaServiceImpl implements ReservaService {
     @Override
     public ReservaDTO update(ReservaDTO reservaDTO) {
         LOG.debug("Request to update Reserva : {}", reservaDTO);
+
+        reservaRepository.findById(reservaDTO.getId()).ifPresent(existingReserva -> {
+            if (existingReserva.getEstado() != EstadoReserva.FINALIZADA
+                    && reservaDTO.getEstado() == EstadoReserva.FINALIZADA) {
+                sendFinalizadaMessage(existingReserva);
+            }
+        });
+
         Reserva reserva = reservaMapper.toEntity(reservaDTO);
         reserva = reservaRepository.save(reserva);
         return reservaMapper.toDto(reserva);
@@ -63,6 +77,10 @@ public class ReservaServiceImpl implements ReservaService {
         return reservaRepository
                 .findById(reservaDTO.getId())
                 .map(existingReserva -> {
+                    if (existingReserva.getEstado() != EstadoReserva.FINALIZADA
+                            && reservaDTO.getEstado() == EstadoReserva.FINALIZADA) {
+                        sendFinalizadaMessage(existingReserva);
+                    }
                     reservaMapper.partialUpdate(existingReserva, reservaDTO);
 
                     return existingReserva;
@@ -187,5 +205,26 @@ public class ReservaServiceImpl implements ReservaService {
                     details.forEach(detail -> detail.setActivo(false));
                     reservaDetalleRepository.saveAll(details);
                 });
+    }
+
+    private void sendFinalizadaMessage(Reserva reserva) {
+        if (reserva.getCliente() != null) {
+            MensajeSoporteDTO mensaje = new MensajeSoporteDTO();
+            mensaje.setMensaje(
+                    "Su reserva con ID " + reserva.getId() + " ha sido finalizada. Gracias por su estancia.");
+            mensaje.setFechaMensaje(Instant.now());
+            mensaje.setUserId(reserva.getCliente().getKeycloakId());
+            mensaje.setUserName(reserva.getCliente().getNombre() + " " + reserva.getCliente().getApellido());
+            mensaje.setLeido(false);
+            mensaje.setActivo(true);
+            mensaje.setRemitente("SISTEMA");
+
+            // Set the reservation in the message if needed.
+            // Note: Use a new DTO or map existing one carefully to avoid issues
+            ReservaDTO reservaDTO = reservaMapper.toDto(reserva);
+            mensaje.setReserva(reservaDTO);
+
+            mensajeSoporteService.save(mensaje);
+        }
     }
 }
