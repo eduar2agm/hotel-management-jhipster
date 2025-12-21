@@ -71,6 +71,7 @@ import { Navbar } from '../../components/ui/Navbar';
 import { Footer } from '../../components/ui/Footer';
 import { cn } from '@/lib/utils';
 import { ActiveFilter } from '@/components/ui/ActiveFilter';
+import { PriceRangeFilter } from '@/components/ui/PriceRangeFilter';
 
 const reservaSchema = z.object({
     id: z.number().optional(),
@@ -124,6 +125,10 @@ export const EmployeeReservas = () => {
     // Filter State
     const [searchTerm, setSearchTerm] = useState('');
     const [showInactive, setShowInactive] = useState(false);
+    const [minPrice, setMinPrice] = useState<string>('');
+    const [maxPrice, setMaxPrice] = useState<string>('');
+    const [appliedMinPrice, setAppliedMinPrice] = useState<string>('');
+    const [appliedMaxPrice, setAppliedMaxPrice] = useState<string>('');
 
     const form = useForm<ReservaFormValues>({
         resolver: zodResolver(reservaSchema) as any,
@@ -306,7 +311,18 @@ export const EmployeeReservas = () => {
                 const endStr = `${watchedFechaFin}T00:00:00Z`;
 
                 const res = await HabitacionService.getAvailableHabitaciones(startStr, endStr, { size: 100 });
-                setHabitaciones(res.data);
+                let available = res.data;
+
+                // Client-side price filtering
+                if (appliedMinPrice !== '' || appliedMaxPrice !== '') {
+                    available = available.filter(h => {
+                        const price = h.categoriaHabitacion?.precioBase || 0;
+                        const matchMin = appliedMinPrice === '' || price >= Number(appliedMinPrice);
+                        const matchMax = appliedMaxPrice === '' || price <= Number(appliedMaxPrice);
+                        return matchMin && matchMax;
+                    });
+                }
+                setHabitaciones(available);
             } catch (error) {
                 console.error("Error fetching available rooms", error);
             }
@@ -318,7 +334,12 @@ export const EmployeeReservas = () => {
 
         return () => clearTimeout(timer);
 
-    }, [watchedFechaInicio, watchedFechaFin, isDialogOpen]);
+    }, [watchedFechaInicio, watchedFechaFin, isDialogOpen, appliedMinPrice, appliedMaxPrice]);
+
+    const handlePriceSearch = () => {
+        setAppliedMinPrice(minPrice);
+        setAppliedMaxPrice(maxPrice);
+    };
 
     useEffect(() => {
         if (!isDialogOpen) {
@@ -875,6 +896,19 @@ export const EmployeeReservas = () => {
                                 />
                             </div>
 
+                            {/* --- PRICE FILTER --- */}
+                            <div className="bg-slate-50 p-4 rounded-lg border border-slate-100">
+                                <PriceRangeFilter
+                                    variant="horizontal"
+                                    minPrice={minPrice}
+                                    maxPrice={maxPrice}
+                                    onMinPriceChange={setMinPrice}
+                                    onMaxPriceChange={setMaxPrice}
+                                    onSearch={handlePriceSearch}
+                                    className="w-full"
+                                />
+                            </div>
+
                             {/* --- ROOMS --- */}
                             <FormField
                                 control={form.control as any}
@@ -891,46 +925,54 @@ export const EmployeeReservas = () => {
                                         </div>
                                         <div className="border border-gray-200 rounded-lg p-1 max-h-48 overflow-y-auto bg-gray-50">
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
-                                                {habitaciones.map((hab) => (
-                                                    <FormField
-                                                        key={hab.id}
-                                                        control={form.control as any}
-                                                        name="roomIds"
-                                                        render={({ field }) => {
-                                                            const isChecked = field.value?.includes(hab.id!);
-                                                            return (
-                                                                <FormItem
-                                                                    key={hab.id}
-                                                                    className={`flex flex-row items-start space-x-3 space-y-0 p-3 rounded hover:bg-white transition-colors cursor-pointer ${isChecked ? 'bg-white shadow-sm border border-yellow-200' : ''}`}
-                                                                >
-                                                                    <FormControl>
-                                                                        <Checkbox
-                                                                            checked={isChecked}
-                                                                            onCheckedChange={(checked) => {
-                                                                                return checked
-                                                                                    ? field.onChange([...field.value, hab.id])
-                                                                                    : field.onChange(
-                                                                                        field.value?.filter(
-                                                                                            (value: number) => value !== hab.id
+                                                {habitaciones.length > 0 ? (
+                                                    habitaciones.map((hab) => (
+                                                        <FormField
+                                                            key={hab.id}
+                                                            control={form.control as any}
+                                                            name="roomIds"
+                                                            render={({ field }) => {
+                                                                const isChecked = field.value?.includes(hab.id!);
+                                                                return (
+                                                                    <FormItem
+                                                                        key={hab.id}
+                                                                        className={`flex flex-row items-start space-x-3 space-y-0 p-3 rounded hover:bg-white transition-colors cursor-pointer ${isChecked ? 'bg-white shadow-sm border border-yellow-200' : ''}`}
+                                                                    >
+                                                                        <FormControl>
+                                                                            <Checkbox
+                                                                                checked={isChecked}
+                                                                                onCheckedChange={(checked) => {
+                                                                                    return checked
+                                                                                        ? field.onChange([...field.value, hab.id])
+                                                                                        : field.onChange(
+                                                                                            field.value?.filter(
+                                                                                                (value: number) => value !== hab.id
+                                                                                            )
                                                                                         )
-                                                                                    )
-                                                                            }}
-                                                                            className="data-[state=checked]:bg-yellow-600 data-[state=checked]:border-yellow-600"
-                                                                        />
-                                                                    </FormControl>
-                                                                    <div className="space-y-1 leading-none">
-                                                                        <FormLabel className="font-bold text-sm cursor-pointer text-gray-800">
-                                                                            Habitación {hab.numero}
-                                                                        </FormLabel>
-                                                                        <FormDescription className="text-xs">
-                                                                            {hab.categoriaHabitacion?.nombre} • {hab.categoriaHabitacion?.precioBase ? `$${hab.categoriaHabitacion.precioBase}` : 'N/A'}
-                                                                        </FormDescription>
-                                                                    </div>
-                                                                </FormItem>
-                                                            )
-                                                        }}
-                                                    />
-                                                ))}
+                                                                                }}
+                                                                                className="data-[state=checked]:bg-yellow-600 data-[state=checked]:border-yellow-600"
+                                                                            />
+                                                                        </FormControl>
+                                                                        <div className="space-y-1 leading-none">
+                                                                            <FormLabel className="font-bold text-sm cursor-pointer text-gray-800">
+                                                                                Habitación {hab.numero}
+                                                                            </FormLabel>
+                                                                            <FormDescription className="text-xs">
+                                                                                {hab.categoriaHabitacion?.nombre} • {hab.categoriaHabitacion?.precioBase ? `$${hab.categoriaHabitacion.precioBase}` : 'N/A'}
+                                                                            </FormDescription>
+                                                                        </div>
+                                                                    </FormItem>
+                                                                )
+                                                            }}
+                                                        />
+                                                    ))
+                                                ) : (
+                                                    <div className="col-span-full py-10 text-center space-y-2">
+                                                        <Search className="h-8 w-8 text-gray-300 mx-auto" />
+                                                        <p className="text-gray-500 text-sm font-medium">No se encontraron habitaciones disponibles</p>
+                                                        <p className="text-gray-400 text-[10px] uppercase tracking-wider">Pruebe con otras fechas o rango de precio</p>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                         <FormMessage />
@@ -1042,6 +1084,7 @@ export const EmployeeReservas = () => {
                                         </div>
                                     </div>
                                 </div>
+
                             </div>
 
                             <div className="grid grid-cols-2 gap-8 border-t border-b border-gray-100 py-6 bg-slate-50/50 px-4 rounded-lg">

@@ -18,6 +18,7 @@ import type { HabitacionDTO, NewReservaDTO, ServicioDTO } from '../../types/api'
 import { toast } from 'sonner';
 import { BedDouble, Search, ArrowLeft, CalendarDays, Check, ShoppingBag, X, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { PriceRangeFilter } from '../../components/ui/PriceRangeFilter';
 
 // Importamos los componentes de UI del Hotel
 import { Navbar } from '../../components/ui/Navbar';
@@ -51,6 +52,10 @@ export const NuevaReserva = () => {
     const [selectedRooms, setSelectedRooms] = useState<HabitacionDTO[]>([]); // MULTI-SELECTION STATE
     const [freeServices, setFreeServices] = useState<ServicioDTO[]>([]);
     const [isLoading, setIsLoading] = useState(false);
+    const [minPrice, setMinPrice] = useState<string>('');
+    const [maxPrice, setMaxPrice] = useState<string>('');
+    const [appliedMinPrice, setAppliedMinPrice] = useState<string>('');
+    const [appliedMaxPrice, setAppliedMaxPrice] = useState<string>('');
     const [isSubmitting, setIsSubmitting] = useState(false); // New loading state for submit
     const [clienteId, setClienteId] = useState<number | null>(null);
 
@@ -89,7 +94,7 @@ export const NuevaReserva = () => {
                 console.error("Error fetching free services:", error);
             }
         };
-        
+
         checkProfile();
         fetchFreeServices();
     }, [user, navigate]);
@@ -147,7 +152,7 @@ export const NuevaReserva = () => {
         setIsSubmitting(true);
         try {
             const dates = form.getValues();
-            
+
             // 1. Create ONE Master Reservation
             const newReserva: NewReservaDTO = {
                 fechaReserva: new Date().toISOString(),
@@ -165,7 +170,7 @@ export const NuevaReserva = () => {
 
             // 2. Create Details for EACH selected room
             // Execute in parallel for speed
-            await Promise.all(selectedRooms.map(room => 
+            await Promise.all(selectedRooms.map(room =>
                 ReservaDetalleService.createReservaDetalle({
                     reserva: { id: savedReserva.id },
                     habitacion: room,
@@ -184,6 +189,18 @@ export const NuevaReserva = () => {
             setIsSubmitting(false);
         }
     };
+
+    const handlePriceSearch = () => {
+        setAppliedMinPrice(minPrice);
+        setAppliedMaxPrice(maxPrice);
+    };
+
+    const filteredRooms = availableRooms.filter(room => {
+        const price = room.categoriaHabitacion?.precioBase || 0;
+        const matchMin = appliedMinPrice === '' || price >= Number(appliedMinPrice);
+        const matchMax = appliedMaxPrice === '' || price <= Number(appliedMaxPrice);
+        return matchMin && matchMax;
+    });
 
     return (
         <div className="font-sans text-gray-900 bg-gray-50 min-h-screen flex flex-col">
@@ -294,8 +311,8 @@ export const NuevaReserva = () => {
 
                     {step === 2 && (
                         <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-                             
-                             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+
+                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                                 {/* --- LEFT: RESULTS GRID --- */}
                                 <div className="lg:col-span-8 order-2 lg:order-1">
                                     {/* Header de Resultados */}
@@ -315,17 +332,35 @@ export const NuevaReserva = () => {
                                         </Button>
                                     </div>
 
-                                    {availableRooms.length === 0 ? (
+                                    {/* --- FILTER SECTION --- */}
+                                    <div className="bg-white p-6 rounded-sm shadow-md border-b border-gray-100 mb-8 text-center">
+                                        <PriceRangeFilter
+                                            variant="horizontal"
+                                            minPrice={minPrice}
+                                            maxPrice={maxPrice}
+                                            onMinPriceChange={setMinPrice}
+                                            onMaxPriceChange={setMaxPrice}
+                                            onSearch={handlePriceSearch}
+                                        />
+                                    </div>
+
+                                    {filteredRooms.length === 0 ? (
                                         <div className="bg-white p-16 text-center shadow-sm border border-gray-200 rounded-sm">
                                             <div className="bg-gray-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
                                                 <Search className="h-8 w-8 text-gray-400" />
                                             </div>
-                                            <h3 className="text-xl font-bold text-gray-900 mb-2">Lo sentimos</h3>
-                                            <p className="text-gray-500">No hay habitaciones disponibles para estas fechas. Por favor intente con otro rango de días.</p>
+                                            <h3 className="text-xl font-bold text-gray-900 mb-2">
+                                                {availableRooms.length === 0 ? 'Lo sentimos' : 'No hay resultados'}
+                                            </h3>
+                                            <p className="text-gray-500">
+                                                {availableRooms.length === 0
+                                                    ? 'No hay habitaciones disponibles para estas fechas. Por favor intente con otro rango de días.'
+                                                    : 'No hay habitaciones en este rango de precio. Intente ajustar los filtros.'}
+                                            </p>
                                         </div>
                                     ) : (
                                         <div className="grid gap-6 md:grid-cols-2">
-                                            {availableRooms.map(room => {
+                                            {filteredRooms.map(room => {
                                                 const isSelected = selectedRooms.some(r => r.id === room.id);
                                                 return (
                                                     <div
@@ -376,17 +411,17 @@ export const NuevaReserva = () => {
                                                             {freeServices.length > 0 && (
                                                                 <div className="mb-4 text-sm text-gray-500">
                                                                     <span className="font-bold text-gray-700">Servicios: </span>
-                                                                    
+
                                                                     {/* Contenedor con un pequeño margen superior */}
-                                                                    <div className="mt-1 flex flex-col gap-1"> 
-                                                                    {freeServices.map((s, index) => (
-                                                                        <span key={s.id || index} className="block">
-                                                                        {s.nombre}
-                                                                        </span>
-                                                                    ))}
+                                                                    <div className="mt-1 flex flex-col gap-1">
+                                                                        {freeServices.map((s, index) => (
+                                                                            <span key={s.id || index} className="block">
+                                                                                {s.nombre}
+                                                                            </span>
+                                                                        ))}
                                                                     </div>
                                                                 </div>
-                                                                )}
+                                                            )}
 
                                                             <div className="mt-auto pt-4 border-t border-gray-100 flex items-end justify-between">
                                                                 <div>
@@ -398,7 +433,7 @@ export const NuevaReserva = () => {
                                                                         <span className="text-xs text-gray-500">/ noche</span>
                                                                     </div>
                                                                 </div>
-            
+
                                                                 <Button
                                                                     onClick={() => toggleRoomSelection(room)}
                                                                     variant={isSelected ? "secondary" : "default"}
@@ -408,11 +443,11 @@ export const NuevaReserva = () => {
                                                                 >
                                                                     {isSelected ? (
                                                                         <span className="flex items-center gap-2">
-                                                                             <X className="h-4 w-4" /> Quitar
+                                                                            <X className="h-4 w-4" /> Quitar
                                                                         </span>
                                                                     ) : (
                                                                         <span className="flex items-center gap-2">
-                                                                             <Check className="h-4 w-4" /> Agregar
+                                                                            <Check className="h-4 w-4" /> Agregar
                                                                         </span>
                                                                     )}
                                                                 </Button>
@@ -462,7 +497,7 @@ export const NuevaReserva = () => {
                                                 <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 flex justify-between items-center">
                                                     Habitaciones ({selectedRooms.length})
                                                     {selectedRooms.length > 0 && (
-                                                        <button 
+                                                        <button
                                                             onClick={() => setSelectedRooms([])}
                                                             className="text-red-500 hover:text-red-700 cursor-pointer flex items-center gap-1 text-[10px] normal-case"
                                                         >
@@ -470,7 +505,7 @@ export const NuevaReserva = () => {
                                                         </button>
                                                     )}
                                                 </h4>
-                                                
+
                                                 {selectedRooms.length === 0 ? (
                                                     <div className="text-center py-8 text-gray-400 bg-gray-50 rounded-lg border border-dashed border-gray-200">
                                                         <p className="text-sm italic">Ninguna habitación seleccionada.</p>
@@ -487,7 +522,7 @@ export const NuevaReserva = () => {
                                                                     <div className="font-bold text-gray-900">
                                                                         ${((room.categoriaHabitacion?.precioBase || 0) * calculateNights()).toFixed(2)}
                                                                     </div>
-                                                                    <button 
+                                                                    <button
                                                                         onClick={() => toggleRoomSelection(room)}
                                                                         className="text-xs text-red-500 hover:text-red-700 underline opacity-0 group-hover:opacity-100 transition-opacity"
                                                                     >
@@ -509,7 +544,7 @@ export const NuevaReserva = () => {
                                                     </span>
                                                 </div>
 
-                                                <Button 
+                                                <Button
                                                     onClick={confirmReservation}
                                                     disabled={selectedRooms.length === 0 || isSubmitting}
                                                     className="w-full bg-yellow-600 hover:bg-yellow-700 text-white h-12 text-sm uppercase font-bold tracking-widest shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
@@ -527,7 +562,7 @@ export const NuevaReserva = () => {
                                     </div>
                                 </div>
 
-                             </div>
+                            </div>
                         </div>
                     )}
                 </div>

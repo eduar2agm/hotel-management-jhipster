@@ -73,6 +73,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { ActiveFilter } from '@/components/ui/ActiveFilter';
+import { PriceRangeFilter } from '@/components/ui/PriceRangeFilter';
 
 const reservaSchema = z.object({
     id: z.number().optional(),
@@ -115,7 +116,7 @@ export const AdminReservas = () => {
     const [isPaymentMethodOpen, setIsPaymentMethodOpen] = useState(false);
     const [isCashPaymentOpen, setIsCashPaymentOpen] = useState(false);
     const [isStripePaymentOpen, setIsStripePaymentOpen] = useState(false);
-    
+
     const [paymentReserva, setPaymentReserva] = useState<ReservaDTO | null>(null);
     const [paymentTotal, setPaymentTotal] = useState(0);
     const [stripeClientSecret, setStripeClientSecret] = useState<string | null>(null);
@@ -125,6 +126,10 @@ export const AdminReservas = () => {
     // Filter State
     const [searchTerm, setSearchTerm] = useState('');
     const [showInactive, setShowInactive] = useState(false);
+    const [minPrice, setMinPrice] = useState<string>('');
+    const [maxPrice, setMaxPrice] = useState<string>('');
+    const [appliedMinPrice, setAppliedMinPrice] = useState<string>('');
+    const [appliedMaxPrice, setAppliedMaxPrice] = useState<string>('');
 
     const form = useForm<ReservaFormValues>({
         resolver: zodResolver(reservaSchema) as any,
@@ -229,7 +234,18 @@ export const AdminReservas = () => {
                 const endStr = `${watchedFechaFin}T00:00:00Z`;
 
                 const res = await HabitacionService.getAvailableHabitaciones(startStr, endStr, { size: 100 });
-                setHabitaciones(res.data);
+                let available = res.data;
+
+                // Client-side price filtering
+                if (appliedMinPrice !== '' || appliedMaxPrice !== '') {
+                    available = available.filter(h => {
+                        const price = h.categoriaHabitacion?.precioBase || 0;
+                        const matchMin = appliedMinPrice === '' || price >= Number(appliedMinPrice);
+                        const matchMax = appliedMaxPrice === '' || price <= Number(appliedMaxPrice);
+                        return matchMin && matchMax;
+                    });
+                }
+                setHabitaciones(available);
 
                 // OPTIONAL: Toast to notify user
                 // toast.info(`Habitaciones actualizadas para ${watchedFechaInicio} - ${watchedFechaFin}`);
@@ -244,7 +260,12 @@ export const AdminReservas = () => {
 
         return () => clearTimeout(timer);
 
-    }, [watchedFechaInicio, watchedFechaFin, isDialogOpen]);
+    }, [watchedFechaInicio, watchedFechaFin, isDialogOpen, appliedMinPrice, appliedMaxPrice]);
+
+    const handlePriceSearch = () => {
+        setAppliedMinPrice(minPrice);
+        setAppliedMaxPrice(maxPrice);
+    };
 
 
     // Reset Form on Dialog Close
@@ -258,6 +279,8 @@ export const AdminReservas = () => {
                 activo: true,
                 clienteId: 0
             });
+            setMinPrice('');
+            setMaxPrice('');
             // Reset rooms to all? handled by next open or loadData
             loadData();
         }
@@ -455,7 +478,7 @@ export const AdminReservas = () => {
     };
 
     // --- PAYMENT HANDLERS ---
-    
+
     const handleOpenPayment = async (reserva: ReservaDTO) => {
         try {
             setIsLoading(true); // Small loading indicator if needed
@@ -481,7 +504,7 @@ export const AdminReservas = () => {
             setPaymentReserva(reserva);
             setPaymentTotal(calculatedTotal);
             setCashAmount(calculatedTotal.toString()); // Pre-fill
-            
+
             setIsPaymentMethodOpen(true);
         } catch (error) {
             console.error(error);
@@ -503,11 +526,11 @@ export const AdminReservas = () => {
             // Initiate Payment Intent
             const response = await apiClient.post('/stripe/payment-intent', {
                 amount: paymentTotal,
-                currency: 'usd', 
+                currency: 'usd',
                 reservaId: paymentReserva.id,
                 description: `Pago Admin Reserva #${paymentReserva.id}`
             });
-            
+
             setStripeClientSecret(response.data.clientSecret);
             setIsPaymentMethodOpen(false);
             setIsStripePaymentOpen(true);
@@ -522,7 +545,7 @@ export const AdminReservas = () => {
     const submitCashPayment = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!paymentReserva) return;
-        
+
         try {
             setIsProcessingPayment(true);
             const monto = parseFloat(cashAmount);
@@ -536,14 +559,14 @@ export const AdminReservas = () => {
                 fechaPago: new Date().toISOString(),
                 monto: cashAmount,
                 metodoPago: 'EFECTIVO',
-                estado: 'COMPLETADO', 
+                estado: 'COMPLETADO',
                 activo: true,
                 reserva: { id: paymentReserva.id }
             });
 
             // Optionally confirm reserva if not confirmed?
             if (paymentReserva.estado !== 'CONFIRMADA') {
-                 await ReservaService.partialUpdateReserva(paymentReserva.id!, { id: paymentReserva.id, estado: 'CONFIRMADA' });
+                await ReservaService.partialUpdateReserva(paymentReserva.id!, { id: paymentReserva.id, estado: 'CONFIRMADA' });
             }
 
             toast.success('Pago en efectivo registrado correctamente');
@@ -563,9 +586,9 @@ export const AdminReservas = () => {
         // Stripe webhook handles 'Pago' entity creation usually. 
         // We can force status update just in case.
         if (paymentReserva && paymentReserva.estado !== 'CONFIRMADA') {
-             try {
+            try {
                 await ReservaService.partialUpdateReserva(paymentReserva.id!, { id: paymentReserva.id, estado: 'CONFIRMADA' });
-             } catch (e) { console.error("Error auto-confirming", e); }
+            } catch (e) { console.error("Error auto-confirming", e); }
         }
         loadData();
     };
@@ -802,7 +825,7 @@ export const AdminReservas = () => {
                                             <TableCell className="text-right p-4">
                                                 <div className="flex justify-end gap-2">
                                                     {/* PAYMENT BUTTON */}
-                                                     <Button
+                                                    <Button
                                                         variant="ghost"
                                                         size="sm"
                                                         onClick={() => handleOpenPayment(reserva)}
@@ -1020,6 +1043,18 @@ export const AdminReservas = () => {
                                     </div>
                                 </div>
 
+                                {/* --- PRICE FILTER --- */}
+                                <div className="bg-slate-50 p-4 rounded-lg border border-slate-100">
+                                    <PriceRangeFilter
+                                        variant="horizontal"
+                                        minPrice={minPrice}
+                                        maxPrice={maxPrice}
+                                        onMinPriceChange={setMinPrice}
+                                        onMaxPriceChange={setMaxPrice}
+                                        onSearch={handlePriceSearch}
+                                    />
+                                </div>
+
                                 {/* --- ROOMS --- */}
                                 <FormField
                                     control={form.control as any}
@@ -1037,54 +1072,62 @@ export const AdminReservas = () => {
                                             </div>
                                             <div className="border rounded-lg p-4 max-h-64 overflow-y-auto bg-gray-50">
                                                 <div className="grid grid-cols-2 gap-3">
-                                                    {habitaciones.map((hab) => (
-                                                        <FormField
-                                                            key={hab.id}
-                                                            control={form.control as any}
-                                                            name="roomIds"
-                                                            render={({ field }) => {
-                                                                const isChecked = field.value?.includes(hab.id!);
-                                                                return (
-                                                                    <FormItem
-                                                                        key={hab.id}
-                                                                        className={cn(
-                                                                            "flex flex-row items-start space-x-3 space-y-0 p-3 rounded-md border-2 transition-all cursor-pointer",
-                                                                            isChecked
-                                                                                ? "bg-white border-green-500 shadow-sm"
-                                                                                : "bg-white border-gray-200 hover:border-gray-300"
-                                                                        )}
-                                                                    >
-                                                                        <FormControl>
-                                                                            <Checkbox
-                                                                                checked={isChecked}
-                                                                                onCheckedChange={(checked) => {
-                                                                                    return checked
-                                                                                        ? field.onChange([...field.value, hab.id])
-                                                                                        : field.onChange(
-                                                                                            field.value?.filter(
-                                                                                                (value: number) => value !== hab.id
+                                                    {habitaciones.length > 0 ? (
+                                                        habitaciones.map((hab) => (
+                                                            <FormField
+                                                                key={hab.id}
+                                                                control={form.control as any}
+                                                                name="roomIds"
+                                                                render={({ field }) => {
+                                                                    const isChecked = field.value?.includes(hab.id!);
+                                                                    return (
+                                                                        <FormItem
+                                                                            key={hab.id}
+                                                                            className={cn(
+                                                                                "flex flex-row items-start space-x-3 space-y-0 p-3 rounded-md border-2 transition-all cursor-pointer",
+                                                                                isChecked
+                                                                                    ? "bg-white border-green-500 shadow-sm"
+                                                                                    : "bg-white border-gray-200 hover:border-gray-300"
+                                                                            )}
+                                                                        >
+                                                                            <FormControl>
+                                                                                <Checkbox
+                                                                                    checked={isChecked}
+                                                                                    onCheckedChange={(checked) => {
+                                                                                        return checked
+                                                                                            ? field.onChange([...field.value, hab.id])
+                                                                                            : field.onChange(
+                                                                                                field.value?.filter(
+                                                                                                    (value: number) => value !== hab.id
+                                                                                                )
                                                                                             )
-                                                                                        )
-                                                                                }}
-                                                                                className="mt-0.5"
-                                                                            />
-                                                                        </FormControl>
-                                                                        <div className="flex-1 space-y-1">
-                                                                            <FormLabel className="font-semibold text-sm cursor-pointer text-gray-900">
-                                                                                Habitación {hab.numero}
-                                                                            </FormLabel>
-                                                                            <div className="text-xs text-gray-600 space-y-0.5">
-                                                                                <div>{hab.categoriaHabitacion?.nombre || 'Sin categoría'}</div>
-                                                                                <div className="font-medium text-gray-900">
-                                                                                    ${hab.categoriaHabitacion?.precioBase || '0'}
+                                                                                    }}
+                                                                                    className="mt-0.5"
+                                                                                />
+                                                                            </FormControl>
+                                                                            <div className="flex-1 space-y-1">
+                                                                                <FormLabel className="font-semibold text-sm cursor-pointer text-gray-900">
+                                                                                    Habitación {hab.numero}
+                                                                                </FormLabel>
+                                                                                <div className="text-xs text-gray-600 space-y-0.5">
+                                                                                    <div>{hab.categoriaHabitacion?.nombre || 'Sin categoría'}</div>
+                                                                                    <div className="font-medium text-gray-900">
+                                                                                        ${hab.categoriaHabitacion?.precioBase || '0'}
+                                                                                    </div>
                                                                                 </div>
                                                                             </div>
-                                                                        </div>
-                                                                    </FormItem>
-                                                                )
-                                                            }}
-                                                        />
-                                                    ))}
+                                                                        </FormItem>
+                                                                    )
+                                                                }}
+                                                            />
+                                                        ))
+                                                    ) : (
+                                                        <div className="col-span-full py-10 text-center space-y-2">
+                                                            <Search className="h-8 w-8 text-gray-300 mx-auto" />
+                                                            <p className="text-gray-500 text-sm font-medium">No se encontraron habitaciones disponibles</p>
+                                                            <p className="text-gray-400 text-[10px] uppercase tracking-wider">Pruebe con otras fechas o rango de precio</p>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
                                             <FormMessage />
@@ -1286,7 +1329,7 @@ export const AdminReservas = () => {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-            
+
             {/* --- PAYMENT METHOD SELECTION DIALOG --- */}
             <Dialog open={isPaymentMethodOpen} onOpenChange={setIsPaymentMethodOpen}>
                 <DialogContent className="sm:max-w-md">
@@ -1296,9 +1339,9 @@ export const AdminReservas = () => {
                             Reserva #{paymentReserva?.id} • Total a Pagar: <span className="font-bold text-gray-900">${paymentTotal.toFixed(2)}</span>
                         </DialogDescription>
                     </DialogHeader>
-                    
+
                     <div className="grid grid-cols-2 gap-4 py-4">
-                        <button 
+                        <button
                             onClick={handleSelectStripe}
                             disabled={isProcessingPayment}
                             className="flex flex-col items-center justify-center p-6 border-2 border-gray-100 rounded-xl hover:border-yellow-500 hover:bg-yellow-50 transition-all gap-3 group"
@@ -1310,11 +1353,11 @@ export const AdminReservas = () => {
                             <span className="text-xs text-gray-400">Tarjeta Crédito/Débito</span>
                         </button>
 
-                        <button 
+                        <button
                             onClick={handleSelectCash}
                             className="flex flex-col items-center justify-center p-6 border-2 border-gray-100 rounded-xl hover:border-green-500 hover:bg-green-50 transition-all gap-3 group"
                         >
-                             <div className="bg-white p-3 rounded-full shadow-sm group-hover:scale-110 transition-transform">
+                            <div className="bg-white p-3 rounded-full shadow-sm group-hover:scale-110 transition-transform">
                                 <Banknote className="h-8 w-8 text-green-600" />
                             </div>
                             <span className="font-bold text-gray-800">Efectivo</span>
@@ -1355,11 +1398,11 @@ export const AdminReservas = () => {
                             <label className="text-xs font-bold uppercase text-gray-500">Monto A Recibir ($)</label>
                             <div className="relative">
                                 <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                                <Input 
+                                <Input
                                     className="pl-9 text-lg font-bold"
-                                    type="number" 
-                                    step="0.01" 
-                                    value={cashAmount} 
+                                    type="number"
+                                    step="0.01"
+                                    value={cashAmount}
                                     onChange={(e) => setCashAmount(e.target.value)}
                                     autoFocus
                                 />
@@ -1383,28 +1426,28 @@ export const AdminReservas = () => {
                         <DialogTitle className="flex items-center gap-2">
                             <CreditCard className="w-5 h-5 text-yellow-600" /> Procesar Pago con Tarjeta
                         </DialogTitle>
-                         <DialogDescription>
-                             Complete los datos de la tarjeta para la Reserva #{paymentReserva?.id}.
+                        <DialogDescription>
+                            Complete los datos de la tarjeta para la Reserva #{paymentReserva?.id}.
                         </DialogDescription>
                     </DialogHeader>
-                    
+
                     <div className="py-4">
-                         {stripeClientSecret && (
-                             <Elements stripe={stripePromise} options={{ 
-                                 clientSecret: stripeClientSecret,
-                                 appearance: { theme: 'stripe', variables: { colorPrimary: '#ca8a04' } }
-                             }}>
-                                 <StripePaymentForm 
+                        {stripeClientSecret && (
+                            <Elements stripe={stripePromise} options={{
+                                clientSecret: stripeClientSecret,
+                                appearance: { theme: 'stripe', variables: { colorPrimary: '#ca8a04' } }
+                            }}>
+                                <StripePaymentForm
                                     onSuccess={handleStripeSuccess}
                                     returnUrl={window.location.href} // Admin usually stays on page
-                                 />
-                             </Elements>
-                         )}
-                         {!stripeClientSecret && (
-                             <div className="flex justify-center py-10">
-                                 <div className="animate-spin h-8 w-8 border-b-2 border-yellow-600 rounded-full"></div>
-                             </div>
-                         )}
+                                />
+                            </Elements>
+                        )}
+                        {!stripeClientSecret && (
+                            <div className="flex justify-center py-10">
+                                <div className="animate-spin h-8 w-8 border-b-2 border-yellow-600 rounded-full"></div>
+                            </div>
+                        )}
                     </div>
                 </DialogContent>
             </Dialog>

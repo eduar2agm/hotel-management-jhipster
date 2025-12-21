@@ -5,13 +5,15 @@ import { PublicRoomCard } from '../../components/ui/PublicRoomCard';
 import { Search, SlidersHorizontal, X } from 'lucide-react';
 import { HabitacionService } from '../../services/habitacion.service';
 import type { HabitacionDTO } from '../../types/api';
+import { PriceRangeFilter } from '../../components/ui/PriceRangeFilter';
 
 // MOCK eliminado para usar datos reales
 
 export const Habitaciones = () => {
   const [busqueda, setBusqueda] = useState("");
   const [categoriaSelec, setCategoriaSelec] = useState("TODAS");
-  const [precioMax, setPrecioMax] = useState(600);
+  const [minPrice, setMinPrice] = useState<string>('');
+  const [precioMax, setPrecioMax] = useState<string>('600');
   const [habitaciones, setHabitaciones] = useState<HabitacionDTO[]>([]);
   const [cargando, setCargando] = useState(true);
 
@@ -37,11 +39,12 @@ export const Habitaciones = () => {
       const matchCategoria = categoriaSelec === "TODAS" || hab.categoriaHabitacion?.nombre === categoriaSelec;
 
       const precio = hab.categoriaHabitacion?.precioBase || 0;
-      const matchPrecio = precio <= precioMax;
+      const matchMin = minPrice === '' || precio >= Number(minPrice);
+      const matchMax = precioMax === '' || precio <= Number(precioMax);
 
-      return matchTexto && matchCategoria && matchPrecio;
+      return matchTexto && matchCategoria && matchMin && matchMax;
     });
-  }, [busqueda, categoriaSelec, precioMax, habitaciones]);
+  }, [busqueda, categoriaSelec, minPrice, precioMax, habitaciones]);
 
   if (cargando) {
     return (
@@ -111,25 +114,17 @@ export const Habitaciones = () => {
           </div>
 
           {/* Rango de Precio */}
-          <div className="mb-6">
-            <div className="flex justify-between mb-2">
-              <label className="text-xs font-bold text-gray-500 uppercase">Precio Máximo</label>
-              <span className="text-sm font-bold text-yellow-600">${precioMax}</span>
-            </div>
-            <input
-              type="range"
-              min="50"
-              max="600"
-              step="10"
-              value={precioMax}
-              onChange={(e) => setPrecioMax(Number(e.target.value))}
-              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-yellow-500"
-            />
-          </div>
+          <PriceRangeFilter
+            minPrice={minPrice}
+            maxPrice={precioMax}
+            onMinPriceChange={setMinPrice}
+            onMaxPriceChange={(val) => setPrecioMax(val)}
+            className="mb-8"
+          />
 
           {/* Botón Limpiar */}
           <button
-            onClick={() => { setBusqueda(""); setCategoriaSelec("TODAS"); setPrecioMax(600); }}
+            onClick={() => { setBusqueda(""); setCategoriaSelec("TODAS"); setMinPrice(""); setPrecioMax("600"); }}
             className="w-full flex justify-center items-center gap-2 text-xs font-bold text-gray-400 hover:text-red-500 transition-colors py-2"
           >
             <X size={14} /> Limpiar Filtros
