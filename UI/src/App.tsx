@@ -35,6 +35,7 @@ import { AuthTokenSync } from './components/AuthTokenSync';
 import './api/axios-interceptors';
 import './App.css';
 import { Home } from './pages/HomePage';
+import { ContactPage } from './pages/ContactPage';
 import { ProfileCompletionModal } from './components/modals/ProfileCompletionModal';
 
 function App() {
@@ -49,6 +50,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
+          <Route path="/contacto" element={<ContactPage />} />
           <Route path="/HomePage" element={<Home />} />
 
           {/* Global Layout for Authenticated Routes */}
@@ -65,7 +67,7 @@ function App() {
             <Route path="/admin/servicios-contratados" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN']}><AdminServiciosContratados basePath="/admin" /></ProtectedRoute>} />
             <Route path="/admin/servicios/contratar" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN']}><AdminContratarServicio returnPath="/admin/servicios-contratados" /></ProtectedRoute>} />
             <Route path="/admin/imagenes" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN']}><AdminImagenes /></ProtectedRoute>} />
-  
+
             {/* Employee Routes */}
             <Route path="/employee/dashboard" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN', 'ROLE_EMPLOYEE']}><EmployeeDashboard /></ProtectedRoute>} />
             <Route path="/employee/clientes" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN', 'ROLE_EMPLOYEE']}><AdminClientes /></ProtectedRoute>} />
@@ -75,7 +77,7 @@ function App() {
             <Route path="/employee/servicios" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN', 'ROLE_EMPLOYEE']}><EmployeeServicios /></ProtectedRoute>} />
             <Route path="/employee/servicios-contratados" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN', 'ROLE_EMPLOYEE']}><EmployeeServiciosContratados /></ProtectedRoute>} />
             <Route path="/employee/servicios/contratar" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN', 'ROLE_EMPLOYEE']}><EmployeeContratarServicio /></ProtectedRoute>} />
-  
+
             {/* Client Routes */}
             <Route path="/client/HomePage" element={<ProtectedRoute requiredRoles={['ROLE_CLIENT']}><Home /></ProtectedRoute>} />
             <Route path="/client/reservas" element={<ProtectedRoute requiredRoles={['ROLE_CLIENT']}><ClientReservas /></ProtectedRoute>} />
