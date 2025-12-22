@@ -3,7 +3,9 @@ package com.hotel.app.web.rest;
 import com.hotel.app.repository.TelefonoRepository;
 import com.hotel.app.service.TelefonoService;
 import com.hotel.app.service.dto.TelefonoDTO;
+import com.hotel.app.security.AuthoritiesConstants;
 import com.hotel.app.web.rest.errors.BadRequestAlertException;
+import org.springframework.security.access.prepost.PreAuthorize;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import java.net.URI;
@@ -51,36 +53,44 @@ public class TelefonoResource {
      * {@code POST  /telefonos} : Create a new telefono.
      *
      * @param telefonoDTO the telefonoDTO to create.
-     * @return the {@link ResponseEntity} with status {@code 201 (Created)} and with body the new telefonoDTO, or with status {@code 400 (Bad Request)} if the telefono has already an ID.
+     * @return the {@link ResponseEntity} with status {@code 201 (Created)} and with
+     *         body the new telefonoDTO, or with status {@code 400 (Bad Request)} if
+     *         the telefono has already an ID.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PostMapping("")
-    public ResponseEntity<TelefonoDTO> createTelefono(@Valid @RequestBody TelefonoDTO telefonoDTO) throws URISyntaxException {
+    @PreAuthorize("hasAuthority(\"" + AuthoritiesConstants.ADMIN + "\")")
+    public ResponseEntity<TelefonoDTO> createTelefono(@Valid @RequestBody TelefonoDTO telefonoDTO)
+            throws URISyntaxException {
         LOG.debug("REST request to save Telefono : {}", telefonoDTO);
         if (telefonoDTO.getId() != null) {
             throw new BadRequestAlertException("A new telefono cannot already have an ID", ENTITY_NAME, "idexists");
         }
         telefonoDTO = telefonoService.save(telefonoDTO);
         return ResponseEntity.created(new URI("/api/telefonos/" + telefonoDTO.getId()))
-            .headers(HeaderUtil.createEntityCreationAlert(applicationName, false, ENTITY_NAME, telefonoDTO.getId().toString()))
-            .body(telefonoDTO);
+                .headers(HeaderUtil.createEntityCreationAlert(applicationName, false, ENTITY_NAME,
+                        telefonoDTO.getId().toString()))
+                .body(telefonoDTO);
     }
 
     /**
      * {@code PUT  /telefonos/:id} : Updates an existing telefono.
      *
-     * @param id the id of the telefonoDTO to save.
+     * @param id          the id of the telefonoDTO to save.
      * @param telefonoDTO the telefonoDTO to update.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated telefonoDTO,
-     * or with status {@code 400 (Bad Request)} if the telefonoDTO is not valid,
-     * or with status {@code 500 (Internal Server Error)} if the telefonoDTO couldn't be updated.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body
+     *         the updated telefonoDTO,
+     *         or with status {@code 400 (Bad Request)} if the telefonoDTO is not
+     *         valid,
+     *         or with status {@code 500 (Internal Server Error)} if the telefonoDTO
+     *         couldn't be updated.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority(\"" + AuthoritiesConstants.ADMIN + "\")")
     public ResponseEntity<TelefonoDTO> updateTelefono(
-        @PathVariable(value = "id", required = false) final Long id,
-        @Valid @RequestBody TelefonoDTO telefonoDTO
-    ) throws URISyntaxException {
+            @PathVariable(value = "id", required = false) final Long id,
+            @Valid @RequestBody TelefonoDTO telefonoDTO) throws URISyntaxException {
         LOG.debug("REST request to update Telefono : {}, {}", id, telefonoDTO);
         if (telefonoDTO.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
@@ -95,26 +105,32 @@ public class TelefonoResource {
 
         telefonoDTO = telefonoService.update(telefonoDTO);
         return ResponseEntity.ok()
-            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME, telefonoDTO.getId().toString()))
-            .body(telefonoDTO);
+                .headers(HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME,
+                        telefonoDTO.getId().toString()))
+                .body(telefonoDTO);
     }
 
     /**
-     * {@code PATCH  /telefonos/:id} : Partial updates given fields of an existing telefono, field will ignore if it is null
+     * {@code PATCH  /telefonos/:id} : Partial updates given fields of an existing
+     * telefono, field will ignore if it is null
      *
-     * @param id the id of the telefonoDTO to save.
+     * @param id          the id of the telefonoDTO to save.
      * @param telefonoDTO the telefonoDTO to update.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated telefonoDTO,
-     * or with status {@code 400 (Bad Request)} if the telefonoDTO is not valid,
-     * or with status {@code 404 (Not Found)} if the telefonoDTO is not found,
-     * or with status {@code 500 (Internal Server Error)} if the telefonoDTO couldn't be updated.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body
+     *         the updated telefonoDTO,
+     *         or with status {@code 400 (Bad Request)} if the telefonoDTO is not
+     *         valid,
+     *         or with status {@code 404 (Not Found)} if the telefonoDTO is not
+     *         found,
+     *         or with status {@code 500 (Internal Server Error)} if the telefonoDTO
+     *         couldn't be updated.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PatchMapping(value = "/{id}", consumes = { "application/json", "application/merge-patch+json" })
+    @PreAuthorize("hasAuthority(\"" + AuthoritiesConstants.ADMIN + "\")")
     public ResponseEntity<TelefonoDTO> partialUpdateTelefono(
-        @PathVariable(value = "id", required = false) final Long id,
-        @NotNull @RequestBody TelefonoDTO telefonoDTO
-    ) throws URISyntaxException {
+            @PathVariable(value = "id", required = false) final Long id,
+            @NotNull @RequestBody TelefonoDTO telefonoDTO) throws URISyntaxException {
         LOG.debug("REST request to partial update Telefono partially : {}, {}", id, telefonoDTO);
         if (telefonoDTO.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
@@ -130,22 +146,25 @@ public class TelefonoResource {
         Optional<TelefonoDTO> result = telefonoService.partialUpdate(telefonoDTO);
 
         return ResponseUtil.wrapOrNotFound(
-            result,
-            HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME, telefonoDTO.getId().toString())
-        );
+                result,
+                HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME,
+                        telefonoDTO.getId().toString()));
     }
 
     /**
      * {@code GET  /telefonos} : get all the telefonos.
      *
      * @param pageable the pagination information.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of telefonos in body.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list
+     *         of telefonos in body.
      */
     @GetMapping("")
-    public ResponseEntity<List<TelefonoDTO>> getAllTelefonos(@org.springdoc.core.annotations.ParameterObject Pageable pageable) {
+    public ResponseEntity<List<TelefonoDTO>> getAllTelefonos(
+            @org.springdoc.core.annotations.ParameterObject Pageable pageable) {
         LOG.debug("REST request to get a page of Telefonos");
         Page<TelefonoDTO> page = telefonoService.findAll(pageable);
-        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
+        HttpHeaders headers = PaginationUtil
+                .generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
         return ResponseEntity.ok().headers(headers).body(page.getContent());
     }
 
@@ -153,7 +172,8 @@ public class TelefonoResource {
      * {@code GET  /telefonos/:id} : get the "id" telefono.
      *
      * @param id the id of the telefonoDTO to retrieve.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the telefonoDTO, or with status {@code 404 (Not Found)}.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body
+     *         the telefonoDTO, or with status {@code 404 (Not Found)}.
      */
     @GetMapping("/{id}")
     public ResponseEntity<TelefonoDTO> getTelefono(@PathVariable("id") Long id) {
@@ -169,11 +189,12 @@ public class TelefonoResource {
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
      */
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority(\"" + AuthoritiesConstants.ADMIN + "\")")
     public ResponseEntity<Void> deleteTelefono(@PathVariable("id") Long id) {
         LOG.debug("REST request to delete Telefono : {}", id);
         telefonoService.delete(id);
         return ResponseEntity.noContent()
-            .headers(HeaderUtil.createEntityDeletionAlert(applicationName, false, ENTITY_NAME, id.toString()))
-            .build();
+                .headers(HeaderUtil.createEntityDeletionAlert(applicationName, false, ENTITY_NAME, id.toString()))
+                .build();
     }
 }

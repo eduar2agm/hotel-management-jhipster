@@ -18,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import tech.jhipster.web.util.HeaderUtil;
@@ -42,7 +43,8 @@ public class SeccionContactoResource {
 
     private final SeccionContactoRepository seccionContactoRepository;
 
-    public SeccionContactoResource(SeccionContactoService seccionContactoService, SeccionContactoRepository seccionContactoRepository) {
+    public SeccionContactoResource(SeccionContactoService seccionContactoService,
+            SeccionContactoRepository seccionContactoRepository) {
         this.seccionContactoService = seccionContactoService;
         this.seccionContactoRepository = seccionContactoRepository;
     }
@@ -51,37 +53,48 @@ public class SeccionContactoResource {
      * {@code POST  /seccion-contactos} : Create a new seccionContacto.
      *
      * @param seccionContactoDTO the seccionContactoDTO to create.
-     * @return the {@link ResponseEntity} with status {@code 201 (Created)} and with body the new seccionContactoDTO, or with status {@code 400 (Bad Request)} if the seccionContacto has already an ID.
+     * @return the {@link ResponseEntity} with status {@code 201 (Created)} and with
+     *         body the new seccionContactoDTO, or with status
+     *         {@code 400 (Bad Request)} if the seccionContacto has already an ID.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
+
     @PostMapping("")
-    public ResponseEntity<SeccionContactoDTO> createSeccionContacto(@Valid @RequestBody SeccionContactoDTO seccionContactoDTO)
-        throws URISyntaxException {
+    public ResponseEntity<SeccionContactoDTO> createSeccionContacto(
+            @Valid @RequestBody SeccionContactoDTO seccionContactoDTO)
+            throws URISyntaxException {
         LOG.debug("REST request to save SeccionContacto : {}", seccionContactoDTO);
         if (seccionContactoDTO.getId() != null) {
-            throw new BadRequestAlertException("A new seccionContacto cannot already have an ID", ENTITY_NAME, "idexists");
+            throw new BadRequestAlertException("A new seccionContacto cannot already have an ID", ENTITY_NAME,
+                    "idexists");
         }
         seccionContactoDTO = seccionContactoService.save(seccionContactoDTO);
         return ResponseEntity.created(new URI("/api/seccion-contactos/" + seccionContactoDTO.getId()))
-            .headers(HeaderUtil.createEntityCreationAlert(applicationName, false, ENTITY_NAME, seccionContactoDTO.getId().toString()))
-            .body(seccionContactoDTO);
+                .headers(HeaderUtil.createEntityCreationAlert(applicationName, false, ENTITY_NAME,
+                        seccionContactoDTO.getId().toString()))
+                .body(seccionContactoDTO);
     }
 
     /**
      * {@code PUT  /seccion-contactos/:id} : Updates an existing seccionContacto.
      *
-     * @param id the id of the seccionContactoDTO to save.
+     * @param id                 the id of the seccionContactoDTO to save.
      * @param seccionContactoDTO the seccionContactoDTO to update.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated seccionContactoDTO,
-     * or with status {@code 400 (Bad Request)} if the seccionContactoDTO is not valid,
-     * or with status {@code 500 (Internal Server Error)} if the seccionContactoDTO couldn't be updated.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body
+     *         the updated seccionContactoDTO,
+     *         or with status {@code 400 (Bad Request)} if the seccionContactoDTO is
+     *         not valid,
+     *         or with status {@code 500 (Internal Server Error)} if the
+     *         seccionContactoDTO couldn't be updated.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
+
     @PutMapping("/{id}")
     public ResponseEntity<SeccionContactoDTO> updateSeccionContacto(
-        @PathVariable(value = "id", required = false) final Long id,
-        @Valid @RequestBody SeccionContactoDTO seccionContactoDTO
-    ) throws URISyntaxException {
+            @PathVariable(value = "id", required = false) final Long id,
+            @Valid @RequestBody SeccionContactoDTO seccionContactoDTO) throws URISyntaxException {
         LOG.debug("REST request to update SeccionContacto : {}, {}", id, seccionContactoDTO);
         if (seccionContactoDTO.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
@@ -96,26 +109,33 @@ public class SeccionContactoResource {
 
         seccionContactoDTO = seccionContactoService.update(seccionContactoDTO);
         return ResponseEntity.ok()
-            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME, seccionContactoDTO.getId().toString()))
-            .body(seccionContactoDTO);
+                .headers(HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME,
+                        seccionContactoDTO.getId().toString()))
+                .body(seccionContactoDTO);
     }
 
     /**
-     * {@code PATCH  /seccion-contactos/:id} : Partial updates given fields of an existing seccionContacto, field will ignore if it is null
+     * {@code PATCH  /seccion-contactos/:id} : Partial updates given fields of an
+     * existing seccionContacto, field will ignore if it is null
      *
-     * @param id the id of the seccionContactoDTO to save.
+     * @param id                 the id of the seccionContactoDTO to save.
      * @param seccionContactoDTO the seccionContactoDTO to update.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated seccionContactoDTO,
-     * or with status {@code 400 (Bad Request)} if the seccionContactoDTO is not valid,
-     * or with status {@code 404 (Not Found)} if the seccionContactoDTO is not found,
-     * or with status {@code 500 (Internal Server Error)} if the seccionContactoDTO couldn't be updated.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body
+     *         the updated seccionContactoDTO,
+     *         or with status {@code 400 (Bad Request)} if the seccionContactoDTO is
+     *         not valid,
+     *         or with status {@code 404 (Not Found)} if the seccionContactoDTO is
+     *         not found,
+     *         or with status {@code 500 (Internal Server Error)} if the
+     *         seccionContactoDTO couldn't be updated.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
+
     @PatchMapping(value = "/{id}", consumes = { "application/json", "application/merge-patch+json" })
     public ResponseEntity<SeccionContactoDTO> partialUpdateSeccionContacto(
-        @PathVariable(value = "id", required = false) final Long id,
-        @NotNull @RequestBody SeccionContactoDTO seccionContactoDTO
-    ) throws URISyntaxException {
+            @PathVariable(value = "id", required = false) final Long id,
+            @NotNull @RequestBody SeccionContactoDTO seccionContactoDTO) throws URISyntaxException {
         LOG.debug("REST request to partial update SeccionContacto partially : {}, {}", id, seccionContactoDTO);
         if (seccionContactoDTO.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
@@ -131,24 +151,25 @@ public class SeccionContactoResource {
         Optional<SeccionContactoDTO> result = seccionContactoService.partialUpdate(seccionContactoDTO);
 
         return ResponseUtil.wrapOrNotFound(
-            result,
-            HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME, seccionContactoDTO.getId().toString())
-        );
+                result,
+                HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME,
+                        seccionContactoDTO.getId().toString()));
     }
 
     /**
      * {@code GET  /seccion-contactos} : get all the seccionContactos.
      *
      * @param pageable the pagination information.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of seccionContactos in body.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list
+     *         of seccionContactos in body.
      */
     @GetMapping("")
     public ResponseEntity<List<SeccionContactoDTO>> getAllSeccionContactos(
-        @org.springdoc.core.annotations.ParameterObject Pageable pageable
-    ) {
+            @org.springdoc.core.annotations.ParameterObject Pageable pageable) {
         LOG.debug("REST request to get a page of SeccionContactos");
         Page<SeccionContactoDTO> page = seccionContactoService.findAll(pageable);
-        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
+        HttpHeaders headers = PaginationUtil
+                .generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
         return ResponseEntity.ok().headers(headers).body(page.getContent());
     }
 
@@ -156,7 +177,8 @@ public class SeccionContactoResource {
      * {@code GET  /seccion-contactos/:id} : get the "id" seccionContacto.
      *
      * @param id the id of the seccionContactoDTO to retrieve.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the seccionContactoDTO, or with status {@code 404 (Not Found)}.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body
+     *         the seccionContactoDTO, or with status {@code 404 (Not Found)}.
      */
     @GetMapping("/{id}")
     public ResponseEntity<SeccionContactoDTO> getSeccionContacto(@PathVariable("id") Long id) {
@@ -171,12 +193,14 @@ public class SeccionContactoResource {
      * @param id the id of the seccionContactoDTO to delete.
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
      */
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteSeccionContacto(@PathVariable("id") Long id) {
         LOG.debug("REST request to delete SeccionContacto : {}", id);
         seccionContactoService.delete(id);
         return ResponseEntity.noContent()
-            .headers(HeaderUtil.createEntityDeletionAlert(applicationName, false, ENTITY_NAME, id.toString()))
-            .build();
+                .headers(HeaderUtil.createEntityDeletionAlert(applicationName, false, ENTITY_NAME, id.toString()))
+                .build();
     }
 }
