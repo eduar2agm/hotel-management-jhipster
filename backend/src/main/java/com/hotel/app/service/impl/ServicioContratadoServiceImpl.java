@@ -71,6 +71,11 @@ public class ServicioContratadoServiceImpl implements ServicioContratadoService 
                     .orElseThrow(() -> new BadRequestAlertException("Reserva not found", "reserva", "idnotfound"));
 
             // 1. Validate Date Range
+            if (reserva.getEstado() != com.hotel.app.domain.enumeration.EstadoReserva.CONFIRMADA) {
+                throw new BadRequestAlertException("Reservation is not confirmed", "servicioContratado",
+                        "reservanotconfirmed");
+            }
+
             if (servicioContratadoDTO.getFechaServicio().toInstant().isBefore(reserva.getFechaInicio()) ||
                     servicioContratadoDTO.getFechaServicio().toInstant().isAfter(reserva.getFechaFin())) {
                 throw new BadRequestAlertException("Service date must be within reservation dates",
