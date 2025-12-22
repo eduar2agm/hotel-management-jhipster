@@ -17,6 +17,7 @@ interface ServiceScheduleSelectorProps {
     onSelect: (fechas: string[], hora: string) => void;
     selectedFechas?: string[];
     selectedHora?: string;
+    onQuotaAvailable?: (quota: number) => void;
 }
 
 /**
@@ -33,6 +34,7 @@ export const ServiceScheduleSelector = ({
     onSelect,
     selectedFechas = [],
     selectedHora,
+    onQuotaAvailable,
 }: ServiceScheduleSelectorProps) => {
     const {
         loading,
@@ -56,11 +58,25 @@ export const ServiceScheduleSelector = ({
     useEffect(() => {
         if (localSelectedDates.length > 0 && localSelectedTime) {
             onSelect(localSelectedDates, localSelectedTime);
+
+            // Calculate minimum quota across all selected dates for the selected time
+            if (onQuotaAvailable) {
+                const quotas = localSelectedDates.map(date => {
+                    const slots = getSlotsForDate(date);
+                    const slot = slots.find(s => s.horaInicio === localSelectedTime);
+                    return slot ? slot.cuposDisponibles : 0;
+                });
+
+                // If any date has 0 quota or no slot found, max is 0
+                const minQuota = quotas.length > 0 ? Math.min(...quotas) : 0;
+                onQuotaAvailable(minQuota);
+            }
         } else {
             onSelect([], '');
+            if (onQuotaAvailable) onQuotaAvailable(0);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [localSelectedDates, localSelectedTime]); // onSelect omitido intencionalmente
+    }, [localSelectedDates, localSelectedTime]); // onSelect and onQuotaAvailable omitted intentionally
 
     // Obtener slots para todos los días seleccionados
     const allSelectedSlots = localSelectedDates.flatMap(date => getSlotsForDate(date)).filter(s => s.isAvailable);

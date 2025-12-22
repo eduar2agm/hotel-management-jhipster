@@ -50,6 +50,15 @@ public interface ServicioContratadoRepository extends JpaRepository<ServicioCont
             java.time.ZonedDateTime fechaServicio,
             List<com.hotel.app.domain.enumeration.EstadoServicioContratado> estados);
 
+    @Query("SELECT COALESCE(SUM(sc.cantidad), 0) FROM ServicioContratado sc " +
+            "WHERE sc.servicio.id = :servicioId " +
+            "AND sc.fechaServicio = :fechaServicio " +
+            "AND sc.estado IN :estados")
+    Long sumCantidadByServicioIdAndFechaServicioAndEstadoIn(
+            @Param("servicioId") Long servicioId,
+            @Param("fechaServicio") java.time.ZonedDateTime fechaServicio,
+            @Param("estados") List<com.hotel.app.domain.enumeration.EstadoServicioContratado> estados);
+
     /**
      * Cuenta servicios contratados en un rango de fechas para un servicio
      * específico

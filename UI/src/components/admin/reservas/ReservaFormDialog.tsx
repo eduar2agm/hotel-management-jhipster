@@ -195,8 +195,9 @@ export const ReservaFormDialog = ({
         try {
             const [yearInicio, monthInicio, dayInicio] = data.fechaInicio.split('-').map(Number);
             const [yearFin, monthFin, dayFin] = data.fechaFin.split('-').map(Number);
-            const fechaInicio = new Date(yearInicio, monthInicio - 1, dayInicio, 0, 0, 0);
-            const fechaFin = new Date(yearFin, monthFin - 1, dayFin, 23, 59, 59);
+            // FIX: Using 15:00 (Check-in) and 11:00 (Check-out) to avoid UTC date shift (23:59:59 -> next day)
+            const fechaInicio = new Date(yearInicio, monthInicio - 1, dayInicio, 15, 0, 0);
+            const fechaFin = new Date(yearFin, monthFin - 1, dayFin, 11, 0, 0);
 
             const reservaToSave = {
                 id: data.id,
@@ -485,7 +486,7 @@ export const ReservaFormDialog = ({
                                                                             isChecked
                                                                                 ? "bg-white border-green-500 shadow-sm"
                                                                                 : "bg-white border-gray-200 hover:border-gray-300",
-                                                                        isReadOnly && "opacity-60 cursor-not-allowed"
+                                                                            isReadOnly && "opacity-60 cursor-not-allowed"
                                                                         )}
                                                                     >
                                                                         <FormControl>
@@ -502,7 +503,7 @@ export const ReservaFormDialog = ({
                                                                                 }}
                                                                                 className="mt-0.5"
                                                                                 disabled={isReadOnly}
-                                                                        />
+                                                                            />
                                                                         </FormControl>
                                                                         <div className="flex-1 space-y-1">
                                                                             <FormLabel className="font-semibold text-sm cursor-pointer text-gray-900">

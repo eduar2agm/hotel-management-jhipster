@@ -56,6 +56,7 @@ export const AdminContratarServicio = ({ returnPath = '/admin/servicios-contrata
     // Fechas y hora - manejadas fuera del form, como en cliente
     const [fechas, setFechas] = useState<string[]>([]);
     const [hora, setHora] = useState<string>('');
+    const [maxCupo, setMaxCupo] = useState<number>(0);
 
     const form = useForm<ContratoFormValues>({
         resolver: zodResolver(contratoSchema),
@@ -318,6 +319,7 @@ export const AdminContratarServicio = ({ returnPath = '/admin/servicios-contrata
                                                 setFechas(newFechas);
                                                 setHora(newHora);
                                             }}
+                                            onQuotaAvailable={setMaxCupo}
                                             selectedFechas={fechas}
                                             selectedHora={hora}
                                         />
@@ -335,11 +337,20 @@ export const AdminContratarServicio = ({ returnPath = '/admin/servicios-contrata
                                                     <Input
                                                         type="number"
                                                         min="1"
+                                                        max={maxCupo > 0 ? maxCupo : undefined}
                                                         {...field}
-                                                        onChange={e => field.onChange(Number(e.target.value))}
+                                                        onChange={e => {
+                                                            const val = Number(e.target.value);
+                                                            field.onChange(val);
+                                                        }}
                                                     />
                                                 </FormControl>
                                                 <FormMessage />
+                                                {maxCupo > 0 && fechas.length > 0 && hora && (
+                                                    <div className="text-xs text-yellow-600 font-medium">
+                                                        Cupo máximo disponible: {maxCupo} personas
+                                                    </div>
+                                                )}
                                             </FormItem>
                                         )}
                                     />
@@ -365,7 +376,7 @@ export const AdminContratarServicio = ({ returnPath = '/admin/servicios-contrata
                                     )}
                                 />
 
-                                <Button type="submit" className="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-bold h-12 text-lg">
+                                <Button type="submit" disabled={maxCupo > 0 && form.watch('cantidad') > maxCupo} className="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-bold h-12 text-lg">
                                     <Save className="mr-2" /> Registrar y Pagar
                                 </Button>
                             </form>
