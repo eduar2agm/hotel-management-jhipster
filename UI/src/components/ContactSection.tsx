@@ -12,7 +12,8 @@ import {
     Loader2,
     Plus,
     Trash2,
-    Settings
+    Settings,
+    FileUp
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { SeccionContactoService, RedSocialService, TelefonoService } from '../services';
@@ -32,6 +33,7 @@ import { Textarea } from './ui/textarea';
 import { Label } from './ui/label';
 import { toast } from 'sonner';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
+import { getImageUrl } from '../utils/imageUtils';
 
 const IconMap: Record<string, any> = {
     facebook: Facebook,
@@ -113,7 +115,11 @@ export const ContactSection = () => {
         const missingFields = [];
         if (!editSeccion.titulo || editSeccion.titulo.trim() === '') missingFields.push('Título');
         if (!editSeccion.descripcion || editSeccion.descripcion.trim() === '') missingFields.push('Descripción');
-        if (!editSeccion.imagenFondoUrl || editSeccion.imagenFondoUrl.trim() === '') missingFields.push('URL de Imagen');
+
+        // Image is required: either existing URL or new upload
+        const hasImage = (editSeccion.imagenFondoUrl && editSeccion.imagenFondoUrl.trim() !== '') ||
+            (editSeccion as any).imagenFondoBase64;
+        if (!hasImage) missingFields.push('Imagen de Fondo');
 
         if (missingFields.length > 0) {
             toast.error(`Campos requeridos faltantes: ${missingFields.join(', ')}`);
@@ -126,33 +132,46 @@ export const ContactSection = () => {
             console.log("  titulo:", editSeccion.titulo);
             console.log("  descripcion:", editSeccion.descripcion);
             console.log("  imagenFondoUrl:", editSeccion.imagenFondoUrl);
+            console.log("  Has base64 image:", !!(editSeccion as any).imagenFondoBase64);
 
             if (seccion?.id) {
                 // UPDATE existing section
-                const updateData: SeccionContactoDTO = {
+                const updateData: any = {
                     id: seccion.id,
                     titulo: editSeccion.titulo!.trim(),
                     descripcion: editSeccion.descripcion!.trim(),
-                    imagenFondoUrl: editSeccion.imagenFondoUrl!.trim(),
+                    imagenFondoUrl: editSeccion.imagenFondoUrl || 'pending',
                     correo: editSeccion.correo?.trim() || null,
                     activo: true
                 };
 
-                console.log("Updating section:", JSON.stringify(updateData, null, 2));
+                // Add base64 image if uploaded
+                if ((editSeccion as any).imagenFondoBase64) {
+                    updateData.imagenFondoBase64 = (editSeccion as any).imagenFondoBase64;
+                    updateData.imagenFondoContentType = (editSeccion as any).imagenFondoContentType;
+                }
+
+                console.log("Updating section with image upload:", !!updateData.imagenFondoBase64);
                 const response = await SeccionContactoService.updateSeccionContacto(seccion.id, updateData);
                 console.log("Server response:", response.data);
                 toast.success("Sección actualizada");
             } else {
                 // CREATE new section
-                const newData: NewSeccionContactoDTO = {
+                const newData: any = {
                     titulo: editSeccion.titulo!.trim(),
                     descripcion: editSeccion.descripcion!.trim(),
-                    imagenFondoUrl: editSeccion.imagenFondoUrl!.trim(),
+                    imagenFondoUrl: editSeccion.imagenFondoUrl || 'pending', // Will be replaced by backend
                     correo: editSeccion.correo?.trim() || null,
                     activo: true
                 };
 
-                console.log("Creating new section:", JSON.stringify(newData, null, 2));
+                // Add base64 image if uploaded
+                if ((editSeccion as any).imagenFondoBase64) {
+                    newData.imagenFondoBase64 = (editSeccion as any).imagenFondoBase64;
+                    newData.imagenFondoContentType = (editSeccion as any).imagenFondoContentType;
+                }
+
+                console.log("Creating new section with image upload:", !!newData.imagenFondoBase64);
                 const response = await SeccionContactoService.createSeccionContacto(newData);
                 console.log("Server response:", response.data);
                 toast.success("Sección creada exitosamente");
@@ -264,7 +283,9 @@ export const ContactSection = () => {
         );
     }
 
-    const bgImage = seccion?.imagenFondoUrl || 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&q=80';
+    const bgImage = seccion?.imagenFondoUrl
+        ? getImageUrl(seccion.imagenFondoUrl)
+        : 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&q=80';
 
     return (
         <section id="contacto" className="relative py-24 overflow-hidden">
@@ -272,7 +293,7 @@ export const ContactSection = () => {
                 className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
                 style={{ backgroundImage: `url(${bgImage})` }}
             >
-                <div className="absolute inset-0 bg-black/70 backdrop-blur-[2px]" />
+                <div className="absolute inset-0 bg-black/70 " />
             </div>
 
             <div className="container relative z-10 mx-auto px-6 lg:px-12 text-center text-white">
@@ -337,13 +358,63 @@ export const ContactSection = () => {
                                         />
                                     </div>
                                     <div className="grid gap-2">
-                                        <Label htmlFor="imagen">URL Imagen de Fondo *</Label>
-                                        <Input
-                                            id="imagen"
-                                            value={editSeccion.imagenFondoUrl || ''}
-                                            onChange={(e) => setEditSeccion({ ...editSeccion, imagenFondoUrl: e.target.value })}
-                                            required
-                                        />
+                                        <Label>Imagen de Fondo *</Label>
+                                        <div className="flex flex-col gap-4">
+                                            <div className="flex items-center justify-center w-full">
+                                                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
+                                                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                                                        <FileUp className="w-8 h-8 mb-3 text-gray-400" />
+                                                        <p className="mb-2 text-sm text-gray-500 font-semibold">Haz clic para subir imagen</p>
+                                                        <p className="text-xs text-gray-400">JPG, PNG, GIF o WEBP</p>
+                                                    </div>
+                                                    <input
+                                                        type="file"
+                                                        className="hidden"
+                                                        accept="image/*"
+                                                        onChange={(e) => {
+                                                            const file = e.target.files?.[0];
+                                                            if (file) {
+                                                                const reader = new FileReader();
+                                                                reader.onload = (event) => {
+                                                                    const base64String = (event.target?.result as string).split(',')[1];
+                                                                    setEditSeccion({
+                                                                        ...editSeccion,
+                                                                        imagenFondoUrl: file.name, // Temporary, will be replaced by backend
+                                                                        imagenFondoBase64: base64String,
+                                                                        imagenFondoContentType: file.type
+                                                                    });
+                                                                };
+                                                                reader.readAsDataURL(file);
+                                                            }
+                                                        }}
+                                                    />
+                                                </label>
+                                            </div>
+                                            {(editSeccion as any).imagenFondoBase64 && (
+                                                <div className="relative h-20 w-32 rounded-lg overflow-hidden border mx-auto">
+                                                    <img
+                                                        src={`data:${(editSeccion as any).imagenFondoContentType};base64,${(editSeccion as any).imagenFondoBase64}`}
+                                                        className="h-full w-full object-cover"
+                                                        alt="Preview"
+                                                    />
+                                                    <div className="absolute inset-0 bg-green-500/20 flex items-center justify-center">
+                                                        <span className="text-[10px] font-bold text-green-700 bg-white/80 px-2 py-0.5 rounded">Nueva imagen</span>
+                                                    </div>
+                                                </div>
+                                            )}
+                                            {editSeccion.imagenFondoUrl && !(editSeccion as any).imagenFondoBase64 && (
+                                                <div className="flex flex-col items-center gap-2 mt-2">
+                                                    <span className="text-xs text-gray-500 font-medium">Imagen Actual</span>
+                                                    <div className="relative h-32 w-full rounded-lg overflow-hidden border border-gray-200">
+                                                        <img
+                                                            src={getImageUrl(editSeccion.imagenFondoUrl)}
+                                                            className="h-full w-full object-cover"
+                                                            alt="Fondo actual"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                     <DialogFooter>
                                         <Button type="button" variant="ghost" onClick={() => setIsSeccionDialogOpen(false)}>Cancelar</Button>
