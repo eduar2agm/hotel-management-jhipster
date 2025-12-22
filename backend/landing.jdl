@@ -9,7 +9,7 @@ entity SeccionHero {
   activo Boolean required
 }
 
-entity RedSocial {
+entity RedSociallanding {
 
   nombre String required maxlength(50)
   urlEnlace String required maxlength(255)
@@ -18,6 +18,6 @@ entity RedSocial {
   activo Boolean required
 }
 
-paginate SeccionHero, RedSocial with pagination
-dto SeccionHero, RedSocial with mapstruct
-service SeccionHero, RedSocial with serviceImpl
+paginate SeccionHero, RedSociallanding with pagination
+dto SeccionHero, RedSociallanding with mapstruct
+service SeccionHero, RedSociallanding with serviceImpl

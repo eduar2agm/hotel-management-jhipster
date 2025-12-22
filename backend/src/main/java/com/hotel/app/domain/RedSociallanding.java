@@ -5,12 +5,12 @@ import jakarta.validation.constraints.*;
 import java.io.Serializable;
 
 /**
- * A RedSocial.
+ * A RedSociallanding.
  */
 @Entity
 @Table(name = "red_social")
 @SuppressWarnings("common-java:DuplicatedBlocks")
-public class RedSocial implements Serializable {
+public class RedSociallanding implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -49,7 +49,7 @@ public class RedSocial implements Serializable {
         return this.id;
     }
 
-    public RedSocial id(Long id) {
+    public RedSociallanding id(Long id) {
         this.setId(id);
         return this;
     }
@@ -62,7 +62,7 @@ public class RedSocial implements Serializable {
         return this.nombre;
     }
 
-    public RedSocial nombre(String nombre) {
+    public RedSociallanding nombre(String nombre) {
         this.setNombre(nombre);
         return this;
     }
@@ -75,7 +75,7 @@ public class RedSocial implements Serializable {
         return this.urlEnlace;
     }
 
-    public RedSocial urlEnlace(String urlEnlace) {
+    public RedSociallanding urlEnlace(String urlEnlace) {
         this.setUrlEnlace(urlEnlace);
         return this;
     }
@@ -88,7 +88,7 @@ public class RedSocial implements Serializable {
         return this.iconoUrl;
     }
 
-    public RedSocial iconoUrl(String iconoUrl) {
+    public RedSociallanding iconoUrl(String iconoUrl) {
         this.setIconoUrl(iconoUrl);
         return this;
     }
@@ -101,7 +101,7 @@ public class RedSocial implements Serializable {
         return this.colorHex;
     }
 
-    public RedSocial colorHex(String colorHex) {
+    public RedSociallanding colorHex(String colorHex) {
         this.setColorHex(colorHex);
         return this;
     }
@@ -114,7 +114,7 @@ public class RedSocial implements Serializable {
         return this.activo;
     }
 
-    public RedSocial activo(Boolean activo) {
+    public RedSociallanding activo(Boolean activo) {
         this.setActivo(activo);
         return this;
     }
@@ -130,10 +130,10 @@ public class RedSocial implements Serializable {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof RedSocial)) {
+        if (!(o instanceof RedSociallanding)) {
             return false;
         }
-        return getId() != null && getId().equals(((RedSocial) o).getId());
+        return getId() != null && getId().equals(((RedSociallanding) o).getId());
     }
 
     @Override
@@ -145,7 +145,7 @@ public class RedSocial implements Serializable {
     // prettier-ignore
     @Override
     public String toString() {
-        return "RedSocial{" +
+        return "RedSociallanding{" +
             "id=" + getId() +
             ", nombre='" + getNombre() + "'" +
             ", urlEnlace='" + getUrlEnlace() + "'" +

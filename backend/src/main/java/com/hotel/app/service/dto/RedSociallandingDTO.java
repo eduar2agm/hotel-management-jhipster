@@ -5,10 +5,10 @@ import java.io.Serializable;
 import java.util.Objects;
 
 /**
- * A DTO for the {@link com.hotel.app.domain.RedSocial} entity.
+ * A DTO for the {@link com.hotel.app.domain.RedSociallanding} entity.
  */
 @SuppressWarnings("common-java:DuplicatedBlocks")
-public class RedSocialDTO implements Serializable {
+public class RedSociallandingDTO implements Serializable {
 
     private Long id;
 
@@ -83,15 +83,15 @@ public class RedSocialDTO implements Serializable {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof RedSocialDTO)) {
+        if (!(o instanceof RedSociallandingDTO)) {
             return false;
         }
 
-        RedSocialDTO redSocialDTO = (RedSocialDTO) o;
+        RedSociallandingDTO redSociallandingDTO = (RedSociallandingDTO) o;
         if (this.id == null) {
             return false;
         }
-        return Objects.equals(this.id, redSocialDTO.id);
+        return Objects.equals(this.id, redSociallandingDTO.id);
     }
 
     @Override
@@ -102,7 +102,7 @@ public class RedSocialDTO implements Serializable {
     // prettier-ignore
     @Override
     public String toString() {
-        return "RedSocialDTO{" +
+        return "RedSociallandingDTO{" +
             "id=" + getId() +
             ", nombre='" + getNombre() + "'" +
             ", urlEnlace='" + getUrlEnlace() + "'" +
