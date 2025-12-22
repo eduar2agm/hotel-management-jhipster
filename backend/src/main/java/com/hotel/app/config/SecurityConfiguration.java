@@ -55,6 +55,9 @@ public class SecurityConfiguration {
                             .requestMatchers(mvc.pattern("/api/habitacions/**")).permitAll()
                             .requestMatchers(mvc.pattern("/api/servicios/**")).permitAll()
                             .requestMatchers(mvc.pattern("/images/**")).permitAll()
+                            .requestMatchers(mvc.pattern("/api/seccion-contactos/**")).permitAll()
+                            .requestMatchers(mvc.pattern("/api/red-socials/**")).permitAll()
+                            .requestMatchers(mvc.pattern("/api/telefonos/**")).permitAll()
                             .requestMatchers(mvc.pattern("/api/admin/**")).hasAuthority(AuthoritiesConstants.ADMIN)
                             .requestMatchers(mvc.pattern("/api/**")).authenticated();
                     // OpenAPI docs: permit in dev, otherwise require ADMIN
