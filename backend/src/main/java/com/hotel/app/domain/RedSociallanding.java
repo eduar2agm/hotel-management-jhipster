@@ -8,7 +8,7 @@ import java.io.Serializable;
  * A RedSociallanding.
  */
 @Entity
-@Table(name = "red_social")
+@Table(name = "red_social_landing")
 @SuppressWarnings("common-java:DuplicatedBlocks")
 public class RedSociallanding implements Serializable {
 

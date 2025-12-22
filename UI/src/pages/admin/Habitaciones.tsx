@@ -219,7 +219,7 @@ export const AdminHabitaciones = () => {
                             </div>
                         </CardHeader>
                         <CardContent className="p-6 md:p-10">
-                            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+                            <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-3 gap-8">
                                 {loading ? (
                                     <div className="col-span-full h-32 flex flex-col items-center justify-center text-gray-500">
                                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-600 mb-2"></div>

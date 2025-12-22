@@ -28,7 +28,7 @@ import tech.jhipster.web.util.ResponseUtil;
  * REST controller for managing {@link com.hotel.app.domain.RedSociallanding}.
  */
 @RestController
-@RequestMapping("/api/red-socials")
+@RequestMapping("/api/red-sociallanding")
 public class RedSociallandingResource {
 
     private static final Logger LOG = LoggerFactory.getLogger(RedSociallandingResource.class);

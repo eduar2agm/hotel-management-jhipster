@@ -19,8 +19,7 @@ import {
     TableRow,
 } from "@/components/ui/table"
 import { Badge } from '@/components/ui/badge';
-import { Navbar } from '../../components/layout/Navbar';
-import { Footer } from '../../components/layout/Footer';
+
 import { format } from 'date-fns';
 import { PageHeader } from '../../components/common/PageHeader';
 import { MensajeSoporteService } from '../../services/mensaje-soporte.service';
@@ -175,7 +174,6 @@ export const MisServicios = () => {
 
     return (
         <div className="font-sans text-gray-900 bg-gray-50 min-h-screen flex flex-col">
-            <Navbar />
 
             <PageHeader
                 title="Mis Servicios Contratados"
@@ -300,7 +298,6 @@ export const MisServicios = () => {
                     </div>
                 </div>
             </main>
-            <Footer />
         </div>
     );
 };

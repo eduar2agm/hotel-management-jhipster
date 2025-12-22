@@ -6,9 +6,9 @@ import {
     Navigation
 } from 'lucide-react';
 import { SeccionHeroService } from '../../services/seccion-hero.service';
-import { RedSocialService } from '../../services/red-social.service';
+import { RedSociallandingService } from '../../services/red-sociallanding.service';
 import type { SeccionHeroDTO } from '../../types/api/SeccionHero';
-import type { RedSocialDTO } from '../../types/api/RedSocial';
+import type { RedSociallandingDTO } from '../../types/api/RedSociallanding';
 import { getImageUrl } from '../../utils/imageUtils';
 import { useAuth } from '../../hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -37,14 +37,14 @@ export const HeroSection = () => {
     
     // Data States
     const [items, setItems] = useState<SeccionHeroDTO[]>([]);
-    const [socials, setSocials] = useState<RedSocialDTO[]>([]);
+    const [socials, setSocials] = useState<RedSociallandingDTO[]>([]);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
 
     // Edit States
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingItems, setEditingItems] = useState<SeccionHeroDTO[]>([]);
-    const [editingSocials, setEditingSocials] = useState<RedSocialDTO[]>([]);
+    const [editingSocials, setEditingSocials] = useState<RedSociallandingDTO[]>([]);
     const [editIndex, setEditIndex] = useState(0);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -59,7 +59,7 @@ export const HeroSection = () => {
             setItems(heroRes.data); // Store all items (active and inactive)
 
             // Load Socials
-            const socialRes = await RedSocialService.getRedSocials({ sort: 'id,asc' });
+            const socialRes = await RedSociallandingService.getRedSociallandings({ sort: 'id,asc' });
             setSocials(socialRes.data.filter(s => s.activo !== false));
             
         } catch (error) {
@@ -144,10 +144,10 @@ export const HeroSection = () => {
             // 2. Save Socials
             for (const sock of editingSocials) {
                 if (sock.id) {
-                    await RedSocialService.updateRedSocial(sock.id, sock);
+                    await RedSociallandingService.updateRedSociallanding(sock.id, sock);
                 } else if (sock.nombre && sock.urlEnlace) {
                      const { id, ...newSock } = sock;
-                     await RedSocialService.createRedSocial(newSock);
+                     await RedSociallandingService.createRedSociallanding(newSock);
                 }
             }
             // Deletions would need separate tracking, simpler here to just update/create
@@ -187,7 +187,7 @@ export const HeroSection = () => {
     };
 
     // Socials Management in Edit
-    const handleSocialChange = (index: number, field: keyof RedSocialDTO, value: string) => {
+    const handleSocialChange = (index: number, field: keyof RedSociallandingDTO, value: string) => {
         const newSocials = [...editingSocials];
         newSocials[index] = { ...newSocials[index], [field]: value };
         setEditingSocials(newSocials);
@@ -200,7 +200,7 @@ export const HeroSection = () => {
     const removeSocial = async (index: number) => {
         const item = editingSocials[index];
         if (item.id) {
-             try { await RedSocialService.deleteRedSocial(item.id); } catch(e){}
+             try { await RedSociallandingService.deleteRedSociallanding(item.id); } catch(e){}
         }
         setEditingSocials(editingSocials.filter((_, i) => i !== index));
     };

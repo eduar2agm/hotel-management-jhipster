@@ -10,7 +10,7 @@
         Added the entity RedSocial.
     -->
     <changeSet id="20251221224146-1" author="jhipster">
-        <createTable tableName="red_social">
+        <createTable tableName="red_social_landing">
             <column name="id" type="bigint">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
@@ -47,7 +47,7 @@
         <loadData
                   file="config/liquibase/fake-data/red_social_landing.csv"
                   separator=";"
-                  tableName="red_social"
+                  tableName="red_social_landing"
                   usePreparedStatements="true">
             <column name="id" type="numeric"/>
             <column name="nombre" type="string"/>
