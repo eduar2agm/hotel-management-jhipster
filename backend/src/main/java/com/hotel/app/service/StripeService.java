@@ -118,26 +118,59 @@ public class StripeService {
             throw new RuntimeException("Webhook verification failed");
         }
 
-        if ("payment_intent.succeeded".equals(event.getType())) {
-            PaymentIntent paymentIntent = (PaymentIntent) event.getDataObjectDeserializer().getObject().orElse(null);
-            if (paymentIntent != null) {
-                log.info("Payment succeeded for Transaction ID: {}", paymentIntent.getId());
-                updatePaymentStatus(paymentIntent.getId(), EstadoPago.COMPLETADO);
+        log.info("Webhook received - Event Type: {}", event.getType());
 
-                // Check if it's for a service
-                String servicioContratadoIdStr = paymentIntent.getMetadata().get("servicioContratadoId");
-                if (servicioContratadoIdStr != null && !servicioContratadoIdStr.isEmpty()) {
-                    Long servicioId = Long.parseLong(servicioContratadoIdStr);
-                    // Use service specific method to confirm, which includes notifications
-                    servicioContratadoService.confirmar(servicioId);
-                    log.info("Confirmed ServicioContratado ID: {}", servicioId);
+        if ("payment_intent.succeeded".equals(event.getType())) {
+            log.info("Processing payment_intent.succeeded event");
+
+            try {
+                // Use getData().getObject() instead of getDataObjectDeserializer()
+                com.stripe.model.StripeObject stripeObject = event.getData().getObject();
+                log.info("StripeObject type: {}",
+                        stripeObject != null ? stripeObject.getClass().getSimpleName() : "null");
+
+                if (stripeObject instanceof PaymentIntent) {
+                    PaymentIntent paymentIntent = (PaymentIntent) stripeObject;
+                    log.info("Payment succeeded for Transaction ID: {}", paymentIntent.getId());
+                    log.info("PaymentIntent metadata: {}", paymentIntent.getMetadata());
+                    log.info("PaymentIntent status: {}", paymentIntent.getStatus());
+
+                    updatePaymentStatus(paymentIntent.getId(), EstadoPago.COMPLETADO);
+
+                    // Check if it's for a service
+                    String servicioContratadoIdStr = paymentIntent.getMetadata().get("servicioContratadoId");
+                    log.info("servicioContratadoId from metadata: {}", servicioContratadoIdStr);
+
+                    if (servicioContratadoIdStr != null && !servicioContratadoIdStr.isEmpty()) {
+                        try {
+                            Long servicioId = Long.parseLong(servicioContratadoIdStr);
+                            log.info("Calling servicioContratadoService.confirmar for ID: {}", servicioId);
+                            // Use service specific method to confirm, which includes notifications
+                            servicioContratadoService.confirmar(servicioId);
+                            log.info("Confirmed ServicioContratado ID: {}", servicioId);
+                        } catch (Exception e) {
+                            log.error("Error confirming service: {}", e.getMessage(), e);
+                        }
+                    } else {
+                        log.warn("No servicioContratadoId found in metadata or it's empty");
+                    }
+                } else {
+                    log.error("StripeObject is not a PaymentIntent, it's: {}",
+                            stripeObject != null ? stripeObject.getClass().getName() : "null");
                 }
+            } catch (Exception e) {
+                log.error("Error processing payment_intent.succeeded: {}", e.getMessage(), e);
             }
         } else if ("payment_intent.payment_failed".equals(event.getType())) {
-            PaymentIntent paymentIntent = (PaymentIntent) event.getDataObjectDeserializer().getObject().orElse(null);
-            if (paymentIntent != null) {
-                log.info("Payment failed for Transaction ID: {}", paymentIntent.getId());
-                updatePaymentStatus(paymentIntent.getId(), EstadoPago.RECHAZADO);
+            try {
+                com.stripe.model.StripeObject stripeObject = event.getData().getObject();
+                if (stripeObject instanceof PaymentIntent) {
+                    PaymentIntent paymentIntent = (PaymentIntent) stripeObject;
+                    log.info("Payment failed for Transaction ID: {}", paymentIntent.getId());
+                    updatePaymentStatus(paymentIntent.getId(), EstadoPago.RECHAZADO);
+                }
+            } catch (Exception e) {
+                log.error("Error processing payment_intent.payment_failed: {}", e.getMessage(), e);
             }
         }
     }
