@@ -33,8 +33,15 @@ public interface ReservaDetalleMapper extends EntityMapper<ReservaDetalleDTO, Re
     @Mapping(target = "id", source = "id")
     @Mapping(target = "numero", source = "numero")
     @Mapping(target = "imagen", source = "imagen")
-    @Mapping(target = "categoriaHabitacion", source = "categoriaHabitacion", qualifiedByName = "categoriaHabitacionNombrePrecio")
+    @Mapping(target = "categoriaHabitacion", ignore = true)
     HabitacionDTO toDtoHabitacionNumero(Habitacion habitacion);
+
+    @AfterMapping
+    default void mapCategoriaHabitacion(Habitacion habitacion, @MappingTarget HabitacionDTO dto) {
+        if (habitacion.getCategoriaHabitacion() != null) {
+            dto.setCategoriaHabitacion(toDtoCategoriaHabitacionNombrePrecio(habitacion.getCategoriaHabitacion()));
+        }
+    }
 
     @Named("categoriaHabitacionNombrePrecio")
     @BeanMapping(ignoreByDefault = true)
