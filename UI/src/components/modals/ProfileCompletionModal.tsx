@@ -29,7 +29,8 @@ export const ProfileCompletionModal = () => {
         telefono: '',
         direccion: '',
         tipoIdentificacion: 'CEDULA' as TipoIdentificacion,
-        numeroIdentificacion: ''
+        numeroIdentificacion: '',
+        fechaNacimiento: ''
     });
 
     useEffect(() => {
@@ -110,6 +111,43 @@ export const ProfileCompletionModal = () => {
             setIdError(error);
             toast.error(`Error en Identificación: ${error}`);
             return;
+        }
+
+        // Validación de Edad (Mayor de 18 años)
+        if (!formData.fechaNacimiento) {
+            toast.error('Fecha de nacimiento requerida.');
+            return;
+        }
+        const dob = new Date(formData.fechaNacimiento);
+        const today = new Date();
+        let age = today.getFullYear() - dob.getFullYear();
+        const m = today.getMonth() - dob.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+            age--;
+        }
+        if (age < 18) {
+            toast.error('Debe ser mayor de 18 años para registrarse.');
+            return;
+        }
+
+        // Validación de consistencia Cédula vs Fecha de Nacimiento
+        // Formato Cédula NI: XXX-DDMMYY-XXXXL
+        if (formData.tipoIdentificacion === 'CEDULA' && formData.numeroIdentificacion) {
+            // Extrae solo dígitos para el análisis: 281270200...
+            const sequence = formData.numeroIdentificacion.replace(/[^0-9A-Z]/gi, '');
+            // Si el formato es estándar: 3 dígitos municipio + 6 fecha + ... 
+            // La fecha empieza en índice 3
+            if (sequence.length >= 9) {
+                const cedulaDate = sequence.substring(3, 9); // DDMMYY
+                // formData.fechaNacimiento es YYYY-MM-DD
+                const [year, month, day] = formData.fechaNacimiento.split('-');
+                const dobFormatted = `${day}${month}${year.slice(2)}`;
+
+                if (cedulaDate !== dobFormatted) {
+                    toast.error('La fecha de nacimiento no coincide con la cédula (DDMMYY).');
+                    return;
+                }
+            }
         }
 
         setIsSaving(true);
@@ -198,6 +236,16 @@ export const ProfileCompletionModal = () => {
                                     placeholder="Ciudad, departamento..."
                                     value={formData.direccion}
                                     onChange={e => setFormData({ ...formData, direccion: e.target.value })}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label className="text-[10px] font-bold text-gray-500 uppercase">Fecha de Nacimiento</Label>
+                                <Input
+                                    type="date"
+                                    required
+                                    className="h-12 border-gray-200 focus:border-yellow-600 focus:ring-yellow-600/20"
+                                    value={formData.fechaNacimiento}
+                                    onChange={e => setFormData({ ...formData, fechaNacimiento: e.target.value })}
                                 />
                             </div>
                         </div>

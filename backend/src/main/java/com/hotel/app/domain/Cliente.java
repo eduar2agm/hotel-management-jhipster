@@ -57,6 +57,10 @@ public class Cliente implements Serializable {
     @Column(name = "activo", nullable = false)
     private Boolean activo;
 
+    @NotNull
+    @Column(name = "fecha_nacimiento", nullable = false)
+    private java.time.LocalDate fechaNacimiento;
+
     // jhipster-needle-entity-add-field - JHipster will add fields here
 
     public Long getId() {
@@ -189,7 +193,21 @@ public class Cliente implements Serializable {
         this.activo = activo;
     }
 
-    // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
+    public java.time.LocalDate getFechaNacimiento() {
+        return this.fechaNacimiento;
+    }
+
+    public Cliente fechaNacimiento(java.time.LocalDate fechaNacimiento) {
+        this.setFechaNacimiento(fechaNacimiento);
+        return this;
+    }
+
+    public void setFechaNacimiento(java.time.LocalDate fechaNacimiento) {
+        this.fechaNacimiento = fechaNacimiento;
+    }
+
+    // jhipster-needle-entity-add-getters-setters - JHipster will add getters and
+    // setters here
 
     @Override
     public boolean equals(Object o) {
@@ -204,7 +222,8 @@ public class Cliente implements Serializable {
 
     @Override
     public int hashCode() {
-        // see https://vladmihalcea.com/how-to-implement-equals-and-hashcode-using-the-jpa-entity-identifier/
+        // see
+        // https://vladmihalcea.com/how-to-implement-equals-and-hashcode-using-the-jpa-entity-identifier/
         return getClass().hashCode();
     }
 
@@ -212,16 +231,16 @@ public class Cliente implements Serializable {
     @Override
     public String toString() {
         return "Cliente{" +
-            "id=" + getId() +
-            ", nombre='" + getNombre() + "'" +
-            ", apellido='" + getApellido() + "'" +
-            ", correo='" + getCorreo() + "'" +
-            ", telefono='" + getTelefono() + "'" +
-            ", direccion='" + getDireccion() + "'" +
-            ", tipoIdentificacion='" + getTipoIdentificacion() + "'" +
-            ", numeroIdentificacion='" + getNumeroIdentificacion() + "'" +
-            ", keycloakId='" + getKeycloakId() + "'" +
-            ", activo='" + getActivo() + "'" +
-            "}";
+                "id=" + getId() +
+                ", nombre='" + getNombre() + "'" +
+                ", apellido='" + getApellido() + "'" +
+                ", correo='" + getCorreo() + "'" +
+                ", telefono='" + getTelefono() + "'" +
+                ", direccion='" + getDireccion() + "'" +
+                ", tipoIdentificacion='" + getTipoIdentificacion() + "'" +
+                ", numeroIdentificacion='" + getNumeroIdentificacion() + "'" +
+                ", keycloakId='" + getKeycloakId() + "'" +
+                ", activo='" + getActivo() + "'" +
+                "}";
     }
 }

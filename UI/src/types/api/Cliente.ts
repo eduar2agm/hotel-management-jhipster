@@ -9,6 +9,7 @@ export interface ClienteDTO {
     numeroIdentificacion?: string | null;
     keycloakId?: string | null;
     activo?: boolean;
+    fechaNacimiento?: string;
 }
 
 export type NewClienteDTO = Omit<ClienteDTO, 'id'> & { id?: null };
