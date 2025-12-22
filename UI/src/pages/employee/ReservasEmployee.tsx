@@ -137,8 +137,9 @@ export const EmployeeReservas = () => {
             const [yearInicio, monthInicio, dayInicio] = data.fechaInicio.split('-').map(Number);
             const [yearFin, monthFin, dayFin] = data.fechaFin.split('-').map(Number);
 
-            const fechaInicio = new Date(yearInicio, monthInicio - 1, dayInicio, 0, 0, 0);
-            const fechaFin = new Date(yearFin, monthFin - 1, dayFin, 23, 59, 59);
+            // FIX: Using 15:00 and 11:00 to avoid date jumping to next day in UTC-6
+            const fechaInicio = new Date(yearInicio, monthInicio - 1, dayInicio, 15, 0, 0);
+            const fechaFin = new Date(yearFin, monthFin - 1, dayFin, 11, 0, 0);
 
             const reservaToSave = {
                 id: data.id,
@@ -168,9 +169,9 @@ export const EmployeeReservas = () => {
 
                     if (!fullRoom) {
                         try {
-                           const r = await HabitacionService.getHabitacion(roomId);
-                           fullRoom = r.data;
-                        } catch(e) { 
+                            const r = await HabitacionService.getHabitacion(roomId);
+                            fullRoom = r.data;
+                        } catch (e) {
                             console.error("Error fetching room", e);
                             fullRoom = { id: roomId } as HabitacionDTO;
                         }
@@ -195,12 +196,12 @@ export const EmployeeReservas = () => {
 
                 for (const roomId of data.roomIds) {
                     let fullRoom = availableRooms.find(h => h.id === roomId);
-                    
+
                     if (!fullRoom) {
                         try {
                             const r = await HabitacionService.getHabitacion(roomId);
                             fullRoom = r.data;
-                        } catch (e) { 
+                        } catch (e) {
                             console.error("Error fetching room", e);
                             fullRoom = { id: roomId } as HabitacionDTO;
                         }
@@ -280,15 +281,15 @@ export const EmployeeReservas = () => {
     };
 
     const handlePaymentSuccess = async () => {
-         // This assumes PaymentModal calls this on success
-         if (paymentReserva && paymentReserva.estado !== 'CONFIRMADA') {
+        // This assumes PaymentModal calls this on success
+        if (paymentReserva && paymentReserva.estado !== 'CONFIRMADA') {
             try {
-               await ReservaService.partialUpdateReserva(paymentReserva.id!, { id: paymentReserva.id, estado: 'CONFIRMADA' });
+                await ReservaService.partialUpdateReserva(paymentReserva.id!, { id: paymentReserva.id, estado: 'CONFIRMADA' });
             } catch (e) {
                 console.error("Error confirming reservation after payment", e);
             }
-       }
-       loadData(currentPage);
+        }
+        loadData(currentPage);
     };
 
     return (
@@ -473,13 +474,13 @@ export const EmployeeReservas = () => {
             />
 
             {/* DETAILS DIALOG */}
-            <ReservaDetailsDialog 
+            <ReservaDetailsDialog
                 open={isDetailsOpen}
                 onOpenChange={setIsDetailsOpen}
                 reserva={selectedReserva}
             />
 
-            <PaymentModal 
+            <PaymentModal
                 open={isPaymentOpen}
                 onOpenChange={setIsPaymentOpen}
                 reserva={paymentReserva}
