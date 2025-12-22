@@ -67,6 +67,7 @@ public class ClienteResource {
     public ResponseEntity<ClienteDTO> createCliente(@Valid @RequestBody ClienteDTO clienteDTO)
             throws URISyntaxException {
         LOG.debug("REST request to save Cliente : {}", clienteDTO);
+        validateCliente(clienteDTO);
         if (clienteDTO.getId() != null) {
             throw new BadRequestAlertException("A new cliente cannot already have an ID", ENTITY_NAME, "idexists");
         }
@@ -110,6 +111,7 @@ public class ClienteResource {
             @PathVariable(value = "id", required = false) final Long id,
             @Valid @RequestBody ClienteDTO clienteDTO) throws URISyntaxException {
         LOG.debug("REST request to update Cliente : {}, {}", id, clienteDTO);
+        validateCliente(clienteDTO);
         if (clienteDTO.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
         }
@@ -288,5 +290,48 @@ public class ClienteResource {
         LOG.debug("REST request to deactivate Cliente : {}", id);
         clienteService.deactivate(id);
         return ResponseEntity.ok().build();
+    }
+
+    private void validateCliente(ClienteDTO clienteDTO) {
+        if (clienteDTO.getFechaNacimiento() == null) {
+            throw new BadRequestAlertException("Fecha de nacimiento is mandatory", ENTITY_NAME, "fechaNacimientoNull");
+        }
+
+        // Validate Age >= 18
+        if (java.time.Period.between(clienteDTO.getFechaNacimiento(), java.time.LocalDate.now()).getYears() < 18) {
+            throw new BadRequestAlertException("User must be at least 18 years old", ENTITY_NAME,
+                    "fechaNacimientoInvalid");
+        }
+
+        // Validate Cedula matches DOB (Nicaragua format: XXX-DDMMYY-XXXXL)
+        if (com.hotel.app.domain.enumeration.TipoIdentificacion.CEDULA.equals(clienteDTO.getTipoIdentificacion())) {
+            String cedula = clienteDTO.getNumeroIdentificacion();
+            if (cedula != null) {
+                String datePart = null;
+                // Remove any whitespace
+                cedula = cedula.trim();
+
+                if (cedula.contains("-")) {
+                    String[] parts = cedula.split("-");
+                    if (parts.length >= 2) {
+                        datePart = parts[1];
+                    }
+                } else if (cedula.length() >= 9) {
+                    // Assuming format without hyphens matches the sequence order: XXXDDMMYY...
+                    // 012345678...
+                    // 281270200... -> index 3 to 9
+                    datePart = cedula.substring(3, 9);
+                }
+
+                if (datePart != null && datePart.length() == 6 && datePart.matches("\\d+")) {
+                    String dobFormatted = clienteDTO.getFechaNacimiento()
+                            .format(java.time.format.DateTimeFormatter.ofPattern("ddMMyy"));
+                    if (!datePart.equals(dobFormatted)) {
+                        throw new BadRequestAlertException("Cedula does not match date of birth", ENTITY_NAME,
+                                "cedulaMismatch");
+                    }
+                }
+            }
+        }
     }
 }

@@ -68,7 +68,8 @@ export const Perfil = () => {
                         direccion: '',
                         tipoIdentificacion: 'CEDULA',
                         numeroIdentificacion: '',
-                        keycloakId: user.id
+                        keycloakId: user.id,
+                        fechaNacimiento: ''
                     });
                     setExists(false);
                 }
@@ -94,6 +95,37 @@ export const Perfil = () => {
                 toast.error(`Error en Identificación: ${error}`);
                 return;
             }
+        }
+
+        // Validate Age (Frontend)
+        if (cliente.fechaNacimiento) {
+            const dob = new Date(cliente.fechaNacimiento);
+            const today = new Date();
+            let age = today.getFullYear() - dob.getFullYear();
+            const m = today.getMonth() - dob.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+                age--;
+            }
+            if (age < 18) {
+                toast.error('Debe ser mayor de 18 años');
+                return;
+            }
+
+            if (cliente.tipoIdentificacion === 'CEDULA' && cliente.numeroIdentificacion) {
+                const sequence = cliente.numeroIdentificacion.replace(/[^0-9A-Z]/gi, '');
+                if (sequence.length >= 9) {
+                    const cedulaDate = sequence.substring(3, 9); // DDMMYY
+                    const [year, month, day] = cliente.fechaNacimiento.split('-');
+                    const dobFormatted = `${day}${month}${year.slice(2)}`;
+                    if (cedulaDate !== dobFormatted) {
+                        toast.error('La fecha de nacimiento no coincide con la cédula (DDMMYY).');
+                        return;
+                    }
+                }
+            }
+        } else {
+            toast.error('Fecha de nacimiento requerida');
+            return;
         }
 
         setIsSaving(true);
@@ -195,6 +227,18 @@ export const Perfil = () => {
                                                     className="border-gray-200 focus:border-yellow-600 focus:ring-yellow-600/20 h-11 bg-gray-50/50"
                                                     value={cliente.apellido || ''}
                                                     onChange={e => setCliente({ ...cliente, apellido: e.target.value })}
+                                                    required
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                                            <div className="grid gap-2">
+                                                <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest">Fecha de Nacimiento</Label>
+                                                <Input
+                                                    type="date"
+                                                    className="border-gray-200 focus:border-yellow-600 focus:ring-yellow-600/20 h-11 bg-gray-50/50"
+                                                    value={cliente.fechaNacimiento || ''}
+                                                    onChange={e => setCliente({ ...cliente, fechaNacimiento: e.target.value })}
                                                     required
                                                 />
                                             </div>

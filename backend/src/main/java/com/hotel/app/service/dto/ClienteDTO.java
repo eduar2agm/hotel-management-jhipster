@@ -39,6 +39,9 @@ public class ClienteDTO implements Serializable {
     @NotNull
     private Boolean activo;
 
+    @NotNull
+    private java.time.LocalDate fechaNacimiento;
+
     public Long getId() {
         return id;
     }
@@ -119,6 +122,14 @@ public class ClienteDTO implements Serializable {
         this.activo = activo;
     }
 
+    public java.time.LocalDate getFechaNacimiento() {
+        return fechaNacimiento;
+    }
+
+    public void setFechaNacimiento(java.time.LocalDate fechaNacimiento) {
+        this.fechaNacimiento = fechaNacimiento;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -144,16 +155,17 @@ public class ClienteDTO implements Serializable {
     @Override
     public String toString() {
         return "ClienteDTO{" +
-            "id=" + getId() +
-            ", nombre='" + getNombre() + "'" +
-            ", apellido='" + getApellido() + "'" +
-            ", correo='" + getCorreo() + "'" +
-            ", telefono='" + getTelefono() + "'" +
-            ", direccion='" + getDireccion() + "'" +
-            ", tipoIdentificacion='" + getTipoIdentificacion() + "'" +
-            ", numeroIdentificacion='" + getNumeroIdentificacion() + "'" +
-            ", keycloakId='" + getKeycloakId() + "'" +
-            ", activo='" + getActivo() + "'" +
-            "}";
+                "id=" + getId() +
+                ", nombre='" + getNombre() + "'" +
+                ", apellido='" + getApellido() + "'" +
+                ", correo='" + getCorreo() + "'" +
+                ", telefono='" + getTelefono() + "'" +
+                ", direccion='" + getDireccion() + "'" +
+                ", tipoIdentificacion='" + getTipoIdentificacion() + "'" +
+                ", numeroIdentificacion='" + getNumeroIdentificacion() + "'" +
+                ", keycloakId='" + getKeycloakId() + "'" +
+                ", activo='" + getActivo() + "'" +
+                ", fechaNacimiento='" + getFechaNacimiento() + "'" +
+                "}";
     }
 }
