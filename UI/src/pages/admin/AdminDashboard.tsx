@@ -179,14 +179,8 @@ export const AdminDashboard = () => {
                     {activeTab === 'general' ? (
                         <>
                             {/* STATS GRID REUTILIZABLE */}
-                            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-                                <StatsCard 
-                                    title="Ingresos Totales" 
-                                    value={`$${stats.ingresosMes.toLocaleString()}`} 
-                                    description="+12.5% vs mes anterior"
-                                    icon={DollarSign}
-                                    color="blue"
-                                />
+                            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                               
                                 <StatsCard 
                                     title="Ocupación" 
                                     value={`${stats.habitacionesOcupadas} / ${stats.totalHabitaciones} `} 
