@@ -12,3 +12,6 @@ export * from './CarouselItem';
 export * from './ConfiguracionSistema';
 export * from './Servicio';
 export * from './ServicioContratado';
+export * from './SeccionContacto';
+export * from './RedSocial';
+export * from './Telefono';

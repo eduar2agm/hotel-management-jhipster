@@ -6,8 +6,8 @@ import { ImageCarousel } from '../components/ui/ImageCarousel';
 import { ServicesCarousel } from '../components/ui/ServicesCarousel';
 
 export const Home = () => {
-  
-  const {  } = useHabitaciones();
+
+  const { } = useHabitaciones();
 
   return (
     <div className="font-sans text-gray-900">

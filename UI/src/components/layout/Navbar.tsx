@@ -30,6 +30,7 @@ export const Navbar = () => {
         {isAuthenticated && isClient() && (
           <>
             <Link to="/client/" className="hover:text-yellow-400 transition-colors">Home</Link>
+            <Link to="/contacto" className="hover:text-yellow-400 transition-colors">Contacto</Link>
             <Link to="/client/reservas" className="hover:text-yellow-400 transition-colors">Reservas</Link>
             <Link to="/client/perfil" className="hover:text-yellow-400 transition-colors">Mi perfil</Link>
             <div className="relative inline-block">
@@ -43,6 +44,7 @@ export const Navbar = () => {
         {isAuthenticated && isEmployee() && (
           <>
             <Link to="/" className="hover:text-yellow-400 transition-colors">Home</Link>
+            <Link to="/contacto" className="hover:text-yellow-400 transition-colors">Contacto</Link>
             <Link to="/employee/dashboard" className="hover:text-yellow-400 transition-colors">Dashboard</Link>
             <Link to="/employee/clientes" className="hover:text-yellow-400 transition-colors">Clientes</Link>
             <Link to="/employee/checkin" className="hover:text-yellow-400 transition-colors">Check-in</Link>
@@ -57,6 +59,7 @@ export const Navbar = () => {
         {isAuthenticated && isAdmin() && (
           <>
             <Link to="/" className="hover:text-yellow-400 transition-colors">Home</Link>
+            <Link to="/contacto" className="hover:text-yellow-400 transition-colors">Contacto</Link>
             <Link to="/admin/dashboard" className="hover:text-yellow-400 transition-colors">Dashboard</Link>
             <Link to="/admin/habitaciones" className="hover:text-yellow-400 transition-colors">Habitaciones</Link>
             <Link to="/admin/clientes" className="hover:text-yellow-400 transition-colors">Clientes</Link>
@@ -91,12 +94,20 @@ export const Navbar = () => {
           </div>
         ) : (
 
-          <button
-            onClick={() => login()}
-            className="border border-white px-6 py-2 text-sm uppercase font-bold hover:bg-white hover:text-black transition-all"
-          >
-            Login
-          </button>
+          <div className="flex items-center gap-6">
+            <Link
+              to="/contacto"
+              className="text-xs font-bold uppercase tracking-widest hover:text-yellow-400 transition-colors cursor-pointer"
+            >
+              Contacto
+            </Link>
+            <button
+              onClick={() => login()}
+              className="border border-white px-6 py-2 text-sm uppercase font-bold hover:bg-white hover:text-black transition-all"
+            >
+              Login
+            </button>
+          </div>
         )}
       </div>
     </nav>
