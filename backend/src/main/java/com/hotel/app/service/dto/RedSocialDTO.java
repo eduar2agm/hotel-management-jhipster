@@ -30,6 +30,25 @@ public class RedSocialDTO implements Serializable {
     @NotNull
     private Boolean activo;
 
+    private String iconoMediaBase64;
+    private String iconoMediaContentType;
+
+    public String getIconoMediaBase64() {
+        return iconoMediaBase64;
+    }
+
+    public void setIconoMediaBase64(String iconoMediaBase64) {
+        this.iconoMediaBase64 = iconoMediaBase64;
+    }
+
+    public String getIconoMediaContentType() {
+        return iconoMediaContentType;
+    }
+
+    public void setIconoMediaContentType(String iconoMediaContentType) {
+        this.iconoMediaContentType = iconoMediaContentType;
+    }
+
     public Long getId() {
         return id;
     }
@@ -103,12 +122,12 @@ public class RedSocialDTO implements Serializable {
     @Override
     public String toString() {
         return "RedSocialDTO{" +
-            "id=" + getId() +
-            ", nombre='" + getNombre() + "'" +
-            ", urlEnlace='" + getUrlEnlace() + "'" +
-            ", iconoUrl='" + getIconoUrl() + "'" +
-            ", colorHex='" + getColorHex() + "'" +
-            ", activo='" + getActivo() + "'" +
-            "}";
+                "id=" + getId() +
+                ", nombre='" + getNombre() + "'" +
+                ", urlEnlace='" + getUrlEnlace() + "'" +
+                ", iconoUrl='" + getIconoUrl() + "'" +
+                ", colorHex='" + getColorHex() + "'" +
+                ", activo='" + getActivo() + "'" +
+                "}";
     }
 }
