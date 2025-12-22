@@ -30,6 +30,10 @@ public class SeccionContactoDTO implements Serializable {
     @NotNull
     private Boolean activo;
 
+    // Transient fields for image upload
+    private String imagenFondoBase64;
+    private String imagenFondoContentType;
+
     public Long getId() {
         return id;
     }
@@ -78,6 +82,22 @@ public class SeccionContactoDTO implements Serializable {
         this.activo = activo;
     }
 
+    public String getImagenFondoBase64() {
+        return imagenFondoBase64;
+    }
+
+    public void setImagenFondoBase64(String imagenFondoBase64) {
+        this.imagenFondoBase64 = imagenFondoBase64;
+    }
+
+    public String getImagenFondoContentType() {
+        return imagenFondoContentType;
+    }
+
+    public void setImagenFondoContentType(String imagenFondoContentType) {
+        this.imagenFondoContentType = imagenFondoContentType;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -103,12 +123,12 @@ public class SeccionContactoDTO implements Serializable {
     @Override
     public String toString() {
         return "SeccionContactoDTO{" +
-            "id=" + getId() +
-            ", titulo='" + getTitulo() + "'" +
-            ", descripcion='" + getDescripcion() + "'" +
-            ", imagenFondoUrl='" + getImagenFondoUrl() + "'" +
-            ", correo='" + getCorreo() + "'" +
-            ", activo='" + getActivo() + "'" +
-            "}";
+                "id=" + getId() +
+                ", titulo='" + getTitulo() + "'" +
+                ", descripcion='" + getDescripcion() + "'" +
+                ", imagenFondoUrl='" + getImagenFondoUrl() + "'" +
+                ", correo='" + getCorreo() + "'" +
+                ", activo='" + getActivo() + "'" +
+                "}";
     }
 }
