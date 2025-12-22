@@ -40,11 +40,15 @@ public class StripeService {
     @Value("${stripe.key.webhook-secret}")
     private String endpointSecret;
 
+    private final ServicioContratadoService servicioContratadoService;
+
     public StripeService(PagoRepository pagoRepository, ReservaRepository reservaRepository,
-            com.hotel.app.repository.ServicioContratadoRepository servicioContratadoRepository) {
+            com.hotel.app.repository.ServicioContratadoRepository servicioContratadoRepository,
+            ServicioContratadoService servicioContratadoService) {
         this.pagoRepository = pagoRepository;
         this.reservaRepository = reservaRepository;
         this.servicioContratadoRepository = servicioContratadoRepository;
+        this.servicioContratadoService = servicioContratadoService;
     }
 
     public PaymentIntentResponse createPaymentIntent(PaymentIntentRequest request) throws StripeException {
@@ -124,11 +128,9 @@ public class StripeService {
                 String servicioContratadoIdStr = paymentIntent.getMetadata().get("servicioContratadoId");
                 if (servicioContratadoIdStr != null && !servicioContratadoIdStr.isEmpty()) {
                     Long servicioId = Long.parseLong(servicioContratadoIdStr);
-                    servicioContratadoRepository.findById(servicioId).ifPresent(s -> {
-                        s.setEstado(com.hotel.app.domain.enumeration.EstadoServicioContratado.CONFIRMADO);
-                        servicioContratadoRepository.save(s);
-                        log.info("Confirmed ServicioContratado ID: {}", s.getId());
-                    });
+                    // Use service specific method to confirm, which includes notifications
+                    servicioContratadoService.confirmar(servicioId);
+                    log.info("Confirmed ServicioContratado ID: {}", servicioId);
                 }
             }
         } else if ("payment_intent.payment_failed".equals(event.getType())) {

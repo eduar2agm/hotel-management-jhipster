@@ -44,4 +44,9 @@ public interface ServicioContratadoRepository extends JpaRepository<ServicioCont
     List<ServicioContratado> findByEstadoAndFechaServicioBefore(
             com.hotel.app.domain.enumeration.EstadoServicioContratado estado,
             java.time.ZonedDateTime date);
+
+    long countByServicioIdAndFechaServicioAndEstadoIn(
+            Long servicioId,
+            java.time.ZonedDateTime fechaServicio,
+            List<com.hotel.app.domain.enumeration.EstadoServicioContratado> estados);
 }

@@ -91,30 +91,46 @@ public class ServicioContratadoServiceImpl implements ServicioContratadoService 
                             "servicenotavailable");
                 }
 
-                // Check time
+                // Check time and quota
                 boolean timeValid = false;
                 for (var disp : disponibilidades) {
+                    boolean thisSlotTimeValid = false;
+
                     if (Boolean.TRUE.equals(disp.getHoraFija())) {
                         if (disp.getHoraInicio().getHour() == fechaServicio.getHour() &&
                                 disp.getHoraInicio().getMinute() == fechaServicio.getMinute()) {
-                            timeValid = true;
+                            thisSlotTimeValid = true;
                         }
                     } else {
                         // Range
                         if (!fechaServicio.toLocalTime().isBefore(disp.getHoraInicio()) &&
                                 (disp.getHoraFin() == null
                                         || !fechaServicio.toLocalTime().isAfter(disp.getHoraFin()))) {
-                            timeValid = true;
+                            thisSlotTimeValid = true;
                         }
                     }
 
-                    if (timeValid)
-                        break;
+                    if (thisSlotTimeValid) {
+                        // Check Quota
+                        long currentCount = servicioContratadoRepository.countByServicioIdAndFechaServicioAndEstadoIn(
+                                servicioContratadoDTO.getServicio().getId(),
+                                fechaServicio,
+                                List.of(
+                                        com.hotel.app.domain.enumeration.EstadoServicioContratado.CONFIRMADO,
+                                        com.hotel.app.domain.enumeration.EstadoServicioContratado.PENDIENTE,
+                                        com.hotel.app.domain.enumeration.EstadoServicioContratado.COMPLETADO));
+
+                        if (currentCount < disp.getCupoMaximo()) {
+                            timeValid = true;
+                            break;
+                        }
+                    }
                 }
 
                 if (!timeValid) {
-                    throw new BadRequestAlertException("Service not available at this time", "servicioContratado",
-                            "servicetimeinvalid");
+                    throw new BadRequestAlertException(
+                            "Service not available at this time (Invalid time or Quota full)", "servicioContratado",
+                            "servicenotavailable");
                 }
             }
         }
