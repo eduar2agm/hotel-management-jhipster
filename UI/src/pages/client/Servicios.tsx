@@ -59,6 +59,8 @@ export const Servicios = () => {
   const [fechas, setFechas] = useState<string[]>([]);  // Cambio: ahora es un array
   const [hora, setHora] = useState<string>('09:00');
   const [submitting, setSubmitting] = useState(false);
+  const [maxCupo, setMaxCupo] = useState<number>(0);
+
 
   useEffect(() => {
     // ... useEffect content remains same, just ensuring we are inside the component body ...
@@ -408,21 +410,29 @@ export const Servicios = () => {
                     setFechas(newFechas);
                     setHora(newHora);
                   }}
+                  onQuotaAvailable={(quota) => setMaxCupo(quota)}
                   selectedFechas={fechas}
                   selectedHora={hora}
                 />
               </div>
             )}
 
-            <div className="flex items-center justify-between p-4 bg-yellow-50 rounded-lg">
-              <span className="font-bold text-yellow-800">Total Estimado:</span>
-              <span className="text-2xl font-black text-yellow-700">${totalPrice}</span>
+            <div className="flex flex-col gap-2 p-4 bg-yellow-50 rounded-lg">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-yellow-800">Total Estimado:</span>
+                <span className="text-2xl font-black text-yellow-700">${totalPrice}</span>
+              </div>
+              {maxCupo > 0 && fechas.length > 0 && hora && (
+                <div className="text-xs text-yellow-600 font-medium text-right">
+                  Cupo máximo disponible: {maxCupo} personas
+                </div>
+              )}
             </div>
           </div>
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setContractingService(null)}>Cancelar</Button>
-            <Button onClick={confirmContratacion} disabled={submitting || !selectedReservaId} className="bg-yellow-600 hover:bg-yellow-700 text-white">
+            <Button onClick={confirmContratacion} disabled={submitting || !selectedReservaId || (maxCupo > 0 && cantidad > maxCupo)} className="bg-yellow-600 hover:bg-yellow-700 text-white">
               {submitting ? 'Procesando...' : 'Confirmar Solicitud'}
             </Button>
           </DialogFooter>

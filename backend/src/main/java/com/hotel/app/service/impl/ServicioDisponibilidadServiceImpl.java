@@ -160,14 +160,31 @@ public class ServicioDisponibilidadServiceImpl implements ServicioDisponibilidad
                     ServicioDisponibilidadConCuposDTO dtoConCupos = new ServicioDisponibilidadConCuposDTO(baseDTO);
                     dtoConCupos.setFecha(currentDate);
 
-                    // Contar cupos ocupados para este día
+                    // Contar cupos ocupados para este día y hora
                     final LocalDate fecha = currentDate;
                     long cuposOcupados = serviciosContratados.stream()
                             .filter(sc -> {
                                 LocalDate fechaSc = sc.getFechaServicio().toLocalDate();
-                                return fechaSc.equals(fecha);
+                                if (!fechaSc.equals(fecha)) {
+                                    return false;
+                                }
+
+                                // Validar tiempo
+                                LocalTime horaSc = sc.getFechaServicio().toLocalTime();
+                                if (Boolean.TRUE.equals(disp.getHoraFija())) {
+                                    // Para hora fija, debe coincidir exactamente
+                                    return disp.getHoraInicio().getHour() == horaSc.getHour() &&
+                                           disp.getHoraInicio().getMinute() == horaSc.getMinute();
+                                } else {
+                                    // Para rangos, si el servicio fue contratado dentro del rango
+                                    // Nota: Esto asume que el cupo es para todo el rango
+                                    boolean afterStart = !horaSc.isBefore(disp.getHoraInicio());
+                                    boolean beforeEnd = disp.getHoraFin() == null || !horaSc.isAfter(disp.getHoraFin());
+                                    return afterStart && beforeEnd;
+                                }
                             })
-                            .count();
+                            .mapToLong(sc -> sc.getCantidad() != null ? sc.getCantidad() : 0)
+                            .sum();
 
                     dtoConCupos.setCuposOcupados((int) cuposOcupados);
                     resultado.add(dtoConCupos);

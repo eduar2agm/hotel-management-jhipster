@@ -93,10 +93,8 @@ public class ServicioContratadoServiceImpl implements ServicioContratadoService 
                         "servicioContratado", "servicedateoutofrange");
             }
 
-            // 2. Validate Service Availability - Skip for ADMIN/EMPLOYEE
-            boolean skipAvailabilityValidation = hasAdminOrEmployeeRole();
-
-            if (servicioContratadoDTO.getServicio() != null && !skipAvailabilityValidation) {
+            // 2. Validate Service Availability - REQUIRED FOR ALL ROLES
+            if (servicioContratadoDTO.getServicio() != null) {
                 ZonedDateTime fechaServicio = servicioContratadoDTO.getFechaServicio();
                 DiaSemana diaSemana = mapDayOfWeek(fechaServicio.getDayOfWeek());
 
@@ -130,15 +128,20 @@ public class ServicioContratadoServiceImpl implements ServicioContratadoService 
 
                     if (thisSlotTimeValid) {
                         // Check Quota
-                        long currentCount = servicioContratadoRepository.countByServicioIdAndFechaServicioAndEstadoIn(
-                                servicioContratadoDTO.getServicio().getId(),
-                                fechaServicio,
-                                List.of(
-                                        com.hotel.app.domain.enumeration.EstadoServicioContratado.CONFIRMADO,
-                                        com.hotel.app.domain.enumeration.EstadoServicioContratado.PENDIENTE,
-                                        com.hotel.app.domain.enumeration.EstadoServicioContratado.COMPLETADO));
+                        Long currentTotalQuantity = servicioContratadoRepository
+                                .sumCantidadByServicioIdAndFechaServicioAndEstadoIn(
+                                        servicioContratadoDTO.getServicio().getId(),
+                                        fechaServicio,
+                                        List.of(
+                                                com.hotel.app.domain.enumeration.EstadoServicioContratado.CONFIRMADO,
+                                                com.hotel.app.domain.enumeration.EstadoServicioContratado.PENDIENTE,
+                                                com.hotel.app.domain.enumeration.EstadoServicioContratado.COMPLETADO));
 
-                        if (currentCount < disp.getCupoMaximo()) {
+                        long requestedQuantity = servicioContratadoDTO.getCantidad() != null
+                                ? servicioContratadoDTO.getCantidad()
+                                : 0;
+
+                        if ((currentTotalQuantity + requestedQuantity) <= disp.getCupoMaximo()) {
                             timeValid = true;
                             break;
                         }
@@ -291,19 +294,6 @@ public class ServicioContratadoServiceImpl implements ServicioContratadoService 
             mensaje.setRemitente("SISTEMA");
             mensajeSoporteService.save(mensaje);
         }
-    }
-
-    /**
-     * Check if current user has ADMIN or EMPLOYEE role
-     */
-    private boolean hasAdminOrEmployeeRole() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || authentication.getAuthorities() == null) {
-            return false;
-        }
-        return authentication.getAuthorities().stream()
-                .anyMatch(authority -> "ROLE_ADMIN".equals(authority.getAuthority()) ||
-                        "ROLE_EMPLOYEE".equals(authority.getAuthority()));
     }
 
     private DiaSemana mapDayOfWeek(java.time.DayOfWeek dayOfWeek) {

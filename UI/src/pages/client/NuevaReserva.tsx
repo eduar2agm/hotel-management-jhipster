@@ -22,17 +22,37 @@ import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../../components/common/PageHeader';
 import { PriceRangeFilter } from '@/components/common/PriceRangeFilter';
 
-// --- LOGICA ORIGINAL ---
+// Helper to get local date string YYYY-MM-DD
+const getLocalTodayStr = () => {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+};
+
+// Helper to parse YYYY-MM-DD string to local Date object (midnight)
+const parseLocalDate = (dateStr: string) => {
+    const [year, month, day] = dateStr.split('-').map(Number);
+    return new Date(year, month - 1, day);
+};
+
+// --- LOGICA ORIGINAL MODIFICADA ---
 const searchSchema = z.object({
     start: z.string().min(1, 'Fecha de llegada requerida'),
     end: z.string().min(1, 'Fecha de salida requerida')
-}).refine(data => new Date(data.start) < new Date(data.end), {
+}).refine(data => {
+    const start = parseLocalDate(data.start);
+    const end = parseLocalDate(data.end);
+    return start < end;
+}, {
     message: "La fecha de salida debe ser posterior a la de llegada",
     path: ["end"]
 }).refine(data => {
+    const start = parseLocalDate(data.start);
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    return new Date(data.start) >= today;
+    today.setHours(0, 0, 0, 0); // Local Midnight
+    return start >= today;
 }, {
     message: "La fecha de llegada no puede ser en el pasado",
     path: ["start"]
@@ -126,8 +146,8 @@ export const NuevaReserva = () => {
     const calculateNights = () => {
         const { start, end } = form.getValues();
         if (!start || !end) return 0;
-        const startDate = new Date(start);
-        const endDate = new Date(end);
+        const startDate = parseLocalDate(start);
+        const endDate = parseLocalDate(end);
         const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
         const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
         return days === 0 ? 1 : days;
@@ -149,11 +169,22 @@ export const NuevaReserva = () => {
         try {
             const dates = form.getValues();
 
+            // Construct Dates manually to avoid timezone shift
+            const [sYear, sMonth, sDay] = dates.start.split('-').map(Number);
+            const [eYear, eMonth, eDay] = dates.end.split('-').map(Number);
+
+            // FIX: Using 23:59:59 causes date to jump to next day in UTC-6 (CST) and other Western timezones.
+            // Instead, we use typical Check-IN (15:00) and Check-OUT (11:00) times.
+            // Dec 31 15:00 CST -> Dec 31 21:00 UTC (SAME DAY)
+            // Jan 01 11:00 CST -> Jan 01 17:00 UTC (SAME DAY)
+            const startDateLocal = new Date(sYear, sMonth - 1, sDay, 15, 0, 0);
+            const endDateLocal = new Date(eYear, eMonth - 1, eDay, 11, 0, 0);
+
             // 1. Create ONE Master Reservation
             const newReserva: NewReservaDTO = {
                 fechaReserva: new Date().toISOString(),
-                fechaInicio: new Date(dates.start).toISOString(),
-                fechaFin: new Date(dates.end).toISOString(),
+                fechaInicio: startDateLocal.toISOString(), // Will include local timezone offset converted to UTC
+                fechaFin: endDateLocal.toISOString(),
                 estado: 'PENDIENTE',
                 activo: true,
                 cliente: { id: clienteId! },
@@ -184,6 +215,13 @@ export const NuevaReserva = () => {
         } finally {
             setIsSubmitting(false);
         }
+    };
+
+    // Date formatter for display that respects the string value without timezone shift
+    const formatDisplayDate = (dateStr: string) => {
+        if (!dateStr) return '';
+        const date = parseLocalDate(dateStr);
+        return date.toLocaleDateString();
     };
 
     return (
@@ -228,7 +266,7 @@ export const NuevaReserva = () => {
                                                             <FormControl>
                                                                 <Input
                                                                     type="date"
-                                                                    min={new Date().toISOString().split('T')[0]}
+                                                                    min={getLocalTodayStr()}
                                                                     {...field}
                                                                     className="h-12 border-gray-200 focus:border-yellow-600 focus:ring-yellow-600/20 bg-gray-50/50"
                                                                 />
@@ -248,7 +286,7 @@ export const NuevaReserva = () => {
                                                             <FormControl>
                                                                 <Input
                                                                     type="date"
-                                                                    min={form.getValues('start') || new Date().toISOString().split('T')[0]}
+                                                                    min={form.getValues('start') || getLocalTodayStr()}
                                                                     {...field}
                                                                     className="h-12 border-gray-200 focus:border-yellow-600 focus:ring-yellow-600/20 bg-gray-50/50"
                                                                 />
@@ -292,7 +330,7 @@ export const NuevaReserva = () => {
                                         <div>
                                             <h2 className="text-2xl font-bold text-gray-900 font-serif">Habitaciones Disponibles</h2>
                                             <p className="text-gray-500 text-sm mt-1">
-                                                Para las fechas: <span className="font-semibold">{new Date(form.getValues('start')).toLocaleDateString()}</span> - <span className="font-semibold">{new Date(form.getValues('end')).toLocaleDateString()}</span>
+                                                Para las fechas: <span className="font-semibold">{formatDisplayDate(form.getValues('start'))}</span> - <span className="font-semibold">{formatDisplayDate(form.getValues('end'))}</span>
                                             </p>
                                         </div>
                                         <Button
@@ -371,11 +409,11 @@ export const NuevaReserva = () => {
                                                 <div className="flex gap-2">
                                                     <div className="flex-1 bg-gray-50 p-2 rounded border border-gray-100 text-center">
                                                         <span className="text-[10px] uppercase text-gray-400 font-bold block">Entrada</span>
-                                                        <span className="font-semibold text-gray-800 text-sm">{new Date(form.getValues('start')).toLocaleDateString()}</span>
+                                                        <span className="font-semibold text-gray-800 text-sm">{formatDisplayDate(form.getValues('start'))}</span>
                                                     </div>
                                                     <div className="flex-1 bg-gray-50 p-2 rounded border border-gray-100 text-center">
                                                         <span className="text-[10px] uppercase text-gray-400 font-bold block">Salida</span>
-                                                        <span className="font-semibold text-gray-800 text-sm">{new Date(form.getValues('end')).toLocaleDateString()}</span>
+                                                        <span className="font-semibold text-gray-800 text-sm">{formatDisplayDate(form.getValues('end'))}</span>
                                                     </div>
                                                 </div>
                                             </div>

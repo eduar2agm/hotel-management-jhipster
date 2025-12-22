@@ -37,6 +37,21 @@ export const ClientReservationCard = ({
         }
     };
 
+    // Helper to extract date part (YYYY-MM-DD) from ISO string and format it
+    // Use this to show the stored date without timezone shifts
+    const formatDate = (isoString?: string | null) => {
+        if (!isoString) return '-';
+        try {
+            // Assuming ISO string like 2025-12-22T... or 2025-12-22
+            // We take the date part directly.
+            const datePart = isoString.split('T')[0];
+            const [year, month, day] = datePart.split('-');
+            return `${day}/${month}/${year}`;
+        } catch (e) {
+            return isoString;
+        }
+    };
+
     return (
         <div
             className={`bg-white group transition-all duration-300 border overflow-hidden rounded-xl
@@ -51,7 +66,7 @@ export const ClientReservationCard = ({
                     </Badge>
                     <span className="text-xs text-gray-400 font-medium uppercase tracking-wider hidden sm:flex items-center gap-1">
                         <Calendar className="w-3 h-3" />
-                        {reserva.fechaReserva ? new Date(reserva.fechaReserva).toLocaleDateString() : '-'}
+                        {formatDate(reserva.fechaReserva)}
                     </span>
                 </div>
                 <div className="flex items-center gap-3">
@@ -87,14 +102,14 @@ export const ClientReservationCard = ({
                             <span className="text-xs text-gray-400 font-bold uppercase block mb-2 tracking-wider">Check-in</span>
                             <span className="text-xl font-serif font-bold text-gray-900 flex items-center gap-2">
                                 <div className="w-1 h-8 bg-green-500 rounded-full"></div>
-                                {reserva.fechaInicio ? new Date(reserva.fechaInicio).toLocaleDateString() : ''}
+                                {formatDate(reserva.fechaInicio)}
                             </span>
                         </div>
                         <div>
                             <span className="text-xs text-gray-400 font-bold uppercase block mb-2 tracking-wider">Check-out</span>
                             <span className="text-xl font-serif font-bold text-gray-900 flex items-center gap-2">
                                 <div className="w-1 h-8 bg-red-500 rounded-full"></div>
-                                {reserva.fechaFin ? new Date(reserva.fechaFin).toLocaleDateString() : ''}
+                                {formatDate(reserva.fechaFin)}
                             </span>
                         </div>
                     </div>

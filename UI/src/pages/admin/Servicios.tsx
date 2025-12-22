@@ -21,6 +21,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Search, Pencil, Briefcase, Upload, Loader2, Image as ImageIcon, Clock } from 'lucide-react';
 import { ServicioDisponibilidadManager } from '../../components/admin/servicios/ServicioDisponibilidadManager';
+import { ServiceScheduleSelector } from '../../components/services/ServiceScheduleSelector';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { Textarea } from '@/components/ui/textarea';
@@ -55,6 +56,9 @@ export const ServiciosList = ({ readOnly = false }: { readOnly?: boolean }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [searchFilter, setSearchFilter] = useState('');
     const [showInactive, setShowInactive] = useState(false);
+
+    const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
+    const [selectedServiceForDetails, setSelectedServiceForDetails] = useState<ServicioDTO | null>(null);
 
     const [isAvailabilityDialogOpen, setIsAvailabilityDialogOpen] = useState(false);
     const [selectedService, setSelectedService] = useState<ServicioDTO | null>(null);
@@ -214,6 +218,11 @@ export const ServiciosList = ({ readOnly = false }: { readOnly?: boolean }) => {
         setIsAvailabilityDialogOpen(true);
     };
 
+    const handleViewDetails = (servicio: ServicioDTO) => {
+        setSelectedServiceForDetails(servicio);
+        setIsDetailsDialogOpen(true);
+    };
+
     const filteredServicios = servicios.filter(s => {
         if (!searchFilter) return true;
         const searchLower = searchFilter.toLowerCase();
@@ -295,6 +304,7 @@ export const ServiciosList = ({ readOnly = false }: { readOnly?: boolean }) => {
                                         onDelete={handleDelete}
                                         onToggleActive={handleToggleActive}
                                         onManageAvailability={handleManageAvailability}
+                                        onViewDetails={handleViewDetails}
                                         readOnly={readOnly}
                                     />
                                 ))
@@ -514,6 +524,7 @@ export const ServiciosList = ({ readOnly = false }: { readOnly?: boolean }) => {
                         </DialogContent>
                     </Dialog>
                 )}
+
                 <Dialog open={isAvailabilityDialogOpen} onOpenChange={setIsAvailabilityDialogOpen}>
                     <DialogContent className="max-w-4xl p-0 overflow-hidden border-0 shadow-2xl">
                         <DialogHeader className="bg-[#0F172A] text-white p-6">
@@ -530,6 +541,85 @@ export const ServiciosList = ({ readOnly = false }: { readOnly?: boolean }) => {
                         </div>
                         <div className="p-4 bg-gray-50 border-t flex justify-end">
                             <Button variant="outline" onClick={() => setIsAvailabilityDialogOpen(false)}>Cerrar</Button>
+                        </div>
+                    </DialogContent>
+                </Dialog>
+
+                <Dialog open={isDetailsDialogOpen} onOpenChange={setIsDetailsDialogOpen}>
+                    <DialogContent className="max-w-4xl p-0 overflow-hidden border-0 shadow-2xl">
+                        <DialogHeader className="bg-[#0F172A] text-white p-6">
+                            <DialogTitle className="text-xl font-bold flex items-center gap-2">
+                                <Briefcase className="h-5 w-5 text-yellow-500" />
+                                Detalles del Servicio
+                            </DialogTitle>
+                            <DialogDescription className="text-slate-400">
+                                Información detallada y calendario de disponibilidad.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="grid grid-cols-1 lg:grid-cols-3 bg-gray-50">
+                            {/* Panel izquierdo: Información */}
+                            <div className="p-6 space-y-6 lg:border-r border-gray-200">
+                                {selectedServiceForDetails && (
+                                    <>
+                                        <div className="aspect-video w-full rounded-lg overflow-hidden border border-gray-200 bg-white shadow-sm">
+                                            {selectedServiceForDetails.urlImage ? (
+                                                <img
+                                                    src={getImageUrl(selectedServiceForDetails.urlImage)}
+                                                    alt={selectedServiceForDetails.nombre}
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center text-gray-300">
+                                                    <ImageIcon className="w-12 h-12" />
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div>
+                                            <h3 className="text-xl font-bold text-gray-900 mb-2">{selectedServiceForDetails.nombre}</h3>
+                                            <p className="text-gray-600 text-sm leading-relaxed">
+                                                {selectedServiceForDetails.descripcion || 'Sin descripción disponible.'}
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <h4 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Detalles</h4>
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="bg-white p-3 rounded-lg border border-gray-100 shadow-sm">
+                                                    <div className="text-xs text-gray-500 mb-1">Precio</div>
+                                                    <div className="font-bold text-yellow-600">${selectedServiceForDetails.precio}</div>
+                                                </div>
+                                                <div className="bg-white p-3 rounded-lg border border-gray-100 shadow-sm">
+                                                    <div className="text-xs text-gray-500 mb-1">Tipo</div>
+                                                    <div className="font-bold text-gray-800">{selectedServiceForDetails.tipo}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+
+                            {/* Panel derecho: Calendario de Disponibilidad */}
+                            <div className="lg:col-span-2 p-6 bg-white overflow-y-auto max-h-[70vh]">
+                                <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                                    <Clock className="w-5 h-5 text-gray-500" />
+                                    Calendario de Disponibilidad
+                                </h4>
+                                <div className="text-sm text-gray-500 mb-4 bg-blue-50 text-blue-800 p-3 rounded-md border border-blue-200">
+                                    <p>Seleccione una fecha para ver los horarios y cupos disponibles en tiempo real.</p>
+                                </div>
+                                {selectedServiceForDetails && selectedServiceForDetails.id && (
+                                    <div className="border border-gray-200 rounded-lg p-4 bg-white">
+                                        <ServiceScheduleSelector
+                                            servicioId={selectedServiceForDetails.id}
+                                            onSelect={() => { }} // No-op, solo visualización
+                                            reserva={null}
+                                        // No pasamos fechas seleccionadas para que el usuario pueda explorar libremente
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                        <div className="p-4 bg-gray-50 border-t flex justify-end">
+                            <Button variant="outline" onClick={() => setIsDetailsDialogOpen(false)}>Cerrar</Button>
                         </div>
                     </DialogContent>
                 </Dialog>
