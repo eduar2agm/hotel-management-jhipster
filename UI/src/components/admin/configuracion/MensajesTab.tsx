@@ -30,6 +30,14 @@ const PREDEFINED_KEYS = [
     { key: 'MSG_ADMIN_CANCEL', label: 'Notificación Cancelación (Admin)', description: 'Mensaje del admin al cliente cuando cancela reserva. Variables: {clienteNombre}, {reservaId}, {fechaInicio}, {fechaFin}' },
     { key: 'MSG_ADMIN_FINALIZE', label: 'Notificación Finalización (Admin)', description: 'Mensaje del admin al cliente cuando finaliza reserva. Variables: {clienteNombre}, {reservaId}, {fechaInicio}, {fechaFin}' },
     { key: 'MSG_WELCOME_CHAT', label: 'Bienvenida Chat', description: 'Mensaje inicial al abrir el chat (Opcional)' },
+
+    // Servicios
+    { key: 'MSG_SERVICE_CONFIRMADO', label: 'Confirmación Servicio', description: 'Confirmación tras pago. Variables: {servicioNombre}, {fechaServicio}, {total}' },
+    { key: 'MSG_SERVICE_PAGO_EXITOSO', label: 'Pago Exitoso Servicio', description: 'Confirmación de pago. Variables: {servicioNombre}' },
+    { key: 'MSG_SERVICE_COMPLETADO', label: 'Servicio Completado', description: 'Notificación de servicio finalizado. Variables: {servicioNombre}' },
+    { key: 'MSG_SERVICE_CANCELADO', label: 'Cancelación Servicio', description: 'Notificación de cancelación. Variables: {servicioNombre}, {fechaServicio}' },
+    { key: 'MSG_SERVICE_SOLICITUD_CANCELACION', label: 'Solicitud Cancelación Servicio', description: 'Confirmación de solicitud de cancelación. Variables: {servicioNombre}' },
+    { key: 'MSG_SERVICE_AUTO_CANCEL_RESERVA', label: 'Cancelación Auto por Reserva', description: 'Cancelación automática al cancelar reserva. Variables: {reservaId}' },
 ];
 
 export const MensajesTab = () => {

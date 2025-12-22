@@ -1,5 +1,6 @@
 import { apiClient } from '../api/axios-instance';
 import type { ServicioDisponibilidadDTO, NewServicioDisponibilidadDTO } from '../types/api/ServicioDisponibilidad';
+import type { ServicioDisponibilidadConCuposDTO } from '../types/api/ServicioDisponibilidadConCupos';
 import type { DiaSemana } from '../types/enums';
 
 const base = '/servicio-disponibilidads';
@@ -11,6 +12,14 @@ export const ServicioDisponibilidadService = {
 
     // Custom filter endpoint to get by service
     getByServicio: (servicioId: number) => apiClient.get<ServicioDisponibilidadDTO[]>(`${base}/servicio/${servicioId}`),
+
+    // Get disponibilidad con cupos in a date range
+    getDisponibilidadConCupos: (servicioId: number, fechaInicio?: string, fechaFin?: string) => {
+        const params: any = {};
+        if (fechaInicio) params.fechaInicio = fechaInicio;
+        if (fechaFin) params.fechaFin = fechaFin;
+        return apiClient.get<ServicioDisponibilidadConCuposDTO[]>(`${base}/servicio/${servicioId}/cupos`, { params });
+    },
 
     create: (dto: NewServicioDisponibilidadDTO) => apiClient.post<ServicioDisponibilidadDTO>(base, dto),
 

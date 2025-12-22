@@ -1,9 +1,10 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
+import { useAuth } from '../../hooks/useAuth';
 import { ServiceCheckoutSidebar } from '../../components/stripe/ServiceCheckoutSidebar';
 import { Button } from '@/components/ui/button';
-import { CreditCard, Sparkles } from 'lucide-react';
+import { CreditCard, Sparkles, XCircle } from 'lucide-react';
 import { ReservaService } from '../../services/reserva.service';
 import { ServicioContratadoService } from '../../services/servicio-contratado.service';
 import type { ServicioContratadoDTO } from '../../types/api/ServicioContratado';
@@ -22,8 +23,10 @@ import { Navbar } from '../../components/layout/Navbar';
 import { Footer } from '../../components/layout/Footer';
 import { format } from 'date-fns';
 import { PageHeader } from '../../components/common/PageHeader';
+import { MensajeSoporteService } from '../../services/mensaje-soporte.service';
 
 export const MisServicios = () => {
+    const { user } = useAuth();
     const [items, setItems] = useState<ServicioContratadoDTO[]>([]);
     const [loading, setLoading] = useState(false);
     const [activeService, setActiveService] = useState<ServicioContratadoDTO | null>(null);
@@ -73,10 +76,60 @@ export const MisServicios = () => {
         }
     }, [searchParams, setSearchParams]);
 
-    const handlePaymentSuccess = () => {
+    const handlePaymentSuccess = async () => {
         toast.success("Pago procesado correctamente.");
+        const previousServiceId = activeService?.id;
         setActiveService(null);
-        loadData();
+
+        // Implement polling to check if the status has been updated by the webhook
+        // This is more reliable than a fixed delay
+        const maxAttempts = 20; // 20 attempts x 500ms = 10 seconds max
+        let attempts = 0;
+
+        const pollForUpdate = async (): Promise<boolean> => {
+            try {
+                const reservasRes = await ReservaService.getReservas({ size: 100 });
+                const reservas = reservasRes.data;
+
+                if (reservas.length > 0) {
+                    const validReservas = reservas.filter(r => r.id !== undefined && r.id !== null);
+                    const promises = validReservas.map(r => ServicioContratadoService.getByReservaId(r.id!));
+                    const results = await Promise.all(promises);
+                    const allServices = results.flatMap(r => r.data);
+
+                    // Check if the service we just paid for has been updated to CONFIRMADO
+                    const updatedService = allServices.find(s => s.id === previousServiceId);
+                    if (updatedService && updatedService.estado === EstadoServicioContratado.CONFIRMADO) {
+                        // Success! The webhook processed the payment
+                        allServices.sort((a, b) => new Date(b.fechaContratacion || '').getTime() - new Date(a.fechaContratacion || '').getTime());
+                        setItems(allServices);
+                        return true;
+                    }
+                }
+                return false;
+            } catch (error) {
+                console.error('Error polling for update:', error);
+                return false;
+            }
+        };
+
+        // Poll every 500ms for up to 10 seconds
+        while (attempts < maxAttempts) {
+            const updated = await pollForUpdate();
+            if (updated) {
+                toast.success('Estado actualizado: Servicio confirmado');
+                break;
+            }
+            attempts++;
+            if (attempts < maxAttempts) {
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+        }
+
+        // If polling didn't catch the update, do a final refresh
+        if (attempts >= maxAttempts) {
+            await loadData();
+        }
     };
 
     const getStatusBadgeVariant = (estado: EstadoServicioContratado): "default" | "secondary" | "destructive" | "outline" | null | undefined => {
@@ -86,6 +139,37 @@ export const MisServicios = () => {
             case EstadoServicioContratado.COMPLETADO: return "outline";
             case EstadoServicioContratado.CANCELADO: return "destructive";
             default: return "secondary";
+        }
+    };
+
+    const handleRequestCancellation = async (servicio: ServicioContratadoDTO) => {
+        try {
+            if (!user) {
+                toast.error('Debes estar autenticado para solicitar una cancelación.');
+                return;
+            }
+
+            // Enviar mensaje de solicitud de cancelación
+            const mensajeTexto = `⚠️ SOLICITUD DE CANCELACIÓN\n\nServicio: ${servicio.servicio?.nombre}\nFecha programada: ${format(new Date(servicio.fechaServicio!), 'dd/MM/yyyy HH:mm')}\n\nSolicito la cancelación de este servicio. Por favor confirmen la cancelación.`;
+
+            const userName = user.firstName && user.lastName
+                ? `${user.firstName} ${user.lastName}`
+                : user.email || 'Cliente';
+
+            await MensajeSoporteService.createMensaje({
+                mensaje: mensajeTexto,
+                fechaMensaje: new Date().toISOString(),
+                userId: user.id || '',
+                userName: userName,
+                reserva: { id: servicio.reserva?.id! },
+                remitente: 'CLIENTE',
+                leido: false,
+                activo: true
+            });
+            toast.success('Solicitud de cancelación enviada. El personal te contactará pronto.');
+        } catch (error) {
+            console.error('Error requesting cancellation:', error);
+            toast.error('Error al enviar la solicitud de cancelación.');
         }
     };
 
@@ -179,18 +263,30 @@ export const MisServicios = () => {
                                                                 </Badge>
                                                             </TableCell>
                                                             <TableCell className="text-center">
-                                                                {canPay && (
-                                                                    <Button
-                                                                        size="sm"
-                                                                        className="bg-gray-900 hover:bg-yellow-600 text-xs px-2 h-8"
-                                                                        onClick={() => {
-                                                                            setActiveService(item);
-                                                                            window.scrollTo({ top: 0, behavior: 'smooth' });
-                                                                        }}
-                                                                    >
-                                                                        <CreditCard className="w-3 h-3 mr-1" /> Pagar
-                                                                    </Button>
-                                                                )}
+                                                                <div className="flex gap-2 justify-center">
+                                                                    {canPay && (
+                                                                        <Button
+                                                                            size="sm"
+                                                                            className="bg-gray-900 hover:bg-yellow-600 text-xs px-2 h-8"
+                                                                            onClick={() => {
+                                                                                setActiveService(item);
+                                                                                window.scrollTo({ top: 0, behavior: 'smooth' });
+                                                                            }}
+                                                                        >
+                                                                            <CreditCard className="w-3 h-3 mr-1" /> Pagar
+                                                                        </Button>
+                                                                    )}
+                                                                    {item.estado === EstadoServicioContratado.CONFIRMADO && (
+                                                                        <Button
+                                                                            size="sm"
+                                                                            variant="destructive"
+                                                                            className="text-xs px-2 h-8"
+                                                                            onClick={() => handleRequestCancellation(item)}
+                                                                        >
+                                                                            <XCircle className="w-3 h-3 mr-1" /> Solicitar Cancelación
+                                                                        </Button>
+                                                                    )}
+                                                                </div>
                                                             </TableCell>
                                                         </TableRow>
                                                     );

@@ -1,6 +1,7 @@
 package com.hotel.app.service;
 
 import com.hotel.app.service.dto.ServicioDisponibilidadDTO;
+import com.hotel.app.service.dto.ServicioDisponibilidadConCuposDTO;
 import java.util.Optional;
 import java.util.List;
 import org.springframework.data.domain.Page;
@@ -66,4 +67,16 @@ public interface ServicioDisponibilidadService {
      * @return list of availabilities
      */
     List<ServicioDisponibilidadDTO> findByServicioId(Long servicioId);
+
+    /**
+     * Get disponibilidad con cupos for a specific service in a date range.
+     *
+     * @param servicioId  the service id
+     * @param fechaInicio the start date
+     * @param fechaFin    the end date
+     * @return list of availabilities with quota information
+     */
+    List<ServicioDisponibilidadConCuposDTO> findDisponibilidadConCupos(Long servicioId,
+            java.time.LocalDate fechaInicio,
+            java.time.LocalDate fechaFin);
 }
