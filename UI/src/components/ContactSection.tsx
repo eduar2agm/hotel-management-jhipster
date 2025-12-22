@@ -187,26 +187,66 @@ export const ContactSection = () => {
         }
     };
 
+
+    const SocialDefaults: Record<string, { icon: string, color: string }> = {
+        facebook: { icon: 'facebook', color: '#1877F2' },
+        twitter: { icon: 'twitter', color: '#1DA1F2' },
+        instagram: { icon: 'instagram', color: '#E4405F' },
+        linkedin: { icon: 'linkedin', color: '#0A66C2' },
+        youtube: { icon: 'youtube', color: '#FF0000' },
+        tiktok: { icon: 'facebook', color: '#000000' }, // Fallback icon as lucide might not have tiktok in this version
+    };
+
     // Red Social handlers
     const handleSaveRed = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!editRed.nombre || !editRed.urlEnlace || !editRed.iconoUrl) {
-            toast.error("Complete todos los campos requeridos");
+
+        let finalNombre = editRed.nombre?.trim();
+        let finalUrl = editRed.urlEnlace?.trim();
+        let finalIcon = editRed.iconoUrl?.trim();
+        let finalColor = editRed.colorHex?.trim();
+
+        if (!finalNombre || !finalUrl) {
+            toast.error("El nombre y la URL son requeridos");
             return;
         }
+
+        // Auto-detect settings based on name or URL
+        const searchKey = (finalNombre + ' ' + finalUrl).toLowerCase();
+        for (const [key, defaults] of Object.entries(SocialDefaults)) {
+            if (searchKey.includes(key)) {
+                if (!finalIcon) finalIcon = defaults.icon;
+                if (!finalColor) finalColor = defaults.color;
+                break;
+            }
+        }
+
+        // Fallback if still empty
+        if (!finalIcon) finalIcon = 'default';
 
         setIsSaving(true);
         try {
             if (editRed.id) {
-                await RedSocialService.updateRedSocial(editRed.id, editRed as RedSocialDTO);
+                const updateData: RedSocialDTO = {
+                    ...editRed as RedSocialDTO,
+                    nombre: finalNombre,
+                    urlEnlace: finalUrl,
+                    iconoUrl: finalIcon,
+                    colorHex: finalColor || null,
+                    iconoMediaBase64: (editRed as any).iconoMediaBase64,
+                    iconoMediaContentType: (editRed as any).iconoMediaContentType
+                };
+                await RedSocialService.updateRedSocial(editRed.id, updateData);
                 toast.success("Red social actualizada");
             } else {
                 const newRed: NewRedSocialDTO = {
-                    nombre: editRed.nombre,
-                    urlEnlace: editRed.urlEnlace,
-                    iconoUrl: editRed.iconoUrl,
-                    colorHex: editRed.colorHex || null,
-                    activo: true
+                    nombre: finalNombre,
+                    urlEnlace: finalUrl,
+                    iconoUrl: finalIcon,
+                    colorHex: finalColor || null,
+                    activo: true,
+                    iconoMediaBase64: (editRed as any).iconoMediaBase64,
+                    iconoMediaContentType: (editRed as any).iconoMediaContentType
                 };
                 await RedSocialService.createRedSocial(newRed);
                 toast.success("Red social creada");
@@ -323,7 +363,7 @@ export const ContactSection = () => {
                                     <Pencil className="w-4 h-4 mr-2" /> Editar Sección
                                 </Button>
                             </DialogTrigger>
-                            <DialogContent className="sm:max-w-[500px]">
+                            <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
                                 <DialogHeader>
                                     <DialogTitle>Editar Sección de Contacto</DialogTitle>
                                     <DialogDescription>Modifica el título, descripción y fondo de la sección.</DialogDescription>
@@ -444,7 +484,25 @@ export const ContactSection = () => {
                                         <div className="grid grid-cols-2 gap-2">
                                             <div>
                                                 <Label>Nombre *</Label>
-                                                <Input value={editRed.nombre || ''} onChange={(e) => setEditRed({ ...editRed, nombre: e.target.value })} required />
+                                                <Input
+                                                    value={editRed.nombre || ''}
+                                                    onChange={(e) => {
+                                                        const val = e.target.value;
+                                                        const lowerVal = val.toLowerCase();
+                                                        let updates: any = { nombre: val };
+
+                                                        // Real-time auto-fill
+                                                        for (const [key, defaults] of Object.entries(SocialDefaults)) {
+                                                            if (lowerVal.includes(key)) {
+                                                                updates.iconoUrl = defaults.icon;
+                                                                updates.colorHex = defaults.color;
+                                                                break;
+                                                            }
+                                                        }
+                                                        setEditRed(prev => ({ ...prev, ...updates }));
+                                                    }}
+                                                    required
+                                                />
                                             </div>
                                             <div>
                                                 <Label>URL Enlace *</Label>
@@ -453,14 +511,69 @@ export const ContactSection = () => {
                                         </div>
                                         <div className="grid grid-cols-2 gap-2">
                                             <div>
-                                                <Label>Icono * (facebook, twitter, etc.)</Label>
-                                                <Input placeholder="facebook" value={editRed.iconoUrl || ''} onChange={(e) => setEditRed({ ...editRed, iconoUrl: e.target.value })} required />
+                                                <Label>Icono (Auto)</Label>
+                                                <Input placeholder="facebook (auto)" value={editRed.iconoUrl || ''} onChange={(e) => setEditRed({ ...editRed, iconoUrl: e.target.value })} />
                                             </div>
                                             <div>
-                                                <Label>Color Hex</Label>
-                                                <Input placeholder="#1DA1F2" value={editRed.colorHex || ''} onChange={(e) => setEditRed({ ...editRed, colorHex: e.target.value })} />
+                                                <Label>Color Hex (Auto)</Label>
+                                                <Input placeholder="#1DA1F2 (auto)" value={editRed.colorHex || ''} onChange={(e) => setEditRed({ ...editRed, colorHex: e.target.value })} />
                                             </div>
                                         </div>
+
+                                        <div className="grid gap-2">
+                                            <Label>O subir icono personalizado</Label>
+                                            <Input
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={(e) => {
+                                                    const file = e.target.files?.[0];
+                                                    if (file) {
+                                                        const reader = new FileReader();
+                                                        reader.onload = (event) => {
+                                                            const base64String = (event.target?.result as string).split(',')[1];
+                                                            setEditRed({
+                                                                ...editRed,
+                                                                iconoUrl: file.name, // Placeholder
+                                                                iconoMediaBase64: base64String,
+                                                                iconoMediaContentType: file.type
+                                                            } as any);
+                                                        };
+                                                        reader.readAsDataURL(file);
+                                                    }
+                                                }}
+                                            />
+                                            <p className="text-xs text-muted-foreground">Si subes una imagen, reemplazará al icono automático.</p>
+                                        </div>
+
+                                        {/* Live Preview */}
+                                        {(editRed.iconoUrl || editRed.nombre || (editRed as any).iconoMediaBase64) && (
+                                            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-100 mt-2">
+                                                <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Vista Previa:</span>
+                                                <div className="flex items-center gap-2">
+                                                    <div className="p-2 bg-white rounded-full border shadow-sm flex items-center justify-center">
+                                                        {(() => {
+                                                            const base64 = (editRed as any).iconoMediaBase64;
+                                                            const contentType = (editRed as any).iconoMediaContentType;
+                                                            const url = editRed.iconoUrl;
+
+                                                            if (base64) {
+                                                                return <img src={`data:${contentType};base64,${base64}`} className="w-6 h-6 object-contain" alt="Preview" />;
+                                                            }
+                                                            if (url && (url.includes('/') || url.includes('.'))) {
+                                                                return <img src={getImageUrl(url)} className="w-6 h-6 object-contain" alt="Preview" />;
+                                                            }
+
+                                                            const Icon = IconMap[url || 'default'] || IconMap.default;
+                                                            return <Icon className="w-6 h-6" style={editRed.colorHex ? { color: editRed.colorHex } : undefined} />;
+                                                        })()}
+                                                    </div>
+                                                    <span className="text-sm font-medium" style={{ color: editRed.colorHex || undefined }}>
+                                                        {editRed.nombre || 'Red Social'}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        )}
+
                                         <div className="flex gap-2">
                                             <Button type="submit" disabled={isSaving} className="flex-1">
                                                 {isSaving && <Loader2 className="animate-spin mr-2 w-4 h-4" />}
@@ -545,14 +658,14 @@ export const ContactSection = () => {
                                 </div>
                             </DialogContent>
                         </Dialog>
-                    </div>
+                    </div >
                 )}
 
                 <div className="max-w-4xl mx-auto mb-16">
                     <h2 className="text-4xl md:text-5xl font-serif font-bold mb-6 tracking-tight animate-in fade-in slide-in-from-bottom-4 duration-700">
                         {seccion?.titulo || "Contáctanos"}
                     </h2>
-                    <div className="w-24 h-1 bg-yellow-500 mx-auto mb-8 ring-4 ring-yellow-500/20 rounded-full" />
+                    <div className="w-24 h-1 bg-[#D4AF37] mx-auto mb-8 ring-4 ring-[#D4AF37]/20 rounded-full" />
                     <p className="text-lg md:text-xl text-gray-200 leading-relaxed animate-in fade-in slide-in-from-bottom-6 duration-1000">
                         {seccion?.descripcion || "Estamos aquí para asistirte en todo lo que necesites."}
                     </p>
@@ -562,9 +675,9 @@ export const ContactSection = () => {
                     {/* Phones */}
                     <div className="flex flex-col items-center">
                         <div className="bg-white/10 p-4 rounded-2xl backdrop-blur-md border border-white/20 mb-6 hover:scale-110 transition-transform">
-                            <Phone className="w-8 h-8 text-yellow-400" />
+                            <Phone className="w-8 h-8 text-[#D4AF37]" />
                         </div>
-                        <h3 className="text-xl font-bold mb-3 uppercase tracking-widest text-yellow-400">Teléfonos</h3>
+                        <h3 className="text-xl font-bold mb-3 uppercase tracking-widest text-[#D4AF37]">Teléfonos</h3>
                         <div className="space-y-2">
                             {telefonos.length > 0 ? telefonos.map((tel) => (
                                 <p key={tel.id} className="text-lg text-gray-100 hover:text-white transition-colors cursor-pointer">
@@ -579,12 +692,12 @@ export const ContactSection = () => {
                     {/* Email */}
                     <div className="flex flex-col items-center">
                         <div className="bg-white/10 p-4 rounded-2xl backdrop-blur-md border border-white/20 mb-6 hover:scale-110 transition-transform">
-                            <Mail className="w-8 h-8 text-yellow-500" />
+                            <Mail className="w-8 h-8 text-[#D4AF37]" />
                         </div>
-                        <h3 className="text-xl font-bold mb-3 uppercase tracking-widest text-yellow-500">Email</h3>
+                        <h3 className="text-xl font-bold mb-3 uppercase tracking-widest text-[#D4AF37]">Email</h3>
                         <a
                             href={`mailto:${seccion?.correo || 'contacto@hotel.com'}`}
-                            className="text-lg text-gray-100 hover:text-white transition-colors underline underline-offset-4 decoration-yellow-500/50"
+                            className="text-lg text-gray-100 hover:text-white transition-colors underline underline-offset-4 decoration-[#D4AF37]/50"
                         >
                             {seccion?.correo || 'contacto@hotel.com'}
                         </a>
@@ -593,23 +706,30 @@ export const ContactSection = () => {
                     {/* Social Networks */}
                     <div className="flex flex-col items-center">
                         <div className="bg-white/10 p-4 rounded-2xl backdrop-blur-md border border-white/20 mb-6 hover:scale-110 transition-transform">
-                            <Globe className="w-8 h-8 text-yellow-600" />
+                            <Globe className="w-8 h-8 text-[#D4AF37]" />
                         </div>
-                        <h3 className="text-xl font-bold mb-3 uppercase tracking-widest text-yellow-600">Redes Sociales</h3>
+                        <h3 className="text-xl font-bold mb-3 uppercase tracking-widest text-[#D4AF37]">Redes Sociales</h3>
                         <div className="flex flex-wrap justify-center gap-4">
                             {redes.length > 0 ? redes.map((red) => {
-                                const Icon = getSocialIcon(red.nombre);
+                                const isImage = red.iconoUrl && (red.iconoUrl.includes('/') || red.iconoUrl.includes('.'));
+                                const Icon = !isImage ? (IconMap[red.iconoUrl || 'default'] || IconMap.default) : null;
+                                const style = red.colorHex ? { color: red.colorHex } : undefined;
+
                                 return (
                                     <a
                                         key={red.id}
                                         href={red.urlEnlace}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="p-3 bg-white/10 rounded-full hover:bg-yellow-500 hover:text-black transition-all group relative"
+                                        className="p-3 bg-white/10 rounded-full hover:bg-white/20 transition-all group relative border border-white/10 flex items-center justify-center"
                                         title={red.nombre}
                                     >
-                                        <Icon className="w-6 h-6" />
-                                        <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 text-xs bg-black text-white px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                                        {isImage ? (
+                                            <img src={getImageUrl(red.iconoUrl)} className="w-6 h-6 object-contain" alt={red.nombre} />
+                                        ) : (
+                                            <Icon className="w-6 h-6" style={style} />
+                                        )}
+                                        <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 text-xs bg-black text-white px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
                                             {red.nombre}
                                         </span>
                                     </a>
@@ -626,7 +746,7 @@ export const ContactSection = () => {
                         Experiencia de Lujo & Confort
                     </p>
                 </div>
-            </div>
-        </section>
+            </div >
+        </section >
     );
 };
