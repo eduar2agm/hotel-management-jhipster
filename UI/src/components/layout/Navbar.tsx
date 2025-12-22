@@ -30,7 +30,6 @@ export const Navbar = () => {
         {isAuthenticated && isClient() && (
           <>
             <Link to="/client/" className="hover:text-yellow-400 transition-colors">Home</Link>
-            <Link to="/contacto" className="hover:text-yellow-400 transition-colors">Contacto</Link>
             <Link to="/client/reservas" className="hover:text-yellow-400 transition-colors">Reservas</Link>
             <Link to="/client/perfil" className="hover:text-yellow-400 transition-colors">Mi perfil</Link>
             <div className="relative inline-block">
@@ -39,12 +38,12 @@ export const Navbar = () => {
             </div>
             <Link to="/client/servicios" className="hover:text-yellow-400 transition-colors">Servicios</Link>
             <Link to="/client/mis-servicios" className="hover:text-yellow-400 transition-colors">Mis Servicios</Link>
+            <Link to="/contacto" className="hover:text-yellow-400 transition-colors">Contacto</Link>
           </>
         )}
         {isAuthenticated && isEmployee() && (
           <>
             <Link to="/" className="hover:text-yellow-400 transition-colors">Home</Link>
-            <Link to="/contacto" className="hover:text-yellow-400 transition-colors">Contacto</Link>
             <Link to="/employee/dashboard" className="hover:text-yellow-400 transition-colors">Dashboard</Link>
             <Link to="/employee/clientes" className="hover:text-yellow-400 transition-colors">Clientes</Link>
             <Link to="/employee/checkin" className="hover:text-yellow-400 transition-colors">Check-in</Link>
@@ -54,12 +53,12 @@ export const Navbar = () => {
               <Link to="/employee/soporte" className="hover:text-yellow-400 transition-colors">Soporte</Link>
               <Badge count={unreadCount} />
             </div>
+            <Link to="/contacto" className="hover:text-yellow-400 transition-colors">Contacto</Link>
           </>
         )}
         {isAuthenticated && isAdmin() && (
           <>
             <Link to="/" className="hover:text-yellow-400 transition-colors">Home</Link>
-            <Link to="/contacto" className="hover:text-yellow-400 transition-colors">Contacto</Link>
             <Link to="/admin/dashboard" className="hover:text-yellow-400 transition-colors">Dashboard</Link>
             <Link to="/admin/habitaciones" className="hover:text-yellow-400 transition-colors">Habitaciones</Link>
             <Link to="/admin/clientes" className="hover:text-yellow-400 transition-colors">Clientes</Link>
@@ -72,6 +71,7 @@ export const Navbar = () => {
               <Badge count={unreadCount} />
             </div>
             <Link to="/admin/configuracion" className="hover:text-yellow-400 transition-colors">Config</Link>
+            <Link to="/contacto" className="hover:text-yellow-400 transition-colors">Contacto</Link>
           </>
         )}
       </div>
