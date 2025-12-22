@@ -186,10 +186,13 @@ export const ClientReservas = () => {
         const confirmMsg = "Esta acción podría suponer cargos no deseados, por cancelar una reservación confirmada, será enviada a soporte para realizar su solicitud y esperar que un empleado la contacte";
         if (!window.confirm(confirmMsg)) return;
 
+        const reserva = reservas.find(r => r.id === reservaId);
+
         navigate('/client/soporte', {
             state: {
                 action: 'cancelRequest',
-                reservaId: reservaId
+                reservaId: reservaId,
+                reservaDetails: reserva
             }
         });
     };
@@ -254,7 +257,7 @@ export const ClientReservas = () => {
                                 <div className="space-y-6">
                                     {reservas.map(reserva => {
                                         const details = reservaDetallesMap[reserva.id!] || [];
-                                        
+
                                         // Calculate total dynamically
                                         const computedTotal = calculateTotal(reserva, details);
 

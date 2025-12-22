@@ -7,6 +7,7 @@ import jakarta.validation.constraints.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.ZonedDateTime;
 
 /**
  * A ServicioContratado.
@@ -27,6 +28,15 @@ public class ServicioContratado implements Serializable {
     @NotNull
     @Column(name = "fecha_contratacion", nullable = false)
     private Instant fechaContratacion;
+
+    @NotNull
+    @Column(name = "fecha_servicio", nullable = false)
+    private ZonedDateTime fechaServicio;
+
+    @NotNull
+    @Min(value = 1)
+    @Column(name = "numero_personas", nullable = false)
+    private Integer numeroPersonas;
 
     @NotNull
     @Min(value = 1)
@@ -87,6 +97,32 @@ public class ServicioContratado implements Serializable {
 
     public void setFechaContratacion(Instant fechaContratacion) {
         this.fechaContratacion = fechaContratacion;
+    }
+
+    public ZonedDateTime getFechaServicio() {
+        return this.fechaServicio;
+    }
+
+    public ServicioContratado fechaServicio(ZonedDateTime fechaServicio) {
+        this.setFechaServicio(fechaServicio);
+        return this;
+    }
+
+    public void setFechaServicio(ZonedDateTime fechaServicio) {
+        this.fechaServicio = fechaServicio;
+    }
+
+    public Integer getNumeroPersonas() {
+        return this.numeroPersonas;
+    }
+
+    public ServicioContratado numeroPersonas(Integer numeroPersonas) {
+        this.setNumeroPersonas(numeroPersonas);
+        return this;
+    }
+
+    public void setNumeroPersonas(Integer numeroPersonas) {
+        this.numeroPersonas = numeroPersonas;
     }
 
     public Integer getCantidad() {
@@ -193,7 +229,8 @@ public class ServicioContratado implements Serializable {
         return this;
     }
 
-    // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
+    // jhipster-needle-entity-add-getters-setters - JHipster will add getters and
+    // setters here
 
     @Override
     public boolean equals(Object o) {
@@ -208,7 +245,8 @@ public class ServicioContratado implements Serializable {
 
     @Override
     public int hashCode() {
-        // see https://vladmihalcea.com/how-to-implement-equals-and-hashcode-using-the-jpa-entity-identifier/
+        // see
+        // https://vladmihalcea.com/how-to-implement-equals-and-hashcode-using-the-jpa-entity-identifier/
         return getClass().hashCode();
     }
 
@@ -216,12 +254,14 @@ public class ServicioContratado implements Serializable {
     @Override
     public String toString() {
         return "ServicioContratado{" +
-            "id=" + getId() +
-            ", fechaContratacion='" + getFechaContratacion() + "'" +
-            ", cantidad=" + getCantidad() +
-            ", precioUnitario=" + getPrecioUnitario() +
-            ", estado='" + getEstado() + "'" +
-            ", observaciones='" + getObservaciones() + "'" +
-            "}";
+                "id=" + getId() +
+                ", fechaContratacion='" + getFechaContratacion() + "'" +
+                ", fechaServicio='" + getFechaServicio() + "'" +
+                ", numeroPersonas=" + getNumeroPersonas() +
+                ", cantidad=" + getCantidad() +
+                ", precioUnitario=" + getPrecioUnitario() +
+                ", estado='" + getEstado() + "'" +
+                ", observaciones='" + getObservaciones() + "'" +
+                "}";
     }
 }

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="20241221174000-1" author="jhipster">
+        <createTable tableName="servicio_disponibilidad">
+            <column name="id" type="bigint">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="dia_semana" type="varchar(20)">
+                <constraints nullable="false" />
+            </column>
+            <column name="hora_inicio" type="time">
+                <constraints nullable="false" />
+            </column>
+            <column name="hora_fin" type="time">
+                <constraints nullable="true" />
+            </column>
+            <column name="cupo_maximo" type="integer">
+                <constraints nullable="false" />
+            </column>
+            <column name="hora_fija" type="boolean">
+                <constraints nullable="false" />
+            </column>
+            <column name="activo" type="boolean">
+                <constraints nullable="false" />
+            </column>
+            <column name="servicio_id" type="bigint">
+                <constraints nullable="true" />
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="20241221174000-2" author="jhipster">
+        <addForeignKeyConstraint baseColumnNames="servicio_id"
+                                 baseTableName="servicio_disponibilidad"
+                                 constraintName="fk_servicio_disponibilidad__servicio_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="servicio"/>
+    </changeSet>
+
+    <changeSet id="20241221174000-3" author="jhipster">
+        <addColumn tableName="servicio_contratado">
+            <column name="fecha_servicio" type="timestamp with time zone">
+                <constraints nullable="false" />
+            </column>
+        </addColumn>
+        
+        <addColumn tableName="servicio_contratado">
+            <column name="numero_personas" type="integer">
+                <constraints nullable="false" />
+            </column>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

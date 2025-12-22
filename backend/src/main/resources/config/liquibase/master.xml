@@ -29,6 +29,9 @@
     <include file="config/liquibase/changelog/20251219235557_added_entity_CarouselItem.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20251221224145_added_entity_SeccionHero.xml" relativeToChangelogFile="false"/>
     <include file="/config/liquibase/changelog/20251221224146_added_entity_RedSociallanding.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20251222003707_added_entity_SeccionContacto.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20251222003708_added_entity_RedSocial.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20251222003709_added_entity_Telefono.xml" relativeToChangelogFile="false"/>
     <!-- jhipster-needle-liquibase-add-changelog - JHipster will add liquibase changelogs here -->
     <include file="config/liquibase/changelog/20251211014117_added_entity_constraints_Habitacion.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20251211014119_added_entity_constraints_Reserva.xml" relativeToChangelogFile="false"/>
@@ -42,6 +45,11 @@
     <include file="config/liquibase/changelog/20251219230612_added_entity_constraints_Imagen.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20251219234509_added_entity_constraints_ConfiguracionSistema.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20251219235557_added_entity_constraints_CarouselItem.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20251221153000_increase_mensaje_length.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20251221183907_insert_default_messages.xml" relativeToChangelogFile="false"/>
     <!-- jhipster-needle-liquibase-add-constraints-changelog - JHipster will add liquibase constraints changelogs here -->
+    <include file="config/liquibase/changelog/20241221174000_added_entity_ServicioDisponibilidad.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20241221174100_add_mensajes_servicios.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20251222014000_added_fecha_nacimiento_to_cliente.xml" relativeToChangelogFile="false"/>
     <!-- jhipster-needle-liquibase-add-incremental-changelog - JHipster will add incremental liquibase changelogs here -->
 </databaseChangeLog>

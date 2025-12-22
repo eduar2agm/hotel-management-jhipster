@@ -1,20 +1,23 @@
 import { useEffect, useState } from 'react';
 import { Navbar } from '../../components/layout/Navbar';
 import { Footer } from '../../components/layout/Footer';
-import { Sparkles, Utensils } from 'lucide-react';
+import { Sparkles, Utensils, Info } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ServicioService } from '../../services/servicio.service';
+import { ServicioDisponibilidadService } from '../../services/servicio-disponibilidad.service';
 import { ReservaService } from '../../services/reserva.service';
 import { ServicioContratadoService } from '../../services/servicio-contratado.service';
 import type { ServicioDTO } from '../../types/api/Servicio';
 import { TipoServicio } from '../../types/api/Servicio';
 import type { ReservaDTO } from '../../types/api/Reserva';
+import type { ServicioDisponibilidadDTO } from '../../types/api/ServicioDisponibilidad';
 import { EstadoServicioContratado } from '../../types/api/ServicioContratado';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Dialog,
   DialogContent,
@@ -31,9 +34,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from 'sonner';
-import { format } from 'date-fns';
+import { format, parseISO, startOfDay } from 'date-fns';
 
 import { PageHeader } from '../../components/common/PageHeader';
+import { ServiceAvailabilityInfo } from '../../components/services/ServiceAvailabilityInfo';
+import { ServiceScheduleSelector } from '../../components/services/ServiceScheduleSelector';
 
 export const Servicios = () => {
   const navigate = useNavigate();
@@ -41,14 +46,24 @@ export const Servicios = () => {
   const [reservas, setReservas] = useState<ReservaDTO[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Estado para el modal de información del servicio
+  const [infoService, setInfoService] = useState<ServicioDTO | null>(null);
+  const [serviceDisponibilidades, setServiceDisponibilidades] = useState<ServicioDisponibilidadDTO[]>([]);
+  const [loadingDisponibilidades, setLoadingDisponibilidades] = useState(false);
+
   // Estado para el modal de contratación
   const [contractingService, setContractingService] = useState<ServicioDTO | null>(null);
   const [selectedReservaId, setSelectedReservaId] = useState<string>('');
   const [cantidad, setCantidad] = useState<number>(1);
   const [observaciones, setObservaciones] = useState<string>('');
+  const [fechas, setFechas] = useState<string[]>([]);  // Cambio: ahora es un array
+  const [hora, setHora] = useState<string>('09:00');
   const [submitting, setSubmitting] = useState(false);
+  const [maxCupo, setMaxCupo] = useState<number>(0);
+
 
   useEffect(() => {
+    // ... useEffect content remains same, just ensuring we are inside the component body ...
     const loadDat = async () => {
       try {
         const [serviciosRes, reservasRes] = await Promise.all([
@@ -78,6 +93,21 @@ export const Servicios = () => {
   const gratuitos = servicios.filter(s => s.tipo === TipoServicio.GRATUITO);
   const pagos = servicios.filter(s => s.tipo === TipoServicio.PAGO);
 
+  // Handler para mostrar información del servicio
+  const handleInfoClick = async (servicio: ServicioDTO) => {
+    setInfoService(servicio);
+    setLoadingDisponibilidades(true);
+    try {
+      const response = await ServicioDisponibilidadService.getByServicio(servicio.id);
+      setServiceDisponibilidades(response.data);
+    } catch (error) {
+      console.error('Error loading disponibilidades:', error);
+      toast.error('No se pudo cargar la información de disponibilidad');
+    } finally {
+      setLoadingDisponibilidades(false);
+    }
+  };
+
   const handleContratarClick = (servicio: ServicioDTO) => {
     if (reservas.length === 0) {
       toast.error("Necesitas tener una reserva activa para contratar servicios.");
@@ -86,6 +116,9 @@ export const Servicios = () => {
     setContractingService(servicio);
     setCantidad(1);
     setObservaciones('');
+    setFechas([]);  // Inicializar como array vacío
+    setHora('');
+
     // Pre-seleccionar si solo hay una reserva
     if (reservas.length === 1 && reservas[0].id) {
       setSelectedReservaId(String(reservas[0].id));
@@ -103,21 +136,56 @@ export const Servicios = () => {
     const reserva = reservas.find(r => String(r.id) === selectedReservaId);
     if (!reserva || !contractingService) return;
 
+    if (fechas.length === 0 || !hora) {
+      toast.error("Seleccione al menos un día y hora del servicio.");
+      return;
+    }
+
+    // Validar que todas las fechas estén dentro del rango de la reserva
+    const fechaInicioReserva = startOfDay(parseISO(reserva.fechaInicio!));
+    const fechaFinReserva = startOfDay(parseISO(reserva.fechaFin!));
+
+    for (const fech of fechas) {
+      const fechaServicioDate = startOfDay(parseISO(fech));
+      if (fechaServicioDate < fechaInicioReserva || fechaServicioDate > fechaFinReserva) {
+        toast.error(
+          `La fecha ${format(fechaServicioDate, 'dd/MM/yyyy')} está fuera del rango de la reserva ` +
+          `(${format(fechaInicioReserva, 'dd/MM/yyyy')} - ${format(fechaFinReserva, 'dd/MM/yyyy')}))`
+        );
+        return;
+      }
+    }
+
     setSubmitting(true);
     try {
-      const payload = {
-        fechaContratacion: new Date().toISOString(),
-        cantidad: cantidad,
-        precioUnitario: contractingService.precio,
-        estado: EstadoServicioContratado.PENDIENTE,
-        observaciones: observaciones,
-        servicio: contractingService,
-        reserva: { id: Number(selectedReservaId) },
-        cliente: reserva.cliente // Usar el cliente de la reserva
-      };
+      // Crear un servicio contratado por cada fecha seleccionada
+      const promises = fechas.map(async (fecha) => {
+        const fechaServicio = new Date(`${fecha}T${hora}`).toISOString();
 
-      await ServicioContratadoService.create(payload as any);
-      toast.success("Solicitud enviada exitosamente.");
+        const payload = {
+          fechaContratacion: new Date().toISOString(),
+          fechaServicio: fechaServicio,
+          numeroPersonas: cantidad,
+          cantidad: cantidad,
+          precioUnitario: contractingService.precio,
+          estado: EstadoServicioContratado.PENDIENTE,
+          observaciones: observaciones,
+          servicio: contractingService,
+          reserva: { id: Number(selectedReservaId) },
+          cliente: reserva.cliente
+        };
+
+        return ServicioContratadoService.create(payload as any);
+      });
+
+      // Esperar a que todas las contrataciones se completen
+      await Promise.all(promises);
+
+      toast.success(
+        fechas.length === 1
+          ? "Solicitud enviada exitosamente."
+          : `${fechas.length} solicitudes enviadas exitosamente.`
+      );
       setContractingService(null);
       navigate('/client/mis-servicios');
     } catch (error) {
@@ -188,10 +256,18 @@ export const Servicios = () => {
                     {servicio.descripcion || "Disfruta de este servicio exclusivo diseñado para ti."}
                   </p>
                 </CardContent>
-                <CardFooter>
+                <CardFooter className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => handleInfoClick(servicio)}
+                    className="flex-1 border-gray-300 hover:bg-gray-100 transition-colors"
+                  >
+                    <Info size={16} className="mr-2" />
+                    Info
+                  </Button>
                   <Button
                     onClick={() => handleContratarClick(servicio)}
-                    className="w-full bg-gray-900 hover:bg-yellow-600 text-white transition-colors uppercase tracking-wider font-bold"
+                    className="flex-1 bg-gray-900 hover:bg-yellow-600 text-white transition-colors uppercase tracking-wider font-bold"
                   >
                     Contratar
                   </Button>
@@ -313,24 +389,103 @@ export const Servicios = () => {
 
             <div className="grid gap-2">
               <Label htmlFor="obs">Observaciones (Opcional)</Label>
-              <Input
+              <Textarea
                 id="obs"
                 placeholder="Detalles adicionales..."
                 value={observaciones}
                 onChange={(e) => setObservaciones(e.target.value)}
+                rows={3}
               />
             </div>
 
-            <div className="flex items-center justify-between p-4 bg-yellow-50 rounded-lg">
-              <span className="font-bold text-yellow-800">Total Estimado:</span>
-              <span className="text-2xl font-black text-yellow-700">${totalPrice}</span>
+
+            {/* Selector inteligente de horarios */}
+            {contractingService && selectedReservaId && (
+              <div className="border-t pt-4">
+                <ServiceScheduleSelector
+                  servicioId={contractingService.id!}
+                  reserva={reservas.find(r => String(r.id) === selectedReservaId)}
+                  clienteId={reservas.find(r => String(r.id) === selectedReservaId)?.cliente?.id || null}
+                  onSelect={(newFechas, newHora) => {
+                    setFechas(newFechas);
+                    setHora(newHora);
+                  }}
+                  onQuotaAvailable={(quota) => setMaxCupo(quota)}
+                  selectedFechas={fechas}
+                  selectedHora={hora}
+                />
+              </div>
+            )}
+
+            <div className="flex flex-col gap-2 p-4 bg-yellow-50 rounded-lg">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-yellow-800">Total Estimado:</span>
+                <span className="text-2xl font-black text-yellow-700">${totalPrice}</span>
+              </div>
+              {maxCupo > 0 && fechas.length > 0 && hora && (
+                <div className="text-xs text-yellow-600 font-medium text-right">
+                  Cupo máximo disponible: {maxCupo} personas
+                </div>
+              )}
             </div>
           </div>
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setContractingService(null)}>Cancelar</Button>
-            <Button onClick={confirmContratacion} disabled={submitting || !selectedReservaId} className="bg-yellow-600 hover:bg-yellow-700 text-white">
+            <Button onClick={confirmContratacion} disabled={submitting || !selectedReservaId || (maxCupo > 0 && cantidad > maxCupo)} className="bg-yellow-600 hover:bg-yellow-700 text-white">
               {submitting ? 'Procesando...' : 'Confirmar Solicitud'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Información del Servicio */}
+      <Dialog open={!!infoService} onOpenChange={(open) => !open && setInfoService(null)}>
+        <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{infoService?.nombre}</DialogTitle>
+            <DialogDescription>
+              Información detallada sobre disponibilidad y horarios
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {infoService?.descripcion && (
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-2">Descripción</h4>
+                <p className="text-gray-600">{infoService.descripcion}</p>
+              </div>
+            )}
+
+            <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
+              <span className="font-semibold text-gray-700">Precio:</span>
+              <span className="text-xl font-bold text-yellow-700">
+                ${typeof infoService?.precio === 'number' ? infoService.precio.toFixed(2) : infoService?.precio}
+              </span>
+            </div>
+
+            <div>
+              <h4 className="font-semibold text-gray-900 mb-3">Disponibilidad</h4>
+              {loadingDisponibilidades ? (
+                <div className="flex items-center justify-center py-4">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-600"></div>
+                </div>
+              ) : (
+                <ServiceAvailabilityInfo disponibilidades={serviceDisponibilidades} />
+              )}
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setInfoService(null)}>Cerrar</Button>
+            <Button
+              onClick={() => {
+                setInfoService(null);
+                if (infoService) handleContratarClick(infoService);
+              }}
+              className="bg-yellow-600 hover:bg-yellow-700 text-white"
+            >
+              Contratar Servicio
             </Button>
           </DialogFooter>
         </DialogContent>

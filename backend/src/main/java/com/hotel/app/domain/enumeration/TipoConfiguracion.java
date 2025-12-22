@@ -8,4 +8,5 @@ public enum TipoConfiguracion {
     NUMBER,
     BOOLEAN,
     IMAGE,
+    TEXTO,
 }

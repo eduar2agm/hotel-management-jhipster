@@ -102,4 +102,20 @@ public interface ServicioContratadoService {
      * @param id the id of the entity.
      */
     void cancelar(Long id);
+
+    /**
+     * Get all servicios contratados by cliente and servicio in a date range.
+     * Excludes cancelled services.
+     *
+     * @param clienteId   the id of the cliente.
+     * @param servicioId  the id of the servicio.
+     * @param fechaInicio start date.
+     * @param fechaFin    end date.
+     * @return the list of entities.
+     */
+    java.util.List<ServicioContratadoDTO> findByClienteAndServicioAndFechaRange(
+            Long clienteId,
+            Long servicioId,
+            java.time.ZonedDateTime fechaInicio,
+            java.time.ZonedDateTime fechaFin);
 }

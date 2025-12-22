@@ -40,4 +40,69 @@ public interface ServicioContratadoRepository extends JpaRepository<ServicioCont
     List<ServicioContratado> findByClienteId(Long clienteId);
 
     List<ServicioContratado> findByEstado(com.hotel.app.domain.enumeration.EstadoServicioContratado estado);
+
+    List<ServicioContratado> findByEstadoAndFechaServicioBefore(
+            com.hotel.app.domain.enumeration.EstadoServicioContratado estado,
+            java.time.ZonedDateTime date);
+
+    long countByServicioIdAndFechaServicioAndEstadoIn(
+            Long servicioId,
+            java.time.ZonedDateTime fechaServicio,
+            List<com.hotel.app.domain.enumeration.EstadoServicioContratado> estados);
+
+    @Query("SELECT COALESCE(SUM(sc.cantidad), 0) FROM ServicioContratado sc " +
+            "WHERE sc.servicio.id = :servicioId " +
+            "AND sc.fechaServicio = :fechaServicio " +
+            "AND sc.estado IN :estados")
+    Long sumCantidadByServicioIdAndFechaServicioAndEstadoIn(
+            @Param("servicioId") Long servicioId,
+            @Param("fechaServicio") java.time.ZonedDateTime fechaServicio,
+            @Param("estados") List<com.hotel.app.domain.enumeration.EstadoServicioContratado> estados);
+
+    /**
+     * Cuenta servicios contratados en un rango de fechas para un servicio
+     * específico
+     * Excluye servicios cancelados
+     */
+    @Query("SELECT COUNT(sc) FROM ServicioContratado sc " +
+            "WHERE sc.servicio.id = :servicioId " +
+            "AND sc.fechaServicio BETWEEN :fechaInicio AND :fechaFin " +
+            "AND sc.estado IN :estados")
+    long countByServicioAndFechaRange(
+            @Param("servicioId") Long servicioId,
+            @Param("fechaInicio") java.time.ZonedDateTime fechaInicio,
+            @Param("fechaFin") java.time.ZonedDateTime fechaFin,
+            @Param("estados") List<com.hotel.app.domain.enumeration.EstadoServicioContratado> estados);
+
+    /**
+     * Obtiene todos los servicios contratados para un servicio en un rango de
+     * fechas
+     */
+    @Query("SELECT sc FROM ServicioContratado sc " +
+            "WHERE sc.servicio.id = :servicioId " +
+            "AND sc.fechaServicio BETWEEN :fechaInicio AND :fechaFin " +
+            "AND sc.estado IN :estados " +
+            "ORDER BY sc.fechaServicio ASC")
+    List<ServicioContratado> findByServicioAndFechaRange(
+            @Param("servicioId") Long servicioId,
+            @Param("fechaInicio") java.time.ZonedDateTime fechaInicio,
+            @Param("fechaFin") java.time.ZonedDateTime fechaFin,
+            @Param("estados") List<com.hotel.app.domain.enumeration.EstadoServicioContratado> estados);
+
+    /**
+     * Obtiene todos los servicios contratados por un cliente para un servicio
+     * específico
+     * en un rango de fechas (excluyendo cancelados)
+     */
+    @Query("SELECT sc FROM ServicioContratado sc " +
+            "WHERE sc.cliente.id = :clienteId " +
+            "AND sc.servicio.id = :servicioId " +
+            "AND sc.fechaServicio BETWEEN :fechaInicio AND :fechaFin " +
+            "AND sc.estado <> 'CANCELADO' " +
+            "ORDER BY sc.fechaServicio ASC")
+    List<ServicioContratado> findByClienteAndServicioAndFechaRange(
+            @Param("clienteId") Long clienteId,
+            @Param("servicioId") Long servicioId,
+            @Param("fechaInicio") java.time.ZonedDateTime fechaInicio,
+            @Param("fechaFin") java.time.ZonedDateTime fechaFin);
 }

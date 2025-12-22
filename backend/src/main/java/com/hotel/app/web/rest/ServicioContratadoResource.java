@@ -275,4 +275,34 @@ public class ServicioContratadoResource {
         servicioContratadoService.cancelar(id);
         return ResponseEntity.ok().build();
     }
+
+    /**
+     * {@code GET /servicio-contratados/cliente/:clienteId/servicio/:servicioId/fechas}
+     * :
+     * get servicios contratados by cliente, servicio and date range.
+     *
+     * @param clienteId   the id of the cliente.
+     * @param servicioId  the id of the servicio.
+     * @param fechaInicio start date in ISO format.
+     * @param fechaFin    end date in ISO format.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list
+     *         of servicioContratados in body.
+     */
+    @GetMapping("/cliente/{clienteId}/servicio/{servicioId}/fechas")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_EMPLOYEE', 'ROLE_CLIENT')")
+    public ResponseEntity<List<ServicioContratadoDTO>> getServicioContratadosByClienteServicioAndFechas(
+            @PathVariable("clienteId") Long clienteId,
+            @PathVariable("servicioId") Long servicioId,
+            @RequestParam("fechaInicio") String fechaInicio,
+            @RequestParam("fechaFin") String fechaFin) {
+        LOG.debug("REST request to get ServicioContratados by Cliente {}, Servicio {} and date range {} to {}",
+                clienteId, servicioId, fechaInicio, fechaFin);
+
+        java.time.ZonedDateTime inicio = java.time.ZonedDateTime.parse(fechaInicio);
+        java.time.ZonedDateTime fin = java.time.ZonedDateTime.parse(fechaFin);
+
+        List<ServicioContratadoDTO> list = servicioContratadoService
+                .findByClienteAndServicioAndFechaRange(clienteId, servicioId, inicio, fin);
+        return ResponseEntity.ok().body(list);
+    }
 }

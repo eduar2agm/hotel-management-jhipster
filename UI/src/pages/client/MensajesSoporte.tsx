@@ -1,228 +1,199 @@
-import { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
-import { MensajeSoporteService } from '../../services';
-import type { MensajeSoporteDTO } from '../../types/api';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Plus, Search, MessageSquare } from 'lucide-react';
-import { toast } from 'sonner';
-import { SupportMessageCard } from '../../components/client/support/SupportMessageCard';
-import { useAuth } from '../../hooks/useAuth';
-import { PaginationControl } from '@/components/common/PaginationControl';
-
-// Importamos los componentes de UI del Hotel
-import { Navbar } from '../../components/layout/Navbar';
-import { Footer } from '../../components/layout/Footer';
-
+import { useRef, useEffect, useState } from 'react';
+import { Send, CheckCircle2, MessageCircle } from 'lucide-react';
 import { PageHeader } from '../../components/common/PageHeader';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { useClientChat } from '../../hooks/useClientChat';
+import { Remitente } from '../../types/enums';
+import { useLocation } from 'react-router-dom';
 
 export const ClientMensajesSoporte = () => {
-    // --- LÓGICA ORIGINAL INTACTA ---
-    const { user } = useAuth();
+    const { messages, loading, sendMessage, sending, user } = useClientChat();
+    const [inputText, setInputText] = useState('');
+    const containerRef = useRef<HTMLDivElement>(null);
+    const prevMessagesLen = useRef(0);
     const location = useLocation();
-    const [mensajes, setMensajes] = useState<MensajeSoporteDTO[]>([]);
-    const [loading, setLoading] = useState(false);
-    const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const [searchTerm, setSearchTerm] = useState('');
+    const hasAutoSentRef = useRef(false);
 
-    // Pagination
-    const [currentPage, setCurrentPage] = useState(0);
-    const [totalItems, setTotalItems] = useState(0);
-    const itemsPerPage = 5;
-
-    const [currentItem, setCurrentItem] = useState<Partial<MensajeSoporteDTO>>({});
-
-    // Handle incoming navigation state (e.g. from Cancel Reservation)
+    // Smart auto-scroll: Only scroll if new messages arrived
     useEffect(() => {
-        if (location.state && location.state.action === 'cancelRequest' && location.state.reservaId) {
-             const { reservaId } = location.state;
-             setCurrentItem({
-                fechaMensaje: new Date().toISOString(),
-                remitente: 'CLIENT',
-                leido: false,
-                activo: true,
-                mensaje: `Deseo cancelar mi reservación. Usuario: ${user?.username || user?.email || 'N/A'}, Reserva: ${reservaId}`
-            });
-            setIsDialogOpen(true);
-            // Clear state to prevent reopening on simple refresh
-            window.history.replaceState({}, '');
+        if (containerRef.current) {
+            // Initial load or new message added
+            if (messages.length > prevMessagesLen.current) {
+                containerRef.current.scrollTop = containerRef.current.scrollHeight;
+                prevMessagesLen.current = messages.length;
+            }
         }
-    }, [location, user]);
+    }, [messages, loading]);
 
-    const loadData = async (page: number) => {
-        setLoading(true);
-        try {
-            const msgsRes = await MensajeSoporteService.getMyMensajes({
-                page: page,
-                size: itemsPerPage,
-                sort: 'fechaMensaje,desc'
-            });
-            setMensajes(msgsRes.data);
-            const total = parseInt(msgsRes.headers['x-total-count'] || '0', 10);
-            setTotalItems(total);
-        } catch (error) {
-            toast.error('Error al cargar mensajes');
-            console.error(error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
+    // Handle auto-send message from navigation state (e.g., Cancellation Request)
     useEffect(() => {
-        loadData(currentPage);
-    }, [currentPage]);
+        const handleAutoSend = async () => {
+            if (
+                location.state?.action === 'cancelRequest' &&
+                location.state?.reservaId &&
+                !hasAutoSentRef.current
+            ) {
+                hasAutoSentRef.current = true;
+                const { reservaId, reservaDetails } = location.state;
 
-    const handleCreate = () => {
-        setCurrentItem({
-            fechaMensaje: new Date().toISOString(),
-            remitente: 'CLIENT',
-            leido: false,
-            activo: true
-        });
-        setIsDialogOpen(true);
-    };
+                let detailsPart = '';
+                if (reservaDetails) {
+                    const formatDate = (d: string) => d ? new Date(d).toLocaleDateString() : '?';
+                    detailsPart = `\n📅 Detalles de la Reserva:\nCheck-in: ${formatDate(reservaDetails.fechaInicio)}\nCheck-out: ${formatDate(reservaDetails.fechaFin)}`;
+                }
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        try {
-            const payload = {
-                ...currentItem,
-                userId: user?.id || 'client',
-                userName: user?.username || 'Client',
-                fechaMensaje: new Date().toISOString()
-            };
-            await MensajeSoporteService.createMensaje(payload as any);
-            toast.success('Mensaje enviado al soporte');
-            setIsDialogOpen(false);
-            loadData(0); // Reload first page on new message
-            setCurrentPage(0);
-        } catch (error) {
-            toast.error('Error al enviar mensaje');
+                let msg = `⚠️ SOLICITUD DE CANCELACIÓN\n\nHola, me gustaría solicitar la cancelación de mi reserva con ID: #${reservaId}.${detailsPart}\n\nPor favor, indíquenme los pasos a seguir y si existen cargos aplicables. Quedo a la espera de su confirmación.`;
+
+                try {
+                    // Try to fetch custom message template
+                    const { data: config } = await import('../../services/configuracion-sistema.service')
+                        .then(m => m.ConfiguracionSistemaService.getConfiguracionByClave('MSG_CANCEL_REQUEST'));
+
+                    if (config && config.valor) {
+                        msg = config.valor
+                            .replace('{reservaId}', reservaId.toString())
+                            .replace('{details}', detailsPart);
+                    }
+                } catch (error) {
+                    // Fallback to default if config not found or error
+                    console.log('Using default cancellation message');
+                }
+
+                await sendMessage(msg);
+
+                // Clear state to prevent double sending on refresh
+                window.history.replaceState({}, document.title);
+            }
+        };
+
+        handleAutoSend();
+    }, [location.state, sendMessage]);
+
+    const handleSend = async () => {
+        if (!inputText.trim()) return;
+        const success = await sendMessage(inputText);
+        if (success) {
+            setInputText('');
         }
     };
 
-    const filteredMensajes = mensajes.filter(m =>
-        m.mensaje?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
-    // --- RENDERIZADO UI (REFACTORIZADO) ---
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            handleSend();
+        }
+    };
 
     return (
-        <div className="font-sans text-gray-900 bg-gray-50 min-h-screen flex flex-col">
-            <Navbar />
+        <div className="flex flex-col h-full"> {/* h-full adapts to the outlet container */}
 
             {/* --- HERO SECTION --- */}
             <PageHeader
-                title="Asistencia al Huésped"
-                subtitle="Estamos aquí para resolver sus dudas y peticiones especiales. Su satisfacción es nuestra prioridad."
+                title="Chat de Soporte"
+                subtitle="Comuníquese directamente con nuestro personal para cualquier consulta o asistencia."
                 category="Concierge Digital"
                 className="bg-[#0F172A]"
+                icon={MessageCircle}
             />
 
-            <main className="flex-grow py-12 px-4 md:px-8 lg:px-20 relative z-10">
-                <div className="max-w-5xl mx-auto -mt-8">
+            <main className="flex-grow py-8 px-4 md:px-8 lg:px-20 relative z-10 -mt-10">
+                <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-xl overflow-hidden border border-gray-100 flex flex-col h-[70vh] min-h-[500px]">
 
-
-                    {/* Barra de Herramientas */}
-                    <div className="flex flex-col md:flex-row gap-4 justify-between items-center mb-8">
-                        <div className="relative w-full md:w-96">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                            <Input
-                                placeholder="Buscar en mis consultas..."
-                                className="pl-10 border-gray-200 bg-white h-11 focus:border-yellow-600 focus:ring-yellow-600/20 rounded-sm"
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                            />
+                    {/* Header del Chat */}
+                    <div className="p-4 bg-white border-b border-gray-100 flex items-center justify-between sticky top-0 z-20 shadow-sm">
+                        <div className="flex items-center gap-3">
+                            <div className="bg-yellow-100 p-2 rounded-full text-yellow-700">
+                                <MessageCircle className="h-5 w-5" />
+                            </div>
+                            <div>
+                                <h3 className="font-bold text-slate-800">Servicio al Huésped</h3>
+                                <p className="text-xs text-slate-500">Normalmente respondemos en unos minutos</p>
+                            </div>
                         </div>
-
-                        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                            <DialogTrigger asChild>
-                                <Button
-                                    onClick={handleCreate}
-                                    className="w-full md:w-auto bg-gray-900 hover:bg-gray-800 text-white rounded-none px-6 h-11 shadow-lg transition-all"
-                                >
-                                    <Plus className="mr-2 h-4 w-4 text-yellow-500" /> Nueva Solicitud
-                                </Button>
-                            </DialogTrigger>
-                            <DialogContent className="sm:max-w-[500px] border-t-4 border-t-yellow-600 rounded-sm">
-                                <DialogHeader>
-                                    <DialogTitle className="text-xl font-bold text-gray-900 uppercase tracking-wide">
-                                        Contactar a Recepción
-                                    </DialogTitle>
-                                </DialogHeader>
-                                <form onSubmit={handleSubmit} className="grid gap-6 py-4">
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="mensaje" className="text-xs font-bold text-gray-500 uppercase tracking-widest">
-                                            ¿En qué podemos servirle?
-                                        </Label>
-                                        <Textarea
-                                            id="mensaje"
-                                            rows={5}
-                                            className="border-gray-200 focus:border-yellow-600 bg-gray-50/50 resize-none"
-                                            placeholder="Describa su solicitud, duda o requerimiento..."
-                                            value={currentItem.mensaje || ''}
-                                            onChange={e => setCurrentItem({ ...currentItem, mensaje: e.target.value })}
-                                            required
-                                        />
-                                    </div>
-                                    <DialogFooter>
-                                        <Button type="submit" className="bg-yellow-600 hover:bg-yellow-700 text-white w-full rounded-sm">
-                                            Enviar Mensaje
-                                        </Button>
-                                    </DialogFooter>
-                                </form>
-                            </DialogContent>
-                        </Dialog>
                     </div>
 
-                    {/* Lista de Mensajes (Reemplazo de Tabla) */}
-                    <div className="space-y-4">
-                        {loading ? (
-                            <div className="text-center py-20">
-                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-600 mx-auto"></div>
-                                <p className="mt-4 text-gray-400 text-sm tracking-widest uppercase">Consultando historial...</p>
+                    {/* Área de Mensajes */}
+                    <div
+                        ref={containerRef}
+                        className="flex-1 overflow-y-auto p-6 bg-slate-50 space-y-4 scroll-smooth"
+                    >
+                        {loading && messages.length === 0 ? (
+                            <div className="flex justify-center items-center h-full text-gray-400">
+                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-600 mr-2"></div>
+                                Cargando conversación...
                             </div>
-                        ) : filteredMensajes.length === 0 ? (
-                            <div className="bg-white p-12 text-center rounded-sm border border-dashed border-gray-300">
-                                <MessageSquare className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                                <h3 className="text-lg font-medium text-gray-900">Sin mensajes recientes</h3>
-                                <p className="text-gray-500 mt-1 text-sm">No ha enviado ninguna solicitud de soporte todavía.</p>
+                        ) : messages.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center h-full text-gray-400 opacity-70">
+                                <MessageCircle className="h-16 w-16 mb-4 text-gray-200" />
+                                <p className="text-center">No hay mensajes aún.<br />Escriba su primera consulta.</p>
                             </div>
                         ) : (
-                            <div className="grid gap-4">
-                                {filteredMensajes.map((msg) => {
-                                    const isSentByUser = msg.userId === user?.id;
+                            messages.map((msg, idx) => {
+                                // Check for exact enum match, legacy "CLIENT" string, or matching User ID
+                                const isMe = msg.remitente === Remitente.CLIENTE || msg.remitente === 'CLIENT' || msg.userId === user?.id;
 
-                                    return (
-                                        <SupportMessageCard
-                                            key={msg.id}
-                                            message={msg}
-                                            isSentByUser={!!isSentByUser}
-                                        />
-                                    );
-                                })}
-                            </div>
+                                return (
+                                    <div
+                                        key={msg.id || idx}
+                                        className={`flex ${isMe ? 'justify-end' : 'justify-start'} animate-in slide-in-from-bottom-2`}
+                                    >
+                                        <div className={`max-w-[85%] md:max-w-[70%] rounded-2xl p-3 px-4 text-sm shadow-sm relative group
+                                            ${isMe
+                                                ? 'bg-blue-600 text-white rounded-tr-none'
+                                                : 'bg-white text-slate-800 border border-gray-200 rounded-tl-none'
+                                            }
+                                        `}>
+                                            <p className="whitespace-pre-wrap leading-relaxed">{msg.mensaje}</p>
+                                            <div className={`flex items-center gap-1 mt-1 text-[10px] 
+                                                ${isMe ? 'text-blue-100 justify-end' : 'text-gray-400 justify-start'}
+                                            `}>
+                                                <span>
+                                                    {new Date(msg.fechaMensaje!).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                </span>
+                                                {isMe && (
+                                                    <span title={msg.leido ? 'Leído por soporte' : 'Enviado'}>
+                                                        {msg.leido ? <CheckCircle2 className="h-3 w-3" /> : <CheckCircle2 className="h-3 w-3 opacity-50" />}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })
                         )}
                     </div>
 
-                    {/* Pagination Footer */}
-                    {filteredMensajes.length > 0 && (
-                        <div className="mt-8">
-                            <PaginationControl
-                                currentPage={currentPage}
-                                totalItems={totalItems}
-                                itemsPerPage={itemsPerPage}
-                                onPageChange={setCurrentPage}
-                                isLoading={loading}
+                    {/* Input Area */}
+                    <div className="p-4 bg-white border-t border-gray-100">
+                        <div className="flex gap-2 items-end">
+                            <Textarea
+                                value={inputText}
+                                onChange={(e) => setInputText(e.target.value)}
+                                onKeyDown={handleKeyDown}
+                                placeholder="Escriba su mensaje aquí..."
+                                className="min-h-[50px] max-h-[120px] bg-gray-50 border-gray-200 resize-none focus:bg-white focus:ring-yellow-500/20 focus:border-yellow-500 transition-all"
+                                disabled={sending}
                             />
+                            <Button
+                                onClick={handleSend}
+                                disabled={!inputText.trim() || sending}
+                                className="h-12 w-12 rounded-lg bg-slate-900 hover:bg-slate-800 text-white flex-shrink-0"
+                            >
+                                {sending ? (
+                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                ) : (
+                                    <Send className="h-5 w-5" />
+                                )}
+                            </Button>
                         </div>
-                    )}
+                        <p className="text-[10px] text-gray-400 mt-2 text-center">
+                            Presiona Enter para enviar
+                        </p>
+                    </div>
+
                 </div>
             </main>
-            <Footer />
         </div>
     );
 };

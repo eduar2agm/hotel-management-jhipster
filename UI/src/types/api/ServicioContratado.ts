@@ -13,6 +13,8 @@ export enum EstadoServicioContratado {
 export interface ServicioContratadoDTO {
     id: number;
     fechaContratacion: string;
+    fechaServicio: string;
+    numeroPersonas: number;
     cantidad: number;
     precioUnitario: string | number;
     estado: EstadoServicioContratado;

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="20241221174100-1" author="jhipster">
+        <comment>Agregar mensajes predefinidos para servicios</comment>
+        
+        <insert tableName="configuracion_sistema">
+            <column name="id" valueComputed="nextval('sequence_generator')"/>
+            <column name="clave" value="MSG_SERVICE_CONFIRMADO"/>
+            <column name="valor" value="✅ Su servicio &quot;{servicioNombre}&quot; ha sido confirmado para el {fechaServicio}. Total: ${total}"/>
+            <column name="tipo" value="TEXT"/>
+            <column name="categoria" value="MENSAJES"/>
+            <column name="descripcion" value="Confirmación de servicio tras pago"/>
+            <column name="activo" valueBoolean="true"/>
+        </insert>
+
+        <insert tableName="configuracion_sistema">
+            <column name="id" valueComputed="nextval('sequence_generator')"/>
+            <column name="clave" value="MSG_SERVICE_PAGO_EXITOSO"/>
+            <column name="valor" value="💳 Pago procesado correctamente para &quot;{servicioNombre}&quot;. Gracias por su preferencia."/>
+            <column name="tipo" value="TEXT"/>
+            <column name="categoria" value="MENSAJES"/>
+            <column name="descripcion" value="Confirmación de pago de servicio"/>
+            <column name="activo" valueBoolean="true"/>
+        </insert>
+
+        <insert tableName="configuracion_sistema">
+            <column name="id" valueComputed="nextval('sequence_generator')"/>
+            <column name="clave" value="MSG_SERVICE_COMPLETADO"/>
+            <column name="valor" value="✔️ El servicio &quot;{servicioNombre}&quot; ha sido marcado como completado. ¡Esperamos que haya disfrutado!"/>
+            <column name="tipo" value="TEXT"/>
+            <column name="categoria" value="MENSAJES"/>
+            <column name="descripcion" value="Servicio completado"/>
+            <column name="activo" valueBoolean="true"/>
+        </insert>
+
+        <insert tableName="configuracion_sistema">
+            <column name="id" valueComputed="nextval('sequence_generator')"/>
+            <column name="clave" value="MSG_SERVICE_CANCELADO"/>
+            <column name="valor" value="❌ El servicio &quot;{servicioNombre}&quot; del {fechaServicio} ha sido cancelado."/>
+            <column name="tipo" value="TEXT"/>
+            <column name="categoria" value="MENSAJES"/>
+            <column name="descripcion" value="Cancelación de servicio"/>
+            <column name="activo" valueBoolean="true"/>
+        </insert>
+
+        <insert tableName="configuracion_sistema">
+            <column name="id" valueComputed="nextval('sequence_generator')"/>
+            <column name="clave" value="MSG_SERVICE_SOLICITUD_CANCELACION"/>
+            <column name="valor" value="⚠️ Se ha registrado su solicitud de cancelación para &quot;{servicioNombre}&quot;. Un administrador la revisará pronto."/>
+            <column name="tipo" value="TEXT"/>
+            <column name="categoria" value="MENSAJES"/>
+            <column name="descripcion" value="Solicitud de cancelación"/>
+            <column name="activo" valueBoolean="true"/>
+        </insert>
+
+        <insert tableName="configuracion_sistema">
+            <column name="id" valueComputed="nextval('sequence_generator')"/>
+            <column name="clave" value="MSG_SERVICE_AUTO_CANCEL_RESERVA"/>
+            <column name="valor" value="🔔 Los servicios asociados a su reserva #{reservaId} han sido cancelados debido a la cancelación de la reserva."/>
+            <column name="tipo" value="TEXT"/>
+            <column name="categoria" value="MENSAJES"/>
+            <column name="descripcion" value="Cancelación automática por reserva"/>
+            <column name="activo" valueBoolean="true"/>
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>

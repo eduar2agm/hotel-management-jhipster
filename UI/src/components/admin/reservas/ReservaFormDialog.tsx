@@ -38,12 +38,16 @@ import {
 import { ReservaService } from '../../../services/reserva.service';
 import { HabitacionService } from '../../../services/habitacion.service';
 import { ReservaDetalleService } from '../../../services/reserva-detalle.service';
+import { MensajeSoporteService } from '../../../services/mensaje-soporte.service';
+import { ConfiguracionSistemaService } from '../../../services/configuracion-sistema.service';
+import { Remitente } from '../../../types/enums';
 import type { ReservaDTO } from '../../../types/api/Reserva';
 import type { ClienteDTO } from '../../../types/api/Cliente';
 import type { HabitacionDTO } from '../../../types/api/Habitacion';
 import { toast } from 'sonner';
-import { Pencil, Plus, User, Calendar, Check, ChevronsUpDown } from 'lucide-react';
+import { Pencil, Plus, User, Calendar, Check, ChevronsUpDown, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { PriceRangeFilter } from '@/components/common/PriceRangeFilter';
 
 const reservaSchema = z.object({
     id: z.number().optional(),
@@ -76,8 +80,13 @@ export const ReservaFormDialog = ({
     onSuccess
 }: ReservaFormDialogProps) => {
     const isEditing = !!reserva;
+    const isReadOnly = reserva?.estado === 'CANCELADA' || reserva?.estado === 'FINALIZADA';
     const [habitaciones, setHabitaciones] = useState<HabitacionDTO[]>([]);
     const [openClientCombo, setOpenClientCombo] = useState(false);
+    const [minPrecio, setMinPrecio] = useState('');
+    const [maxPrecio, setMaxPrecio] = useState('');
+    const [appliedMin, setAppliedMin] = useState('');
+    const [appliedMax, setAppliedMax] = useState('');
 
     const form = useForm<ReservaFormValues>({
         resolver: zodResolver(reservaSchema) as any,
@@ -136,8 +145,8 @@ export const ReservaFormDialog = ({
             if (!watchedFechaInicio || !watchedFechaFin) {
                 // If invalid dates, show all (fallback)
                 if (open && !isEditing) {
-                   // If creating, maybe reset to empty or all? Defaulting to all for now so they see options
-                   // But arguably we should clear availability if no date selected.
+                    // If creating, maybe reset to empty or all? Defaulting to all for now so they see options
+                    // But arguably we should clear availability if no date selected.
                 }
                 return;
             }
@@ -145,7 +154,7 @@ export const ReservaFormDialog = ({
             const start = new Date(watchedFechaInicio);
             const end = new Date(watchedFechaFin);
 
-            if (start >= end) return; 
+            if (start >= end) return;
 
             try {
                 const startStr = `${watchedFechaInicio}T00:00:00Z`;
@@ -160,7 +169,7 @@ export const ReservaFormDialog = ({
                 // Current backend probably doesn't support "exclude reservationId".
                 // So for Edit, we might just show ALL rooms and let backend validation fail if double booked?
                 // Or: merge available + currently selected.
-                
+
                 if (isEditing) {
                     const allRes = await HabitacionService.getHabitacions({ size: 100 });
                     setHabitaciones(allRes.data);
@@ -182,11 +191,13 @@ export const ReservaFormDialog = ({
     }, [watchedFechaInicio, watchedFechaFin, open, isEditing]);
 
     const onSubmit = async (data: ReservaFormValues) => {
+        if (isReadOnly) return;
         try {
             const [yearInicio, monthInicio, dayInicio] = data.fechaInicio.split('-').map(Number);
             const [yearFin, monthFin, dayFin] = data.fechaFin.split('-').map(Number);
-            const fechaInicio = new Date(yearInicio, monthInicio - 1, dayInicio, 0, 0, 0);
-            const fechaFin = new Date(yearFin, monthFin - 1, dayFin, 23, 59, 59);
+            // FIX: Using 15:00 (Check-in) and 11:00 (Check-out) to avoid UTC date shift (23:59:59 -> next day)
+            const fechaInicio = new Date(yearInicio, monthInicio - 1, dayInicio, 15, 0, 0);
+            const fechaFin = new Date(yearFin, monthFin - 1, dayFin, 11, 0, 0);
 
             const reservaToSave = {
                 id: data.id,
@@ -225,8 +236,46 @@ export const ReservaFormDialog = ({
                 for (const det of toRemove) {
                     if (det.id) await ReservaDetalleService.deleteReservaDetalle(det.id);
                 }
+
+                // Check for Cancellation notification
+                if (data.estado === 'CANCELADA' && reserva?.estado !== 'CANCELADA') {
+                    const client = clientes.find(c => c.id === data.clienteId);
+                    if (client && client.keycloakId) {
+                        try {
+                            // Try to fetch custom message template
+                            let msgText = `Estimado(a) ${client.nombre || 'Cliente'},\n\nLe informamos que su reserva #${savedReserva.id} ha sido CANCELADA por la administración.\nSi tiene dudas, por favor contáctenos.\n\nAtentamente,\nAdministración del Hotel.`;
+
+                            try {
+                                const configRes = await ConfiguracionSistemaService.getConfiguracionByClave('MSG_ADMIN_CANCEL');
+                                if (configRes.data && configRes.data.valor) {
+                                    msgText = configRes.data.valor
+                                        .replace('{clienteNombre}', client.nombre || 'Cliente')
+                                        .replace('{reservaId}', savedReserva.id?.toString() || '')
+                                        .replace('{fechaInicio}', new Date(savedReserva.fechaInicio!).toLocaleDateString())
+                                        .replace('{fechaFin}', new Date(savedReserva.fechaFin!).toLocaleDateString());
+                                }
+                            } catch (configError) {
+                                // Use default message if config not found
+                                console.log('Using default cancellation message');
+                            }
+
+                            await MensajeSoporteService.createMensaje({
+                                userId: client.keycloakId,
+                                mensaje: msgText,
+                                remitente: Remitente.ADMINISTRATIVO,
+                                leido: false,
+                                activo: true,
+                                fechaMensaje: new Date().toISOString()
+                            } as any);
+                            toast.info("Notificación de cancelación enviada al cliente.");
+                        } catch (e) {
+                            console.error("Error sending cancellation message", e);
+                        }
+                    }
+                }
+
                 toast.success('Reserva Actualizada');
-                onSuccess(undefined); 
+                onSuccess(undefined);
             } else {
                 // CREATE
                 const res = await ReservaService.createReserva(reservaToSave as any);
@@ -239,8 +288,8 @@ export const ReservaFormDialog = ({
                     // Fallback fetch if not in list? Unlikely if UI worked.
                     let roomEntity = roomFn;
                     if (!roomEntity) {
-                         const r = await HabitacionService.getHabitacion(roomId);
-                         roomEntity = r.data;
+                        const r = await HabitacionService.getHabitacion(roomId);
+                        roomEntity = r.data;
                     }
 
                     await ReservaDetalleService.createReservaDetalle({
@@ -269,6 +318,7 @@ export const ReservaFormDialog = ({
                     <DialogTitle className="text-2xl font-bold flex items-center gap-2">
                         {isEditing ? <Pencil className="h-5 w-5 text-green-600" /> : <Plus className="h-5 w-5 text-green-600" />}
                         {isEditing ? 'Editar Reserva' : 'Nueva Reserva'}
+                        {isReadOnly && <span className="text-sm font-normal text-red-500 bg-red-50 border border-red-200 px-2 py-0.5 rounded ml-auto flex items-center"><AlertTriangle className="w-3 h-3 mr-1" /> Solo Lectura (Finalizada/Cancelada)</span>}
                     </DialogTitle>
                 </DialogHeader>
 
@@ -296,6 +346,7 @@ export const ReservaFormDialog = ({
                                                             "w-full justify-between h-11 bg-white border-gray-300",
                                                             !field.value && "text-muted-foreground"
                                                         )}
+                                                        disabled={isReadOnly}
                                                     >
                                                         {field.value
                                                             ? (() => {
@@ -356,7 +407,7 @@ export const ReservaFormDialog = ({
                                             <FormItem>
                                                 <FormLabel className="text-xs font-semibold text-gray-600 uppercase">Fecha Entrada</FormLabel>
                                                 <FormControl>
-                                                    <Input type="date" className="h-11" {...field} />
+                                                    <Input type="date" className="h-11" {...field} disabled={isReadOnly} />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -369,7 +420,7 @@ export const ReservaFormDialog = ({
                                             <FormItem>
                                                 <FormLabel className="text-xs font-semibold text-gray-600 uppercase">Fecha Salida</FormLabel>
                                                 <FormControl>
-                                                    <Input type="date" className="h-11" {...field} />
+                                                    <Input type="date" className="h-11" {...field} disabled={isReadOnly} />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -393,56 +444,84 @@ export const ReservaFormDialog = ({
                                                 Seleccione una o más habitaciones para esta reserva.
                                             </FormDescription>
                                         </div>
+
+                                        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6">
+                                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest text-center block mb-4">Rango de Precio</label>
+                                            <PriceRangeFilter
+                                                minPrice={minPrecio}
+                                                maxPrice={maxPrecio}
+                                                onMinChange={setMinPrecio}
+                                                onMaxChange={setMaxPrecio}
+                                                variant="horizontal"
+                                                onSearch={() => {
+                                                    setAppliedMin(minPrecio);
+                                                    setAppliedMax(maxPrecio);
+                                                }}
+                                                className="!p-0 shadow-none border-0 bg-transparent"
+                                            />
+                                        </div>
+
                                         <div className="border rounded-lg p-4 max-h-64 overflow-y-auto bg-gray-50">
                                             <div className="grid grid-cols-2 gap-3">
-                                                {habitaciones.map((hab) => (
-                                                    <FormField
-                                                        key={hab.id}
-                                                        control={form.control}
-                                                        name="roomIds"
-                                                        render={({ field }) => {
-                                                            const isChecked = field.value?.includes(hab.id!);
-                                                            return (
-                                                                <FormItem
-                                                                    key={hab.id}
-                                                                    className={cn(
-                                                                        "flex flex-row items-start space-x-3 space-y-0 p-3 rounded-md border-2 transition-all cursor-pointer",
-                                                                        isChecked
-                                                                            ? "bg-white border-green-500 shadow-sm"
-                                                                            : "bg-white border-gray-200 hover:border-gray-300"
-                                                                    )}
-                                                                >
-                                                                    <FormControl>
-                                                                        <Checkbox
-                                                                            checked={isChecked}
-                                                                            onCheckedChange={(checked) => {
-                                                                                return checked
-                                                                                    ? field.onChange([...field.value, hab.id])
-                                                                                    : field.onChange(
-                                                                                        field.value?.filter(
-                                                                                            (value: number) => value !== hab.id
+                                                {/* ... existing code ... */}
+                                                {habitaciones
+                                                    .filter(hab => {
+                                                        const price = hab.categoriaHabitacion?.precioBase || 0;
+                                                        const matchesMin = !appliedMin || price >= Number(appliedMin);
+                                                        const matchesMax = !appliedMax || price <= Number(appliedMax);
+                                                        return matchesMin && matchesMax;
+                                                    })
+                                                    .map((hab) => (
+                                                        <FormField
+                                                            key={hab.id}
+                                                            control={form.control}
+                                                            name="roomIds"
+                                                            render={({ field }) => {
+                                                                const isChecked = field.value?.includes(hab.id!);
+                                                                return (
+                                                                    <FormItem
+                                                                        key={hab.id}
+                                                                        className={cn(
+                                                                            "flex flex-row items-start space-x-3 space-y-0 p-3 rounded-md border-2 transition-all cursor-pointer",
+                                                                            isChecked
+                                                                                ? "bg-white border-green-500 shadow-sm"
+                                                                                : "bg-white border-gray-200 hover:border-gray-300",
+                                                                            isReadOnly && "opacity-60 cursor-not-allowed"
+                                                                        )}
+                                                                    >
+                                                                        <FormControl>
+                                                                            <Checkbox
+                                                                                checked={isChecked}
+                                                                                onCheckedChange={(checked) => {
+                                                                                    return checked
+                                                                                        ? field.onChange([...field.value, hab.id])
+                                                                                        : field.onChange(
+                                                                                            field.value?.filter(
+                                                                                                (value: number) => value !== hab.id
+                                                                                            )
                                                                                         )
-                                                                                    )
-                                                                            }}
-                                                                            className="mt-0.5"
-                                                                        />
-                                                                    </FormControl>
-                                                                    <div className="flex-1 space-y-1">
-                                                                        <FormLabel className="font-semibold text-sm cursor-pointer text-gray-900">
-                                                                            Habitación {hab.numero}
-                                                                        </FormLabel>
-                                                                        <div className="text-xs text-gray-600 space-y-0.5">
-                                                                            <div>{hab.categoriaHabitacion?.nombre || 'Sin categoría'}</div>
-                                                                            <div className="font-medium text-gray-900">
-                                                                                ${hab.categoriaHabitacion?.precioBase || '0'}
+                                                                                }}
+                                                                                className="mt-0.5"
+                                                                                disabled={isReadOnly}
+                                                                            />
+                                                                        </FormControl>
+                                                                        <div className="flex-1 space-y-1">
+                                                                            <FormLabel className="font-semibold text-sm cursor-pointer text-gray-900">
+                                                                                Habitación {hab.numero}
+                                                                            </FormLabel>
+                                                                            <div className="text-xs text-gray-600 space-y-0.5">
+                                                                                <div>{hab.categoriaHabitacion?.nombre || 'Sin categoría'}</div>
+                                                                                <div className="font-medium text-gray-900">
+                                                                                    ${hab.categoriaHabitacion?.precioBase || '0'}
+                                                                                </div>
                                                                             </div>
                                                                         </div>
-                                                                    </div>
-                                                                </FormItem>
-                                                            )
-                                                        }}
-                                                    />
-                                                ))}
+                                                                    </FormItem>
+                                                                )
+                                                            }}
+                                                        />
+                                                    ))
+                                                }
                                             </div>
                                         </div>
                                         <FormMessage />
@@ -457,7 +536,12 @@ export const ReservaFormDialog = ({
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel className="text-sm font-semibold text-gray-700">Estado de Reserva</FormLabel>
-                                        <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
+                                        <Select
+                                            onValueChange={field.onChange}
+                                            defaultValue={field.value}
+                                            value={field.value}
+                                            disabled={isReadOnly}
+                                        >
                                             <FormControl>
                                                 <SelectTrigger className="h-11">
                                                     <SelectValue placeholder="Seleccione estado" />
@@ -483,14 +567,16 @@ export const ReservaFormDialog = ({
                                     onClick={() => onOpenChange(false)}
                                     className="h-11 px-6"
                                 >
-                                    Cancelar
+                                    {isReadOnly ? 'Cerrar' : 'Cancelar'}
                                 </Button>
-                                <Button
-                                    type="submit"
-                                    className="bg-slate-900 hover:bg-slate-800 text-white h-11 px-8"
-                                >
-                                    {isEditing ? 'Guardar' : 'Crear y Pagar'}
-                                </Button>
+                                {!isReadOnly && (
+                                    <Button
+                                        type="submit"
+                                        className="bg-slate-900 hover:bg-slate-800 text-white h-11 px-8"
+                                    >
+                                        {isEditing ? 'Guardar' : 'Crear y Pagar'}
+                                    </Button>
+                                )}
                             </div>
                         </form>
                     </Form>

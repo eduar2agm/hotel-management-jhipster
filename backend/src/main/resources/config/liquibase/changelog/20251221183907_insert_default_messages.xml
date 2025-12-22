@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="20251221183907-1" author="system">
+        <comment>Insert default message templates for the system</comment>
+        
+        <!-- MSG_CANCEL_REQUEST: Client's cancellation request message -->
+        <sql>
+            INSERT INTO configuracion_sistema (id, clave, tipo, valor, activo) 
+            VALUES (
+                nextval('sequence_generator'),
+                'MSG_CANCEL_REQUEST',
+                'TEXT',
+                '⚠️ SOLICITUD DE CANCELACIÓN
+
+Hola, me gustaría solicitar la cancelación de mi reserva con ID: #{reservaId}.{details}
+
+Por favor, indíquenme los pasos a seguir y si existen cargos aplicables. Quedo a la espera de su confirmación.',
+                true
+            )
+            ON CONFLICT (clave) DO NOTHING;
+        </sql>
+
+        <!-- MSG_ADMIN_CANCEL: Admin's cancellation notification to client -->
+        <sql>
+            INSERT INTO configuracion_sistema (id, clave, tipo, valor, activo) 
+            VALUES (
+                nextval('sequence_generator'),
+                'MSG_ADMIN_CANCEL',
+                'TEXT',
+                'Estimado(a) {clienteNombre},
+
+Le informamos que su reserva #{reservaId} ha sido CANCELADA por la administración.
+
+📅 Fechas: {fechaInicio} al {fechaFin}
+
+Si tiene dudas o consultas, por favor contáctenos. Lamentamos los inconvenientes que esto pueda ocasionar.
+
+Atentamente,
+Administración del Hotel',
+                true
+            )
+            ON CONFLICT (clave) DO NOTHING;
+        </sql>
+
+        <!-- MSG_ADMIN_FINALIZE: Admin's finalization notification to client -->
+        <sql>
+            INSERT INTO configuracion_sistema (id, clave, tipo, valor, activo) 
+            VALUES (
+                nextval('sequence_generator'),
+                'MSG_ADMIN_FINALIZE',
+                'TEXT',
+                'Estimado(a) {clienteNombre},
+
+Su reserva #{reservaId} ha sido FINALIZADA exitosamente.
+
+📅 Estancia: {fechaInicio} al {fechaFin}
+
+Esperamos que haya disfrutado su estadía con nosotros. Sería un placer recibirle nuevamente en el futuro.
+
+¡Gracias por elegirnos!
+
+Atentamente,
+Equipo del Hotel',
+                true
+            )
+            ON CONFLICT (clave) DO NOTHING;
+        </sql>
+
+        <!-- MSG_WELCOME_CHAT: Welcome message when opening chat -->
+        <sql>
+            INSERT INTO configuracion_sistema (id, clave, tipo, valor, activo) 
+            VALUES (
+                nextval('sequence_generator'),
+                'MSG_WELCOME_CHAT',
+                'TEXT',
+                '👋 ¡Bienvenido a nuestro servicio de soporte!
+
+Estamos aquí para ayudarle con cualquier consulta o necesidad durante su estancia.
+
+Normalmente respondemos en pocos minutos.',
+                true
+            )
+            ON CONFLICT (clave) DO NOTHING;
+        </sql>
+
+    </changeSet>
+
+</databaseChangeLog>
+

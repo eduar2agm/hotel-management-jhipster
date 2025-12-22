@@ -12,4 +12,7 @@ export { ServicioContratadoService } from './servicio-contratado.service';
 export { ImagenService } from './imagen.service';
 export { CarouselItemService } from './carousel-item.service';
 export { ConfiguracionSistemaService } from './configuracion-sistema.service';
+export { SeccionContactoService } from './seccion-contacto.service';
+export { RedSocialService } from './red-social.service';
+export { TelefonoService } from './telefono.service';
 

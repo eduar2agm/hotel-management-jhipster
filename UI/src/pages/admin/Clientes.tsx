@@ -102,7 +102,8 @@ export const AdminClientes = () => {
             telefono: '',
             tipoIdentificacion: 'CEDULA',
             activo: true,
-            keycloakId: 'not-linked'
+            keycloakId: 'not-linked',
+            fechaNacimiento: ''
         });
         setIdError(null);
         setIsEditing(false);
@@ -159,6 +160,36 @@ export const AdminClientes = () => {
                 setIdError(error);
                 toast.error(`Error en Identificación: ${error}`);
                 return;
+            }
+        }
+
+        // Validate Age and Cedula consistency
+        if (!currentCliente.fechaNacimiento) {
+            toast.error('Fecha de nacimiento requerida');
+            return;
+        }
+        const dob = new Date(currentCliente.fechaNacimiento);
+        const today = new Date();
+        let age = today.getFullYear() - dob.getFullYear();
+        const m = today.getMonth() - dob.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+            age--;
+        }
+        if (age < 18) {
+            toast.error('El cliente debe ser mayor de 18 años');
+            return;
+        }
+
+        if (currentCliente.tipoIdentificacion === 'CEDULA' && currentCliente.numeroIdentificacion) {
+            const sequence = currentCliente.numeroIdentificacion.replace(/[^0-9A-Z]/gi, '');
+            if (sequence.length >= 9) {
+                const cedulaDate = sequence.substring(3, 9);
+                const [year, month, day] = currentCliente.fechaNacimiento.split('-');
+                const dobFormatted = `${day}${month}${year.slice(2)}`;
+                if (cedulaDate !== dobFormatted) {
+                    toast.error('La fecha de nacimiento no coincide con la cédula (DDMMYY).');
+                    return;
+                }
             }
         }
 
@@ -411,6 +442,17 @@ export const AdminClientes = () => {
                                             value={currentCliente.apellido || ''}
                                             onChange={e => setCurrentCliente({ ...currentCliente, apellido: e.target.value })}
                                             required
+                                            className="h-9"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid gap-2">
+                                        <Label className="text-xs font-semibold">Fecha Nacimiento</Label>
+                                        <Input
+                                            type="date"
+                                            value={currentCliente.fechaNacimiento || ''}
+                                            onChange={e => setCurrentCliente({ ...currentCliente, fechaNacimiento: e.target.value })}
                                             className="h-9"
                                         />
                                     </div>

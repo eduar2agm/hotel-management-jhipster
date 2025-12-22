@@ -43,6 +43,7 @@ import {
 } from '@/components/ui/select';
 import { Check, ChevronsUpDown, Edit, Plus, User, BedDouble } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { PriceRangeFilter } from '@/components/common/PriceRangeFilter';
 import { type ClienteDTO, type HabitacionDTO, type ReservaDTO } from '@/types/api';
 import { HabitacionService } from '@/services/habitacion.service';
 import { ReservaDetalleService } from '@/services/reserva-detalle.service';
@@ -83,6 +84,10 @@ export const ReservaFormDialog = ({
     const [openClientCombo, setOpenClientCombo] = useState(false);
     const [habitaciones, setHabitaciones] = useState<HabitacionDTO[]>([]);
     const [currentRooms, setCurrentRooms] = useState<HabitacionDTO[]>([]);
+    const [minPrecio, setMinPrecio] = useState('');
+    const [maxPrecio, setMaxPrecio] = useState('');
+    const [appliedMin, setAppliedMin] = useState('');
+    const [appliedMax, setAppliedMax] = useState('');
 
     const form = useForm({
         resolver: zodResolver(reservaSchema),
@@ -119,11 +124,11 @@ export const ReservaFormDialog = ({
                             estado: reservaToEdit.estado || 'PENDIENTE',
                             activo: reservaToEdit.activo ?? true
                         });
-                        
+
                         // Load active rooms generally, but we'll let availability checker handle the specific list
                         // For improved UX, show all active rooms initially combined with current rooms
                         const res = await HabitacionService.getHabitacions({ 'activo.equals': true, size: 100 });
-                        
+
                         // Merge current rooms if not in active list (e.g. if they are somehow inactive now but in reservation)
                         const allRooms = res.data;
                         rooms.forEach(r => {
@@ -131,7 +136,7 @@ export const ReservaFormDialog = ({
                                 allRooms.push(r);
                             }
                         });
-                        
+
                         setHabitaciones(allRooms);
                     } catch (error) {
                         console.error("Error fetching details for edit", error);
@@ -150,12 +155,12 @@ export const ReservaFormDialog = ({
                     clienteId: 0
                 });
                 const fetchInitial = async () => {
-                   try {
-                       const res = await HabitacionService.getHabitacions({ 'activo.equals': true, size: 100 });
-                       setHabitaciones(res.data);
-                   } catch(e) {
-                       console.error("Error fetching initial rooms", e);
-                   }
+                    try {
+                        const res = await HabitacionService.getHabitacions({ 'activo.equals': true, size: 100 });
+                        setHabitaciones(res.data);
+                    } catch (e) {
+                        console.error("Error fetching initial rooms", e);
+                    }
                 }
                 fetchInitial();
             }
@@ -169,7 +174,7 @@ export const ReservaFormDialog = ({
     useEffect(() => {
         const fetchAvailability = async () => {
             if (!open) return;
-            
+
             if (!watchedFechaInicio || !watchedFechaFin) {
                 return;
             }
@@ -188,14 +193,14 @@ export const ReservaFormDialog = ({
 
                 // Restore current rooms if we are in editing mode
                 if (isEditing && currentRooms.length > 0) {
-                     currentRooms.forEach(cr => {
-                         if (!available.find(a => a.id === cr.id)) {
-                             // Only add if it makes sense? 
-                             // For now, always add them so the user sees what they have.
-                             // If they uncheck it and save, they lose it.
-                             available.push(cr);
-                         }
-                     });
+                    currentRooms.forEach(cr => {
+                        if (!available.find(a => a.id === cr.id)) {
+                            // Only add if it makes sense? 
+                            // For now, always add them so the user sees what they have.
+                            // If they uncheck it and save, they lose it.
+                            available.push(cr);
+                        }
+                    });
                 }
 
                 setHabitaciones(available);
@@ -334,55 +339,78 @@ export const ReservaFormDialog = ({
                             name="roomIds"
                             render={() => (
                                 <FormItem>
-                                    <div className="mb-2">
+                                    <div className="mb-3">
                                         <FormLabel className="font-bold text-gray-700 flex items-center gap-2">
-                                            <BedDouble className="w-4 h-4" /> Habitaciones
+                                            <BedDouble className="w-4 h-4" /> Habitaciones (Disponibles)
                                         </FormLabel>
                                         <FormDescription className="text-xs">
                                             Seleccione una o más habitaciones para esta reserva.
                                         </FormDescription>
                                     </div>
-                                    <div className="border border-gray-200 rounded-lg p-1 max-h-48 overflow-y-auto bg-gray-50">
+
+                                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6">
+                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest text-center block mb-4">Rango de Precio</label>
+                                        <PriceRangeFilter
+                                            minPrice={minPrecio}
+                                            maxPrice={maxPrecio}
+                                            onMinChange={setMinPrecio}
+                                            onMaxChange={setMaxPrecio}
+                                            variant="horizontal"
+                                            onSearch={() => {
+                                                setAppliedMin(minPrecio);
+                                                setAppliedMax(maxPrecio);
+                                            }}
+                                            className="!p-0 shadow-none border-0 bg-transparent"
+                                        />
+                                    </div>
+                                    <div className="border border-gray-200 rounded-lg p-3 max-h-48 overflow-y-auto bg-gray-50">
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
-                                            {habitaciones.map((hab) => (
-                                                <FormField
-                                                    key={hab.id}
-                                                    control={form.control}
-                                                    name="roomIds"
-                                                    render={({ field }) => {
-                                                        const isChecked = field.value?.includes(hab.id!);
-                                                        return (
-                                                            <FormItem
-                                                                className={`flex flex-row items-start space-x-3 space-y-0 p-3 rounded hover:bg-white transition-colors cursor-pointer ${isChecked ? 'bg-white shadow-sm border border-yellow-200' : ''}`}
-                                                            >
-                                                                <FormControl>
-                                                                    <Checkbox
-                                                                        checked={isChecked}
-                                                                        onCheckedChange={(checked) => {
-                                                                            return checked
-                                                                                ? field.onChange([...field.value, hab.id])
-                                                                                : field.onChange(
-                                                                                    field.value?.filter(
-                                                                                        (value: number) => value !== hab.id
+                                            {habitaciones
+                                                .filter(hab => {
+                                                    const price = hab.categoriaHabitacion?.precioBase || 0;
+                                                    const matchesMin = !appliedMin || price >= Number(appliedMin);
+                                                    const matchesMax = !appliedMax || price <= Number(appliedMax);
+                                                    return matchesMin && matchesMax;
+                                                })
+                                                .map((hab) => (
+                                                    <FormField
+                                                        key={hab.id}
+                                                        control={form.control}
+                                                        name="roomIds"
+                                                        render={({ field }) => {
+                                                            const isChecked = field.value?.includes(hab.id!);
+                                                            return (
+                                                                <FormItem
+                                                                    className={`flex flex-row items-start space-x-3 space-y-0 p-3 rounded hover:bg-white transition-colors cursor-pointer ${isChecked ? 'bg-white shadow-sm border border-yellow-200' : ''}`}
+                                                                >
+                                                                    <FormControl>
+                                                                        <Checkbox
+                                                                            checked={isChecked}
+                                                                            onCheckedChange={(checked) => {
+                                                                                return checked
+                                                                                    ? field.onChange([...field.value, hab.id])
+                                                                                    : field.onChange(
+                                                                                        field.value?.filter(
+                                                                                            (value: number) => value !== hab.id
+                                                                                        )
                                                                                     )
-                                                                                )
-                                                                        }}
-                                                                        className="data-[state=checked]:bg-yellow-600 data-[state=checked]:border-yellow-600"
-                                                                    />
-                                                                </FormControl>
-                                                                <div className="space-y-1 leading-none">
-                                                                    <FormLabel className="font-bold text-sm cursor-pointer text-gray-800">
-                                                                        Habitación {hab.numero}
-                                                                    </FormLabel>
-                                                                    <FormDescription className="text-xs">
-                                                                        {hab.categoriaHabitacion?.nombre} • {hab.categoriaHabitacion?.precioBase ? `$${hab.categoriaHabitacion.precioBase}` : 'N/A'}
-                                                                    </FormDescription>
-                                                                </div>
-                                                            </FormItem>
-                                                        )
-                                                    }}
-                                                />
-                                            ))}
+                                                                            }}
+                                                                            className="mt-0.5 data-[state=checked]:bg-yellow-600 data-[state=checked]:border-yellow-600"
+                                                                        />
+                                                                    </FormControl>
+                                                                    <div className="space-y-1 leading-none">
+                                                                        <FormLabel className="font-bold text-sm cursor-pointer text-gray-800">
+                                                                            Habitación {hab.numero}
+                                                                        </FormLabel>
+                                                                        <FormDescription className="text-xs">
+                                                                            {hab.categoriaHabitacion?.nombre} • {hab.categoriaHabitacion?.precioBase ? `$${hab.categoriaHabitacion.precioBase}` : 'N/A'}
+                                                                        </FormDescription>
+                                                                    </div>
+                                                                </FormItem>
+                                                            )
+                                                        }}
+                                                    />
+                                                ))}
                                         </div>
                                     </div>
                                     <FormMessage />

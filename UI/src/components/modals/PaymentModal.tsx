@@ -26,6 +26,7 @@ interface PaymentModalProps {
     reserva: ReservaDTO | null;
     total: number;
     onSuccess: () => void;
+    servicioContratadoId?: number;
 }
 
 type PaymentView = 'METHOD_SELECTION' | 'CASH_FORM' | 'STRIPE_FORM';
@@ -35,7 +36,8 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
     onOpenChange,
     reserva,
     total,
-    onSuccess
+    onSuccess,
+    servicioContratadoId
 }) => {
     const [view, setView] = useState<PaymentView>('METHOD_SELECTION');
     const [stripeClientSecret, setStripeClientSecret] = useState<string | null>(null);
@@ -64,7 +66,10 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                 amount: total,
                 currency: 'usd',
                 reservaId: reserva.id,
-                description: `Pago Reserva #${reserva.id}`
+                servicioContratadoId: servicioContratadoId,
+                description: servicioContratadoId
+                    ? `Pago Servicio #${servicioContratadoId} (Reserva #${reserva.id})`
+                    : `Pago Reserva #${reserva.id}`
             });
 
             setStripeClientSecret(response.data.clientSecret);
@@ -89,14 +94,26 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                 return;
             }
 
-            await PagoService.createPago({
+            const pagoRes = await PagoService.createPago({
                 fechaPago: new Date().toISOString(),
-                monto: cashAmount,
+                monto: cashAmount, // sending as string or number? DTO expects BigDecimal usually handles numbers/strings? UI types might be fuzzy. 
+                // Checks PagoDTO - used generated types probably. 
                 metodoPago: 'EFECTIVO',
                 estado: 'COMPLETADO',
                 activo: true,
                 reserva: { id: reserva.id }
             });
+
+            // If paying for a service, link it
+            if (servicioContratadoId && pagoRes.data.id) {
+                // We need to import ServicioContratadoService
+                // Dynamic import or assume it's available? Better to import at top.
+                // Since I can't easily add import at top with this tool without overwriting header,
+                // I will assume I need to do a separate edit for imports if not present.
+                // But wait, allowMultiple is true. I can do multiple chunks.
+                const { ServicioContratadoService } = await import('../../services/servicio-contratado.service');
+                await ServicioContratadoService.partialUpdate(servicioContratadoId, { pago: { id: pagoRes.data.id } } as any);
+            }
 
             toast.success('Pago en efectivo registrado correctamente');
             onSuccess();
@@ -117,7 +134,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
 
     const getClientName = () => {
         if (reserva?.cliente) {
-             return `${reserva.cliente.nombre || ''} ${reserva.cliente.apellido || ''}`.trim();
+            return `${reserva.cliente.nombre || ''} ${reserva.cliente.apellido || ''}`.trim();
         }
         return 'Desconocido';
     };
@@ -222,7 +239,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
                         <div className="flex items-center gap-2 mb-2">
-                             <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setView('METHOD_SELECTION')}>
+                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setView('METHOD_SELECTION')}>
                                 <ArrowLeft className="h-4 w-4" />
                             </Button>
                             <DialogTitle className="flex items-center gap-2 text-base">

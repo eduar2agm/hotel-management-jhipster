@@ -29,6 +29,9 @@ import {
 import { format } from 'date-fns';
 import { PaginationControl } from '@/components/common/PaginationControl';
 
+import { PaymentModal } from '@/components/modals/PaymentModal';
+import { CreditCard } from 'lucide-react';
+
 export const AdminServiciosContratados = ({ basePath = '/admin' }: { basePath?: string }) => {
     const navigate = useNavigate();
     const [items, setItems] = useState<ServicioContratadoDTO[]>([]);
@@ -37,6 +40,10 @@ export const AdminServiciosContratados = ({ basePath = '/admin' }: { basePath?: 
     const [totalItems, setTotalItems] = useState(0);
     const itemsPerPage = 10;
     const [searchFilter, setSearchFilter] = useState('');
+
+    // Payment Modal State
+    const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+    const [selectedServiceForPayment, setSelectedServiceForPayment] = useState<ServicioContratadoDTO | null>(null);
 
     const loadData = async () => {
         setLoading(true);
@@ -67,9 +74,28 @@ export const AdminServiciosContratados = ({ basePath = '/admin' }: { basePath?: 
         }
     };
 
+    const handlePaymentClick = (service: ServicioContratadoDTO) => {
+        setSelectedServiceForPayment(service);
+        setIsPaymentModalOpen(true);
+    };
+
+    const handlePaymentSuccess = async () => {
+        if (selectedServiceForPayment && selectedServiceForPayment.id) {
+            try {
+                // After payment (cash or stripe), we confirm the service
+                await ServicioContratadoService.confirmar(selectedServiceForPayment.id);
+                toast.success("Servicio pagado y confirmado exitosamente");
+                loadData();
+            } catch (e) {
+                console.error(e);
+                toast.error("Pago registrado, pero hubo un error al confirmar el servicio.");
+            }
+        }
+    };
+
     const getStatusBadgeVariant = (estado: EstadoServicioContratado): "default" | "secondary" | "destructive" | "outline" | null | undefined => {
         switch (estado) {
-            case EstadoServicioContratado.CONFIRMADO: return "default"; // Greenish usually handled by class not variant but default is safe
+            case EstadoServicioContratado.CONFIRMADO: return "default";
             case EstadoServicioContratado.PENDIENTE: return "secondary";
             case EstadoServicioContratado.COMPLETADO: return "outline";
             case EstadoServicioContratado.CANCELADO: return "destructive";
@@ -90,7 +116,7 @@ export const AdminServiciosContratados = ({ basePath = '/admin' }: { basePath?: 
     return (
         <div className="font-sans text-gray-900 bg-gray-50 min-h-screen flex flex-col">
             {/* HERO SECTION */}
-             <PageHeader
+            <PageHeader
                 title="Gestión de Reservas"
                 icon={Briefcase}
                 subtitle="Controle y planifique las estancias. Asigne habitaciones y gestione fechas."
@@ -98,37 +124,12 @@ export const AdminServiciosContratados = ({ basePath = '/admin' }: { basePath?: 
                 className="bg-[#0F172A]"
             >
                 <Button
-                     onClick={() => navigate(`${basePath}/servicios/contratar`)}
+                    onClick={() => navigate(`${basePath}/servicios/contratar`)}
                     className="bg-yellow-600 hover:bg-yellow-700 text-white rounded-none px-6 py-6 shadow-lg transition-all border border-yellow-600/30 text-lg"
                 >
                     <Plus className="mr-2 h-5 w-5" /> Nuevo contrato
                 </Button>
             </PageHeader>
-
-            {/* <div className="bg-[#0F172A] pt-32 pb-20 px-4 md:px-8 lg:px-20 relative overflow-hidden shadow-xl">
-                <div className="absolute top-0 right-0 p-12 opacity-5 scale-150 pointer-events-none">
-                    <Briefcase className="w-96 h-96 text-white" />
-                </div>
-                <div className="relative max-w-7xl mx-auto z-10 flex flex-col md:flex-row justify-between items-center gap-6">
-                    <div>
-                        <span className="text-yellow-500 font-bold tracking-[0.2em] uppercase text-xs mb-2 block">Administración</span>
-                        <h1 className="text-3xl md:text-5xl font-black text-white tracking-tight mb-2">
-                            Servicios Contratados
-                        </h1>
-                        <p className="text-slate-400 text-lg max-w-2xl">
-                            Supervise y gestione todos los servicios solicitados por los clientes.
-                        </p>
-                    </div>
-                    <div>
-                        <Button
-                            onClick={() => navigate(`${basePath}/servicios/contratar`)}
-                            className="bg-yellow-600 hover:bg-yellow-700 text-white border-0 shadow-lg hover:shadow-yellow-600/20 transition-all rounded-sm px-6 py-6 text-sm uppercase tracking-widest font-bold"
-                        >
-                            <Plus className="mr-2 h-5 w-5" /> Nuevo Contrato
-                        </Button>
-                    </div>
-                </div>
-            </div> */}
 
             <main className="flex-grow py-5 px-4 md:px-8 lg:px-20 -mt-10 relative z-10">
                 <Card className="max-w-7xl mx-auto border-t-4 border-yellow-600 shadow-xl bg-white">
@@ -211,8 +212,11 @@ export const AdminServiciosContratados = ({ basePath = '/admin' }: { basePath?: 
                                                         <DropdownMenuContent align="end">
                                                             <DropdownMenuLabel>Acciones</DropdownMenuLabel>
                                                             <DropdownMenuSeparator />
+                                                            <DropdownMenuItem onClick={() => handlePaymentClick(item)} disabled={item.estado !== EstadoServicioContratado.PENDIENTE}>
+                                                                <CreditCard className="mr-2 h-4 w-4 text-yellow-600" /> Pagar
+                                                            </DropdownMenuItem>
                                                             <DropdownMenuItem onClick={() => handleAction(item.id, 'confirmar')} disabled={item.estado !== EstadoServicioContratado.PENDIENTE}>
-                                                                <CheckCircle className="mr-2 h-4 w-4 text-green-600" /> Confirmar
+                                                                <CheckCircle className="mr-2 h-4 w-4 text-green-600" /> Confirmar (Sin pago)
                                                             </DropdownMenuItem>
                                                             <DropdownMenuItem onClick={() => handleAction(item.id, 'completar')} disabled={item.estado !== EstadoServicioContratado.CONFIRMADO}>
                                                                 <PlayCircle className="mr-2 h-4 w-4 text-blue-600" /> Completar
@@ -244,6 +248,14 @@ export const AdminServiciosContratados = ({ basePath = '/admin' }: { basePath?: 
                 </Card>
             </main>
 
+            <PaymentModal
+                open={isPaymentModalOpen}
+                onOpenChange={setIsPaymentModalOpen}
+                reserva={selectedServiceForPayment?.reserva || null}
+                total={selectedServiceForPayment ? Number(selectedServiceForPayment.precioUnitario) * selectedServiceForPayment.cantidad : 0}
+                servicioContratadoId={selectedServiceForPayment?.id}
+                onSuccess={handlePaymentSuccess}
+            />
         </div>
     );
 };
