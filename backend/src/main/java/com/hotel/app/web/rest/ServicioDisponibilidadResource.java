@@ -3,11 +3,14 @@ package com.hotel.app.web.rest;
 import com.hotel.app.repository.ServicioDisponibilidadRepository;
 import com.hotel.app.service.ServicioDisponibilidadService;
 import com.hotel.app.service.dto.ServicioDisponibilidadDTO;
+import com.hotel.app.service.dto.ServicioDisponibilidadConCuposDTO;
 import com.hotel.app.web.rest.errors.BadRequestAlertException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -219,5 +222,43 @@ public class ServicioDisponibilidadResource {
         log.debug("REST request to get ServicioDisponibilidad by servicio : {}", id);
         List<ServicioDisponibilidadDTO> list = servicioDisponibilidadService.findByServicioId(id);
         return ResponseEntity.ok().body(list);
+    }
+
+    /**
+     * {@code GET  /servicio-disponibilidads/servicio/:id/cupos} : get
+     * disponibilidad
+     * con cupos for a service in a date range.
+     *
+     * @param id          the service id
+     * @param fechaInicio the start date (format: yyyy-MM-dd)
+     * @param fechaFin    the end date (format: yyyy-MM-dd)
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and list of
+     *         disponibilidades with cupos
+     */
+    @GetMapping("/servicio/{id}/cupos")
+    public ResponseEntity<List<ServicioDisponibilidadConCuposDTO>> getServicioDisponibilidadConCupos(
+            @PathVariable("id") Long id,
+            @RequestParam(value = "fechaInicio", required = false) String fechaInicio,
+            @RequestParam(value = "fechaFin", required = false) String fechaFin) {
+
+        log.debug("REST request to get ServicioDisponibilidad con cupos for servicio {} from {} to {}",
+                id, fechaInicio, fechaFin);
+
+        try {
+            LocalDate inicio = fechaInicio != null ? LocalDate.parse(fechaInicio) : LocalDate.now();
+            LocalDate fin = fechaFin != null ? LocalDate.parse(fechaFin) : LocalDate.now().plusMonths(1);
+
+            if (fin.isBefore(inicio)) {
+                throw new BadRequestAlertException("End date cannot be before start date", ENTITY_NAME,
+                        "invaliddaterange");
+            }
+
+            List<ServicioDisponibilidadConCuposDTO> list = servicioDisponibilidadService.findDisponibilidadConCupos(id,
+                    inicio, fin);
+
+            return ResponseEntity.ok().body(list);
+        } catch (DateTimeParseException e) {
+            throw new BadRequestAlertException("Invalid date format. Use yyyy-MM-dd", ENTITY_NAME, "invaliddateformat");
+        }
     }
 }

@@ -12,6 +12,8 @@ import com.hotel.app.service.dto.MensajeSoporteDTO;
 import com.hotel.app.service.dto.ServicioContratadoDTO;
 import java.time.Instant;
 import com.hotel.app.service.mapper.ServicioContratadoMapper;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import com.hotel.app.web.rest.errors.BadRequestAlertException;
 import java.time.ZonedDateTime;
 import java.util.Optional;
@@ -70,20 +72,31 @@ public class ServicioContratadoServiceImpl implements ServicioContratadoService 
             var reserva = reservaRepository.findById(servicioContratadoDTO.getReserva().getId())
                     .orElseThrow(() -> new BadRequestAlertException("Reserva not found", "reserva", "idnotfound"));
 
-            // 1. Validate Date Range
+            // 1. Validate Date Range - Compare only dates, not times
             if (reserva.getEstado() != com.hotel.app.domain.enumeration.EstadoReserva.CONFIRMADA) {
                 throw new BadRequestAlertException("Reservation is not confirmed", "servicioContratado",
                         "reservanotconfirmed");
             }
 
-            if (servicioContratadoDTO.getFechaServicio().toInstant().isBefore(reserva.getFechaInicio()) ||
-                    servicioContratadoDTO.getFechaServicio().toInstant().isAfter(reserva.getFechaFin())) {
+            // Convert to LocalDate using system timezone to compare only days
+            // This ensures we compare in the same timezone as the user/system
+            java.time.ZoneId systemZone = java.time.ZoneId.systemDefault();
+            java.time.LocalDate fechaServicioDate = servicioContratadoDTO.getFechaServicio()
+                    .withZoneSameInstant(systemZone).toLocalDate();
+            java.time.LocalDate fechaInicioReserva = reserva.getFechaInicio()
+                    .atZone(systemZone).toLocalDate();
+            java.time.LocalDate fechaFinReserva = reserva.getFechaFin()
+                    .atZone(systemZone).toLocalDate();
+
+            if (fechaServicioDate.isBefore(fechaInicioReserva) || fechaServicioDate.isAfter(fechaFinReserva)) {
                 throw new BadRequestAlertException("Service date must be within reservation dates",
                         "servicioContratado", "servicedateoutofrange");
             }
 
-            // 2. Validate Service Availability
-            if (servicioContratadoDTO.getServicio() != null) {
+            // 2. Validate Service Availability - Skip for ADMIN/EMPLOYEE
+            boolean skipAvailabilityValidation = hasAdminOrEmployeeRole();
+
+            if (servicioContratadoDTO.getServicio() != null && !skipAvailabilityValidation) {
                 ZonedDateTime fechaServicio = servicioContratadoDTO.getFechaServicio();
                 DiaSemana diaSemana = mapDayOfWeek(fechaServicio.getDayOfWeek());
 
@@ -213,12 +226,18 @@ public class ServicioContratadoServiceImpl implements ServicioContratadoService 
 
     @Override
     public void confirmar(Long id) {
-        LOG.debug("Request to confirm ServicioContratado : {}", id);
+        LOG.info("Request to confirm ServicioContratado : {}", id);
         servicioContratadoRepository.findById(id).ifPresent(servicioContratado -> {
+            LOG.info("Found ServicioContratado, current state: {}", servicioContratado.getEstado());
             servicioContratado.setEstado(com.hotel.app.domain.enumeration.EstadoServicioContratado.CONFIRMADO);
             servicioContratadoRepository.save(servicioContratado);
+            LOG.info("Updated ServicioContratado {} to CONFIRMADO state", id);
             sendMessage(servicioContratado, "MSG_SERVICE_CONFIRMADO");
+            LOG.info("Sent confirmation message for ServicioContratado {}", id);
         });
+        if (!servicioContratadoRepository.findById(id).isPresent()) {
+            LOG.error("ServicioContratado with ID {} not found!", id);
+        }
     }
 
     @Override
@@ -274,6 +293,19 @@ public class ServicioContratadoServiceImpl implements ServicioContratadoService 
         }
     }
 
+    /**
+     * Check if current user has ADMIN or EMPLOYEE role
+     */
+    private boolean hasAdminOrEmployeeRole() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getAuthorities() == null) {
+            return false;
+        }
+        return authentication.getAuthorities().stream()
+                .anyMatch(authority -> "ROLE_ADMIN".equals(authority.getAuthority()) ||
+                        "ROLE_EMPLOYEE".equals(authority.getAuthority()));
+    }
+
     private DiaSemana mapDayOfWeek(java.time.DayOfWeek dayOfWeek) {
         switch (dayOfWeek) {
             case MONDAY:
@@ -293,5 +325,20 @@ public class ServicioContratadoServiceImpl implements ServicioContratadoService 
             default:
                 throw new IllegalArgumentException("Invalid day");
         }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ServicioContratadoDTO> findByClienteAndServicioAndFechaRange(
+            Long clienteId,
+            Long servicioId,
+            ZonedDateTime fechaInicio,
+            ZonedDateTime fechaFin) {
+        LOG.debug("Request to get ServicioContratados by Cliente, Servicio and Fecha Range");
+        return servicioContratadoRepository
+                .findByClienteAndServicioAndFechaRange(clienteId, servicioId, fechaInicio, fechaFin)
+                .stream()
+                .map(servicioContratadoMapper::toDto)
+                .collect(Collectors.toList());
     }
 }
