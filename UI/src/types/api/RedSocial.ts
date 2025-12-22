@@ -5,6 +5,8 @@ export interface RedSocialDTO {
     iconoUrl: string;
     colorHex?: string | null;
     activo: boolean;
+    iconoMediaBase64?: string;
+    iconoMediaContentType?: string;
 }
 
 export type NewRedSocialDTO = Omit<RedSocialDTO, 'id'> & { id?: null };
