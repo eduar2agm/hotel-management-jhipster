@@ -478,6 +478,7 @@ export const EmployeeReservas = () => {
                 open={isDetailsOpen}
                 onOpenChange={setIsDetailsOpen}
                 reserva={selectedReserva}
+                onStatusUpdate={() => loadData(currentPage)}
             />
 
             <PaymentModal

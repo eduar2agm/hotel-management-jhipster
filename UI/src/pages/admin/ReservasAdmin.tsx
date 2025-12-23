@@ -13,19 +13,19 @@ import { ReservaService } from '../../services/reserva.service';
 import { ReservaDetalleService } from '../../services/reserva-detalle.service';
 import { type ReservaDTO } from '../../types/api/Reserva';
 import { toast } from 'sonner';
-import { 
-    Pencil, 
-    Plus, 
-    User, 
-    Check, 
-    CheckCircle2, 
-    XCircle, 
-    Trash2, 
-    RefreshCcw, 
-    AlertCircle, 
-    CreditCard, 
-    Eye, 
-    Search, 
+import {
+    Pencil,
+    Plus,
+    User,
+    Check,
+    CheckCircle2,
+    XCircle,
+    Trash2,
+    RefreshCcw,
+    AlertCircle,
+    CreditCard,
+    Eye,
+    Search,
     Calendar
 } from 'lucide-react';
 import { PaymentModal } from '../../components/modals/PaymentModal';
@@ -50,14 +50,14 @@ export const AdminReservas = () => {
     const itemsPerPage = 10;
 
     const [isLoading, setIsLoading] = useState(true);
-    
+
     // Dialog States
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
     const [isPaymentOpen, setIsPaymentOpen] = useState(false);
 
     const [selectedReserva, setSelectedReserva] = useState<ReservaDTO | null>(null); // For Details & Edit
-    
+
     // Payment State
     const [paymentReserva, setPaymentReserva] = useState<ReservaDTO | null>(null);
     const [paymentTotal, setPaymentTotal] = useState(0);
@@ -124,7 +124,7 @@ export const AdminReservas = () => {
     };
 
     const handleEdit = (reserva: ReservaDTO) => {
-         if (!reserva.activo) {
+        if (!reserva.activo) {
             toast.warning('No se puede editar una reserva inactiva', {
                 description: 'Debe reactivarla primero.'
             });
@@ -138,13 +138,13 @@ export const AdminReservas = () => {
         setSelectedReserva(reserva);
         setIsDetailsOpen(true);
     };
-    
+
     const handleFormSuccess = (newReserva?: ReservaDTO) => {
         loadData();
         if (newReserva) {
             // New reservation created, trigger payment
             // Need to enrich client data if possible
-             if (newReserva.cliente && !newReserva.cliente.nombre) {
+            if (newReserva.cliente && !newReserva.cliente.nombre) {
                 const c = clientes.find(cl => cl.id === newReserva.cliente?.id || cl.id === newReserva.clienteId);
                 if (c && c.id) {
                     newReserva.cliente = {
@@ -154,7 +154,7 @@ export const AdminReservas = () => {
                     };
                 }
             }
-            
+
             handleOpenPayment(newReserva);
         }
     };
@@ -194,12 +194,12 @@ export const AdminReservas = () => {
     const handlePaymentSuccess = async () => {
         if (paymentReserva && paymentReserva.estado !== 'CONFIRMADA') {
             try {
-               await ReservaService.partialUpdateReserva(paymentReserva.id!, { id: paymentReserva.id, estado: 'CONFIRMADA' });
+                await ReservaService.partialUpdateReserva(paymentReserva.id!, { id: paymentReserva.id, estado: 'CONFIRMADA' });
             } catch (e) {
                 console.error("Error confirming reservation after payment", e);
             }
-       }
-       loadData();
+        }
+        loadData();
     };
 
     // Actions
@@ -221,8 +221,8 @@ export const AdminReservas = () => {
             toast.success('Reserva desactivada');
             loadData();
         } catch (error: any) {
-             console.error(error); // Log to use
-             toast.error('Error al desactivar reserva');
+            console.error(error); // Log to use
+            toast.error('Error al desactivar reserva');
         }
     };
 
@@ -256,14 +256,14 @@ export const AdminReservas = () => {
     return (
         <div className="font-sans text-gray-900 bg-gray-50 min-h-screen flex flex-col">
 
-            <PageHeader 
-                title="Gestión de Reservas" 
-                icon={Calendar} 
-                subtitle="Supervise y administre todas las reservas activas, pasadas y futuras." 
+            <PageHeader
+                title="Gestión de Reservas"
+                icon={Calendar}
+                subtitle="Supervise y administre todas las reservas activas, pasadas y futuras."
                 category="ADMINISTRACIÓN"
                 className="-mt-10"
             >
-                 <Button
+                <Button
                     onClick={handleCreate}
                     className="bg-yellow-600 hover:bg-yellow-700 text-white border-0 shadow-lg hover:shadow-yellow-600/20 transition-all rounded-sm px-6 py-6 text-sm uppercase tracking-widest font-bold"
                 >
@@ -333,7 +333,7 @@ export const AdminReservas = () => {
                                             </TableCell>
                                             <TableCell>
                                                 <div className="flex items-center gap-3">
-                                                     <div className="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold text-xs ring-2 ring-white shadow-sm">
+                                                    <div className="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold text-xs ring-2 ring-white shadow-sm">
                                                         {reserva.cliente?.nombre ? reserva.cliente.nombre.charAt(0).toUpperCase() : <User className="h-4 w-4" />}
                                                     </div>
                                                     <div className="flex flex-col">
@@ -384,7 +384,7 @@ export const AdminReservas = () => {
                                             </TableCell>
                                             <TableCell className="text-right p-4">
                                                 <div className="flex justify-end gap-2">
-                                                     <Button
+                                                    <Button
                                                         variant="ghost"
                                                         size="sm"
                                                         onClick={() => handleOpenPayment(reserva)}
@@ -470,7 +470,7 @@ export const AdminReservas = () => {
                 </Card>
             </main>
 
-            <ReservaFormDialog 
+            <ReservaFormDialog
                 open={isDialogOpen}
                 onOpenChange={setIsDialogOpen}
                 reserva={selectedReserva}
@@ -478,13 +478,15 @@ export const AdminReservas = () => {
                 onSuccess={handleFormSuccess}
             />
 
-            <ReservaDetailsDialog 
+            <ReservaDetailsDialog
                 open={isDetailsOpen}
                 onOpenChange={setIsDetailsOpen}
                 reserva={selectedReserva}
+                isAdmin={true}
+                onStatusUpdate={() => loadData()}
             />
 
-            <PaymentModal 
+            <PaymentModal
                 open={isPaymentOpen}
                 onOpenChange={setIsPaymentOpen}
                 reserva={paymentReserva}
