@@ -337,331 +337,7 @@ export const ContactSection = () => {
             </div>
 
             <div className="container relative z-10 mx-auto px-6 lg:px-12 text-center text-white">
-                {isAdmin() && (
-                    <div className="absolute top-0 right-0 p-4 flex gap-2">
-                        {/* Editar Sección */}
-                        <Dialog open={isSeccionDialogOpen} onOpenChange={(open) => {
-                            setIsSeccionDialogOpen(open);
-                            if (open) {
-                                if (seccion) {
-                                    // Edit mode: load existing data
-                                    setEditSeccion({ ...seccion });
-                                } else {
-                                    // Create mode: initialize with empty values
-                                    setEditSeccion({
-                                        titulo: '',
-                                        descripcion: '',
-                                        imagenFondoUrl: '',
-                                        correo: '',
-                                        activo: true
-                                    });
-                                }
-                            }
-                        }}>
-                            <DialogTrigger asChild>
-                                <Button variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
-                                    <Pencil className="w-4 h-4 mr-2" /> Editar Sección
-                                </Button>
-                            </DialogTrigger>
-                            <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
-                                <DialogHeader>
-                                    <DialogTitle>Editar Sección de Contacto</DialogTitle>
-                                    <DialogDescription>Modifica el título, descripción y fondo de la sección.</DialogDescription>
-                                </DialogHeader>
-                                <form onSubmit={handleSaveSeccion} className="space-y-4 py-4">
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="titulo">Título *</Label>
-                                        <Input
-                                            id="titulo"
-                                            value={editSeccion.titulo || ''}
-                                            onChange={(e) => setEditSeccion({ ...editSeccion, titulo: e.target.value })}
-                                            required
-                                        />
-                                    </div>
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="descripcion">Descripción *</Label>
-                                        <Textarea
-                                            id="descripcion"
-                                            value={editSeccion.descripcion || ''}
-                                            onChange={(e) => setEditSeccion({ ...editSeccion, descripcion: e.target.value })}
-                                            rows={4}
-                                            required
-                                        />
-                                    </div>
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="correo">Correo</Label>
-                                        <Input
-                                            id="correo"
-                                            type="email"
-                                            value={editSeccion.correo || ''}
-                                            onChange={(e) => setEditSeccion({ ...editSeccion, correo: e.target.value })}
-                                        />
-                                    </div>
-                                    <div className="grid gap-2">
-                                        <Label>Imagen de Fondo *</Label>
-                                        <div className="flex flex-col gap-4">
-                                            <div className="flex items-center justify-center w-full">
-                                                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
-                                                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                                                        <FileUp className="w-8 h-8 mb-3 text-gray-400" />
-                                                        <p className="mb-2 text-sm text-gray-500 font-semibold">Haz clic para subir imagen</p>
-                                                        <p className="text-xs text-gray-400">JPG, PNG, GIF o WEBP</p>
-                                                    </div>
-                                                    <input
-                                                        type="file"
-                                                        className="hidden"
-                                                        accept="image/*"
-                                                        onChange={(e) => {
-                                                            const file = e.target.files?.[0];
-                                                            if (file) {
-                                                                const reader = new FileReader();
-                                                                reader.onload = (event) => {
-                                                                    const base64String = (event.target?.result as string).split(',')[1];
-                                                                    setEditSeccion({
-                                                                        ...editSeccion,
-                                                                        imagenFondoUrl: file.name, // Temporary, will be replaced by backend
-                                                                        imagenFondoBase64: base64String,
-                                                                        imagenFondoContentType: file.type
-                                                                    });
-                                                                };
-                                                                reader.readAsDataURL(file);
-                                                            }
-                                                        }}
-                                                    />
-                                                </label>
-                                            </div>
-                                            {(editSeccion as any).imagenFondoBase64 && (
-                                                <div className="relative h-20 w-32 rounded-lg overflow-hidden border mx-auto">
-                                                    <img
-                                                        src={`data:${(editSeccion as any).imagenFondoContentType};base64,${(editSeccion as any).imagenFondoBase64}`}
-                                                        className="h-full w-full object-cover"
-                                                        alt="Preview"
-                                                    />
-                                                    <div className="absolute inset-0 bg-green-500/20 flex items-center justify-center">
-                                                        <span className="text-[10px] font-bold text-green-700 bg-white/80 px-2 py-0.5 rounded">Nueva imagen</span>
-                                                    </div>
-                                                </div>
-                                            )}
-                                            {editSeccion.imagenFondoUrl && !(editSeccion as any).imagenFondoBase64 && (
-                                                <div className="flex flex-col items-center gap-2 mt-2">
-                                                    <span className="text-xs text-gray-500 font-medium">Imagen Actual</span>
-                                                    <div className="relative h-32 w-full rounded-lg overflow-hidden border border-gray-200">
-                                                        <img
-                                                            src={getImageUrl(editSeccion.imagenFondoUrl)}
-                                                            className="h-full w-full object-cover"
-                                                            alt="Fondo actual"
-                                                        />
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                    <DialogFooter>
-                                        <Button type="button" variant="ghost" onClick={() => setIsSeccionDialogOpen(false)}>Cancelar</Button>
-                                        <Button type="submit" disabled={isSaving}>
-                                            {isSaving && <Loader2 className="animate-spin mr-2 w-4 h-4" />}
-                                            Guardar
-                                        </Button>
-                                    </DialogFooter>
-                                </form>
-                            </DialogContent>
-                        </Dialog>
-
-                        {/* Gestionar Redes Sociales */}
-                        <Dialog open={isRedesDialogOpen} onOpenChange={setIsRedesDialogOpen}>
-                            <DialogTrigger asChild>
-                                <Button variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
-                                    <Settings className="w-4 h-4 mr-2" /> Redes Sociales
-                                </Button>
-                            </DialogTrigger>
-                            <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
-                                <DialogHeader>
-                                    <DialogTitle>Gestionar Redes Sociales</DialogTitle>
-                                    <DialogDescription>Agrega, edita o elimina redes sociales.</DialogDescription>
-                                </DialogHeader>
-                                <div className="space-y-4 py-4">
-                                    <form onSubmit={handleSaveRed} className="grid gap-3 p-4 border rounded-lg">
-                                        <div className="grid grid-cols-2 gap-2">
-                                            <div>
-                                                <Label>Nombre *</Label>
-                                                <Input
-                                                    value={editRed.nombre || ''}
-                                                    onChange={(e) => {
-                                                        const val = e.target.value;
-                                                        const lowerVal = val.toLowerCase();
-                                                        let updates: any = { nombre: val };
-
-                                                        // Real-time auto-fill
-                                                        for (const [key, defaults] of Object.entries(SocialDefaults)) {
-                                                            if (lowerVal.includes(key)) {
-                                                                updates.iconoUrl = defaults.icon;
-                                                                updates.colorHex = defaults.color;
-                                                                break;
-                                                            }
-                                                        }
-                                                        setEditRed(prev => ({ ...prev, ...updates }));
-                                                    }}
-                                                    required
-                                                />
-                                            </div>
-                                            <div>
-                                                <Label>URL Enlace *</Label>
-                                                <Input value={editRed.urlEnlace || ''} onChange={(e) => setEditRed({ ...editRed, urlEnlace: e.target.value })} required />
-                                            </div>
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-2">
-                                            <div>
-                                                <Label>Icono (Auto)</Label>
-                                                <Input placeholder="facebook (auto)" value={editRed.iconoUrl || ''} onChange={(e) => setEditRed({ ...editRed, iconoUrl: e.target.value })} />
-                                            </div>
-                                            <div>
-                                                <Label>Color Hex (Auto)</Label>
-                                                <Input placeholder="#1DA1F2 (auto)" value={editRed.colorHex || ''} onChange={(e) => setEditRed({ ...editRed, colorHex: e.target.value })} />
-                                            </div>
-                                        </div>
-
-                                        <div className="grid gap-2">
-                                            <Label>O subir icono personalizado</Label>
-                                            <Input
-                                                type="file"
-                                                accept="image/*"
-                                                onChange={(e) => {
-                                                    const file = e.target.files?.[0];
-                                                    if (file) {
-                                                        const reader = new FileReader();
-                                                        reader.onload = (event) => {
-                                                            const base64String = (event.target?.result as string).split(',')[1];
-                                                            setEditRed({
-                                                                ...editRed,
-                                                                iconoUrl: file.name, // Placeholder
-                                                                iconoMediaBase64: base64String,
-                                                                iconoMediaContentType: file.type
-                                                            } as any);
-                                                        };
-                                                        reader.readAsDataURL(file);
-                                                    }
-                                                }}
-                                            />
-                                            <p className="text-xs text-muted-foreground">Si subes una imagen, reemplazará al icono automático.</p>
-                                        </div>
-
-                                        {/* Live Preview */}
-                                        {(editRed.iconoUrl || editRed.nombre || (editRed as any).iconoMediaBase64) && (
-                                            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-100 mt-2">
-                                                <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Vista Previa:</span>
-                                                <div className="flex items-center gap-2">
-                                                    <div className="p-2 bg-white rounded-full border shadow-sm flex items-center justify-center">
-                                                        {(() => {
-                                                            const base64 = (editRed as any).iconoMediaBase64;
-                                                            const contentType = (editRed as any).iconoMediaContentType;
-                                                            const url = editRed.iconoUrl;
-
-                                                            if (base64) {
-                                                                return <img src={`data:${contentType};base64,${base64}`} className="w-6 h-6 object-contain" alt="Preview" />;
-                                                            }
-                                                            if (url && (url.includes('/') || url.includes('.'))) {
-                                                                return <img src={getImageUrl(url)} className="w-6 h-6 object-contain" alt="Preview" />;
-                                                            }
-
-                                                            const Icon = IconMap[url || 'default'] || IconMap.default;
-                                                            return <Icon className="w-6 h-6" style={editRed.colorHex ? { color: editRed.colorHex } : undefined} />;
-                                                        })()}
-                                                    </div>
-                                                    <span className="text-sm font-medium" style={{ color: editRed.colorHex || undefined }}>
-                                                        {editRed.nombre || 'Red Social'}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        <div className="flex gap-2">
-                                            <Button type="submit" disabled={isSaving} className="flex-1">
-                                                {isSaving && <Loader2 className="animate-spin mr-2 w-4 h-4" />}
-                                                {editRed.id ? 'Actualizar' : 'Agregar'}
-                                            </Button>
-                                            {editRed.id && <Button type="button" variant="ghost" onClick={() => setEditRed({})}>Cancelar</Button>}
-                                        </div>
-                                    </form>
-
-                                    <Table>
-                                        <TableHeader>
-                                            <TableRow>
-                                                <TableHead>Nombre</TableHead>
-                                                <TableHead>URL</TableHead>
-                                                <TableHead className="text-right">Acciones</TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {redes.map((red) => (
-                                                <TableRow key={red.id}>
-                                                    <TableCell>{red.nombre}</TableCell>
-                                                    <TableCell className="truncate max-w-[200px]">{red.urlEnlace}</TableCell>
-                                                    <TableCell className="text-right">
-                                                        <Button variant="ghost" size="icon" onClick={() => setEditRed(red)}><Pencil className="w-4 h-4" /></Button>
-                                                        <Button variant="ghost" size="icon" onClick={() => red.id && handleDeleteRed(red.id)}><Trash2 className="w-4 h-4" /></Button>
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
-                                </div>
-                            </DialogContent>
-                        </Dialog>
-
-                        {/* Gestionar Teléfonos */}
-                        <Dialog open={isTelefonosDialogOpen} onOpenChange={setIsTelefonosDialogOpen}>
-                            <DialogTrigger asChild>
-                                <Button variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
-                                    <Phone className="w-4 h-4 mr-2" /> Teléfonos
-                                </Button>
-                            </DialogTrigger>
-                            <DialogContent className="sm:max-w-[500px]">
-                                <DialogHeader>
-                                    <DialogTitle>Gestionar Teléfonos</DialogTitle>
-                                    <DialogDescription>Agrega, edita o elimina números de contacto.</DialogDescription>
-                                </DialogHeader>
-                                <div className="space-y-4 py-4">
-                                    <form onSubmit={handleSaveTelefono} className="flex gap-2">
-                                        <Input
-                                            placeholder="Número de teléfono"
-                                            value={editTelefono.numeroTel || ''}
-                                            onChange={(e) => setEditTelefono({ ...editTelefono, numeroTel: e.target.value })}
-                                            required
-                                            className="flex-1"
-                                        />
-                                        <Button type="submit" disabled={isSaving}>
-                                            {isSaving && <Loader2 className="animate-spin mr-2 w-4 h-4" />}
-                                            {editTelefono.id ? 'Actualizar' : <Plus className="w-4 h-4" />}
-                                        </Button>
-                                        {editTelefono.id && <Button type="button" variant="ghost" onClick={() => setEditTelefono({})}>Cancelar</Button>}
-                                    </form>
-
-                                    <Table>
-                                        <TableHeader>
-                                            <TableRow>
-                                                <TableHead>Número</TableHead>
-                                                <TableHead className="text-right">Acciones</TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {telefonos.map((tel) => (
-                                                <TableRow key={tel.id}>
-                                                    <TableCell>{tel.numeroTel}</TableCell>
-                                                    <TableCell className="text-right">
-                                                        <Button variant="ghost" size="icon" onClick={() => setEditTelefono(tel)}><Pencil className="w-4 h-4" /></Button>
-                                                        <Button variant="ghost" size="icon" onClick={() => tel.id && handleDeleteTelefono(tel.id)}><Trash2 className="w-4 h-4" /></Button>
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
-                                </div>
-                            </DialogContent>
-                        </Dialog>
-                    </div >
-                )}
-
-                <div className="max-w-4xl mx-auto mb-16">
+                <div className="max-w-4xl mx-auto mb-16 text-center">
                     <h2 className="text-4xl md:text-5xl font-serif font-bold mb-6 tracking-tight animate-in fade-in slide-in-from-bottom-4 duration-700">
                         {seccion?.titulo || "Contáctanos"}
                     </h2>
@@ -671,80 +347,397 @@ export const ContactSection = () => {
                     </p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 mb-20">
-                    {/* Phones */}
-                    <div className="flex flex-col items-center">
-                        <div className="bg-white/10 p-4 rounded-2xl backdrop-blur-md border border-white/20 mb-6 hover:scale-110 transition-transform">
-                            <Phone className="w-8 h-8 text-[#D4AF37]" />
+                <div className="flex flex-col lg:flex-row gap-8 xl:gap-12 mb-20 items-center lg:items-start justify-center max-w-7xl mx-auto">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 xl:gap-12 flex-1">
+                        {/* Phones */}
+                        <div className="flex flex-col items-center">
+                            <div className="bg-white/10 p-4 rounded-2xl backdrop-blur-md border border-white/20 mb-6 hover:scale-110 transition-transform">
+                                <Phone className="w-8 h-8 text-[#D4AF37]" />
+                            </div>
+                            <h3 className="text-xl font-bold mb-3 uppercase tracking-widest text-[#D4AF37]">Teléfonos</h3>
+                            <div className="space-y-2">
+                                {telefonos.length > 0 ? telefonos.map((tel) => (
+                                    <p key={tel.id} className="text-lg text-gray-100 hover:text-white transition-colors cursor-pointer">
+                                        {tel.numeroTel}
+                                    </p>
+                                )) : (
+                                    <p className="text-gray-400 italic">No hay teléfonos</p>
+                                )}
+                            </div>
                         </div>
-                        <h3 className="text-xl font-bold mb-3 uppercase tracking-widest text-[#D4AF37]">Teléfonos</h3>
-                        <div className="space-y-2">
-                            {telefonos.length > 0 ? telefonos.map((tel) => (
-                                <p key={tel.id} className="text-lg text-gray-100 hover:text-white transition-colors cursor-pointer">
-                                    {tel.numeroTel}
-                                </p>
-                            )) : (
-                                <p className="text-gray-400 italic">No hay teléfonos</p>
-                            )}
+
+                        {/* Email */}
+                        <div className="flex flex-col items-center">
+                            <div className="bg-white/10 p-4 rounded-2xl backdrop-blur-md border border-white/20 mb-6 hover:scale-110 transition-transform">
+                                <Mail className="w-8 h-8 text-[#D4AF37]" />
+                            </div>
+                            <h3 className="text-xl font-bold mb-3 uppercase tracking-widest text-[#D4AF37]">Email</h3>
+                            <a
+                                href={`mailto:${seccion?.correo || 'contacto@hotel.com'}`}
+                                className="text-lg text-gray-100 hover:text-white transition-colors underline underline-offset-4 decoration-[#D4AF37]/50"
+                            >
+                                {seccion?.correo || 'contacto@hotel.com'}
+                            </a>
+                        </div>
+
+                        {/* Social Networks */}
+                        <div className="flex flex-col items-center">
+                            <div className="bg-white/10 p-4 rounded-2xl backdrop-blur-md border border-white/20 mb-6 hover:scale-110 transition-transform">
+                                <Globe className="w-8 h-8 text-[#D4AF37]" />
+                            </div>
+                            <h3 className="text-xl font-bold mb-3 uppercase tracking-widest text-[#D4AF37]">Redes Sociales</h3>
+                            <div className="flex flex-wrap justify-center gap-4">
+                                {redes.length > 0 ? redes.map((red) => {
+                                    const isImage = red.iconoUrl && (red.iconoUrl.includes('/') || red.iconoUrl.includes('.'));
+                                    const Icon = !isImage ? (IconMap[red.iconoUrl || 'default'] || IconMap.default) : null;
+                                    const style = red.colorHex ? { color: red.colorHex } : undefined;
+
+                                    return (
+                                        <a
+                                            key={red.id}
+                                            href={red.urlEnlace}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="p-3 bg-white/10 rounded-full hover:bg-white/20 transition-all group relative border border-white/10 flex items-center justify-center"
+                                            title={red.nombre}
+                                        >
+                                            {isImage ? (
+                                                <img src={getImageUrl(red.iconoUrl)} className="w-6 h-6 object-contain" alt={red.nombre} />
+                                            ) : (
+                                                <Icon className="w-6 h-6" style={style} />
+                                            )}
+                                            <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 text-xs bg-black text-white px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
+                                                {red.nombre}
+                                            </span>
+                                        </a>
+                                    );
+                                }) : (
+                                    <p className="text-gray-400 italic">No hay redes sociales</p>
+                                )}
+                            </div>
                         </div>
                     </div>
 
-                    {/* Email */}
-                    <div className="flex flex-col items-center">
-                        <div className="bg-white/10 p-4 rounded-2xl backdrop-blur-md border border-white/20 mb-6 hover:scale-110 transition-transform">
-                            <Mail className="w-8 h-8 text-[#D4AF37]" />
-                        </div>
-                        <h3 className="text-xl font-bold mb-3 uppercase tracking-widest text-[#D4AF37]">Email</h3>
-                        <a
-                            href={`mailto:${seccion?.correo || 'contacto@hotel.com'}`}
-                            className="text-lg text-gray-100 hover:text-white transition-colors underline underline-offset-4 decoration-[#D4AF37]/50"
-                        >
-                            {seccion?.correo || 'contacto@hotel.com'}
-                        </a>
-                    </div>
+                    {isAdmin() && (
+                        <div className="flex flex-col gap-3 w-full max-w-xs lg:w-52 animate-in fade-in slide-in-from-right-4 duration-700 lg:pt-4">
+                            {/* Editar Sección */}
+                            <Dialog open={isSeccionDialogOpen} onOpenChange={(open) => {
+                                setIsSeccionDialogOpen(open);
+                                if (open) {
+                                    if (seccion) {
+                                        setEditSeccion({ ...seccion });
+                                    } else {
+                                        setEditSeccion({
+                                            titulo: '',
+                                            descripcion: '',
+                                            imagenFondoUrl: '',
+                                            correo: '',
+                                            activo: true
+                                        });
+                                    }
+                                }
+                            }}>
+                                <DialogTrigger asChild>
+                                    <Button variant="outline" className="w-full bg-white/10 border-white/20 text-white hover:bg-white/20 justify-start h-11 px-4">
+                                        <Pencil className="w-4 h-4 mr-3" /> Editar Sección
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto font-sans">
+                                    <DialogHeader>
+                                        <DialogTitle>Editar Sección de Contacto</DialogTitle>
+                                        <DialogDescription>Modifica el título, descripción y fondo de la sección.</DialogDescription>
+                                    </DialogHeader>
+                                    <form onSubmit={handleSaveSeccion} className="space-y-4 py-4">
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="titulo">Título *</Label>
+                                            <Input
+                                                id="titulo"
+                                                value={editSeccion.titulo || ''}
+                                                onChange={(e) => setEditSeccion({ ...editSeccion, titulo: e.target.value })}
+                                                required
+                                            />
+                                        </div>
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="descripcion">Descripción *</Label>
+                                            <Textarea
+                                                id="descripcion"
+                                                value={editSeccion.descripcion || ''}
+                                                onChange={(e) => setEditSeccion({ ...editSeccion, descripcion: e.target.value })}
+                                                rows={4}
+                                                required
+                                            />
+                                        </div>
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="correo">Correo</Label>
+                                            <Input
+                                                id="correo"
+                                                type="email"
+                                                value={editSeccion.correo || ''}
+                                                onChange={(e) => setEditSeccion({ ...editSeccion, correo: e.target.value })}
+                                            />
+                                        </div>
+                                        <div className="grid gap-2">
+                                            <Label>Imagen de Fondo *</Label>
+                                            <div className="flex flex-col gap-4">
+                                                <div className="flex items-center justify-center w-full">
+                                                    <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
+                                                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                                                            <FileUp className="w-8 h-8 mb-3 text-gray-400" />
+                                                            <p className="mb-2 text-sm text-gray-500 font-semibold">Haz clic para subir imagen</p>
+                                                            <p className="text-xs text-gray-400">JPG, PNG, GIF o WEBP</p>
+                                                        </div>
+                                                        <input
+                                                            type="file"
+                                                            className="hidden"
+                                                            accept="image/*"
+                                                            onChange={(e) => {
+                                                                const file = e.target.files?.[0];
+                                                                if (file) {
+                                                                    const reader = new FileReader();
+                                                                    reader.onload = (event) => {
+                                                                        const base64String = (event.target?.result as string).split(',')[1];
+                                                                        setEditSeccion({
+                                                                            ...editSeccion,
+                                                                            imagenFondoUrl: file.name,
+                                                                            imagenFondoBase64: base64String,
+                                                                            imagenFondoContentType: file.type
+                                                                        });
+                                                                    };
+                                                                    reader.readAsDataURL(file);
+                                                                }
+                                                            }}
+                                                        />
+                                                    </label>
+                                                </div>
+                                                {(editSeccion as any).imagenFondoBase64 && (
+                                                    <div className="relative h-20 w-32 rounded-lg overflow-hidden border mx-auto">
+                                                        <img
+                                                            src={`data:${(editSeccion as any).imagenFondoContentType};base64,${(editSeccion as any).imagenFondoBase64}`}
+                                                            className="h-full w-full object-cover"
+                                                            alt="Preview"
+                                                        />
+                                                        <div className="absolute inset-0 bg-green-500/20 flex items-center justify-center">
+                                                            <span className="text-[10px] font-bold text-green-700 bg-white/80 px-2 py-0.5 rounded">Nueva imagen</span>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                {editSeccion.imagenFondoUrl && !(editSeccion as any).imagenFondoBase64 && (
+                                                    <div className="flex flex-col items-center gap-2 mt-2">
+                                                        <span className="text-xs text-gray-500 font-medium">Imagen Actual</span>
+                                                        <div className="relative h-32 w-full rounded-lg overflow-hidden border border-gray-200">
+                                                            <img
+                                                                src={getImageUrl(editSeccion.imagenFondoUrl)}
+                                                                className="h-full w-full object-cover"
+                                                                alt="Fondo actual"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <DialogFooter>
+                                            <Button type="button" variant="ghost" onClick={() => setIsSeccionDialogOpen(false)}>Cancelar</Button>
+                                            <Button type="submit" disabled={isSaving}>
+                                                {isSaving && <Loader2 className="animate-spin mr-2 w-4 h-4" />}
+                                                Guardar
+                                            </Button>
+                                        </DialogFooter>
+                                    </form>
+                                </DialogContent>
+                            </Dialog>
 
-                    {/* Social Networks */}
-                    <div className="flex flex-col items-center">
-                        <div className="bg-white/10 p-4 rounded-2xl backdrop-blur-md border border-white/20 mb-6 hover:scale-110 transition-transform">
-                            <Globe className="w-8 h-8 text-[#D4AF37]" />
-                        </div>
-                        <h3 className="text-xl font-bold mb-3 uppercase tracking-widest text-[#D4AF37]">Redes Sociales</h3>
-                        <div className="flex flex-wrap justify-center gap-4">
-                            {redes.length > 0 ? redes.map((red) => {
-                                const isImage = red.iconoUrl && (red.iconoUrl.includes('/') || red.iconoUrl.includes('.'));
-                                const Icon = !isImage ? (IconMap[red.iconoUrl || 'default'] || IconMap.default) : null;
-                                const style = red.colorHex ? { color: red.colorHex } : undefined;
+                            {/* Gestionar Redes Sociales */}
+                            <Dialog open={isRedesDialogOpen} onOpenChange={setIsRedesDialogOpen}>
+                                <DialogTrigger asChild>
+                                    <Button variant="outline" className="w-full bg-white/10 border-white/20 text-white hover:bg-white/20 justify-start h-11 px-4">
+                                        <Settings className="w-4 h-4 mr-3" /> Redes Sociales
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto font-sans">
+                                    <DialogHeader>
+                                        <DialogTitle>Gestionar Redes Sociales</DialogTitle>
+                                        <DialogDescription>Agrega, edita o elimina redes sociales.</DialogDescription>
+                                    </DialogHeader>
+                                    <div className="space-y-4 py-4">
+                                        <form onSubmit={handleSaveRed} className="grid gap-3 p-4 border rounded-lg">
+                                            <div className="grid grid-cols-2 gap-2">
+                                                <div>
+                                                    <Label>Nombre *</Label>
+                                                    <Input
+                                                        value={editRed.nombre || ''}
+                                                        onChange={(e) => {
+                                                            const val = e.target.value;
+                                                            const lowerVal = val.toLowerCase();
+                                                            let updates: any = { nombre: val };
+                                                            for (const [key, defaults] of Object.entries(SocialDefaults)) {
+                                                                if (lowerVal.includes(key)) {
+                                                                    updates.iconoUrl = defaults.icon;
+                                                                    updates.colorHex = defaults.color;
+                                                                    break;
+                                                                }
+                                                            }
+                                                            setEditRed(prev => ({ ...prev, ...updates }));
+                                                        }}
+                                                        required
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <Label>URL Enlace *</Label>
+                                                    <Input value={editRed.urlEnlace || ''} onChange={(e) => setEditRed({ ...editRed, urlEnlace: e.target.value })} required />
+                                                </div>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-2">
+                                                <div>
+                                                    <Label>Icono (Auto)</Label>
+                                                    <Input placeholder="facebook (auto)" value={editRed.iconoUrl || ''} onChange={(e) => setEditRed({ ...editRed, iconoUrl: e.target.value })} />
+                                                </div>
+                                                <div>
+                                                    <Label>Color Hex (Auto)</Label>
+                                                    <Input placeholder="#1DA1F2 (auto)" value={editRed.colorHex || ''} onChange={(e) => setEditRed({ ...editRed, colorHex: e.target.value })} />
+                                                </div>
+                                            </div>
 
-                                return (
-                                    <a
-                                        key={red.id}
-                                        href={red.urlEnlace}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="p-3 bg-white/10 rounded-full hover:bg-white/20 transition-all group relative border border-white/10 flex items-center justify-center"
-                                        title={red.nombre}
-                                    >
-                                        {isImage ? (
-                                            <img src={getImageUrl(red.iconoUrl)} className="w-6 h-6 object-contain" alt={red.nombre} />
-                                        ) : (
-                                            <Icon className="w-6 h-6" style={style} />
-                                        )}
-                                        <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 text-xs bg-black text-white px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
-                                            {red.nombre}
-                                        </span>
-                                    </a>
-                                );
-                            }) : (
-                                <p className="text-gray-400 italic">No hay redes sociales</p>
-                            )}
+                                            <div className="grid gap-2">
+                                                <Label>O subir icono personalizado</Label>
+                                                <Input
+                                                    type="file"
+                                                    accept="image/*"
+                                                    onChange={(e) => {
+                                                        const file = e.target.files?.[0];
+                                                        if (file) {
+                                                            const reader = new FileReader();
+                                                            reader.onload = (event) => {
+                                                                const base64String = (event.target?.result as string).split(',')[1];
+                                                                setEditRed({
+                                                                    ...editRed,
+                                                                    iconoUrl: file.name,
+                                                                    iconoMediaBase64: base64String,
+                                                                    iconoMediaContentType: file.type
+                                                                } as any);
+                                                            };
+                                                            reader.readAsDataURL(file);
+                                                        }
+                                                    }}
+                                                />
+                                                <p className="text-xs text-muted-foreground">Si subes una imagen, reemplazará al icono automático.</p>
+                                            </div>
+
+                                            {(editRed.iconoUrl || editRed.nombre || (editRed as any).iconoMediaBase64) && (
+                                                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-100 mt-2">
+                                                    <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Vista Previa:</span>
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="p-2 bg-white rounded-full border shadow-sm flex items-center justify-center">
+                                                            {(() => {
+                                                                const base64 = (editRed as any).iconoMediaBase64;
+                                                                const contentType = (editRed as any).iconoMediaContentType;
+                                                                const url = editRed.iconoUrl;
+                                                                if (base64) {
+                                                                    return <img src={`data:${contentType};base64,${base64}`} className="w-6 h-6 object-contain" alt="Preview" />;
+                                                                }
+                                                                if (url && (url.includes('/') || url.includes('.'))) {
+                                                                    return <img src={getImageUrl(url)} className="w-6 h-6 object-contain" alt="Preview" />;
+                                                                }
+                                                                const Icon = IconMap[url || 'default'] || IconMap.default;
+                                                                return <Icon className="w-6 h-6" style={editRed.colorHex ? { color: editRed.colorHex } : undefined} />;
+                                                            })()}
+                                                        </div>
+                                                        <span className="text-sm font-medium" style={{ color: editRed.colorHex || undefined }}>
+                                                            {editRed.nombre || 'Red Social'}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            <div className="flex gap-2">
+                                                <Button type="submit" disabled={isSaving} className="flex-1">
+                                                    {isSaving && <Loader2 className="animate-spin mr-2 w-4 h-4" />}
+                                                    {editRed.id ? 'Actualizar' : 'Agregar'}
+                                                </Button>
+                                                {editRed.id && <Button type="button" variant="ghost" onClick={() => setEditRed({})}>Cancelar</Button>}
+                                            </div>
+                                        </form>
+
+                                        <Table>
+                                            <TableHeader>
+                                                <TableRow>
+                                                    <TableHead>Nombre</TableHead>
+                                                    <TableHead>URL</TableHead>
+                                                    <TableHead className="text-right">Acciones</TableHead>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {redes.map((red) => (
+                                                    <TableRow key={red.id}>
+                                                        <TableCell className="font-medium">{red.nombre}</TableCell>
+                                                        <TableCell className="truncate max-w-[200px]">{red.urlEnlace}</TableCell>
+                                                        <TableCell className="text-right">
+                                                            <Button variant="ghost" size="icon" onClick={() => setEditRed(red)}><Pencil className="w-4 h-4" /></Button>
+                                                            <Button variant="ghost" size="icon" onClick={() => red.id && handleDeleteRed(red.id)}><Trash2 className="w-4 h-4" /></Button>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </div>
+                                </DialogContent>
+                            </Dialog>
+
+                            {/* Gestionar Teléfonos */}
+                            <Dialog open={isTelefonosDialogOpen} onOpenChange={setIsTelefonosDialogOpen}>
+                                <DialogTrigger asChild>
+                                    <Button variant="outline" className="w-full bg-white/10 border-white/20 text-white hover:bg-white/20 justify-start h-11 px-4">
+                                        <Phone className="w-4 h-4 mr-3" /> Teléfonos
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent className="sm:max-w-[500px] font-sans">
+                                    <DialogHeader>
+                                        <DialogTitle>Gestionar Teléfonos</DialogTitle>
+                                        <DialogDescription>Agrega, edita o elimina números de contacto.</DialogDescription>
+                                    </DialogHeader>
+                                    <div className="space-y-4 py-4">
+                                        <form onSubmit={handleSaveTelefono} className="flex gap-2">
+                                            <Input
+                                                placeholder="Número de teléfono"
+                                                value={editTelefono.numeroTel || ''}
+                                                onChange={(e) => setEditTelefono({ ...editTelefono, numeroTel: e.target.value })}
+                                                required
+                                                className="flex-1"
+                                            />
+                                            <Button type="submit" disabled={isSaving}>
+                                                {isSaving && <Loader2 className="animate-spin mr-2 w-4 h-4" />}
+                                                {editTelefono.id ? 'Actualizar' : <Plus className="w-4 h-4" />}
+                                            </Button>
+                                            {editTelefono.id && <Button type="button" variant="ghost" onClick={() => setEditTelefono({})}>Cancelar</Button>}
+                                        </form>
+
+                                        <Table>
+                                            <TableHeader>
+                                                <TableRow>
+                                                    <TableHead>Número</TableHead>
+                                                    <TableHead className="text-right">Acciones</TableHead>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {telefonos.map((tel) => (
+                                                    <TableRow key={tel.id}>
+                                                        <TableCell className="font-medium">{tel.numeroTel}</TableCell>
+                                                        <TableCell className="text-right">
+                                                            <Button variant="ghost" size="icon" onClick={() => setEditTelefono(tel)}><Pencil className="w-4 h-4" /></Button>
+                                                            <Button variant="ghost" size="icon" onClick={() => tel.id && handleDeleteTelefono(tel.id)}><Trash2 className="w-4 h-4" /></Button>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </div>
+                                </DialogContent>
+                            </Dialog>
                         </div>
-                    </div>
+                    )}
                 </div>
 
+
                 <div className="pt-10 border-t border-white/10">
-                    <p className="text-sm text-gray-400 uppercase tracking-[0.3em]">
-                        Experiencia de Lujo & Confort
-                    </p>
                 </div>
             </div >
         </section >
