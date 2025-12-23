@@ -286,7 +286,7 @@ export const ReservaDetailsDialog = ({
                     </div>
                 )}
 
-                <DialogFooter className="bg-gray-50 p-4 border-t flex justify-end gap-2">
+                <DialogFooter className="bg-background p-4 border-t flex justify-end gap-2">
                     <Button onClick={() => onOpenChange(false)} variant="outline" disabled={processing}>Cerrar</Button>
 
                     {reserva?.estado === 'CONFIRMADA' && (
