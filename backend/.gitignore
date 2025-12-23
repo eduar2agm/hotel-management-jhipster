@@ -152,7 +152,30 @@ Desktop.ini
 coverage/
 .nyc_output/
 .env
-/images/*
-!/images/.gitkeep
-!/images/README.md
+# Ignore generated images (UUID-like filenames, Timestamps, etc.)
+/images/**/[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]-*
+/images/**/[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]_*
+/images/**/fondo_*
+/images/carousel/
+
+# Keep specific files like .gitkeep and README
 !/images/**/.gitkeep
+!/images/README.md
+
+# Explicitly allow critical initial images
+!/images/habitaciones/sencilla-101.jpg
+!/images/habitaciones/sencilla-102.jpg
+!/images/habitaciones/doble-201.jpg
+!/images/habitaciones/doble-202.jpg
+!/images/habitaciones/suite-301.jpg
+!/images/habitaciones/suite-302.jpg
+
+!/images/landing/hero-principal.jpg
+!/images/landing/hero-granada.jpg
+
+!/images/servicios/masaje-relajante.jpg
+!/images/servicios/tour-granada.jpg
+!/images/servicios/wifi-premium.jpg
+!/images/servicios/desayuno-buffet.jpg
+
+!/images/contactos/contacto-bg.jpg
