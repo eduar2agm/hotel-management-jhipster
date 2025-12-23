@@ -14,7 +14,7 @@ export const AdminConfiguracion = () => {
     const [activeTab, setActiveTab] = useState<'categorias' | 'estados' | 'carousel' | 'sistema' | 'mensajes'>('categorias');
 
     return (
-        <div className="font-sans text-gray-900 bg-gray-50 min-h-screen flex flex-col">
+        <div className="font-sans text-foreground bg-background min-h-screen flex flex-col">
 
             <PageHeader
                 title="Configuración General"
@@ -39,7 +39,7 @@ export const AdminConfiguracion = () => {
                             onClick={() => setActiveTab('categorias')}
                             className={`h-12 px-6 rounded-full shadow-lg transition-all text-base font-bold tracking-wide ${activeTab === 'categorias'
                                 ? 'bg-indigo-600 hover:bg-indigo-700 text-white ring-4 ring-indigo-600/20'
-                                : 'bg-white text-gray-600 hover:text-indigo-600 hover:bg-gray-50'
+                                : 'bg-card text-muted-foreground hover:text-indigo-600 hover:bg-muted border border-border'
                                 }`}
                         >
                             <Tag className="mr-2 h-5 w-5" /> Categorías
@@ -48,7 +48,7 @@ export const AdminConfiguracion = () => {
                             onClick={() => setActiveTab('estados')}
                             className={`h-12 px-6 rounded-full shadow-lg transition-all text-base font-bold tracking-wide ${activeTab === 'estados'
                                 ? 'bg-indigo-600 hover:bg-indigo-700 text-white ring-4 ring-indigo-600/20'
-                                : 'bg-white text-gray-600 hover:text-indigo-600 hover:bg-gray-50'
+                                : 'bg-card text-muted-foreground hover:text-indigo-600 hover:bg-muted border border-border'
                                 }`}
                         >
                             <Activity className="mr-2 h-5 w-5" /> Estados
@@ -66,7 +66,7 @@ export const AdminConfiguracion = () => {
                             onClick={() => setActiveTab('sistema')}
                             className={`h-12 px-6 rounded-full shadow-lg transition-all text-base font-bold tracking-wide ${activeTab === 'sistema'
                                 ? 'bg-indigo-600 hover:bg-indigo-700 text-white ring-4 ring-indigo-600/20'
-                                : 'bg-white text-gray-600 hover:text-indigo-600 hover:bg-gray-50'
+                                : 'bg-card text-muted-foreground hover:text-indigo-600 hover:bg-muted border border-border'
                                 }`}
                         >
                             <Settings className="mr-2 h-5 w-5" /> Sistema
@@ -75,7 +75,7 @@ export const AdminConfiguracion = () => {
                             onClick={() => setActiveTab('mensajes')}
                             className={`h-12 px-6 rounded-full shadow-lg transition-all text-base font-bold tracking-wide ${activeTab === 'mensajes'
                                 ? 'bg-indigo-600 hover:bg-indigo-700 text-white ring-4 ring-indigo-600/20'
-                                : 'bg-white text-gray-600 hover:text-indigo-600 hover:bg-gray-50'
+                                : 'bg-card text-muted-foreground hover:text-indigo-600 hover:bg-muted border border-border'
                                 }`}
                         >
                             <MessageSquare className="mr-2 h-5 w-5" /> Mensajes

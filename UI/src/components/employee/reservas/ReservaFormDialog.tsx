@@ -225,7 +225,7 @@ export const ReservaFormDialog = ({
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2 text-xl font-bold text-slate-900 border-b pb-4 mb-4">
+                    <DialogTitle className="flex items-center gap-2 text-xl font-bold text-foreground border-b border-border pb-4 mb-4">
                         {isEditing ? <Edit className="w-5 h-5 text-yellow-600" /> : <Plus className="w-5 h-5 text-green-600" />}
                         {isEditing ? 'Editar Reserva' : 'Nueva Reserva'}
                     </DialogTitle>
@@ -239,7 +239,7 @@ export const ReservaFormDialog = ({
                             name="clienteId"
                             render={({ field }) => (
                                 <FormItem className="flex flex-col">
-                                    <FormLabel className="flex items-center gap-2 font-bold text-gray-700">
+                                    <FormLabel className="flex items-center gap-2 font-bold text-foreground">
                                         <User className="w-4 h-4" /> Cliente
                                     </FormLabel>
                                     <Popover open={openClientCombo} onOpenChange={setOpenClientCombo}>
@@ -250,7 +250,7 @@ export const ReservaFormDialog = ({
                                                     role="combobox"
                                                     aria-expanded={openClientCombo}
                                                     className={cn(
-                                                        "w-full justify-between bg-gray-50 border-gray-200 h-10",
+                                                        "w-full justify-between bg-background border-input h-10 text-foreground",
                                                         !field.value && "text-muted-foreground"
                                                     )}
                                                 >
@@ -304,15 +304,15 @@ export const ReservaFormDialog = ({
                         />
 
                         {/* --- DATES --- */}
-                        <div className="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-lg border border-slate-100">
+                        <div className="grid grid-cols-2 gap-4 bg-muted/30 p-4 rounded-lg border border-border">
                             <FormField
                                 control={form.control}
                                 name="fechaInicio"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel className="text-xs font-bold uppercase tracking-wide text-gray-500">Fecha Entrada</FormLabel>
+                                        <FormLabel className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Fecha Entrada</FormLabel>
                                         <FormControl>
-                                            <Input type="date" {...field} className="bg-white" />
+                                            <Input type="date" {...field} className="bg-background border-input" />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -323,9 +323,9 @@ export const ReservaFormDialog = ({
                                 name="fechaFin"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel className="text-xs font-bold uppercase tracking-wide text-gray-500">Fecha Salida</FormLabel>
+                                        <FormLabel className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Fecha Salida</FormLabel>
                                         <FormControl>
-                                            <Input type="date" {...field} className="bg-white" />
+                                            <Input type="date" {...field} className="bg-background border-input" />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -340,7 +340,7 @@ export const ReservaFormDialog = ({
                             render={() => (
                                 <FormItem>
                                     <div className="mb-3">
-                                        <FormLabel className="font-bold text-gray-700 flex items-center gap-2">
+                                        <FormLabel className="font-bold text-foreground flex items-center gap-2">
                                             <BedDouble className="w-4 h-4" /> Habitaciones (Disponibles)
                                         </FormLabel>
                                         <FormDescription className="text-xs">
@@ -348,8 +348,8 @@ export const ReservaFormDialog = ({
                                         </FormDescription>
                                     </div>
 
-                                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6">
-                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest text-center block mb-4">Rango de Precio</label>
+                                    <div className="bg-muted/30 p-4 rounded-lg border border-border mb-6">
+                                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest text-center block mb-4">Rango de Precio</label>
                                         <PriceRangeFilter
                                             minPrice={minPrecio}
                                             maxPrice={maxPrecio}
@@ -363,7 +363,7 @@ export const ReservaFormDialog = ({
                                             className="!p-0 shadow-none border-0 bg-transparent"
                                         />
                                     </div>
-                                    <div className="border border-gray-200 rounded-lg p-3 max-h-48 overflow-y-auto bg-gray-50">
+                                    <div className="border border-border rounded-lg p-3 max-h-48 overflow-y-auto bg-muted/20">
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
                                             {habitaciones
                                                 .filter(hab => {
@@ -381,7 +381,7 @@ export const ReservaFormDialog = ({
                                                             const isChecked = field.value?.includes(hab.id!);
                                                             return (
                                                                 <FormItem
-                                                                    className={`flex flex-row items-start space-x-3 space-y-0 p-3 rounded hover:bg-white transition-colors cursor-pointer ${isChecked ? 'bg-white shadow-sm border border-yellow-200' : ''}`}
+                                                                    className={`flex flex-row items-start space-x-3 space-y-0 p-3 rounded hover:bg-muted/50 transition-colors cursor-pointer ${isChecked ? 'bg-card shadow-sm border border-yellow-500' : 'border border-transparent'}`}
                                                                 >
                                                                     <FormControl>
                                                                         <Checkbox
@@ -399,7 +399,7 @@ export const ReservaFormDialog = ({
                                                                         />
                                                                     </FormControl>
                                                                     <div className="space-y-1 leading-none">
-                                                                        <FormLabel className="font-bold text-sm cursor-pointer text-gray-800">
+                                                                        <FormLabel className="font-bold text-sm cursor-pointer text-foreground">
                                                                             Habitación {hab.numero}
                                                                         </FormLabel>
                                                                         <FormDescription className="text-xs">
@@ -424,7 +424,7 @@ export const ReservaFormDialog = ({
                             name="estado"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel className="font-bold text-gray-700">Estado de Reserva</FormLabel>
+                                    <FormLabel className="font-bold text-foreground">Estado de Reserva</FormLabel>
                                     <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
                                         <FormControl>
                                             <SelectTrigger className="h-11">
@@ -443,11 +443,11 @@ export const ReservaFormDialog = ({
                             )}
                         />
 
-                        <DialogFooter className="pt-4 border-t gap-2">
-                            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="h-11 border-gray-300">
+                        <DialogFooter className="pt-4 border-t border-border gap-2">
+                            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="h-11 border-input">
                                 Cancelar
                             </Button>
-                            <Button type="submit" className="h-11 bg-slate-900 hover:bg-slate-800 text-white min-w-[120px]">
+                            <Button type="submit" className="h-11 bg-primary hover:bg-primary/90 text-primary-foreground min-w-[120px]">
                                 {isEditing ? 'Guardar' : 'Pagar'}
                             </Button>
                         </DialogFooter>

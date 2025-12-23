@@ -11,15 +11,15 @@ export const Home = () => {
   const { } = useHabitaciones();
 
   return (
-    <div className="font-sans text-gray-900">
+    <div className="font-sans text-foreground bg-muted">
       <Navbar />
       <HeroSection />
       <div>
-        <h2 className="text-4xl bg-gray-900 text-white font-bold text-center p-6 ">Nuestras Habitaciones</h2>
+        <h2 className="text-4xl text-foreground font-bold text-center p-6">Nuestras Habitaciones</h2>
       </div>
       <ImageCarousel />
       <div>
-        <h2 className="text-4xl bg-gray-900 text-white font-bold text-center p-6 ">Nuestros Servicios</h2>
+        <h2 className="text-4xl  text-foreground font-bold text-center p-6">Nuestros Servicios</h2>
       </div>
       <ServicesCarousel />
       <div className="container mx-auto px-0 py-12">

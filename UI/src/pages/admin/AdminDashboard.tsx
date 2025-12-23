@@ -130,7 +130,7 @@ export const AdminDashboard = () => {
     }, [rawReservas, timeRange]);
 
     return (
-        <div className="flex flex-col min-h-screen"> 
+        <div className="flex flex-col min-h-screen bg-background"> 
             <PageHeader 
                 title="Panel General" 
                 icon={User}
@@ -150,13 +150,13 @@ export const AdminDashboard = () => {
                 <div className="max-w-7xl mx-auto space-y-8">
                     
                     {/* TABS NAVIGATION */}
-                    <div className="flex p-1 bg-slate-800/50 backdrop-blur-md rounded-full w-fit border border-slate-700/50 shadow-lg">
+                    <div className="flex p-1 bg-muted/50 backdrop-blur-md rounded-full w-fit border border-border/50 shadow-lg">
                         <button 
                             onClick={() => setActiveTab('general')}
                             className={`flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-bold transition-all
                                 ${activeTab === 'general' 
-                                    ? 'bg-blue-900 text-white shadow-md' 
-                                    : 'text-slate-300 hover:text-white hover:bg-white/10'
+                                    ? 'bg-primary text-primary-foreground shadow-md' 
+                                    : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                                 }`}
                         >
                             <LayoutDashboard className="h-4 w-4" />
@@ -166,8 +166,8 @@ export const AdminDashboard = () => {
                             onClick={() => setActiveTab('reportes')}
                             className={`flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-bold transition-all
                                 ${activeTab === 'reportes' 
-                                    ? 'bg-gray-900 text-white shadow-md' 
-                                    : 'text-slate-300 hover:text-white hover:bg-white/10'
+                                    ? 'bg-primary text-primary-foreground shadow-md' 
+                                    : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                                 }`}
                         >
                             <FileText className="h-4 w-4" />
@@ -209,13 +209,13 @@ export const AdminDashboard = () => {
                                 
                                 {/* CHART SECTION */}
                                 <div className="md:col-span-4 lg:col-span-5 space-y-8">
-                                    <Card className="shadow-xl border-0 overflow-hidden bg-white">
-                                        <CardHeader className="border-b pb-4 flex flex-row items-center justify-between">
+                                    <Card className="shadow-xl border-border overflow-hidden bg-card">
+                                        <CardHeader className="border-b border-border pb-4 flex flex-row items-center justify-between">
                                             <div>
-                                                <CardTitle className="text-lg font-bold text-gray-900">Estadísticas de Reservas</CardTitle>
+                                                <CardTitle className="text-lg font-bold text-card-foreground">Estadísticas de Reservas</CardTitle>
                                                 <CardDescription>Resumen de actividad por periodo</CardDescription>
                                             </div>
-                                            <div className="flex items-center bg-gray-100 gap-4 p-1 rounded-md">
+                                            <div className="flex items-center bg-muted gap-4 p-1 rounded-md">
                                                 {(['day', 'week', 'month'] as const).map((cycle) => (
                                                     <button
                                                         key={cycle}
@@ -223,8 +223,8 @@ export const AdminDashboard = () => {
                                                         className={`
                                                             px-3 py-1.5 text-sm font-medium rounded-sm transition-all
                                                             ${timeRange === cycle 
-                                                                ? 'bg-white text-gray-900 shadow-sm' 
-                                                                : 'text-gray-500 hover:text-gray-900 hover:bg-gray-200/50'}
+                                                                ? 'bg-background text-foreground shadow-sm' 
+                                                                : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'}
                                                         `}
                                                     >
                                                         {cycle === 'day' ? 'Día' : cycle === 'week' ? 'Semana' : 'Mes'}
@@ -261,7 +261,7 @@ export const AdminDashboard = () => {
                                                         <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
                                                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                                                         <Tooltip 
-                                                            contentStyle={{ backgroundColor: 'white', borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                                                            contentStyle={{ backgroundColor: 'var(--card)', borderRadius: '8px', border: '1px solid var(--border)', color: 'var(--card-foreground)' }}
                                                             itemStyle={{ fontSize: '12px' }}
                                                         />
                                                         <Legend iconType="circle" />
@@ -297,14 +297,14 @@ export const AdminDashboard = () => {
                                     
                                     {/* MINI CARDS */}
                                     <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
-                                        <Card className="bg-gradient-to-br from-[#0F172A] to-[#1e293b] text-white shadow-xl border-0">
+                                        <Card className="bg-background ring-1 dark:ring-gray-800 ring-gray-200 text-white shadow-xl border-0">
                                             <CardHeader>
-                                                <CardTitle className="text-lg font-bold flex items-center gap-2">
+                                                <CardTitle className="text-lg text-muted-foreground font-bold flex items-center gap-2">
                                                     <Clock className="h-5 w-5 text-yellow-500" /> Llegadas Hoy
                                                 </CardTitle>
                                             </CardHeader>
                                             <CardContent className="text-center py-8">
-                                                <span className="text-5xl font-black text-white">{stats.reservasHoy}</span>
+                                                <span className="text-5xl font-black text-muted-foreground">{stats.reservasHoy}</span>
                                                 <p className="text-slate-400 mt-2 text-sm uppercase">Guests Check-in</p>
                                             </CardContent>
                                         </Card>
@@ -314,23 +314,23 @@ export const AdminDashboard = () => {
 
                                 {/* RECENT ACTIVITY */}
                                 <div className="md:col-span-3 lg:col-span-2">
-                                    <Card className="h-full shadow-lg border-0 flex flex-col bg-white">
-                                        <CardHeader className="border-b bg-gray-50/80">
+                                    <Card className="h-full shadow-lg border-border flex flex-col bg-card">
+                                        <CardHeader className="border-b border-border bg-muted/30">
                                             <CardTitle className="text-lg font-bold flex items-center gap-2">
-                                                <Activity className="h-4 w-4 text-blue-600" /> Actividad Reciente
+                                                <Activity className="h-4 w-4 text-primary" /> Actividad Reciente
                                             </CardTitle>
                                         </CardHeader>
                                         <CardContent className="p-0 flex-grow">
-                                            <div className="divide-y divide-gray-100">
+                                            <div className="divide-y divide-border">
                                                 {recentActivity.length === 0 ? (
-                                                    <div className="p-8 text-center text-gray-400 text-sm">Sin actividad</div>
+                                                    <div className="p-8 text-center text-muted-foreground text-sm">Sin actividad</div>
                                                 ) : (
                                                     recentActivity.map((item, i) => (
-                                                        <div key={i} className="p-4 hover:bg-gray-50 transition-colors flex gap-3">
+                                                        <div key={i} className="p-4 hover:bg-muted/50 transition-colors flex gap-3">
                                                             <div className={`mt-1 h-2 w-2 rounded-full flex-shrink-0 ${item.status === 'PENDIENTE' ? 'bg-yellow-400' : 'bg-green-500'}`}></div>
                                                             <div>
-                                                                <p className="text-sm font-medium text-gray-900">{item.description}</p>
-                                                                <p className="text-xs text-gray-400 mt-1">{item.time}</p>
+                                                                <p className="text-sm font-medium text-foreground">{item.description}</p>
+                                                                <p className="text-xs text-muted-foreground mt-1">{item.time}</p>
                                                             </div>
                                                         </div>
                                                     ))
@@ -342,7 +342,7 @@ export const AdminDashboard = () => {
                             </div>
                         </>
                     ) : (
-                        <div className="bg-white rounded-xl shadow-xl p-6 min-h-[500px]">
+                        <div className="bg-card rounded-xl shadow-xl p-6 min-h-[500px]">
                             <AdminReportes isEmbedded={true} />
                         </div>
                     )}

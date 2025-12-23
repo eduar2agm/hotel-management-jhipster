@@ -21,7 +21,7 @@ export const RoomCard = ({ habitacion: h, onEdit, onDelete, onToggleActive }: Ro
 
     return (
         <>
-            <Card className="overflow-hidden hover:shadow-xl transition-all group border-gray-200">
+            <Card className="overflow-hidden hover:shadow-xl hover:border-primary/50 transition-all group border-border bg-card dark:bg-card/50">
                 <div className="relative h-48 w-full bg-gray-200 overflow-hidden">
                     {h.imagen ? (
                         <img
@@ -30,7 +30,7 @@ export const RoomCard = ({ habitacion: h, onEdit, onDelete, onToggleActive }: Ro
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         />
                     ) : (
-                        <div className="w-full h-full flex flex-col items-center justify-center text-gray-400 bg-gray-100">
+                        <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground bg-muted">
                             <ImageIcon className="h-12 w-12 mb-2 opacity-50" />
                             <span className="text-xs font-semibold">Sin Imagen</span>
                         </div>
@@ -46,7 +46,7 @@ export const RoomCard = ({ habitacion: h, onEdit, onDelete, onToggleActive }: Ro
                         </Badge>
                     </div>
                     <div className="absolute top-3 right-3">
-                        <Badge variant="secondary" className="bg-white/90 text-gray-800 shadow-sm backdrop-blur-sm">
+                        <Badge variant="secondary" className="bg-background/90 text-foreground shadow-sm backdrop-blur-sm">
                             #{h.numero}
                         </Badge>
                     </div>
@@ -55,33 +55,33 @@ export const RoomCard = ({ habitacion: h, onEdit, onDelete, onToggleActive }: Ro
                 <CardContent className="p-5">
                     <div className="flex justify-between items-start mb-3">
                         <div>
-                            <h3 className="font-bold text-lg text-gray-900">{h.categoriaHabitacion?.nombre}</h3>
-                            <p className="text-sm text-yellow-600 font-bold flex items-center gap-1">
+                            <h3 className="font-bold text-lg text-card-foreground">{h.categoriaHabitacion?.nombre}</h3>
+                            <p className="text-sm text-yellow-600 dark:text-yellow-500 font-bold flex items-center gap-1">
                                 <DollarSign className="h-3.5 w-3.5" />
                                 {h.categoriaHabitacion?.precioBase} / noche
                             </p>
                         </div>
-                        <div className="flex items-center text-gray-500 text-xs font-medium bg-gray-100 px-2 py-1 rounded">
+                        <div className="flex items-center text-muted-foreground text-xs font-medium bg-muted px-2 py-1 rounded">
                             <BedDouble className="h-3.5 w-3.5 mr-1" />
                             {h.capacidad} pax
                         </div>
                     </div>
 
-                    <p className="text-gray-500 text-sm line-clamp-2 mb-4 h-10">
+                    <p className="text-muted-foreground text-sm line-clamp-2 mb-4 h-10">
                         {h.descripcion || 'Sin descripción detallada disponible.'}
                     </p>
 
-                    <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                    <div className="flex items-center justify-between pt-4 border-t border-border">
                         <div className="flex items-center gap-2">
-                            <div className={`h-2.5 w-2.5 rounded-full ${h.activo ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-                            <span className="text-xs font-medium text-gray-600">{h.activo ? 'Habilitada' : 'Deshabilitada'}</span>
+                            <div className={`h-2.5 w-2.5 rounded-full ${h.activo ? 'bg-green-500' : 'bg-muted-foreground'}`}></div>
+                            <span className="text-xs font-medium text-muted-foreground">{h.activo ? 'Habilitada' : 'Deshabilitada'}</span>
                         </div>
                         <div className="flex gap-2">
                             <Button
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => setIsDetailsOpen(true)}
-                                className="h-8 w-8 p-0 text-gray-500 hover:text-blue-600 hover:bg-blue-50"
+                                className="h-8 w-8 p-0 text-muted-foreground hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20"
                                 title="Ver Detalles"
                             >
                                 <Eye className="h-4 w-4" />
@@ -91,7 +91,7 @@ export const RoomCard = ({ habitacion: h, onEdit, onDelete, onToggleActive }: Ro
                                     variant="ghost"
                                     size="sm"
                                     onClick={() => onEdit(h)}
-                                    className="h-8 w-8 p-0 text-gray-500 hover:text-yellow-600 hover:bg-yellow-50"
+                                    className="h-8 w-8 p-0 text-muted-foreground hover:text-yellow-600 dark:hover:text-yellow-400 hover:bg-yellow-50 dark:hover:bg-yellow-900/20"
                                     title="Editar"
                                 >
                                     <Pencil className="h-4 w-4" />
@@ -102,10 +102,10 @@ export const RoomCard = ({ habitacion: h, onEdit, onDelete, onToggleActive }: Ro
                                     variant="ghost"
                                     size="sm"
                                     onClick={() => h.id && onToggleActive(h.id, h.activo)}
-                                    className="h-8 w-8 p-0 text-gray-500 hover:text-orange-600 hover:bg-orange-50"
+                                    className="h-8 w-8 p-0 text-muted-foreground hover:text-orange-600 dark:hover:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20"
                                     title={h.activo ? "Desactivar" : "Activar"}
                                 >
-                                    {h.activo ? <XCircle className="h-4 w-4" /> : <CheckCircle2 className="h-4 w-4 text-green-600" />}
+                                    {h.activo ? <XCircle className="h-4 w-4" /> : <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-500" />}
                                 </Button>
                             )}
                             {onDelete && (
@@ -113,7 +113,7 @@ export const RoomCard = ({ habitacion: h, onEdit, onDelete, onToggleActive }: Ro
                                     variant="ghost"
                                     size="sm"
                                     onClick={() => h.id && onDelete(h.id)}
-                                    className="h-8 w-8 p-0 text-gray-500 hover:text-red-600 hover:bg-red-50"
+                                    className="h-8 w-8 p-0 text-muted-foreground hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
                                     title="Eliminar"
                                 >
                                     <Trash2 className="h-4 w-4" />
@@ -136,38 +136,41 @@ export const RoomCard = ({ habitacion: h, onEdit, onDelete, onToggleActive }: Ro
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4">
-                        <div className="relative h-56 w-full rounded-lg overflow-hidden bg-gray-100">
+                        <div className="relative h-56 w-full rounded-lg overflow-hidden bg-muted">
                             {h.imagen ? (
                                 <img src={getImageUrl(h.imagen)} alt={`Full ${h.numero}`} className="w-full h-full object-cover" />
                             ) : (
-                                <div className="flex items-center justify-center h-full text-gray-400">
+                                <div className="flex items-center justify-center h-full text-muted-foreground">
                                     <ImageIcon className="h-12 w-12" />
                                 </div>
                             )}
                         </div>
                         <div className="grid grid-cols-2 gap-4 text-sm">
                             <div>
-                                <span className="font-semibold text-gray-500 block">Categoría</span>
-                                <span className="text-gray-900">{h.categoriaHabitacion?.nombre}</span>
+                                <span className="font-semibold text-muted-foreground block">Categoría</span>
+                                <span className="text-foreground">{h.categoriaHabitacion?.nombre}</span>
                             </div>
                             <div>
-                                <span className="font-semibold text-gray-500 block">Precio Base</span>
-                                <span className="text-gray-900 font-bold">${h.categoriaHabitacion?.precioBase}</span>
+                                <span className="font-semibold text-muted-foreground block">Precio Base</span>
+                                <span className="text-foreground font-bold">${h.categoriaHabitacion?.precioBase}</span>
                             </div>
                             <div>
-                                <span className="font-semibold text-gray-500 block">Capacidad</span>
-                                <span className="text-gray-900">{h.capacidad} Personas</span>
+                                <span className="font-semibold text-muted-foreground block">Capacidad</span>
+                                <span className="text-foreground">{h.capacidad} Personas</span>
                             </div>
                             <div>
-                                <span className="font-semibold text-gray-500 block">Estado Actual</span>
-                                <Badge variant="outline" className={h.estadoHabitacion?.nombre === 'DISPONIBLE' ? 'text-green-600 border-green-200 bg-green-50' : 'text-red-600 border-red-200 bg-red-50'}>
+                                <span className="font-semibold text-muted-foreground block">Estado Actual</span>
+                                <Badge variant="outline" className={cn(
+                                    h.estadoHabitacion?.nombre === 'DISPONIBLE' ? 'text-green-600 border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/30' : 
+                                    'text-red-600 border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/30'
+                                )}>
                                     {h.estadoHabitacion?.nombre}
                                 </Badge>
                             </div>
                         </div>
                         <div>
-                            <span className="font-semibold text-gray-500 block text-sm mb-1">Descripción</span>
-                            <p className="text-sm text-gray-700 bg-gray-50 p-3 rounded-md border border-gray-100">
+                            <span className="font-semibold text-muted-foreground block text-sm mb-1">Descripción</span>
+                            <p className="text-sm text-foreground bg-muted/50 p-3 rounded-md border border-border">
                                 {h.descripcion || 'No hay descripción disponible para esta habitación.'}
                             </p>
                         </div>

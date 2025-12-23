@@ -34,7 +34,7 @@ const daysFullMap: Record<string, string> = {
 export const ServiceAvailabilityInfo = ({ disponibilidades }: ServiceAvailabilityInfoProps) => {
     if (!disponibilidades || disponibilidades.length === 0) {
         return (
-            <div className="flex items-center gap-2 text-gray-500 text-sm">
+            <div className="flex items-center gap-2 text-muted-foreground text-sm">
                 <Info size={16} />
                 <span>No hay disponibilidad configurada</span>
             </div>
@@ -54,15 +54,15 @@ export const ServiceAvailabilityInfo = ({ disponibilidades }: ServiceAvailabilit
             {/* Días disponibles - Badges */}
             <div>
                 <div className="flex items-center gap-2 mb-2">
-                    <CalendarDays size={16} className="text-gray-600" />
-                    <span className="text-sm font-semibold text-gray-700">Días disponibles</span>
+                    <CalendarDays size={16} className="text-muted-foreground" />
+                    <span className="text-sm font-semibold text-foreground">Días disponibles</span>
                 </div>
                 <div className="flex flex-wrap gap-2">
                     {Object.keys(disponibilidadesPorDia).map((dia) => (
                         <Badge
                             key={dia}
                             variant="outline"
-                            className="bg-green-50 text-green-700 border-green-200"
+                            className="bg-green-500/10 text-green-600 border-green-500/20"
                         >
                             {daysMap[dia] || dia}
                         </Badge>
@@ -73,22 +73,22 @@ export const ServiceAvailabilityInfo = ({ disponibilidades }: ServiceAvailabilit
             {/* Horarios detallados */}
             <div>
                 <div className="flex items-center gap-2 mb-2">
-                    <Clock size={16} className="text-gray-600" />
-                    <span className="text-sm font-semibold text-gray-700">Horarios</span>
+                    <Clock size={16} className="text-muted-foreground" />
+                    <span className="text-sm font-semibold text-foreground">Horarios</span>
                 </div>
                 <div className="space-y-2">
                     {Object.entries(disponibilidadesPorDia).map(([dia, disps]) => (
-                        <Card key={dia} className="bg-gray-50 border-gray-200">
+                        <Card key={dia} className="bg-muted/10 border-border">
                             <CardContent className="p-3">
                                 <div className="flex items-start justify-between">
                                     <div className="flex-1">
-                                        <div className="font-medium text-sm text-gray-900 mb-1">
+                                        <div className="font-medium text-sm text-foreground mb-1">
                                             {daysFullMap[dia] || dia}
                                         </div>
                                         <div className="space-y-1">
                                             {disps.map((disp, idx) => (
-                                                <div key={idx} className="flex items-center gap-2 text-sm text-gray-600">
-                                                    <Clock size={14} className="text-gray-400" />
+                                                <div key={idx} className="flex items-center gap-2 text-sm text-muted-foreground">
+                                                    <Clock size={14} className="text-muted-foreground/70" />
                                                     <span>
                                                         {disp.horaFija
                                                             ? `Hora fija: ${disp.horaInicio}`
@@ -98,7 +98,7 @@ export const ServiceAvailabilityInfo = ({ disponibilidades }: ServiceAvailabilit
                                             ))}
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-1 text-xs text-gray-500">
+                                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
                                         <Users size={14} />
                                         <span>
                                             {disps[0].cupoMaximo} {disps[0].cupoMaximo === 1 ? 'cupo' : 'cupos'}

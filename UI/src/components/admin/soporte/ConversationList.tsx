@@ -38,20 +38,20 @@ export const ConversationList = ({
 }: ConversationListProps) => {
 
     return (
-        <div className="rounded-md border border-gray-100 overflow-hidden bg-white">
+        <div className="rounded-md border border-border overflow-hidden bg-card">
             <Table>
-                <TableHeader className="bg-gray-50">
-                    <TableRow>
-                        <TableHead className="font-bold text-gray-700 uppercase tracking-wider text-xs py-4 pl-6">Cliente</TableHead>
-                        <TableHead className="font-bold text-gray-700 uppercase tracking-wider text-xs">Último Mensaje</TableHead>
-                        <TableHead className="font-bold text-gray-700 uppercase tracking-wider text-xs hidden md:table-cell">Fecha</TableHead>
-                        <TableHead className="text-right font-bold text-gray-700 uppercase tracking-wider text-xs pr-6"></TableHead>
+                <TableHeader className="bg-muted/50">
+                    <TableRow className="border-border">
+                        <TableHead className="font-bold text-muted-foreground uppercase tracking-wider text-xs py-4 pl-6">Cliente</TableHead>
+                        <TableHead className="font-bold text-muted-foreground uppercase tracking-wider text-xs">Último Mensaje</TableHead>
+                        <TableHead className="font-bold text-muted-foreground uppercase tracking-wider text-xs hidden md:table-cell">Fecha</TableHead>
+                        <TableHead className="text-right font-bold text-muted-foreground uppercase tracking-wider text-xs pr-6"></TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
                     {isLoading ? (
                         <TableRow>
-                            <TableCell colSpan={4} className="text-center py-20 text-gray-500">
+                            <TableCell colSpan={4} className="text-center py-20 text-muted-foreground">
                                 <div className="flex justify-center items-center gap-2">
                                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-600"></div>
                                     Cargando soporte...
@@ -60,7 +60,7 @@ export const ConversationList = ({
                         </TableRow>
                     ) : conversations.length === 0 ? (
                         <TableRow>
-                            <TableCell colSpan={4} className="text-center py-20 text-gray-400 font-light text-lg">
+                            <TableCell colSpan={4} className="text-center py-20 text-muted-foreground font-light text-lg">
                                 No hay mensajes de soporte.
                             </TableCell>
                         </TableRow>
@@ -69,14 +69,14 @@ export const ConversationList = ({
                             <TableRow
                                 key={conv.otherPartyId}
                                 onClick={() => onSelect(conv)}
-                                className={`cursor-pointer transition-all border-b border-gray-50 group
-                                    ${conv.unreadCount > 0 ? 'bg-blue-50/40 hover:bg-blue-50' : 'hover:bg-slate-50'}
+                                className={`cursor-pointer transition-all border-b border-border group
+                                    ${conv.unreadCount > 0 ? 'bg-blue-500/10 hover:bg-blue-500/20 dark:bg-blue-900/10 dark:hover:bg-blue-900/20' : 'hover:bg-muted/50'}
                                 `}
                             >
                                 <TableCell className="pl-6 w-[250px]">
                                     <div className="flex items-center gap-3">
                                         <div className={`relative w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm
-                                            ${conv.unreadCount > 0 ? 'bg-blue-600' : 'bg-slate-400'}
+                                            ${conv.unreadCount > 0 ? 'bg-blue-600' : 'bg-muted/80 text-foreground'}
                                         `}>
                                             {conv.otherPartyName.charAt(0).toUpperCase()}
                                             {conv.unreadCount > 0 && (
@@ -86,11 +86,11 @@ export const ConversationList = ({
                                             )}
                                         </div>
                                         <div className="flex flex-col">
-                                            <span className={`text-sm ${conv.unreadCount > 0 ? 'font-bold text-slate-900' : 'font-medium text-slate-700'}`}>
+                                            <span className={`text-sm ${conv.unreadCount > 0 ? 'font-bold text-foreground' : 'font-medium text-foreground/80'}`}>
                                                 {conv.otherPartyName}
                                             </span>
                                             {conv.otherPartyId !== 'unknown' && (
-                                                <div className="flex items-center gap-1 text-xs text-slate-400">
+                                                <div className="flex items-center gap-1 text-xs text-muted-foreground">
                                                     <User className="h-3 w-3" /> ID: {conv.otherPartyId.substring(0, 8)}...
                                                 </div>
                                             )}
@@ -99,8 +99,8 @@ export const ConversationList = ({
                                 </TableCell>
                                 <TableCell>
                                     <div className="max-w-xl">
-                                        <p className={`text-sm truncate ${conv.unreadCount > 0 ? 'font-bold text-slate-800' : 'text-slate-600'}`}>
-                                            <span className="text-xs text-gray-400 mr-2 font-normal">
+                                        <p className={`text-sm truncate ${conv.unreadCount > 0 ? 'font-bold text-foreground' : 'text-foreground/70'}`}>
+                                            <span className="text-xs text-muted-foreground mr-2 font-normal">
                                                 {conv.lastMessage.remitente === Remitente.ADMINISTRATIVO ? 'Tú: ' : ''}
                                             </span>
                                             {conv.lastMessage.mensaje}
@@ -108,10 +108,10 @@ export const ConversationList = ({
                                     </div>
                                 </TableCell>
                                 <TableCell className="hidden md:table-cell w-[180px]">
-                                    <span className={`text-xs ${conv.unreadCount > 0 ? 'font-bold text-blue-700' : 'text-gray-500'}`}>
+                                    <span className={`text-xs ${conv.unreadCount > 0 ? 'font-bold text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`}>
                                         {new Date(conv.lastMessage.fechaMensaje!).toLocaleDateString()}
                                     </span>
-                                    <div className="text-[10px] text-gray-400">
+                                    <div className="text-[10px] text-muted-foreground">
                                         {new Date(conv.lastMessage.fechaMensaje!).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                     </div>
                                 </TableCell>
@@ -119,7 +119,7 @@ export const ConversationList = ({
                                     <Button
                                         variant="ghost"
                                         size="icon"
-                                        className="h-8 w-8 text-gray-400 hover:text-blue-600"
+                                        className="h-8 w-8 text-muted-foreground hover:text-blue-600"
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             onToggleActivo(conv.lastMessage);
@@ -128,7 +128,7 @@ export const ConversationList = ({
                                     >
                                         {conv.lastMessage.activo ? <Archive className="h-4 w-4" /> : <ArchiveRestore className="h-4 w-4" />}
                                     </Button>
-                                    <ChevronRight className="h-5 w-5 text-gray-300 group-hover:text-blue-500 transition-colors" />
+                                    <ChevronRight className="h-5 w-5 text-muted-foreground/30 group-hover:text-blue-500 transition-colors" />
                                 </TableCell>
                             </TableRow>
                         ))
@@ -137,7 +137,7 @@ export const ConversationList = ({
             </Table>
 
             {/* Pagination */}
-            <div className="bg-gray-50/50">
+            <div className="bg-muted/20 border-t border-border">
                 <PaginationControl
                     currentPage={currentPage}
                     totalItems={totalItems}

@@ -18,6 +18,7 @@ import {
 import { useAuth } from '../../hooks/useAuth';
 import { useUnreadSupport } from '../../hooks/useUnreadSupport';
 import logo from '../../assets/logoN.png';
+import { ModeToggle } from '../mode-toggle';
 
 export const Navbar = () => {
   const { isAuthenticated, login, logout, user, isClient, isEmployee, isAdmin } = useAuth();
@@ -109,8 +110,9 @@ export const Navbar = () => {
         )}
       </div>
 
-      {/* Botón Login / Logout */}
-      <div>
+      {/* Botón Login / Logout + Dark Mode */}
+      <div className="flex items-center gap-4">
+        <ModeToggle />
         {isAuthenticated ? (
           <div className="flex items-center gap-4">
 

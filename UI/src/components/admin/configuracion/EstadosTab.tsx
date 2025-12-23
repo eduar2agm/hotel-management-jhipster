@@ -89,11 +89,11 @@ export const EstadosTab = () => {
 
     return (
         <>
-            <Card className="bg-white border-0 shadow-xl overflow-hidden rounded-2xl">
-                <CardHeader className="border-b border-gray-100 bg-white p-6 flex flex-row items-center justify-between">
+            <Card className="bg-card border-0 shadow-xl overflow-hidden rounded-2xl">
+                <CardHeader className="border-b border-border bg-card p-6 flex flex-row items-center justify-between">
                     <div>
-                        <CardTitle className="text-2xl font-bold text-gray-800">Estados de Habitación</CardTitle>
-                        <p className="text-gray-500 text-sm mt-1">Gestione los ciclos de vida y disponibilidad.</p>
+                        <CardTitle className="text-2xl font-bold text-foreground">Estados de Habitación</CardTitle>
+                        <p className="text-muted-foreground text-sm mt-1">Gestione los ciclos de vida y disponibilidad.</p>
                     </div>
                     <Button
                         onClick={() => { setCurrentEst({}); setIsDialogOpen(true); }}
@@ -104,40 +104,40 @@ export const EstadosTab = () => {
                 </CardHeader>
                 <CardContent className="p-0">
                     <Table>
-                        <TableHeader className="bg-gray-50">
-                            <TableRow>
-                                <TableHead className="font-bold text-gray-600 py-5 pl-8">ESTADO</TableHead>
-                                <TableHead className="font-bold text-gray-600 py-5">DESCRIPCIÓN</TableHead>
-                                <TableHead className="font-bold text-gray-600 py-5 text-right pr-8">ACCIONES</TableHead>
+                        <TableHeader className="bg-muted/50">
+                            <TableRow className="border-border">
+                                <TableHead className="font-bold text-muted-foreground py-5 pl-8">ESTADO</TableHead>
+                                <TableHead className="font-bold text-muted-foreground py-5">DESCRIPCIÓN</TableHead>
+                                <TableHead className="font-bold text-muted-foreground py-5 text-right pr-8">ACCIONES</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {isLoading ? (
-                                <TableRow><TableCell colSpan={3} className="h-32 text-center text-gray-500">Cargando datos...</TableCell></TableRow>
+                                <TableRow><TableCell colSpan={3} className="h-32 text-center text-muted-foreground">Cargando datos...</TableCell></TableRow>
                             ) : estados.length === 0 ? (
-                                <TableRow><TableCell colSpan={3} className="h-32 text-center text-gray-500">No hay estados registradas.</TableCell></TableRow>
+                                <TableRow><TableCell colSpan={3} className="h-32 text-center text-muted-foreground">No hay estados registradas.</TableCell></TableRow>
                             ) : (
                                 estados.map(est => (
-                                    <TableRow key={est.id} className="hover:bg-gray-50/80 transition-colors border-b border-gray-100">
+                                    <TableRow key={est.id} className="hover:bg-muted/50 transition-colors border-b border-border">
                                         <TableCell className="py-5 pl-8">
                                             <div className="flex items-center gap-4">
-                                                <div className={`p-2.5 rounded-full shadow-sm ${est.nombre === 'DISPONIBLE' ? 'bg-green-100 text-green-700' :
-                                                    est.nombre === 'OCUPADA' ? 'bg-red-100 text-red-700' :
-                                                        est.nombre === 'MANTENIMIENTO' ? 'bg-orange-100 text-orange-700' :
-                                                            'bg-gray-100 text-gray-700'
+                                                <div className={`p-2.5 rounded-full shadow-sm ${est.nombre === 'DISPONIBLE' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' :
+                                                    est.nombre === 'OCUPADA' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400' :
+                                                        est.nombre === 'MANTENIMIENTO' ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400' :
+                                                            'bg-muted text-muted-foreground'
                                                     }`}>
                                                     <Activity className="w-5 h-5" />
                                                 </div>
-                                                <span className="font-bold text-gray-800 text-lg">{est.nombre}</span>
+                                                <span className="font-bold text-foreground text-lg">{est.nombre}</span>
                                             </div>
                                         </TableCell>
-                                        <TableCell className="py-5 text-gray-600 text-base">{est.descripcion}</TableCell>
+                                        <TableCell className="py-5 text-muted-foreground text-base">{est.descripcion}</TableCell>
                                         <TableCell className="py-5 text-right pr-8">
                                             <div className="flex justify-end gap-2">
-                                                <Button variant="ghost" size="icon" className="h-10 w-10 hover:bg-indigo-50 hover:text-indigo-600 rounded-full" onClick={() => { setCurrentEst(est); setIsDialogOpen(true); }}>
+                                                <Button variant="ghost" size="icon" className="h-10 w-10 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-full" onClick={() => { setCurrentEst(est); setIsDialogOpen(true); }}>
                                                     <Pencil className="h-5 w-5" />
                                                 </Button>
-                                                <Button variant="ghost" size="icon" className="h-10 w-10 text-gray-400 hover:bg-red-50 hover:text-red-600 rounded-full" onClick={() => Number(est.id) && handleDelete(Number(est.id))}>
+                                                <Button variant="ghost" size="icon" className="h-10 w-10 text-muted-foreground hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400 rounded-full" onClick={() => Number(est.id) && handleDelete(Number(est.id))}>
                                                     <Trash2 className="h-5 w-5" />
                                                 </Button>
                                             </div>
@@ -153,14 +153,14 @@ export const EstadosTab = () => {
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
-                        <DialogTitle className="text-xl font-bold text-gray-900">{currentEst.id ? 'Editar' : 'Crear'} Estado</DialogTitle>
+                        <DialogTitle className="text-xl font-bold text-foreground">{currentEst.id ? 'Editar' : 'Crear'} Estado</DialogTitle>
                         <DialogDescription>
                             Defina el estado operativo para el control de habitaciones.
                         </DialogDescription>
                     </DialogHeader>
                     <form onSubmit={handleSave} className="grid gap-6 py-4">
                         <div className="grid gap-2">
-                            <Label className="text-sm font-semibold text-gray-700">Estado</Label>
+                            <Label className="text-sm font-semibold text-foreground">Estado</Label>
                             <Select
                                 value={currentEst.nombre || ''}
                                 onValueChange={(value) => setCurrentEst({ ...currentEst, nombre: value as EstadoHabitacionNombreType })}
@@ -177,7 +177,7 @@ export const EstadosTab = () => {
                             </Select>
                         </div>
                         <div className="grid gap-2">
-                            <Label className="text-sm font-semibold text-gray-700">Descripción</Label>
+                            <Label className="text-sm font-semibold text-foreground">Descripción</Label>
                             <Input
                                 value={currentEst.descripcion || ''}
                                 onChange={e => setCurrentEst({ ...currentEst, descripcion: e.target.value })}

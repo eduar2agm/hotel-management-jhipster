@@ -86,7 +86,7 @@ export const ClientMensajesSoporte = () => {
     };
 
     return (
-        <div className="flex flex-col h-full"> {/* h-full adapts to the outlet container */}
+        <div className="flex flex-col h-full bg-background"> {/* h-full adapts to the outlet container */}
 
             {/* --- HERO SECTION --- */}
             <PageHeader
@@ -98,17 +98,17 @@ export const ClientMensajesSoporte = () => {
             />
 
             <main className="flex-grow py-8 px-4 md:px-8 lg:px-20 relative z-10 -mt-10">
-                <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-xl overflow-hidden border border-gray-100 flex flex-col h-[70vh] min-h-[500px]">
+                <div className="max-w-4xl mx-auto bg-card rounded-lg shadow-xl overflow-hidden border border-border flex flex-col h-[70vh] min-h-[500px]">
 
                     {/* Header del Chat */}
-                    <div className="p-4 bg-white border-b border-gray-100 flex items-center justify-between sticky top-0 z-20 shadow-sm">
+                    <div className="p-4 bg-card/95 border-b border-border flex items-center justify-between sticky top-0 z-20 shadow-sm backdrop-blur-sm">
                         <div className="flex items-center gap-3">
-                            <div className="bg-yellow-100 p-2 rounded-full text-yellow-700">
+                            <div className="bg-yellow-500/10 p-2 rounded-full text-yellow-600">
                                 <MessageCircle className="h-5 w-5" />
                             </div>
                             <div>
-                                <h3 className="font-bold text-slate-800">Servicio al Huésped</h3>
-                                <p className="text-xs text-slate-500">Normalmente respondemos en unos minutos</p>
+                                <h3 className="font-bold text-foreground">Servicio al Huésped</h3>
+                                <p className="text-xs text-muted-foreground">Normalmente respondemos en unos minutos</p>
                             </div>
                         </div>
                     </div>
@@ -116,7 +116,7 @@ export const ClientMensajesSoporte = () => {
                     {/* Área de Mensajes */}
                     <div
                         ref={containerRef}
-                        className="flex-1 overflow-y-auto p-6 bg-slate-50 space-y-4 scroll-smooth"
+                        className="flex-1 overflow-y-auto p-6 bg-muted/5 space-y-4 scroll-smooth"
                     >
                         {loading && messages.length === 0 ? (
                             <div className="flex justify-center items-center h-full text-gray-400">
@@ -141,12 +141,12 @@ export const ClientMensajesSoporte = () => {
                                         <div className={`max-w-[85%] md:max-w-[70%] rounded-2xl p-3 px-4 text-sm shadow-sm relative group
                                             ${isMe
                                                 ? 'bg-blue-600 text-white rounded-tr-none'
-                                                : 'bg-white text-slate-800 border border-gray-200 rounded-tl-none'
+                                                : 'bg-muted text-foreground border border-border rounded-tl-none'
                                             }
                                         `}>
                                             <p className="whitespace-pre-wrap leading-relaxed">{msg.mensaje}</p>
                                             <div className={`flex items-center gap-1 mt-1 text-[10px] 
-                                                ${isMe ? 'text-blue-100 justify-end' : 'text-gray-400 justify-start'}
+                                                ${isMe ? 'text-blue-100 justify-end' : 'text-muted-foreground justify-start'}
                                             `}>
                                                 <span>
                                                     {new Date(msg.fechaMensaje!).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -165,20 +165,20 @@ export const ClientMensajesSoporte = () => {
                     </div>
 
                     {/* Input Area */}
-                    <div className="p-4 bg-white border-t border-gray-100">
+                    <div className="p-4 bg-card border-t border-border">
                         <div className="flex gap-2 items-end">
                             <Textarea
                                 value={inputText}
                                 onChange={(e) => setInputText(e.target.value)}
                                 onKeyDown={handleKeyDown}
                                 placeholder="Escriba su mensaje aquí..."
-                                className="min-h-[50px] max-h-[120px] bg-gray-50 border-gray-200 resize-none focus:bg-white focus:ring-yellow-500/20 focus:border-yellow-500 transition-all"
+                                className="min-h-[50px] max-h-[120px] bg-muted border-border resize-none focus:bg-background focus:ring-yellow-500/20 focus:border-yellow-500 transition-all text-foreground placeholder:text-muted-foreground"
                                 disabled={sending}
                             />
                             <Button
                                 onClick={handleSend}
                                 disabled={!inputText.trim() || sending}
-                                className="h-12 w-12 rounded-lg bg-slate-900 hover:bg-slate-800 text-white flex-shrink-0"
+                                className="h-12 w-12 rounded-lg bg-yellow-600 hover:bg-yellow-700 text-white flex-shrink-0"
                             >
                                 {sending ? (
                                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
@@ -187,7 +187,7 @@ export const ClientMensajesSoporte = () => {
                                 )}
                             </Button>
                         </div>
-                        <p className="text-[10px] text-gray-400 mt-2 text-center">
+                        <p className="text-[10px] text-muted-foreground mt-2 text-center">
                             Presiona Enter para enviar
                         </p>
                     </div>
