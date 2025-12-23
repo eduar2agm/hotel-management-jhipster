@@ -213,7 +213,6 @@ export const Servicios = () => {
 
   return (
     <div className="bg-white min-h-screen font-sans text-gray-900 flex flex-col">
-      <Navbar />
 
       <PageHeader
         title="Experiencias & Servicios"
@@ -490,8 +489,6 @@ export const Servicios = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      <Footer />
     </div>
   );
 };

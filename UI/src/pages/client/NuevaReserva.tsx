@@ -387,7 +387,7 @@ export const NuevaReserva = () => {
                                 </div>
 
                                 {/* --- RIGHT: FLOATING SUMMARY CARD --- */}
-                                <div className="lg:col-span-4 order-1 lg:order-2 lg:sticky lg:top-10">
+                                <div className="lg:col-span-4 order-1 lg:order-2 lg:sticky lg:top-1">
                                     <div className="bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden">
                                         <div className="bg-slate-900 p-6 text-white">
                                             <div className="flex items-center gap-3 mb-2">

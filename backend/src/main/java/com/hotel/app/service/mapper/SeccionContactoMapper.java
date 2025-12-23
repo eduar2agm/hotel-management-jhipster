@@ -5,7 +5,12 @@ import com.hotel.app.service.dto.SeccionContactoDTO;
 import org.mapstruct.*;
 
 /**
- * Mapper for the entity {@link SeccionContacto} and its DTO {@link SeccionContactoDTO}.
+ * Mapper for the entity {@link SeccionContacto} and its DTO
+ * {@link SeccionContactoDTO}.
  */
 @Mapper(componentModel = "spring")
-public interface SeccionContactoMapper extends EntityMapper<SeccionContactoDTO, SeccionContacto> {}
+public interface SeccionContactoMapper extends EntityMapper<SeccionContactoDTO, SeccionContacto> {
+    @Mapping(target = "imagenFondoBase64", ignore = true)
+    @Mapping(target = "imagenFondoContentType", ignore = true)
+    SeccionContactoDTO toDto(SeccionContacto s);
+}

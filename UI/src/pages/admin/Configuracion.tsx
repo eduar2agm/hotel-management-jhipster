@@ -53,7 +53,7 @@ export const AdminConfiguracion = () => {
                         >
                             <Activity className="mr-2 h-5 w-5" /> Estados
                         </Button>
-                        <Button
+                        {/* <Button
                             onClick={() => setActiveTab('carousel')}
                             className={`h-12 px-6 rounded-full shadow-lg transition-all text-base font-bold tracking-wide ${activeTab === 'carousel'
                                 ? 'bg-indigo-600 hover:bg-indigo-700 text-white ring-4 ring-indigo-600/20'
@@ -61,7 +61,7 @@ export const AdminConfiguracion = () => {
                                 }`}
                         >
                             <ImageIcon className="mr-2 h-5 w-5" /> Carrusel
-                        </Button>
+                        </Button> */}
                         <Button
                             onClick={() => setActiveTab('sistema')}
                             className={`h-12 px-6 rounded-full shadow-lg transition-all text-base font-bold tracking-wide ${activeTab === 'sistema'

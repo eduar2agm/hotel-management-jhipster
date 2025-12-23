@@ -27,9 +27,12 @@
     <include file="config/liquibase/changelog/20251219230612_added_entity_Imagen.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20251219234509_added_entity_ConfiguracionSistema.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20251219235557_added_entity_CarouselItem.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20251221224145_added_entity_SeccionHero.xml" relativeToChangelogFile="false"/>
+    <include file="/config/liquibase/changelog/20251221224146_added_entity_RedSociallanding.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20251222003707_added_entity_SeccionContacto.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20251222003708_added_entity_RedSocial.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20251222003709_added_entity_Telefono.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20251222203245_added_entity_Ubicacion.xml" relativeToChangelogFile="false"/>
     <!-- jhipster-needle-liquibase-add-changelog - JHipster will add liquibase changelogs here -->
     <include file="config/liquibase/changelog/20251211014117_added_entity_constraints_Habitacion.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20251211014119_added_entity_constraints_Reserva.xml" relativeToChangelogFile="false"/>
