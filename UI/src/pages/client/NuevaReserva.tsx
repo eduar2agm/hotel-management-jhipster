@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -18,7 +18,7 @@ import type { HabitacionDTO, NewReservaDTO, ServicioDTO } from '../../types/api'
 import { toast } from 'sonner';
 import { Search, ArrowLeft, CalendarDays, ShoppingBag, Trash2, BedDouble } from 'lucide-react';
 import { CardRoom } from '../../components/ui/CardRoom';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { PageHeader } from '../../components/common/PageHeader';
 import { PriceRangeFilter } from '@/components/common/PriceRangeFilter';
 
@@ -63,6 +63,7 @@ type SearchFormValues = z.infer<typeof searchSchema>;
 export const NuevaReserva = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
 
     // State
     const [step, setStep] = useState(1);
@@ -115,7 +116,18 @@ export const NuevaReserva = () => {
         fetchFreeServices();
     }, [user, navigate]);
 
-    const onSearch = async (values: SearchFormValues) => {
+    const toggleRoomSelection = useCallback((room: HabitacionDTO) => {
+        setSelectedRooms(prev => {
+            const exists = prev.find(r => r.id === room.id);
+            if (exists) {
+                return prev.filter(r => r.id !== room.id);
+            } else {
+                return [...prev, room];
+            }
+        });
+    }, []);
+
+    const onSearch = useCallback(async (values: SearchFormValues) => {
         setIsLoading(true);
         try {
             const startStr = `${values.start}T00:00:00Z`;
@@ -130,20 +142,62 @@ export const NuevaReserva = () => {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, []); // Removed form depends as values are passed in
 
-    const toggleRoomSelection = (room: HabitacionDTO) => {
-        setSelectedRooms(prev => {
-            const exists = prev.find(r => r.id === room.id);
-            if (exists) {
-                return prev.filter(r => r.id !== room.id);
+
+    const processingState = useRef(false);
+
+    // Handle pre-filled state from Homepage/Modal
+    useEffect(() => {
+        const state = location.state as {
+            preSelectedRoom?: HabitacionDTO;
+            startDate?: string;
+            endDate?: string;
+        };
+
+        if (state?.startDate && state?.endDate && !processingState.current) {
+            processingState.current = true;
+
+            form.setValue('start', state.startDate);
+            form.setValue('end', state.endDate);
+
+            if (state.preSelectedRoom) {
+                const loadPreSelected = async () => {
+                    setIsLoading(true);
+                    try {
+                        const startStr = `${state.startDate}T00:00:00Z`;
+                        const endStr = `${state.endDate}T00:00:00Z`;
+                        const res = await HabitacionService.getAvailableHabitaciones(startStr, endStr, { size: 1000 });
+                        setAvailableRooms(res.data);
+
+                        const found = res.data.find(r => r.id === state.preSelectedRoom?.id);
+                        if (found) {
+                            setSelectedRooms([found]);
+                            setStep(2);
+                            toast.success(`Habitación ${found.numero} seleccionada`, { id: 'pre-select-toast' });
+                        } else {
+                            toast.warning('La habitación ya no está disponible, pero puede elegir otras.');
+                            setStep(1);
+                        }
+                    } catch (error) {
+                        console.error("Error loading pre-selected room:", error);
+                        toast.error("Error al cargar disponibilidad");
+                    } finally {
+                        setIsLoading(false);
+                        // Clear state from history to prevent re-processing on refresh/loop
+                        navigate(location.pathname, { replace: true, state: {} });
+                    }
+                };
+                loadPreSelected();
             } else {
-                return [...prev, room];
+                onSearch({ start: state.startDate, end: state.endDate }).then(() => {
+                    navigate(location.pathname, { replace: true, state: {} });
+                });
             }
-        });
-    };
+        }
+    }, [location.state, location.pathname, form, onSearch, navigate]);
 
-    const calculateNights = () => {
+    const calculateNights = useCallback(() => {
         const { start, end } = form.getValues();
         if (!start || !end) return 0;
         const startDate = parseLocalDate(start);
@@ -151,39 +205,34 @@ export const NuevaReserva = () => {
         const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
         const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
         return days === 0 ? 1 : days;
-    };
+    }, [form]);
 
-    const calculateTotal = () => {
+    const calculateTotal = useCallback(() => {
         const nights = calculateNights();
         return selectedRooms.reduce((acc, room) => {
             return acc + ((room.categoriaHabitacion?.precioBase || 0) * nights);
         }, 0);
-    };
+    }, [selectedRooms, calculateNights]);
 
-    const confirmReservation = async () => {
-        if (!clienteId) return;
+    const confirmReservation = useCallback(async () => {
+        if (!clienteId) {
+            toast.error("Inicie sesión como cliente para reservar");
+            return;
+        }
         if (selectedRooms.length === 0) return;
         if (!confirm(`¿Confirmar reserva por ${selectedRooms.length} habitaciones?`)) return;
 
         setIsSubmitting(true);
         try {
             const dates = form.getValues();
-
-            // Construct Dates manually to avoid timezone shift
             const [sYear, sMonth, sDay] = dates.start.split('-').map(Number);
             const [eYear, eMonth, eDay] = dates.end.split('-').map(Number);
-
-            // FIX: Using 23:59:59 causes date to jump to next day in UTC-6 (CST) and other Western timezones.
-            // Instead, we use typical Check-IN (15:00) and Check-OUT (11:00) times.
-            // Dec 31 15:00 CST -> Dec 31 21:00 UTC (SAME DAY)
-            // Jan 01 11:00 CST -> Jan 01 17:00 UTC (SAME DAY)
             const startDateLocal = new Date(sYear, sMonth - 1, sDay, 15, 0, 0);
             const endDateLocal = new Date(eYear, eMonth - 1, eDay, 11, 0, 0);
 
-            // 1. Create ONE Master Reservation
             const newReserva: NewReservaDTO = {
                 fechaReserva: new Date().toISOString(),
-                fechaInicio: startDateLocal.toISOString(), // Will include local timezone offset converted to UTC
+                fechaInicio: startDateLocal.toISOString(),
                 fechaFin: endDateLocal.toISOString(),
                 estado: 'PENDIENTE',
                 activo: true,
@@ -195,27 +244,25 @@ export const NuevaReserva = () => {
 
             if (!savedReserva.id) throw new Error("No se pudo crear la reserva");
 
-            // 2. Create Details for EACH selected room
-            // Execute in parallel for speed
             await Promise.all(selectedRooms.map(room =>
                 ReservaDetalleService.createReservaDetalle({
                     reserva: { id: savedReserva.id },
                     habitacion: room,
                     precioUnitario: room.categoriaHabitacion?.precioBase ? Number(room.categoriaHabitacion.precioBase) : 0,
                     activo: true,
-                    nota: 'Reserva Web Cliente - Multi Habitación'
+                    nota: 'Reserva Web Cliente - Homepage Direct Flow'
                 })
             ));
 
-            toast.success('¡Reserva creada con éxito! Puede verla en "Mis Reservas"');
+            toast.success('¡Reserva creada con éxito!');
             navigate('/client/reservas');
         } catch (error) {
             console.error(error);
-            toast.error('Error al crear reserva. Por favor intente nuevamente.');
+            toast.error('Error al crear reserva.');
         } finally {
             setIsSubmitting(false);
         }
-    };
+    }, [clienteId, selectedRooms, form, navigate]);
 
     // Date formatter for display that respects the string value without timezone shift
     const formatDisplayDate = (dateStr: string) => {
