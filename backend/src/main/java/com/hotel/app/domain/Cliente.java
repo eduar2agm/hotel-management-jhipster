@@ -40,25 +40,21 @@ public class Cliente implements Serializable {
     @Column(name = "direccion")
     private String direccion;
 
-    @NotNull
     @Enumerated(EnumType.STRING)
-    @Column(name = "tipo_identificacion", nullable = false)
+    @Column(name = "tipo_identificacion")
     private TipoIdentificacion tipoIdentificacion;
 
-    @NotNull
-    @Column(name = "numero_identificacion", nullable = false)
+    @Column(name = "numero_identificacion")
     private String numeroIdentificacion;
 
-    @NotNull
-    @Column(name = "keycloak_id", nullable = false)
+    @Column(name = "keycloak_id")
     private String keycloakId;
 
     @NotNull
     @Column(name = "activo", nullable = false)
     private Boolean activo;
 
-    @NotNull
-    @Column(name = "fecha_nacimiento", nullable = false)
+    @Column(name = "fecha_nacimiento")
     private java.time.LocalDate fechaNacimiento;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here

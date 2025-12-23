@@ -367,7 +367,7 @@ export const ReservaFormDialog = ({
                                                             {clientes.map((cliente) => (
                                                                 <CommandItem
                                                                     key={cliente.id}
-                                                                    value={`${cliente.nombre} ${cliente.apellido} ${cliente.numeroIdentificacion || ''}`}
+                                                                    value={`${cliente.nombre} ${cliente.apellido} ${cliente.numeroIdentificacion || ''} ${cliente.correo}`}
                                                                     onSelect={() => {
                                                                         form.setValue("clienteId", cliente.id!);
                                                                         setOpenClientCombo(false);
@@ -381,9 +381,10 @@ export const ReservaFormDialog = ({
                                                                     />
                                                                     <div className="flex flex-col">
                                                                         <span className="font-medium">{cliente.nombre} {cliente.apellido}</span>
-                                                                        {cliente.numeroIdentificacion && (
-                                                                            <span className="text-xs text-gray-500">ID: {cliente.numeroIdentificacion}</span>
-                                                                        )}
+                                                                        <div className="flex flex-col text-xs text-gray-500">
+                                                                            {cliente.numeroIdentificacion && <span>ID: {cliente.numeroIdentificacion}</span>}
+                                                                            <span>{cliente.correo}</span>
+                                                                        </div>
                                                                     </div>
                                                                 </CommandItem>
                                                             ))}

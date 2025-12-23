@@ -56,5 +56,6 @@
     <include file="config/liquibase/changelog/20251223000000_insert_initial_data.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20251223025000_modify_imagen_nullable.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20251223020000_insert_imagenes_referencias.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20251223120000_relax_cliente_constraints.xml" relativeToChangelogFile="false"/>
     <!-- jhipster-needle-liquibase-add-incremental-changelog - JHipster will add incremental liquibase changelogs here -->
 </databaseChangeLog>

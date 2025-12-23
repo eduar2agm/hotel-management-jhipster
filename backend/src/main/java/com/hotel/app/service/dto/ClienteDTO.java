@@ -27,19 +27,15 @@ public class ClienteDTO implements Serializable {
 
     private String direccion;
 
-    @NotNull
     private TipoIdentificacion tipoIdentificacion;
 
-    @NotNull
     private String numeroIdentificacion;
 
-    @NotNull
     private String keycloakId;
 
     @NotNull
     private Boolean activo;
 
-    @NotNull
     private java.time.LocalDate fechaNacimiento;
 
     public Long getId() {

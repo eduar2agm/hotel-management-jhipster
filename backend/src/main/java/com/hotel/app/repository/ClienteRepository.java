@@ -17,5 +17,7 @@ public interface ClienteRepository extends JpaRepository<Cliente, Long> {
 
     Optional<Cliente> findOneByKeycloakId(String keycloakId);
 
+    Optional<Cliente> findOneByNumeroIdentificacion(String numeroIdentificacion);
+
     Page<Cliente> findByActivo(Boolean activo, Pageable pageable);
 }
