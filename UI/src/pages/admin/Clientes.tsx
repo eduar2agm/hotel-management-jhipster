@@ -369,7 +369,7 @@ export const AdminClientes = () => {
                                     }}
                                 />
                                 <Select value={filterType} onValueChange={(val: any) => setFilterType(val)}>
-                                    <SelectTrigger className="w-[180px] bg-white border-gray-200">
+                                    <SelectTrigger className="w-[180px] bg-background  border-none">
                                         <SelectValue placeholder="Tipo de Cliente" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -431,14 +431,14 @@ export const AdminClientes = () => {
                                                             {getInitials(c.nombre, c.apellido)}
                                                         </div>
                                                         <div>
-                                                            <p className="font-bold text-gray-900 group-hover:text-yellow-700 transition-colors">{c.nombre} {c.apellido}</p>
+                                                            <p className="font-bold text-foreground group-hover:text-yellow-700 transition-colors">{c.nombre} {c.apellido}</p>
                                                             <div className="flex items-center gap-1 text-xs">
                                                                 {(c.keycloakId && c.keycloakId !== 'not-linked') ? (
-                                                                    <Badge variant="secondary" className="bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200 gap-1 px-2 font-normal">
+                                                                    <Badge variant="secondary" className="dark:bg-blue-500/50 dark:text-gray-200/70 text-blue-400 dark:hover:bg-blue-100 border-blue-200 gap-1 px-2 font-normal">
                                                                         <UserCircle className="h-3 w-3" /> Registrado
                                                                     </Badge>
                                                                 ) : (
-                                                                    <Badge variant="secondary" className="bg-orange-50 text-orange-700 hover:bg-orange-100 border-orange-200 gap-1 px-2 font-normal">
+                                                                    <Badge variant="secondary" className="bg-orange-50 dark:bg-orange-500/20 dark:text-gray-200/80 text-orange-700 hover:bg-orange-100 border-orange-200 gap-1 px-2 font-normal">
                                                                         <User className="h-3 w-3" /> Anónimo
                                                                     </Badge>
                                                                 )}
@@ -494,7 +494,7 @@ export const AdminClientes = () => {
                                                                 variant="ghost"
                                                                 size="sm"
                                                                 onClick={() => handleConvertToUser(c)}
-                                                                className="h-8 text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                                                                className="h-8 text-blue-600 dark:text-blue-500 hover:text-blue-800 dark:hover:text-blue-200 dark:hover:bg-blue-800 hover:bg-blue-50"
                                                                 title="Convertir a Usuario Registrado"
                                                             >
                                                                 <UserCircle className="h-4 w-4" />
