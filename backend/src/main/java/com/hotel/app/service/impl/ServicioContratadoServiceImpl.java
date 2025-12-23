@@ -12,8 +12,8 @@ import com.hotel.app.service.dto.MensajeSoporteDTO;
 import com.hotel.app.service.dto.ServicioContratadoDTO;
 import java.time.Instant;
 import com.hotel.app.service.mapper.ServicioContratadoMapper;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import com.hotel.app.security.AuthoritiesConstants;
+import com.hotel.app.security.SecurityUtils;
 import com.hotel.app.web.rest.errors.BadRequestAlertException;
 import java.time.ZonedDateTime;
 import java.util.Optional;
@@ -69,13 +69,18 @@ public class ServicioContratadoServiceImpl implements ServicioContratadoService 
 
         // Validation Logic
         if (servicioContratadoDTO.getReserva() != null && servicioContratadoDTO.getFechaServicio() != null) {
-            var reserva = reservaRepository.findById(servicioContratadoDTO.getReserva().getId())
+            Long reservaId = servicioContratadoDTO.getReserva().getId();
+            if (reservaId == null) {
+                throw new BadRequestAlertException("Reserva ID is null", "reserva", "idnull");
+            }
+            var reserva = reservaRepository.findById(reservaId)
                     .orElseThrow(() -> new BadRequestAlertException("Reserva not found", "reserva", "idnotfound"));
 
             // 1. Validate Date Range - Compare only dates, not times
-            if (reserva.getEstado() != com.hotel.app.domain.enumeration.EstadoReserva.CONFIRMADA) {
-                throw new BadRequestAlertException("Reservation is not confirmed", "servicioContratado",
-                        "reservanotconfirmed");
+            if (reserva.getEstado() != com.hotel.app.domain.enumeration.EstadoReserva.CONFIRMADA
+                    && reserva.getEstado() != com.hotel.app.domain.enumeration.EstadoReserva.CHECK_IN) {
+                throw new BadRequestAlertException("Reservation is not confirmed or checked-in", "servicioContratado",
+                        "reservanotactive");
             }
 
             // Convert to LocalDate using system timezone to compare only days
@@ -95,7 +100,7 @@ public class ServicioContratadoServiceImpl implements ServicioContratadoService 
 
             // 2. Validate Service Availability - REQUIRED FOR ALL ROLES
             if (servicioContratadoDTO.getServicio() != null) {
-                ZonedDateTime fechaServicio = servicioContratadoDTO.getFechaServicio();
+                ZonedDateTime fechaServicio = servicioContratadoDTO.getFechaServicio().withZoneSameInstant(systemZone);
                 DiaSemana diaSemana = mapDayOfWeek(fechaServicio.getDayOfWeek());
 
                 var disponibilidades = servicioDisponibilidadRepository
@@ -164,6 +169,12 @@ public class ServicioContratadoServiceImpl implements ServicioContratadoService 
     @Override
     public ServicioContratadoDTO update(ServicioContratadoDTO servicioContratadoDTO) {
         LOG.debug("Request to update ServicioContratado : {}", servicioContratadoDTO);
+
+        // Validate completion
+        if (servicioContratadoDTO.getEstado() == com.hotel.app.domain.enumeration.EstadoServicioContratado.COMPLETADO) {
+            validateCompletionRules(servicioContratadoDTO);
+        }
+
         ServicioContratado servicioContratado = servicioContratadoMapper.toEntity(servicioContratadoDTO);
         servicioContratado = servicioContratadoRepository.save(servicioContratado);
         return servicioContratadoMapper.toDto(servicioContratado);
@@ -173,9 +184,20 @@ public class ServicioContratadoServiceImpl implements ServicioContratadoService 
     public Optional<ServicioContratadoDTO> partialUpdate(ServicioContratadoDTO servicioContratadoDTO) {
         LOG.debug("Request to partially update ServicioContratado : {}", servicioContratadoDTO);
 
+        if (servicioContratadoDTO.getId() == null) {
+            throw new BadRequestAlertException("Invalid id", "servicioContratado", "idnull");
+        }
         return servicioContratadoRepository
                 .findById(servicioContratadoDTO.getId())
                 .map(existingServicioContratado -> {
+                    // Check if state is changing to COMPLETADO
+                    if (servicioContratadoDTO
+                            .getEstado() == com.hotel.app.domain.enumeration.EstadoServicioContratado.COMPLETADO &&
+                            existingServicioContratado
+                                    .getEstado() != com.hotel.app.domain.enumeration.EstadoServicioContratado.COMPLETADO) {
+                        validateCompletionRules(servicioContratadoDTO.getId());
+                    }
+
                     servicioContratadoMapper.partialUpdate(existingServicioContratado, servicioContratadoDTO);
 
                     return existingServicioContratado;
@@ -206,7 +228,9 @@ public class ServicioContratadoServiceImpl implements ServicioContratadoService 
     @Override
     public void delete(Long id) {
         LOG.debug("Request to delete ServicioContratado : {}", id);
-        servicioContratadoRepository.deleteById(id);
+        if (id != null) {
+            servicioContratadoRepository.deleteById(id);
+        }
     }
 
     @Override
@@ -238,19 +262,71 @@ public class ServicioContratadoServiceImpl implements ServicioContratadoService 
             sendMessage(servicioContratado, "MSG_SERVICE_CONFIRMADO");
             LOG.info("Sent confirmation message for ServicioContratado {}", id);
         });
-        if (!servicioContratadoRepository.findById(id).isPresent()) {
+        if (id != null && !servicioContratadoRepository.findById(id).isPresent()) {
             LOG.error("ServicioContratado with ID {} not found!", id);
         }
     }
 
     @Override
     public void completar(Long id) {
-        LOG.debug("Request to complete ServicioContratado : {}", id);
+        if (id == null) {
+            return; // Or throw exception
+        }
+        // Default behavior
+        completar(id, "MSG_SERVICE_COMPLETADO");
+    }
+
+    @Override
+    public void completar(Long id, String notificationKey) {
+        LOG.debug("Request to complete ServicioContratado : {} with key {}", id, notificationKey);
         servicioContratadoRepository.findById(id).ifPresent(servicioContratado -> {
+
+            // Validate
+            validateCompletionRules(id);
+
             servicioContratado.setEstado(com.hotel.app.domain.enumeration.EstadoServicioContratado.COMPLETADO);
             servicioContratadoRepository.save(servicioContratado);
-            sendMessage(servicioContratado, "MSG_SERVICE_COMPLETADO");
+            sendMessage(servicioContratado, notificationKey != null ? notificationKey : "MSG_SERVICE_COMPLETADO");
         });
+    }
+
+    private void validateCompletionRules(Long servicioId) {
+        servicioContratadoRepository.findById(servicioId).ifPresent(servicio -> {
+            if (servicio.getReserva() != null) {
+                validateReservaStateForCompletion(servicio.getReserva(), servicio);
+            }
+        });
+    }
+
+    private void validateCompletionRules(ServicioContratadoDTO dto) {
+        // We need the full service entity to send the message if needed
+        servicioContratadoRepository.findById(dto.getId()).ifPresent(servicio -> {
+            if (servicio.getReserva() != null) {
+                validateReservaStateForCompletion(servicio.getReserva(), servicio);
+            } else if (dto.getReserva() != null && dto.getReserva().getId() != null) {
+                // Fallback if service in DB doesn't have reservation but DTO does (unlikely for
+                // existing service update but possible)
+                reservaRepository.findById(dto.getReserva().getId())
+                        .ifPresent(r -> validateReservaStateForCompletion(r, servicio));
+            }
+        });
+    }
+
+    private void validateReservaStateForCompletion(com.hotel.app.domain.Reserva reserva,
+            ServicioContratado servicioContext) {
+        if (reserva.getEstado() != com.hotel.app.domain.enumeration.EstadoReserva.CHECK_IN) {
+            if (!SecurityUtils.hasCurrentUserThisAuthority(AuthoritiesConstants.ADMIN)) {
+                throw new BadRequestAlertException(
+                        "Solo los administradores pueden completar un servicio si la reserva no está en Check-In",
+                        "servicioContratado",
+                        "completeRestricted");
+            } else {
+                // Admin Override Active -> Send Notification
+                if (servicioContext != null) {
+                    sendMessage(servicioContext, "MSG_SERVICE_ADMIN_FORCED_COMPLETION");
+                }
+            }
+        }
     }
 
     @Override
@@ -288,7 +364,10 @@ public class ServicioContratadoServiceImpl implements ServicioContratadoService 
             mensaje.setMensaje(msgText);
             mensaje.setFechaMensaje(Instant.now());
             mensaje.setUserId(servicio.getCliente().getKeycloakId());
-            mensaje.setUserName(servicio.getCliente().getNombre() + " " + servicio.getCliente().getApellido());
+            String nombre = Optional.ofNullable(servicio.getCliente().getNombre()).orElse("Cliente");
+            String apellido = Optional.ofNullable(servicio.getCliente().getApellido()).orElse("");
+            mensaje.setUserName((nombre + " " + apellido).trim());
+
             mensaje.setLeido(false);
             mensaje.setActivo(true);
             mensaje.setRemitente("SISTEMA");

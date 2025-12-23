@@ -1,6 +1,5 @@
 package com.hotel.app.service.dto;
 
-import jakarta.persistence.Lob;
 import jakarta.validation.constraints.*;
 import java.io.Serializable;
 import java.util.Objects;
@@ -17,7 +16,6 @@ public class SeccionContactoDTO implements Serializable {
     @Size(max = 255)
     private String titulo;
 
-    @Lob
     private String descripcion;
 
     @NotNull

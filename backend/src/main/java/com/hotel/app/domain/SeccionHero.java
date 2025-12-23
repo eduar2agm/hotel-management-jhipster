@@ -25,8 +25,7 @@ public class SeccionHero implements Serializable {
     @Column(name = "titulo", length = 100, nullable = false)
     private String titulo;
 
-    @Lob
-    @Column(name = "descripcion")
+    @Column(name = "descripcion", length = 5000)
     private String descripcion;
 
     @NotNull
@@ -156,7 +155,8 @@ public class SeccionHero implements Serializable {
         this.activo = activo;
     }
 
-    // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
+    // jhipster-needle-entity-add-getters-setters - JHipster will add getters and
+    // setters here
 
     @Override
     public boolean equals(Object o) {
@@ -171,7 +171,8 @@ public class SeccionHero implements Serializable {
 
     @Override
     public int hashCode() {
-        // see https://vladmihalcea.com/how-to-implement-equals-and-hashcode-using-the-jpa-entity-identifier/
+        // see
+        // https://vladmihalcea.com/how-to-implement-equals-and-hashcode-using-the-jpa-entity-identifier/
         return getClass().hashCode();
     }
 
@@ -179,14 +180,14 @@ public class SeccionHero implements Serializable {
     @Override
     public String toString() {
         return "SeccionHero{" +
-            "id=" + getId() +
-            ", titulo='" + getTitulo() + "'" +
-            ", descripcion='" + getDescripcion() + "'" +
-            ", imagenFondoUrl='" + getImagenFondoUrl() + "'" +
-            ", textoBoton='" + getTextoBoton() + "'" +
-            ", enlaceBoton='" + getEnlaceBoton() + "'" +
-            ", orden=" + getOrden() +
-            ", activo='" + getActivo() + "'" +
-            "}";
+                "id=" + getId() +
+                ", titulo='" + getTitulo() + "'" +
+                ", descripcion='" + getDescripcion() + "'" +
+                ", imagenFondoUrl='" + getImagenFondoUrl() + "'" +
+                ", textoBoton='" + getTextoBoton() + "'" +
+                ", enlaceBoton='" + getEnlaceBoton() + "'" +
+                ", orden=" + getOrden() +
+                ", activo='" + getActivo() + "'" +
+                "}";
     }
 }

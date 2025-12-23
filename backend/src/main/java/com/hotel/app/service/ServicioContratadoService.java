@@ -97,6 +97,14 @@ public interface ServicioContratadoService {
     void completar(Long id);
 
     /**
+     * Complete a servicioContratado with a specific notification message.
+     *
+     * @param id              the id of the entity.
+     * @param notificationKey the key of the message template to send.
+     */
+    void completar(Long id, String notificationKey);
+
+    /**
      * Cancel a servicioContratado.
      *
      * @param id the id of the entity.

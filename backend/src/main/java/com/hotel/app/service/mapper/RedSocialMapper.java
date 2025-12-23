@@ -8,4 +8,8 @@ import org.mapstruct.*;
  * Mapper for the entity {@link RedSocial} and its DTO {@link RedSocialDTO}.
  */
 @Mapper(componentModel = "spring")
-public interface RedSocialMapper extends EntityMapper<RedSocialDTO, RedSocial> {}
+public interface RedSocialMapper extends EntityMapper<RedSocialDTO, RedSocial> {
+    @Mapping(target = "iconoMediaBase64", ignore = true)
+    @Mapping(target = "iconoMediaContentType", ignore = true)
+    RedSocialDTO toDto(RedSocial s);
+}

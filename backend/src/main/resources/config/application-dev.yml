@@ -103,3 +103,7 @@ application:
     client-id: admin-cli
     username: admin
     password: admin
+
+stripe:
+  secret-key: ${STRIPE_SECRET_KEY:}
+  webhook-secret: ""
