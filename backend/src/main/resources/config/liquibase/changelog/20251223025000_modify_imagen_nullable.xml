@@ -11,7 +11,7 @@
         Esto permite insertar referencias a imágenes sin subir el BLOB.
     -->
     
-    <changeSet id="20251223025000-modify-imagen-nullable-fichero" author="system">
+    <changeSet id="20251223025000-modify-imagen-nullable-fichero" author="eduardo">
         <dropNotNullConstraint tableName="imagen" columnName="fichero" columnDataType="${blobType}"/>
         <dropNotNullConstraint tableName="imagen" columnName="fichero_content_type" columnDataType="varchar(255)"/>
     </changeSet>
