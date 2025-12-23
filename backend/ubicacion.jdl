@@ -1,0 +1,12 @@
+entity Ubicacion {
+  latitud Double required,
+  longitud Double required,
+  nombre String required,      // Ej: "Sucursal Central"
+  direccion String,            // Ej: "Frente al parque..."
+  googleMapsUrl String,        // Para guardar el link (opcional)
+  activo Boolean
+}
+
+dto * with mapstruct
+service * with serviceClass
+paginate Ubicacion with pagination
