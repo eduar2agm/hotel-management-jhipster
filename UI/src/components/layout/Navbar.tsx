@@ -1,5 +1,20 @@
 import { NavLink } from 'react-router-dom';
 import React from 'react';
+import {
+  Home,
+  LayoutDashboard,
+  BedDouble,
+  Users,
+  CalendarCheck,
+  HandPlatter,
+  ClipboardList,
+  Image as ImageIcon,
+  Headset,
+  Settings,
+  Mail,
+  User,
+  KeyRound
+} from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { useUnreadSupport } from '../../hooks/useUnreadSupport';
 import logo from '../../assets/logoN.png';
@@ -17,16 +32,20 @@ export const Navbar = () => {
     );
   };
 
-  const NavItem = ({ to, children, end }: { to: string; children: React.ReactNode; end?: boolean }) => (
+  const NavItem = ({ to, children, icon: Icon, end }: { to: string; children: React.ReactNode; icon?: React.ElementType; end?: boolean }) => (
     <NavLink
       to={to}
       end={end}
       className={({ isActive }) =>
-        `hover:text-yellow-400 transition-colors border-b-2 ${isActive ? 'border-yellow-400' : 'border-transparent'
-        }`
+        `group flex items-center gap-2 hover:text-yellow-400 transition-all duration-300 border-b-2 py-1
+         ${isActive ? 'border-yellow-400 text-yellow-400' : 'border-transparent'}
+        `
       }
     >
-      {children}
+      {Icon && <Icon className="w-5 h-5" />}
+      <span className={`${Icon ? 'hidden group-hover:block animate-in fade-in slide-in-from-left-1 duration-200' : 'block'}`}>
+        {children}
+      </span>
     </NavLink>
   );
 
@@ -39,53 +58,53 @@ export const Navbar = () => {
       </div>
 
       {/* Menú Central */}
-      <div className="hidden md:flex space-x-4 text-xs font-bold uppercase tracking-widest">
+      <div className="hidden md:flex space-x-8 text-xs font-bold uppercase tracking-widest">
 
         {isAuthenticated && isClient() && (
           <>
-            <NavItem to="/client/" end>Home</NavItem>
-            <NavItem to="/client/reservas">Reservas</NavItem>
-            <NavItem to="/client/perfil">Mi perfil</NavItem>
+            <NavItem to="/client/" end icon={Home}>Home</NavItem>
+            <NavItem to="/client/reservas" icon={CalendarCheck}>Reservas</NavItem>
+            <NavItem to="/client/perfil" icon={User}>Mi perfil</NavItem>
             <div className="relative inline-block">
-              <NavItem to="/client/soporte">Soporte</NavItem>
+              <NavItem to="/client/soporte" icon={Headset}>Soporte</NavItem>
               <Badge count={unreadCount} />
             </div>
-            <NavItem to="/client/servicios">Servicios</NavItem>
-            <NavItem to="/client/mis-servicios">Mis Servicios</NavItem>
-            <NavItem to="/contacto">Contacto</NavItem>
+            <NavItem to="/client/servicios" icon={HandPlatter}>Servicios</NavItem>
+            <NavItem to="/client/mis-servicios" icon={ClipboardList}>Mis Servicios</NavItem>
+            <NavItem to="/contacto" icon={Mail}>Contacto</NavItem>
           </>
         )}
         {isAuthenticated && isEmployee() && (
           <>
-            <NavItem to="/" end>Home</NavItem>
-            <NavItem to="/employee/dashboard">Dashboard</NavItem>
-            <NavItem to="/employee/clientes">Clientes</NavItem>
-            <NavItem to="/employee/checkin">Check-in</NavItem>
-            <NavItem to="/employee/reservas">Reservas</NavItem>
-            <NavItem to="/employee/servicios-contratados">Servicios</NavItem>
+            <NavItem to="/" end icon={Home}>Home</NavItem>
+            <NavItem to="/employee/dashboard" icon={LayoutDashboard}>Dashboard</NavItem>
+            <NavItem to="/employee/clientes" icon={Users}>Clientes</NavItem>
+            <NavItem to="/employee/checkin" icon={KeyRound}>Check-in</NavItem>
+            <NavItem to="/employee/reservas" icon={CalendarCheck}>Reservas</NavItem>
+            <NavItem to="/employee/servicios-contratados" icon={ClipboardList}>Servicios</NavItem>
             <div className="relative inline-block">
-              <NavItem to="/employee/soporte">Soporte</NavItem>
+              <NavItem to="/employee/soporte" icon={Headset}>Soporte</NavItem>
               <Badge count={unreadCount} />
             </div>
-            <NavItem to="/contacto">Contacto</NavItem>
+            <NavItem to="/contacto" icon={Mail}>Contacto</NavItem>
           </>
         )}
         {isAuthenticated && isAdmin() && (
           <>
-            <NavItem to="/" end>Home</NavItem>
-            <NavItem to="/admin/dashboard">Dashboard</NavItem>
-            <NavItem to="/admin/habitaciones">Habitaciones</NavItem>
-            <NavItem to="/admin/clientes">Clientes</NavItem>
-            <NavItem to="/admin/reservas">Reservas</NavItem>
-            <NavItem to="/admin/servicios">Servicios</NavItem>
-            <NavItem to="/admin/servicios-contratados">Solicitudes</NavItem>
-            <NavItem to="/admin/imagenes">Imágenes</NavItem>
+            <NavItem to="/" end icon={Home}>Home</NavItem>
+            <NavItem to="/admin/dashboard" icon={LayoutDashboard}>Dashboard</NavItem>
+            <NavItem to="/admin/habitaciones" icon={BedDouble}>Habitaciones</NavItem>
+            <NavItem to="/admin/clientes" icon={Users}>Clientes</NavItem>
+            <NavItem to="/admin/reservas" icon={CalendarCheck}>Reservas</NavItem>
+            <NavItem to="/admin/servicios" icon={HandPlatter}>Servicios</NavItem>
+            <NavItem to="/admin/servicios-contratados" icon={ClipboardList}>Solicitudes</NavItem>
+            <NavItem to="/admin/imagenes" icon={ImageIcon}>Imágenes</NavItem>
             <div className="relative inline-block">
-              <NavItem to="/admin/soporte">Soporte</NavItem>
+              <NavItem to="/admin/soporte" icon={Headset}>Soporte</NavItem>
               <Badge count={unreadCount} />
             </div>
-            <NavItem to="/admin/configuracion">Config</NavItem>
-            <NavItem to="/contacto">Contacto</NavItem>
+            <NavItem to="/admin/configuracion" icon={Settings}>Config</NavItem>
+            <NavItem to="/contacto" icon={Mail}>Contacto</NavItem>
           </>
         )}
       </div>
