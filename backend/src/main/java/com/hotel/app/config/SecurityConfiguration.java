@@ -63,6 +63,7 @@ public class SecurityConfiguration {
                             .requestMatchers(mvc.pattern("/api/red-socials/**")).permitAll()
                             .requestMatchers(mvc.pattern("/api/telefonos/**")).permitAll()
                             .requestMatchers(mvc.pattern("/api/admin/**")).hasAuthority(AuthoritiesConstants.ADMIN)
+                            .requestMatchers(mvc.pattern("/api/admin/**")).hasAuthority(AuthoritiesConstants.ADMIN)
                             .requestMatchers(mvc.pattern("/api/**")).authenticated();
                     // OpenAPI docs: permit in dev, otherwise require ADMIN
                     if (env != null && env.acceptsProfiles(Profiles.of(JHipsterConstants.SPRING_PROFILE_DEVELOPMENT))) {

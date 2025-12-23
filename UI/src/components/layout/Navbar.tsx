@@ -1,4 +1,5 @@
-import { Link } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
+import React from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { useUnreadSupport } from '../../hooks/useUnreadSupport';
 import logo from '../../assets/logoN.png';
@@ -16,8 +17,21 @@ export const Navbar = () => {
     );
   };
 
+  const NavItem = ({ to, children, end }: { to: string; children: React.ReactNode; end?: boolean }) => (
+    <NavLink
+      to={to}
+      end={end}
+      className={({ isActive }) =>
+        `hover:text-yellow-400 transition-colors border-b-2 ${isActive ? 'border-yellow-400' : 'border-transparent'
+        }`
+      }
+    >
+      {children}
+    </NavLink>
+  );
+
   return (
-    <nav className="absolute top-0 left-0 w-full z-50 flex bg-black/50 backdrop-blur-sm justify-between items-center px-10 py-6 text-white">
+    <nav className="absolute top-0 left-0 w-full z-[1000] flex bg-black/50 backdrop-blur-sm justify-between items-center px-10 py-6 text-white">
 
       <div className="text-xl font-bold tracking-wide flex items-center gap-3">
         <img src={logo} alt="Logo" title="Hotel Management" className="w-10 h-10" />
@@ -29,49 +43,49 @@ export const Navbar = () => {
 
         {isAuthenticated && isClient() && (
           <>
-            <Link to="/client/" className="hover:text-yellow-400 transition-colors">Home</Link>
-            <Link to="/client/reservas" className="hover:text-yellow-400 transition-colors">Reservas</Link>
-            <Link to="/client/perfil" className="hover:text-yellow-400 transition-colors">Mi perfil</Link>
+            <NavItem to="/client/" end>Home</NavItem>
+            <NavItem to="/client/reservas">Reservas</NavItem>
+            <NavItem to="/client/perfil">Mi perfil</NavItem>
             <div className="relative inline-block">
-              <Link to="/client/soporte" className="hover:text-yellow-400 transition-colors">Soporte</Link>
+              <NavItem to="/client/soporte">Soporte</NavItem>
               <Badge count={unreadCount} />
             </div>
-            <Link to="/client/servicios" className="hover:text-yellow-400 transition-colors">Servicios</Link>
-            <Link to="/client/mis-servicios" className="hover:text-yellow-400 transition-colors">Mis Servicios</Link>
-            <Link to="/contacto" className="hover:text-yellow-400 transition-colors">Contacto</Link>
+            <NavItem to="/client/servicios">Servicios</NavItem>
+            <NavItem to="/client/mis-servicios">Mis Servicios</NavItem>
+            <NavItem to="/contacto">Contacto</NavItem>
           </>
         )}
         {isAuthenticated && isEmployee() && (
           <>
-            <Link to="/" className="hover:text-yellow-400 transition-colors">Home</Link>
-            <Link to="/employee/dashboard" className="hover:text-yellow-400 transition-colors">Dashboard</Link>
-            <Link to="/employee/clientes" className="hover:text-yellow-400 transition-colors">Clientes</Link>
-            <Link to="/employee/checkin" className="hover:text-yellow-400 transition-colors">Check-in</Link>
-            <Link to="/employee/reservas" className="hover:text-yellow-400 transition-colors">Reservas</Link>
-            <Link to="/employee/servicios-contratados" className="hover:text-yellow-400 transition-colors">Servicios</Link>
+            <NavItem to="/" end>Home</NavItem>
+            <NavItem to="/employee/dashboard">Dashboard</NavItem>
+            <NavItem to="/employee/clientes">Clientes</NavItem>
+            <NavItem to="/employee/checkin">Check-in</NavItem>
+            <NavItem to="/employee/reservas">Reservas</NavItem>
+            <NavItem to="/employee/servicios-contratados">Servicios</NavItem>
             <div className="relative inline-block">
-              <Link to="/employee/soporte" className="hover:text-yellow-400 transition-colors">Soporte</Link>
+              <NavItem to="/employee/soporte">Soporte</NavItem>
               <Badge count={unreadCount} />
             </div>
-            <Link to="/contacto" className="hover:text-yellow-400 transition-colors">Contacto</Link>
+            <NavItem to="/contacto">Contacto</NavItem>
           </>
         )}
         {isAuthenticated && isAdmin() && (
           <>
-            <Link to="/" className="hover:text-yellow-400 transition-colors">Home</Link>
-            <Link to="/admin/dashboard" className="hover:text-yellow-400 transition-colors">Dashboard</Link>
-            <Link to="/admin/habitaciones" className="hover:text-yellow-400 transition-colors">Habitaciones</Link>
-            <Link to="/admin/clientes" className="hover:text-yellow-400 transition-colors">Clientes</Link>
-            <Link to="/admin/reservas" className="hover:text-yellow-400 transition-colors">Reservas</Link>
-            <Link to="/admin/servicios" className="hover:text-yellow-400 transition-colors">Servicios</Link>
-            <Link to="/admin/servicios-contratados" className="hover:text-yellow-400 transition-colors">Solicitudes</Link>
-            <Link to="/admin/imagenes" className="hover:text-yellow-400 transition-colors">Imágenes</Link>
+            <NavItem to="/" end>Home</NavItem>
+            <NavItem to="/admin/dashboard">Dashboard</NavItem>
+            <NavItem to="/admin/habitaciones">Habitaciones</NavItem>
+            <NavItem to="/admin/clientes">Clientes</NavItem>
+            <NavItem to="/admin/reservas">Reservas</NavItem>
+            <NavItem to="/admin/servicios">Servicios</NavItem>
+            <NavItem to="/admin/servicios-contratados">Solicitudes</NavItem>
+            <NavItem to="/admin/imagenes">Imágenes</NavItem>
             <div className="relative inline-block">
-              <Link to="/admin/soporte" className="hover:text-yellow-400 transition-colors">Soporte</Link>
+              <NavItem to="/admin/soporte">Soporte</NavItem>
               <Badge count={unreadCount} />
             </div>
-            <Link to="/admin/configuracion" className="hover:text-yellow-400 transition-colors">Config</Link>
-            <Link to="/contacto" className="hover:text-yellow-400 transition-colors">Contacto</Link>
+            <NavItem to="/admin/configuracion">Config</NavItem>
+            <NavItem to="/contacto">Contacto</NavItem>
           </>
         )}
       </div>
@@ -95,12 +109,15 @@ export const Navbar = () => {
         ) : (
 
           <div className="flex items-center gap-6">
-            <Link
+            <NavLink
               to="/contacto"
-              className="text-xs font-bold uppercase tracking-widest hover:text-yellow-400 transition-colors cursor-pointer"
+              className={({ isActive }) =>
+                `text-xs font-bold uppercase tracking-widest hover:text-yellow-400 transition-colors cursor-pointer border-b-2 ${isActive ? 'border-yellow-400' : 'border-transparent'
+                }`
+              }
             >
               Contacto
-            </Link>
+            </NavLink>
             <button
               onClick={() => login()}
               className="border border-white px-6 py-2 text-sm uppercase font-bold hover:bg-white hover:text-black transition-all"
