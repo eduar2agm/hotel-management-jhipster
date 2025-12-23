@@ -198,8 +198,7 @@ export const ClientReservas = () => {
     };
 
     return (
-        <div className="font-sans text-gray-900 bg-gray-50 min-h-screen flex flex-col">
-            <Navbar />
+        <div className="font-sans text-foreground bg-background min-h-screen flex flex-col">
 
             {/* --- HERO SECTION --- */}
             <PageHeader
@@ -237,16 +236,16 @@ export const ClientReservas = () => {
                             {loading && (
                                 <div className="text-center py-20">
                                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-600 mx-auto"></div>
-                                    <p className="mt-4 text-gray-400 uppercase tracking-widest text-sm">Cargando reservas...</p>
+                                    <p className="mt-4 text-muted-foreground uppercase tracking-widest text-sm">Cargando reservas...</p>
                                 </div>
                             )}
 
                             {!loading && reservas.length === 0 && (
-                                <div className="bg-white p-12 text-center rounded-sm shadow-sm border border-gray-100">
-                                    <div className="bg-yellow-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+                                <div className="bg-card p-12 text-center rounded-sm shadow-sm border border-border">
+                                    <div className="bg-muted w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
                                         <CalendarDays className="h-10 w-10 text-yellow-600" />
                                     </div>
-                                    <h3 className="text-xl font-bold text-gray-900 mb-2">Aún no tienes historias con nosotros</h3>
+                                    <h3 className="text-xl font-bold text-foreground mb-2">Aún no tienes historias con nosotros</h3>
                                     <Link to="/client/nueva-reserva">
                                         <Button className="bg-yellow-600 hover:bg-yellow-700 text-white px-8 mt-4">Reservar Ahora</Button>
                                     </Link>
@@ -296,7 +295,6 @@ export const ClientReservas = () => {
                 </div>
             </main>
 
-            <Footer />
         </div>
     );
 };

@@ -164,7 +164,7 @@ export const AdminContratarServicio = ({ returnPath = '/admin/servicios-contrata
     };
 
     return (
-        <div className="font-sans text-gray-900 bg-gray-50 min-h-screen flex flex-col">
+        <div className="font-sans text-foreground bg-background min-h-screen flex flex-col">
 
             <div className="bg-[#0F172A] pt-32 pb-20 px-4 md:px-8 lg:px-20 relative shadow-xl">
                 <div className="relative max-w-7xl mx-auto z-10">
@@ -176,7 +176,7 @@ export const AdminContratarServicio = ({ returnPath = '/admin/servicios-contrata
             </div>
 
             <main className="flex-grow py-10 px-4 md:px-8 lg:px-20 -mt-10 relative z-10 flex justify-center">
-                <Card className="w-full max-w-2xl border-t-4 border-yellow-600 shadow-xl bg-white">
+                <Card className="w-full max-w-2xl border-t-4 border-gray-600 shadow-xl bg-card">
                     <CardHeader>
                         <CardTitle>Registrar Servicio Adicional</CardTitle>
                         <CardDescription>Asocie un servicio a una reserva existente.</CardDescription>
@@ -187,7 +187,7 @@ export const AdminContratarServicio = ({ returnPath = '/admin/servicios-contrata
 
                                 {/* SELECT RESERVA - Combobox con búsqueda */}
                                 <div className="space-y-2">
-                                    <FormLabel className="text-sm font-bold text-gray-700">Buscar Reserva</FormLabel>
+                                    <FormLabel className="text-sm font-bold text-foreground">Buscar Reserva</FormLabel>
                                     <Popover open={openReservaCombobox} onOpenChange={setOpenReservaCombobox}>
                                         <PopoverTrigger asChild>
                                             <Button
@@ -235,16 +235,16 @@ export const AdminContratarServicio = ({ returnPath = '/admin/servicios-contrata
                                                                     />
                                                                     <div className="flex-1 flex justify-between items-center">
                                                                         <div>
-                                                                            <div className="font-bold flex items-center gap-2">
-                                                                                <Calendar className="h-3 w-3 text-gray-500" />
+                                                                            <div className="font-bold flex items-center gap-2 text-foreground">
+                                                                                <Calendar className="h-3 w-3 text-muted-foreground" />
                                                                                 Reserva #{r.id}
                                                                             </div>
-                                                                            <div className="text-sm text-gray-600 flex items-center gap-1">
+                                                                            <div className="text-sm text-muted-foreground flex items-center gap-1">
                                                                                 <User className="h-3 w-3" />
                                                                                 {clienteNombre}
                                                                             </div>
                                                                         </div>
-                                                                        <div className="text-xs bg-gray-200 px-2 py-1 rounded">
+                                                                        <div className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded border border-border">
                                                                             {r.fechaInicio ? format(new Date(r.fechaInicio), 'dd/MM') : ''} - {r.fechaFin ? format(new Date(r.fechaFin), 'dd/MM') : ''}
                                                                         </div>
                                                                     </div>
@@ -257,7 +257,7 @@ export const AdminContratarServicio = ({ returnPath = '/admin/servicios-contrata
                                         </PopoverContent>
                                     </Popover>
                                     {selectedReserva && (
-                                        <div className="bg-green-50 p-3 rounded-md border border-green-200 text-green-800 text-sm flex justify-between items-center">
+                                        <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded-md border border-green-200 dark:border-green-800 text-green-800 dark:text-green-300 text-sm flex justify-between items-center">
                                             <span>✓ Reserva #{selectedReserva.id} - {selectedReserva.cliente?.nombre} {selectedReserva.cliente?.apellido}</span>
                                             <Button
                                                 type="button"
@@ -267,7 +267,7 @@ export const AdminContratarServicio = ({ returnPath = '/admin/servicios-contrata
                                                     setSelectedReserva(null);
                                                     form.setValue('reservaId', '');
                                                 }}
-                                                className="h-6 text-green-800 hover:text-green-900 hover:bg-green-100"
+                                                className="h-6 text-green-800 dark:text-green-300 hover:text-green-900 dark:hover:text-green-200 hover:bg-green-100 dark:hover:bg-green-800/50"
                                             >
                                                 Cambiar
                                             </Button>
@@ -282,7 +282,7 @@ export const AdminContratarServicio = ({ returnPath = '/admin/servicios-contrata
                                     name="servicioId"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel className="text-sm font-bold text-gray-700">Servicio</FormLabel>
+                                            <FormLabel className="text-sm font-bold text-foreground">Servicio</FormLabel>
                                             <Select onValueChange={(val) => {
                                                 field.onChange(val);
                                                 setSelectedServicio(servicios.find(s => String(s.id) === val) || null);
@@ -332,7 +332,7 @@ export const AdminContratarServicio = ({ returnPath = '/admin/servicios-contrata
                                         name="cantidad"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel className="text-sm font-bold text-gray-700">Cantidad</FormLabel>
+                                                <FormLabel className="text-sm font-bold text-foreground">Cantidad</FormLabel>
                                                 <FormControl>
                                                     <Input
                                                         type="number"
@@ -355,8 +355,8 @@ export const AdminContratarServicio = ({ returnPath = '/admin/servicios-contrata
                                         )}
                                     />
                                     <FormItem>
-                                        <FormLabel className="text-sm font-bold text-gray-700">Total Estimado</FormLabel>
-                                        <div className="h-10 flex items-center px-3 border rounded-md bg-gray-50 font-bold text-lg text-green-600">
+                                        <FormLabel className="text-sm font-bold text-foreground">Total Estimado</FormLabel>
+                                        <div className="h-10 flex items-center px-3 border rounded-md bg-muted font-bold text-lg text-green-600 dark:text-green-400">
                                             ${(Number(selectedServicio?.precio || 0) * (form.watch('cantidad') || 1) * (fechas.length || 1)).toFixed(2)}
                                         </div>
                                     </FormItem>
@@ -367,7 +367,7 @@ export const AdminContratarServicio = ({ returnPath = '/admin/servicios-contrata
                                     name="observaciones"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel className="text-sm font-bold text-gray-700">Observaciones</FormLabel>
+                                            <FormLabel className="text-sm font-bold text-foreground">Observaciones</FormLabel>
                                             <FormControl>
                                                 <Input placeholder="Comentarios adicionales..." {...field} />
                                             </FormControl>

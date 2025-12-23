@@ -168,7 +168,7 @@ export const LocationMap = () => {
         }
     };
 
-    if (loading || !location) return <div className="h-64 w-full bg-gray-100 animate-pulse rounded-lg"></div>;
+    if (loading || !location) return <div className="h-64 w-full bg-muted animate-pulse rounded-lg"></div>;
 
     return (
         <div className="w-full relative group z-0">
@@ -199,7 +199,7 @@ export const LocationMap = () => {
                 {/* Admin Edit Button */}
                 {isAdmin() && (
                     <div className="absolute top-4 right-4 z-[1000]">
-                         <Button onClick={handleOpenEdit} className="bg-white text-black hover:bg-gray-100 shadow-lg">
+                         <Button onClick={handleOpenEdit} className="bg-background text-foreground hover:bg-muted shadow-lg">
                             <Edit className="mr-2 h-4 w-4"/> Editar Ubicación
                         </Button>
                     </div>
@@ -207,11 +207,11 @@ export const LocationMap = () => {
 
                 {/* Confirm Dialog for Map Double Click (Quick Update) */}
                 {confirmPos && (
-                    <div className="absolute inset-0 z-[2000] bg-black/50 flex items-center justify-center">
-                        <div className="bg-white p-6 rounded-lg shadow-2xl max-w-sm text-center">
-                            <MapPin className="h-10 w-10 text-red-500 mx-auto mb-4" />
+                    <div className="absolute inset-0 z-[2000] bg-muted flex items-center justify-center">
+                        <div className="bg-card text-card-foreground p-6 rounded-lg shadow-2xl max-w-sm text-center">
+                            <MapPin className="h-10 w-10 text-destructive mx-auto mb-4" />
                             <h3 className="font-bold text-lg mb-2">¿Cambiar ubicación aquí?</h3>
-                            <p className="text-sm text-gray-500 mb-6">
+                            <p className="text-sm text-muted-foreground mb-6">
                                 Has seleccionado una nueva posición en el mapa.<br/>
                                 Lat: {confirmPos.lat.toFixed(4)}, Lng: {confirmPos.lng.toFixed(4)}
                             </p>
@@ -228,13 +228,13 @@ export const LocationMap = () => {
             {location && (
                 <div className="mt-8 flex flex-col md:flex-row items-center justify-center gap-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
                     
-                    <div className="bg-white/80 backdrop-blur-sm px-8 py-5 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 max-w-2xl">
-                         <div className="bg-yellow-50 p-3 rounded-full flex-shrink-0">
-                            <MapPin className="text-yellow-600 h-6 w-6" />
+                    <div className="bg-card/80 backdrop-blur-sm px-8 py-5 rounded-2xl shadow-sm border border-border flex items-center gap-4 max-w-2xl">
+                         <div className="bg-muted p-3 rounded-full flex-shrink-0">
+                            <MapPin className="text-primary h-6 w-6" />
                          </div>
                          <div className="flex flex-col">
-                             <span className="text-[10px] text-gray-500 uppercase font-bold tracking-[0.2em] mb-1">Dirección</span>
-                             <p className="text-gray-900 font-medium text-lg leading-tight">
+                             <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-[0.2em] mb-1">Dirección</span>
+                             <p className="text-foreground font-medium text-lg leading-tight">
                                 {location.direccion || 'Dirección Principal'}
                              </p>
                          </div>
@@ -242,7 +242,7 @@ export const LocationMap = () => {
 
                     <Button 
                         onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${location.latitud},${location.longitud}`, '_blank')}
-                        className="bg-gray-900 text-white hover:bg-black px-8 py-4 h-auto rounded-xl text-md font-bold shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all flex items-center gap-2 group/btn"
+                        className="bg-primary text-primary-foreground hover:bg-primary/90 px-8 py-4 h-auto rounded-xl text-md font-bold shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all flex items-center gap-2 group/btn"
                     >
                         <span>Cómo llegar</span>
                         <MapPin className="w-4 h-4 group-hover/btn:rotate-12 transition-transform" />

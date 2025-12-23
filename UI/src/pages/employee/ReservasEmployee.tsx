@@ -293,7 +293,7 @@ export const EmployeeReservas = () => {
     };
 
     return (
-        <div className="font-sans text-gray-900 bg-gray-50 min-h-screen flex flex-col">
+        <div className="font-sans text-foreground bg-background min-h-screen flex flex-col">
 
             {/* --- HERO SECTION --- */}
             <PageHeader
@@ -313,19 +313,19 @@ export const EmployeeReservas = () => {
 
             <main className="flex-grow py-12 px-4 md:px-8 lg:px-20 relative z-10">
                 <div className="max-w-6xl mx-auto -mt-16">
-                    <div className="bg-white rounded-sm shadow-xl overflow-hidden border border-gray-100">
+                    <div className="bg-card rounded-sm shadow-xl overflow-hidden border border-border">
                         <div className="flex flex-col md:flex-row justify-between items-center gap-4 p-10 pb-6">
                             <div>
-                                <h3 className="text-xl font-bold text-gray-800">Listado de Reservas</h3>
-                                <p className="text-sm text-gray-500">Total Registros: {reservas.length}</p>
+                                <h3 className="text-xl font-bold text-card-foreground">Listado de Reservas</h3>
+                                <p className="text-sm text-muted-foreground">Total Registros: {reservas.length}</p>
                             </div>
                             <div className="relative w-full md:w-96 group">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-yellow-600 transition-colors" />
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-yellow-600 transition-colors" />
                                 <Input
                                     placeholder="Buscar por cliente, ID o estado..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="pl-10 border-gray-200 focus:border-yellow-600 focus:ring-yellow-600/20 h-11 transition-all"
+                                    className="pl-10 border-input bg-background focus:border-yellow-600 focus:ring-yellow-600/20 h-11 transition-all text-foreground"
                                 />
                             </div>
                             <ActiveFilter
@@ -338,20 +338,20 @@ export const EmployeeReservas = () => {
                         </div>
                         <div className="overflow-x-auto px-10 pb-10">
                             <Table>
-                                <TableHeader className="bg-gray-50">
-                                    <TableRow>
-                                        <TableHead className="font-bold text-gray-700 uppercase tracking-wider text-xs py-4">ID</TableHead>
-                                        <TableHead className="font-bold text-gray-700 uppercase tracking-wider text-xs">Cliente</TableHead>
-                                        <TableHead className="font-bold text-gray-700 uppercase tracking-wider text-xs">Habitación(es)</TableHead>
-                                        <TableHead className="font-bold text-gray-700 uppercase tracking-wider text-xs">Fechas</TableHead>
-                                        <TableHead className="font-bold text-gray-700 uppercase tracking-wider text-xs">Estado</TableHead>
-                                        <TableHead className="text-right font-bold text-gray-700 uppercase tracking-wider text-xs">Acciones</TableHead>
+                                <TableHeader className="bg-muted/50">
+                                    <TableRow className="hover:bg-transparent">
+                                        <TableHead className="font-bold text-muted-foreground uppercase tracking-wider text-xs py-4">ID</TableHead>
+                                        <TableHead className="font-bold text-muted-foreground uppercase tracking-wider text-xs">Cliente</TableHead>
+                                        <TableHead className="font-bold text-muted-foreground uppercase tracking-wider text-xs">Habitación(es)</TableHead>
+                                        <TableHead className="font-bold text-muted-foreground uppercase tracking-wider text-xs">Fechas</TableHead>
+                                        <TableHead className="font-bold text-muted-foreground uppercase tracking-wider text-xs">Estado</TableHead>
+                                        <TableHead className="text-right font-bold text-muted-foreground uppercase tracking-wider text-xs">Acciones</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                     {isLoading ? (
                                         <TableRow>
-                                            <TableCell colSpan={6} className="text-center py-20 text-gray-500">
+                                            <TableCell colSpan={6} className="text-center py-20 text-muted-foreground">
                                                 <div className="flex justify-center items-center gap-2">
                                                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-600"></div>
                                                     Cargando reservas...
@@ -360,19 +360,19 @@ export const EmployeeReservas = () => {
                                         </TableRow>
                                     ) : filteredReservas.length === 0 ? (
                                         <TableRow>
-                                            <TableCell colSpan={6} className="text-center py-20 text-gray-400 font-light text-lg">
+                                            <TableCell colSpan={6} className="text-center py-20 text-muted-foreground font-light text-lg">
                                                 No hay reservas que coincidan con la búsqueda.
                                             </TableCell>
                                         </TableRow>
                                     ) : (
                                         filteredReservas.map((reserva) => (
-                                            <TableRow key={reserva.id} className="hover:bg-slate-50 transition-colors cursor-pointer group">
-                                                <TableCell className="font-mono text-gray-500 text-xs">
+                                            <TableRow key={reserva.id} className="hover:bg-muted/50 transition-colors cursor-pointer group border-b border-border">
+                                                <TableCell className="font-mono text-muted-foreground text-xs">
                                                     #{reserva.id}
                                                 </TableCell>
-                                                <TableCell className="font-bold text-gray-800">
+                                                <TableCell className="font-bold text-foreground">
                                                     <div className="flex items-center gap-2">
-                                                        <div className="bg-blue-50 p-1.5 rounded-full text-blue-600">
+                                                        <div className="bg-blue-50 dark:bg-blue-500/10 p-1.5 rounded-full text-blue-600 dark:text-blue-400">
                                                             <User className="w-4 h-4" />
                                                         </div>
                                                         {reserva.cliente
@@ -382,8 +382,8 @@ export const EmployeeReservas = () => {
                                                     </div>
                                                 </TableCell>
                                                 <TableCell>
-                                                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                                                        <BedDouble className="w-4 h-4 text-gray-400" />
+                                                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                                        <BedDouble className="w-4 h-4 text-muted-foreground" />
                                                         <div className="max-w-[200px] truncate" title={mapReservaHabitaciones[reserva.id!]}>
                                                             {mapReservaHabitaciones[reserva.id!] || <span className="text-red-400 italic text-xs">Sin asignar</span>}
                                                         </div>
@@ -391,11 +391,11 @@ export const EmployeeReservas = () => {
                                                 </TableCell>
                                                 <TableCell>
                                                     <div className="flex flex-col text-xs space-y-1">
-                                                        <span className="flex items-center gap-1.5 text-gray-700 font-medium">
-                                                            <CalendarCheck className="h-3 w-3 text-emerald-600" />
+                                                        <span className="flex items-center gap-1.5 text-foreground font-medium">
+                                                            <CalendarCheck className="h-3 w-3 text-emerald-600 dark:text-emerald-500" />
                                                             {new Date(reserva.fechaInicio!).toLocaleDateString()}
                                                         </span>
-                                                        <span className="flex items-center gap-1.5 text-gray-400 pl-4">
+                                                        <span className="flex items-center gap-1.5 text-muted-foreground pl-4">
                                                             hasta {new Date(reserva.fechaFin!).toLocaleDateString()}
                                                         </span>
                                                     </div>
@@ -403,10 +403,10 @@ export const EmployeeReservas = () => {
                                                 <TableCell>
                                                     <Badge
                                                         className={`
-                                                        ${reserva.estado === 'CONFIRMADA' ? 'bg-green-100 text-green-700 hover:bg-green-100 border-green-200' : ''}
-                                                        ${reserva.estado === 'PENDIENTE' ? 'bg-yellow-50 text-yellow-700 hover:bg-yellow-50 border-yellow-200' : ''}
-                                                        ${reserva.estado === 'CANCELADA' ? 'bg-red-50 text-red-700 hover:bg-red-50 border-red-200' : ''}
-                                                        ${reserva.estado === 'FINALIZADA' ? 'bg-blue-50 text-blue-700 hover:bg-blue-50 border-blue-200' : ''}
+                                                        ${reserva.estado === 'CONFIRMADA' ? 'bg-green-100 text-green-700 hover:bg-green-100 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800' : ''}
+                                                        ${reserva.estado === 'PENDIENTE' ? 'bg-yellow-50 text-yellow-700 hover:bg-yellow-50 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-800' : ''}
+                                                        ${reserva.estado === 'CANCELADA' ? 'bg-red-50 text-red-700 hover:bg-red-50 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800' : ''}
+                                                        ${reserva.estado === 'FINALIZADA' ? 'bg-blue-50 text-blue-700 hover:bg-blue-50 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800' : ''}
                                                      `}
                                                         variant="secondary"
                                                     >
@@ -419,7 +419,7 @@ export const EmployeeReservas = () => {
                                                             variant="ghost"
                                                             size="sm"
                                                             onClick={(e) => { e.stopPropagation(); handleOpenPayment(reserva); }}
-                                                            className="hover:bg-green-50 hover:text-green-600 hover:border-green-200 border border-transparent rounded-full transition-all text-gray-400"
+                                                            className="hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-600 hover:border-green-200 border border-transparent rounded-full transition-all text-muted-foreground"
                                                             title="Gestionar Pago"
                                                         >
                                                             <CreditCard className="h-4 w-4" />
@@ -428,7 +428,7 @@ export const EmployeeReservas = () => {
                                                             variant="ghost"
                                                             size="sm"
                                                             onClick={(e) => { e.stopPropagation(); handleViewDetails(reserva); }}
-                                                            className="hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 border border-transparent rounded-full transition-all text-gray-400"
+                                                            className="hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 hover:border-blue-200 border border-transparent rounded-full transition-all text-muted-foreground"
                                                         >
                                                             <Eye className="h-4 w-4" />
                                                         </Button>
@@ -436,7 +436,7 @@ export const EmployeeReservas = () => {
                                                             variant="ghost"
                                                             size="sm"
                                                             onClick={(e) => { e.stopPropagation(); handleEdit(reserva); }}
-                                                            className="hover:bg-yellow-50 hover:text-yellow-600 hover:border-yellow-200 border border-transparent rounded-full transition-all text-gray-400"
+                                                            className="hover:bg-yellow-50 dark:hover:bg-yellow-900/20 hover:text-yellow-600 hover:border-yellow-200 border border-transparent rounded-full transition-all text-muted-foreground"
                                                         >
                                                             <Pencil className="h-4 w-4" />
                                                         </Button>

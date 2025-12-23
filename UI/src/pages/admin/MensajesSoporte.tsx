@@ -61,7 +61,7 @@ export const AdminMensajesSoporte = () => {
     };
 
     return (
-        <div className="font-sans text-gray-900 bg-gray-50 min-h-screen flex flex-col">
+        <div className="font-sans text-foreground bg-background min-h-screen flex flex-col">
 
             <PageHeader
                 title="Centro de Soporte"
@@ -71,20 +71,20 @@ export const AdminMensajesSoporte = () => {
 
             <main className="flex-grow py-12 px-4 md:px-8 lg:px-20 relative z-10 -mt-10">
                 <div className="max-w-7xl mx-auto -mt-6">
-                    <div className="bg-white rounded-sm shadow-xl p-6 md:p-10 overflow-hidden border border-gray-100 min-h-[600px]">
+                    <div className="bg-card rounded-lg shadow-xl p-6 md:p-10 overflow-hidden border border-border min-h-[600px]">
 
                         {/* HEADER TOOLBAR */}
                         <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-8">
-                            <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                            <h3 className="text-xl font-bold text-foreground flex items-center gap-2">
                                 <MessageCircle className="h-5 w-5 text-yellow-600" /> Bandeja de Entrada
                             </h3>
                             <div className="flex gap-3 w-full md:w-auto items-center">
                                 <ActiveFilter showInactive={showInactive} onChange={setShowInactive} activeLabel="Activos" inactiveLabel="Archivados" />
                                 <div className="relative w-full md:w-80">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                     <Input
                                         placeholder="Buscar cliente..."
-                                        className="pl-10 bg-gray-50 border-gray-200 focus:bg-white transition-colors"
+                                        className="pl-10 bg-muted/50 border-input focus:bg-background transition-colors"
                                         value={searchTerm}
                                         onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(0); }}
                                     />

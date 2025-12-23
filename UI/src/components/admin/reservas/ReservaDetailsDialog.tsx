@@ -158,12 +158,12 @@ export const ReservaDetailsDialog = ({
                             </DialogDescription>
                         </div>
                         <Badge className={cn(
-                            "text-sm px-3 py-1",
-                            reserva?.estado === 'CONFIRMADA' ? "bg-green-500 text-white" :
-                                reserva?.estado === 'CANCELADA' ? "bg-red-500 text-white" :
-                                    reserva?.estado === 'FINALIZADA' ? "bg-blue-500 text-white" :
+                            "text-sm px-3 py-1 border-0",
+                            reserva?.estado === 'CONFIRMADA' ? "bg-green-500 text-white dark:bg-green-500/20 dark:text-green-400" :
+                                reserva?.estado === 'CANCELADA' ? "bg-red-500 text-white dark:bg-red-500/20 dark:text-red-400" :
+                                    reserva?.estado === 'FINALIZADA' ? "bg-blue-500 text-white dark:bg-blue-500/20 dark:text-blue-400" :
                                         reserva?.estado === 'CHECK_IN' ? "bg-purple-500 text-white" :
-                                            "bg-yellow-500 text-black"
+                                            "bg-yellow-500 text-black dark:bg-yellow-500/20 dark:text-yellow-400"
                         )}>
                             {reserva?.estado}
                         </Badge>
@@ -171,27 +171,27 @@ export const ReservaDetailsDialog = ({
                 </DialogHeader>
 
                 {reserva && (
-                    <div className="p-6 bg-white space-y-8 max-h-[70vh] overflow-y-auto">
+                    <div className="p-6 bg-background space-y-8 max-h-[70vh] overflow-y-auto text-foreground">
                         {/* TOP META ROW */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-b pb-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-b border-border pb-6">
                             <div>
-                                <span className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-1">Fecha de Reserva</span>
-                                <span className="text-gray-900 font-medium">
+                                <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest block mb-1">Fecha de Reserva</span>
+                                <span className="text-foreground font-medium">
                                     {reserva.fechaReserva ?
                                         new Date(reserva.fechaReserva).toLocaleString('es-ES', { dateStyle: 'long', timeStyle: 'short' })
-                                        : <span className="text-gray-400 italic">No registrada</span>
+                                        : <span className="text-muted-foreground italic">No registrada</span>
                                     }
                                 </span>
                             </div>
                             <div className="md:text-left">
-                                <span className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-1">Estado</span>
+                                <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest block mb-1">Estado</span>
                                 <Badge className={cn(
-                                    "px-3 py-1 text-sm",
-                                    reserva.estado === 'CONFIRMADA' ? "bg-green-100 text-green-700" :
-                                        reserva.estado === 'CANCELADA' ? "bg-red-100 text-red-700" :
-                                            reserva.estado === 'FINALIZADA' ? "bg-blue-100 text-blue-700" :
+                                    "px-3 py-1 text-sm border-0",
+                                    reserva.estado === 'CONFIRMADA' ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" :
+                                        reserva.estado === 'CANCELADA' ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400" :
+                                            reserva.estado === 'FINALIZADA' ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400" :
                                                 reserva.estado === 'CHECK_IN' ? "bg-purple-100 text-purple-700" :
-                                                    "bg-yellow-100 text-yellow-700"
+                                                    "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
                                 )}>
                                     {reserva.estado || 'PENDIENTE'}
                                 </Badge>
@@ -200,44 +200,44 @@ export const ReservaDetailsDialog = ({
 
                         {/* CLIENT SECTION */}
                         <div className="flex items-start gap-5">
-                            <div className="h-16 w-16 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold text-2xl shadow-sm border border-slate-200">
+                            <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center text-muted-foreground font-bold text-2xl shadow-sm border border-border">
                                 {(client?.nombre || reserva.cliente?.nombre)?.charAt(0) || <User />}
                             </div>
                             <div className="space-y-1 w-full">
-                                <h3 className="text-xl font-bold text-gray-900 border-b border-dashed border-gray-200 pb-1 mb-2">
+                                <h3 className="text-xl font-bold text-foreground border-b border-dashed border-border pb-1 mb-2">
                                     {client?.nombre || reserva.cliente?.nombre || 'Cliente'} {client?.apellido || reserva.cliente?.apellido || ''}
                                 </h3>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2 text-sm text-gray-600">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2 text-sm text-muted-foreground">
                                     <div className="flex items-center gap-2">
-                                        <span className="font-semibold text-gray-400/80 w-20">Email:</span>
-                                        <span className="text-gray-900">{client?.correo || <span className="text-gray-300">-</span>}</span>
+                                        <span className="font-semibold text-muted-foreground/80 w-20">Email:</span>
+                                        <span className="text-foreground">{client?.correo || <span className="text-muted-foreground/50">-</span>}</span>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <span className="font-semibold text-gray-400/80 w-20">Teléfono:</span>
-                                        <span className="text-gray-900">{client?.telefono || <span className="text-gray-300">-</span>}</span>
+                                        <span className="font-semibold text-muted-foreground/80 w-20">Teléfono:</span>
+                                        <span className="text-foreground">{client?.telefono || <span className="text-muted-foreground/50">-</span>}</span>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <span className="font-semibold text-gray-400/80 w-20">Doc:</span>
-                                        <span className="text-gray-900 uppercase font-mono">{client?.numeroIdentificacion || <span className="text-gray-300">-</span>}</span>
+                                        <span className="font-semibold text-muted-foreground/80 w-20">Doc:</span>
+                                        <span className="text-foreground uppercase font-mono">{client?.numeroIdentificacion || <span className="text-muted-foreground/50">-</span>}</span>
                                     </div>
                                     <div className="flex items-center gap-2 sm:col-span-2">
-                                        <span className="font-semibold text-gray-400/80 w-20">Dirección:</span>
-                                        <span className="text-gray-900 truncate max-w-[400px]" title={client?.direccion || ''}>{client?.direccion || <span className="text-gray-300">-</span>}</span>
+                                        <span className="font-semibold text-muted-foreground/80 w-20">Dirección:</span>
+                                        <span className="text-foreground truncate max-w-[400px]" title={client?.direccion || ''}>{client?.direccion || <span className="text-muted-foreground/50">-</span>}</span>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-8 border-t border-b border-gray-100 py-6 bg-slate-50/50 px-4 rounded-lg">
+                        <div className="grid grid-cols-2 gap-8 border-t border-b border-border py-6 bg-muted/30 px-4 rounded-lg">
                             <div>
-                                <span className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-1">Entrada</span>
-                                <span className="text-xl font-bold text-gray-800">
+                                <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest block mb-1">Entrada</span>
+                                <span className="text-xl font-bold text-foreground">
                                     {new Date(reserva.fechaInicio!).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
                                 </span>
                             </div>
                             <div className="text-right">
-                                <span className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-1">Salida</span>
-                                <span className="text-xl font-bold text-gray-800">
+                                <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest block mb-1">Salida</span>
+                                <span className="text-xl font-bold text-foreground">
                                     {new Date(reserva.fechaFin!).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
                                 </span>
                             </div>
@@ -245,36 +245,36 @@ export const ReservaDetailsDialog = ({
 
                         {/* ROOMS SECTION */}
                         <div>
-                            <h4 className="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2 uppercase tracking-wider">
-                                <span className="bg-yellow-100 p-1 rounded text-yellow-700"><Check className="h-3 w-3" /></span>
+                            <h4 className="text-sm font-bold text-foreground mb-3 flex items-center gap-2 uppercase tracking-wider">
+                                <span className="bg-yellow-500/20 p-1 rounded text-yellow-600 dark:text-yellow-400"><Check className="h-3 w-3" /></span>
                                 Habitaciones Reservadas ({rooms.length})
                             </h4>
                             {rooms.length > 0 ? (
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     {rooms.map((room, index) => (
-                                        <div key={room.id || index} className="flex flex-col gap-2 p-4 rounded-lg border border-gray-100 bg-white shadow-sm hover:shadow-md transition-shadow">
-                                            <div className="flex justify-between items-center border-b border-gray-50 pb-2">
-                                                <span className="font-mono font-bold text-lg text-yellow-600">Hab {room.numero}</span>
-                                                <span className="text-xs bg-yellow-50 text-yellow-700 border border-yellow-200 px-2 py-1 rounded-full font-medium">
+                                        <div key={room.id || index} className="flex flex-col gap-2 p-4 rounded-lg border border-border bg-card shadow-sm hover:shadow-md transition-shadow">
+                                            <div className="flex justify-between items-center border-b border-border pb-2">
+                                                <span className="font-mono font-bold text-lg text-yellow-600 dark:text-yellow-500">Hab {room.numero}</span>
+                                                <span className="text-xs bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 border border-yellow-500/20 px-2 py-1 rounded-full font-medium">
                                                     {room.categoriaHabitacion?.nombre || 'Estándar'}
                                                 </span>
                                             </div>
                                             <div className="flex justify-between items-end text-sm">
-                                                <div className="text-gray-500">
-                                                    <p>Capacidad: <span className="font-medium text-gray-800">{room.capacidad ?? '?'} pax</span></p>
+                                                <div className="text-muted-foreground">
+                                                    <p>Capacidad: <span className="font-medium text-foreground">{room.capacidad ?? '?'} pax</span></p>
                                                 </div>
-                                                <div className="font-bold text-gray-900">
-                                                    ${room.categoriaHabitacion?.precioBase ? Number(room.categoriaHabitacion.precioBase).toLocaleString() : '0'} <span className="text-xs font-normal text-gray-400">/noche</span>
+                                                <div className="font-bold text-foreground">
+                                                    ${room.categoriaHabitacion?.precioBase ? Number(room.categoriaHabitacion.precioBase).toLocaleString() : '0'} <span className="text-xs font-normal text-muted-foreground">/noche</span>
                                                 </div>
                                             </div>
                                         </div>
                                     ))}
                                 </div>
                             ) : (
-                                <div className="text-sm text-gray-400 italic flex items-center gap-2 p-4 bg-gray-50 rounded-lg justify-center border border-dashed">
+                                <div className="text-sm text-muted-foreground italic flex items-center gap-2 p-4 bg-muted/30 rounded-lg justify-center border border-dashed border-border">
                                     {loading ? (
                                         <>
-                                            <div className="animate-spin h-3 w-3 border-b-2 border-gray-400 rounded-full"></div>
+                                            <div className="animate-spin h-3 w-3 border-b-2 border-muted-foreground rounded-full"></div>
                                             Cargando habitaciones...
                                         </>
                                     ) : (
@@ -286,7 +286,7 @@ export const ReservaDetailsDialog = ({
                     </div>
                 )}
 
-                <DialogFooter className="bg-gray-50 p-4 border-t flex justify-end gap-2">
+                <DialogFooter className="bg-background p-4 border-t flex justify-end gap-2">
                     <Button onClick={() => onOpenChange(false)} variant="outline" disabled={processing}>Cerrar</Button>
 
                     {reserva?.estado === 'CONFIRMADA' && (

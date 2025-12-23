@@ -328,24 +328,24 @@ export const HeroSection = () => {
                             <div className="flex flex-1 gap-6 overflow-hidden pt-4">
                                 {/* Lista Lateral Slides */}
                                 <div className="w-1/3 border-r pr-4 overflow-y-auto space-y-2">
-                                    <h4 className="font-bold text-sm mb-2 text-gray-500">Slides Hero</h4>
+                                    <h4 className="font-bold text-sm mb-2 text-muted-foreground">Slides Hero</h4>
                                     {editingItems.map((item, idx) => (
                                         <div 
                                             key={idx}
                                             onClick={() => setEditIndex(idx)}
-                                            className={`p-3 rounded-lg border cursor-pointer flex gap-2 items-center transition-colors ${idx === editIndex ? 'bg-yellow-50 border-yellow-500' : 'hover:bg-gray-50 border-gray-200'} ${item.activo === false ? 'opacity-50 grayscale' : ''}`}
+                                            className={`p-3 rounded-lg border cursor-pointer flex gap-2 items-center transition-colors ${idx === editIndex ? 'bg-secondary border-primary' : 'hover:bg-muted border-border'} ${item.activo === false ? 'opacity-50 grayscale' : ''}`}
                                         >
-                                            <div className="w-12 h-12 bg-gray-200 rounded overflow-hidden flex-shrink-0">
+                                            <div className="w-12 h-12 bg-muted rounded overflow-hidden flex-shrink-0">
                                                 {item.imagenFondoUrl ? (
                                                     <img src={getImageUrl(item.imagenFondoUrl)} className="w-full h-full object-cover" />
-                                                ) : <div className="w-full h-full bg-slate-300"/>}
+                                                ) : <div className="w-full h-full bg-muted"/>}
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <p className="text-sm font-bold truncate">
                                                     {item.titulo || "Nuevo"}
-                                                    {item.activo === false && <span className="text-xs font-normal text-red-500 ml-1">(Inactivo)</span>}
+                                                    {item.activo === false && <span className="text-xs font-normal text-destructive ml-1">(Inactivo)</span>}
                                                 </p>
-                                                <p className="text-xs text-gray-500 truncate">Orden: {idx}</p>
+                                                <p className="text-xs text-muted-foreground truncate">Orden: {idx}</p>
                                             </div>
                                             <Button 
                                                 variant="ghost" size="icon" 
@@ -359,12 +359,12 @@ export const HeroSection = () => {
                                     
                                     <div className="mt-8 border-t pt-4">
                                         <div className="flex justify-between items-center mb-2">
-                                            <h4 className="font-bold text-sm text-gray-500">Redes Sociales</h4>
+                                            <h4 className="font-bold text-sm text-muted-foreground">Redes Sociales</h4>
                                             <Button size="sm" variant="ghost" onClick={addNewSocial}><Plus className="h-3 w-3"/></Button>
                                         </div>
                                         {editingSocials.map((sock, i) => (
                                             <div key={i} className="flex gap-2 mb-2 items-center">
-                                                {getSocialIcon(sock.nombre || '', "h-4 w-4 text-gray-500")}
+                                                {getSocialIcon(sock.nombre || '', "h-4 w-4 text-muted-foreground")}
                                                 <Input 
                                                     value={sock.nombre} 
                                                     onChange={(e) => handleSocialChange(i, 'nombre', e.target.value)}
@@ -435,7 +435,7 @@ export const HeroSection = () => {
                                                 <div className="grid gap-2">
                                                     <Label>Link (#id o https://)</Label>
                                                     <div className="relative">
-                                                        <LinkIcon className="absolute left-2 top-2.5 h-4 w-4 text-gray-400" />
+                                                        <LinkIcon className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                                                         <Input className="pl-8"
                                                             value={editingItems[editIndex].enlaceBoton || ''} 
                                                             onChange={e => {
@@ -453,15 +453,15 @@ export const HeroSection = () => {
                                                 <h4 className="font-bold mb-3">Fondo e Imagen</h4>
                                                 <div className="flex gap-4 items-start">
                                                     {editingItems[editIndex].imagenFondoUrl ? (
-                                                        <img src={getImageUrl(editingItems[editIndex].imagenFondoUrl)} className="w-40 h-24 object-cover rounded-md border bg-gray-100" />
-                                                    ) : <div className="w-40 h-24 bg-gray-100 rounded border flex items-center justify-center text-xs text-gray-400">Sin Imagen</div>}
+                                                        <img src={getImageUrl(editingItems[editIndex].imagenFondoUrl)} className="w-40 h-24 object-cover rounded-md border bg-muted" />
+                                                    ) : <div className="w-40 h-24 bg-muted rounded border flex items-center justify-center text-xs text-muted-foreground">Sin Imagen</div>}
                                                     
                                                     <div className="flex-1 space-y-4">
                                                         <Button variant="outline" onClick={() => fileInputRef.current?.click()} className="w-full">
                                                             <ImageIcon className="mr-2 h-4 w-4" /> Cambiar Imagen
                                                         </Button>
                                                         <input ref={fileInputRef} type="file" className="hidden" accept="image/*" onChange={handleImageUpload} />
-                                                        <p className="text-xs text-gray-400">Se guardará en /images/landing/</p>
+                                                        <p className="text-xs text-muted-foreground">Se guardará en /images/landing/</p>
                                                     </div>
                                                 </div>
                                             </div>

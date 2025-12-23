@@ -391,7 +391,7 @@ export const AdminReportes = ({ isEmbedded = false }: { isEmbedded?: boolean }) 
     );
 
     return (
-        <div className={`font-sans text-gray-900 bg-gray-50 flex flex-col ${isEmbedded ? '' : 'min-h-screen'}`}>
+        <div className={`font-sans text-foreground bg-background flex flex-col ${isEmbedded ? '' : 'min-h-screen'}`}>
 
             {/* HERO SECTION - Only show if not embedded */}
             {!isEmbedded && (
@@ -407,8 +407,8 @@ export const AdminReportes = ({ isEmbedded = false }: { isEmbedded?: boolean }) 
             {isEmbedded && (
                 <div className="flex justify-between items-center mb-6 pl-1">
                     <div>
-                        <h2 className="text-xl font-bold text-gray-800">Detalles de Reportes</h2>
-                        <p className="text-sm text-gray-500">Métricas avanzadas y exportación de datos</p>
+                        <h2 className="text-xl font-bold text-foreground">Detalles de Reportes</h2>
+                        <p className="text-sm text-muted-foreground">Métricas avanzadas y exportación de datos</p>
                     </div>
                     <ExportButtons />
                 </div>
@@ -418,61 +418,61 @@ export const AdminReportes = ({ isEmbedded = false }: { isEmbedded?: boolean }) 
 
                 {/* STATS GRID */}
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-                    <Card className="bg-white border-none shadow-lg border-l-4 border-l-green-500">
+                    <Card className="bg-card shadow-lg border-l-4 border-l-green-500 border-border">
                         <CardContent className="p-6">
                             <div className="flex items-center justify-between space-y-0 pb-2">
-                                <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Ingresos Totales</p>
-                                <div className="bg-green-100 p-2 rounded-full">
-                                    <DollarSign className="h-5 w-5 text-green-600" />
+                                <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Ingresos Totales</p>
+                                <div className="bg-green-100 dark:bg-green-500/20 p-2 rounded-full">
+                                    <DollarSign className="h-5 w-5 text-green-600 dark:text-green-400" />
                                 </div>
                             </div>
-                            <div className="text-2xl font-black text-gray-800 mt-2">${stats.income.toLocaleString()}</div>
-                            <p className="text-xs text-gray-400 mt-1">Acumulado histórico</p>
+                            <div className="text-2xl font-black text-card-foreground mt-2">${stats.income.toLocaleString()}</div>
+                            <p className="text-xs text-muted-foreground mt-1">Acumulado histórico</p>
                         </CardContent>
                     </Card>
-                    <Card className="bg-white border-none shadow-lg border-l-4 border-l-blue-500">
+                    <Card className="bg-card shadow-lg border-l-4 border-l-blue-500 border-border">
                         <CardContent className="p-6">
                             <div className="flex items-center justify-between space-y-0 pb-2">
-                                <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Reservas</p>
-                                <div className="bg-blue-100 p-2 rounded-full">
-                                    <CalendarCheck className="h-5 w-5 text-blue-600" />
+                                <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Reservas</p>
+                                <div className="bg-blue-100 dark:bg-blue-500/20 p-2 rounded-full">
+                                    <CalendarCheck className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                                 </div>
                             </div>
-                            <div className="text-2xl font-black text-gray-800 mt-2">{stats.reservations}</div>
-                            <p className="text-xs text-gray-400 mt-1">Total de reservas</p>
+                            <div className="text-2xl font-black text-card-foreground mt-2">{stats.reservations}</div>
+                            <p className="text-xs text-muted-foreground mt-1">Total de reservas</p>
                         </CardContent>
                     </Card>
-                    <Card className="bg-white border-none shadow-lg border-l-4 border-l-purple-500">
+                    <Card className="bg-card shadow-lg border-l-4 border-l-purple-500 border-border">
                         <CardContent className="p-6">
                             <div className="flex items-center justify-between space-y-0 pb-2">
-                                <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Clientes</p>
-                                <div className="bg-purple-100 p-2 rounded-full">
-                                    <Users className="h-5 w-5 text-purple-600" />
+                                <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Clientes</p>
+                                <div className="bg-purple-100 dark:bg-purple-500/20 p-2 rounded-full">
+                                    <Users className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                                 </div>
                             </div>
-                            <div className="text-2xl font-black text-gray-800 mt-2">{stats.clients}</div>
-                            <p className="text-xs text-gray-400 mt-1">Clientes registrados</p>
+                            <div className="text-2xl font-black text-card-foreground mt-2">{stats.clients}</div>
+                            <p className="text-xs text-muted-foreground mt-1">Clientes registrados</p>
                         </CardContent>
                     </Card>
-                    <Card className="bg-white border-none shadow-lg border-l-4 border-l-yellow-500">
+                    <Card className="bg-card shadow-lg border-l-4 border-l-yellow-500 border-border">
                         <CardContent className="p-6">
                             <div className="flex items-center justify-between space-y-0 pb-2">
-                                <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Pendientes</p>
-                                <div className="bg-yellow-100 p-2 rounded-full">
-                                    <TrendingUp className="h-5 w-5 text-yellow-600" />
+                                <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Pendientes</p>
+                                <div className="bg-yellow-100 dark:bg-yellow-500/20 p-2 rounded-full">
+                                    <TrendingUp className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
                                 </div>
                             </div>
-                            <div className="text-2xl font-black text-gray-800 mt-2">{stats.pendingReservations}</div>
-                            <p className="text-xs text-gray-400 mt-1">Requieren atención</p>
+                            <div className="text-2xl font-black text-card-foreground mt-2">{stats.pendingReservations}</div>
+                            <p className="text-xs text-muted-foreground mt-1">Requieren atención</p>
                         </CardContent>
                     </Card>
                 </div>
 
                 {/* CHARTS SECTION */}
                 <div className="grid gap-6 md:grid-cols-2">
-                    <Card className="bg-white shadow-lg border-none col-span-1">
+                    <Card className="bg-card shadow-lg border-border col-span-1">
                         <CardHeader>
-                            <CardTitle className="text-gray-800 text-lg font-bold">Ingresos vs Reservas (Últimos 6 Meses)</CardTitle>
+                            <CardTitle className="text-card-foreground text-lg font-bold">Ingresos vs Reservas (Últimos 6 Meses)</CardTitle>
                             <CardDescription>Comportamiento mensual de ventas y ocupación.</CardDescription>
                         </CardHeader>
                         <CardContent className="h-[300px]">
@@ -487,7 +487,7 @@ export const AdminReportes = ({ isEmbedded = false }: { isEmbedded?: boolean }) 
                                     <XAxis dataKey="name" fontSize={12} tickLine={false} axisLine={false} />
                                     <YAxis fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `$${value}`} />
                                     <Tooltip
-                                        contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                                        contentStyle={{ backgroundColor: 'var(--card)', borderRadius: '8px', border: '1px solid var(--border)', color: 'var(--card-foreground)' }}
                                         itemStyle={{ color: '#10B981' }}
                                     />
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
@@ -497,9 +497,9 @@ export const AdminReportes = ({ isEmbedded = false }: { isEmbedded?: boolean }) 
                         </CardContent>
                     </Card>
 
-                    <Card className="bg-white shadow-lg border-none col-span-1">
+                    <Card className="bg-card shadow-lg border-border col-span-1">
                         <CardHeader>
-                            <CardTitle className="text-gray-800 text-lg font-bold">Estado de Reservas</CardTitle>
+                            <CardTitle className="text-card-foreground text-lg font-bold">Estado de Reservas</CardTitle>
                             <CardDescription>Distribución actual por estado.</CardDescription>
                         </CardHeader>
                         <CardContent className="h-[300px] flex justify-center items-center">
@@ -526,7 +526,7 @@ export const AdminReportes = ({ isEmbedded = false }: { isEmbedded?: boolean }) 
                                 {statusData.map((entry, index) => (
                                     <div key={index} className="flex items-center gap-2 text-sm">
                                         <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
-                                        <span className="text-gray-600 font-medium">{entry.name}: {entry.value}</span>
+                                        <span className="text-muted-foreground font-medium">{entry.name}: {entry.value}</span>
                                     </div>
                                 ))}
                             </div>
@@ -535,7 +535,7 @@ export const AdminReportes = ({ isEmbedded = false }: { isEmbedded?: boolean }) 
                 </div>
 
                 {/* RECENT PAYMENTS LIST */}
-                <Card className="bg-white shadow-lg border-none">
+                <Card className="bg-card shadow-lg border-border">
                     <CardHeader>
                         <div className="flex items-center justify-between">
                             <div>
@@ -549,23 +549,23 @@ export const AdminReportes = ({ isEmbedded = false }: { isEmbedded?: boolean }) 
                     <CardContent>
                         <div className="space-y-4">
                             {pagos.slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage).map((pago) => (
-                                <div key={pago.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-100 hover:border-yellow-200 transition-colors">
+                                <div key={pago.id} className="flex items-center justify-between p-4 bg-muted/40 rounded-lg border border-border hover:border-yellow-200 transition-colors">
                                     <div className="flex items-center gap-4">
-                                        <div className="bg-green-100 p-2 rounded-full">
-                                            <CreditCard className="h-5 w-5 text-green-700" />
+                                        <div className="bg-green-100 dark:bg-green-500/20 p-2 rounded-full">
+                                            <CreditCard className="h-5 w-5 text-green-700 dark:text-green-400" />
                                         </div>
                                         <div>
-                                            <p className="font-bold text-gray-800 text-sm">Pago #{pago.id}</p>
-                                            <p className="text-xs text-gray-500">Reserva ID: {pago.reserva?.id}</p>
+                                            <p className="font-bold text-card-foreground text-sm">Pago #{pago.id}</p>
+                                            <p className="text-xs text-muted-foreground">Reserva ID: {pago.reserva?.id}</p>
                                         </div>
                                     </div>
                                     <div className="text-right">
-                                        <p className="font-bold text-green-700">+${Number(pago.monto).toLocaleString()}</p>
-                                        <p className="text-xs text-gray-400">{pago.fechaPago ? new Date(pago.fechaPago).toLocaleDateString() : '-'}</p>
+                                        <p className="font-bold text-green-700 dark:text-green-500">+${Number(pago.monto).toLocaleString()}</p>
+                                        <p className="text-xs text-muted-foreground">{pago.fechaPago ? new Date(pago.fechaPago).toLocaleDateString() : '-'}</p>
                                     </div>
                                 </div>
                             ))}
-                            {pagos.length === 0 && <p className="text-center text-gray-400 py-8">No hay transacciones recientes.</p>}
+                            {pagos.length === 0 && <p className="text-center text-muted-foreground py-8">No hay transacciones recientes.</p>}
                         </div>
                     </CardContent>
                     <div className="px-6 pb-6 border-t pt-4">
