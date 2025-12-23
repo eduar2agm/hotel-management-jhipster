@@ -26,7 +26,7 @@ export const Login = () => {
     // --- PANTALLA DE CARGA ---
     if (isLoading) {
         return (
-            <div className="flex h-screen w-full items-center justify-center bg-slate-950">
+            <div className="flex h-screen w-full items-center justify-center bg-background">
                 <div className="flex flex-col items-center gap-4">
                     <div className="relative">
                         <div className="absolute inset-0 bg-yellow-500 blur-xl opacity-20 rounded-full"></div>
@@ -75,17 +75,17 @@ export const Login = () => {
             </div>
 
             {/* --- COLUMNA DERECHA (FORMULARIO) --- */}
-            <div className="w-full lg:w-1/2 flex items-center justify-center bg-white p-8 relative">
+            <div className="w-full lg:w-1/2 flex items-center justify-center bg-background p-8 relative">
                 {/* Decoración de fondo sutil */}
-                <div className="absolute top-0 right-0 p-12 opacity-5">
+                <div className="absolute top-0 right-0 p-12 opacity-5 text-foreground">
                     <Hotel size={200} />
                 </div>
 
                 <div className="max-w-md w-full space-y-8 relative z-10">
                     <div className="text-center lg:text-left">
                         <span className="text-yellow-600 font-bold tracking-widest uppercase text-xs">Bienvenido</span>
-                        <h1 className="text-3xl font-bold text-slate-900 mt-2">Portal de Acceso</h1>
-                        <p className="text-slate-500 mt-2">
+                        <h1 className="text-3xl font-bold text-foreground mt-2">Portal de Acceso</h1>
+                        <p className="text-muted-foreground mt-2">
                             Inicia sesión para acceder a tu panel de control personalizado.
                         </p>
                     </div>
@@ -107,13 +107,13 @@ export const Login = () => {
                     )}
 
                     <div className="space-y-6 pt-4">
-                        <div className="bg-slate-50 p-6 rounded-xl border border-slate-100 text-center space-y-4">
-                            <p className="text-sm text-slate-600 font-medium">
+                        <div className="bg-card p-6 rounded-xl border border-border text-center space-y-4">
+                            <p className="text-sm text-muted-foreground font-medium">
                                 Utilizamos autenticación centralizada para garantizar la seguridad de tus datos.
                             </p>
 
                             <Button
-                                className="w-full h-12 bg-slate-900 hover:bg-yellow-500 hover:text-white text-white font-bold tracking-wide transition-all shadow-lg shadow-slate-900/20 hover:shadow-yellow-500/30 text-base"
+                                className="w-full h-12 bg-primary hover:bg-yellow-500 hover:text-white text-primary-foreground font-bold tracking-wide transition-all shadow-lg shadow-primary/20 hover:shadow-yellow-500/30 text-base"
                                 onClick={() => void login()}
                             >
                                 <LogIn className="mr-2 h-5 w-5" /> Ingresar con SSO

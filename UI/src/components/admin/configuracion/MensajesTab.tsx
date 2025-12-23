@@ -105,43 +105,43 @@ export const MensajesTab = () => {
 
     return (
         <>
-            <Card className="bg-white border-0 shadow-xl overflow-hidden rounded-2xl">
-                <CardHeader className="border-b border-gray-100 bg-white p-6">
-                    <CardTitle className="text-2xl font-bold text-gray-800">Plantillas de Mensajes</CardTitle>
-                    <p className="text-gray-500 text-sm mt-1">Configure los textos automáticos del sistema. Estas plantillas están predefinidas y pueden ser editadas.</p>
+            <Card className="bg-card border-0 shadow-xl overflow-hidden rounded-2xl">
+                <CardHeader className="border-b border-border bg-card p-6">
+                    <CardTitle className="text-2xl font-bold text-foreground">Plantillas de Mensajes</CardTitle>
+                    <p className="text-muted-foreground text-sm mt-1">Configure los textos automáticos del sistema. Estas plantillas están predefinidas y pueden ser editadas.</p>
                 </CardHeader>
                 <CardContent className="p-0">
                     <Table>
-                        <TableHeader className="bg-gray-50">
-                            <TableRow>
-                                <TableHead className="font-bold text-gray-600 py-5 pl-8">TIPO / CLAVE</TableHead>
-                                <TableHead className="font-bold text-gray-600 py-5">CONTENIDO</TableHead>
-                                <TableHead className="font-bold text-gray-600 py-5 text-right pr-8">ACCIONES</TableHead>
+                        <TableHeader className="bg-muted/50">
+                            <TableRow className="border-border">
+                                <TableHead className="font-bold text-muted-foreground py-5 pl-8">TIPO / CLAVE</TableHead>
+                                <TableHead className="font-bold text-muted-foreground py-5">CONTENIDO</TableHead>
+                                <TableHead className="font-bold text-muted-foreground py-5 text-right pr-8">ACCIONES</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {isLoading ? (
-                                <TableRow><TableCell colSpan={3} className="h-32 text-center text-gray-500">Cargando datos...</TableCell></TableRow>
+                                <TableRow><TableCell colSpan={3} className="h-32 text-center text-muted-foreground">Cargando datos...</TableCell></TableRow>
                             ) : configuraciones.length === 0 ? (
-                                <TableRow><TableCell colSpan={3} className="h-32 text-center text-gray-500">No hay mensajes configurados.</TableCell></TableRow>
+                                <TableRow><TableCell colSpan={3} className="h-32 text-center text-muted-foreground">No hay mensajes configurados.</TableCell></TableRow>
                             ) : (
                                 configuraciones.map(msg => (
-                                    <TableRow key={msg.id} className="hover:bg-gray-50/80 transition-colors border-b border-gray-100">
+                                    <TableRow key={msg.id} className="hover:bg-muted/50 transition-colors border-b border-border">
                                         <TableCell className="py-5 pl-8 align-top">
                                             <div className="flex flex-col">
-                                                <span className="font-bold text-gray-800">{getLabel(msg.clave || '')}</span>
-                                                <code className="text-xs text-slate-400 mt-1">{msg.clave}</code>
+                                                <span className="font-bold text-foreground">{getLabel(msg.clave || '')}</span>
+                                                <code className="text-xs text-muted-foreground mt-1">{msg.clave}</code>
                                             </div>
                                         </TableCell>
                                         <TableCell className="py-5 align-top">
-                                            <p className="whitespace-pre-wrap text-sm text-gray-600 max-w-xl max-h-32 overflow-y-auto">{msg.valor}</p>
+                                            <p className="whitespace-pre-wrap text-sm text-foreground/80 max-w-xl max-h-32 overflow-y-auto">{msg.valor}</p>
                                         </TableCell>
                                         <TableCell className="py-5 text-right pr-8 align-top">
                                             <div className="flex justify-end gap-2">
-                                                <Button variant="ghost" size="icon" className="h-10 w-10 hover:bg-indigo-50" onClick={() => { setCurrentMsg(msg); setIsDialogOpen(true); }}>
+                                                <Button variant="ghost" size="icon" className="h-10 w-10 hover:bg-indigo-50 dark:hover:bg-indigo-900/30" onClick={() => { setCurrentMsg(msg); setIsDialogOpen(true); }}>
                                                     <Pencil className="h-5 w-5" />
                                                 </Button>
-                                                <Button variant="ghost" size="icon" className="h-10 w-10 text-gray-400" onClick={() => Number(msg.id) && handleDelete(Number(msg.id))}>
+                                                <Button variant="ghost" size="icon" className="h-10 w-10 text-muted-foreground hover:bg-red-50 dark:hover:bg-red-900/30" onClick={() => Number(msg.id) && handleDelete(Number(msg.id))}>
                                                     <Trash2 className="h-5 w-5" />
                                                 </Button>
                                             </div>
@@ -155,15 +155,15 @@ export const MensajesTab = () => {
             </Card>
 
             {/* Variables Disponibles */}
-            <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 shadow-lg overflow-hidden rounded-2xl mt-6">
-                <CardHeader className="border-b border-blue-200 bg-white/60 backdrop-blur-sm p-6">
+            <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-900 dark:to-slate-900 border border-blue-100 dark:border-slate-800 shadow-lg overflow-hidden rounded-2xl mt-6">
+                <CardHeader className="border-b border-blue-200 dark:border-slate-800 bg-white/60 dark:bg-slate-900/60 backdrop-blur-sm p-6">
                     <div className="flex items-center gap-3">
                         <div className="h-10 w-10 rounded-lg bg-blue-600 flex items-center justify-center">
                             <Info className="h-5 w-5 text-white" />
                         </div>
                         <div>
-                            <CardTitle className="text-xl font-bold text-gray-800">Variables Disponibles</CardTitle>
-                            <p className="text-gray-600 text-sm mt-0.5">Utilice estas variables en sus plantillas de mensajes</p>
+                            <CardTitle className="text-xl font-bold text-foreground">Variables Disponibles</CardTitle>
+                            <p className="text-muted-foreground text-sm mt-0.5">Utilice estas variables en sus plantillas de mensajes</p>
                         </div>
                     </div>
                 </CardHeader>
@@ -174,18 +174,18 @@ export const MensajesTab = () => {
                             const variables = variablesMatch ? variablesMatch[1].split(',').map(v => v.trim()) : [];
 
                             return (
-                                <div key={item.key} className="bg-white rounded-xl p-5 border border-blue-100 shadow-sm hover:shadow-md transition-shadow">
+                                <div key={item.key} className="bg-white dark:bg-slate-950 rounded-xl p-5 border border-blue-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
                                     <div className="flex items-start gap-3">
-                                        <div className="h-8 w-8 rounded-lg bg-indigo-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                            <Code className="h-4 w-4 text-indigo-600" />
+                                        <div className="h-8 w-8 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                            <Code className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <h4 className="font-bold text-gray-800 text-sm mb-1">{item.label}</h4>
-                                            <code className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">{item.key}</code>
+                                            <h4 className="font-bold text-foreground text-sm mb-1">{item.label}</h4>
+                                            <code className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">{item.key}</code>
 
                                             {variables.length > 0 ? (
                                                 <div className="mt-3 space-y-2">
-                                                    <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Variables:</p>
+                                                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Variables:</p>
                                                     <div className="flex flex-wrap gap-2">
                                                         {variables.map((variable) => (
                                                             <span
@@ -198,7 +198,7 @@ export const MensajesTab = () => {
                                                     </div>
                                                 </div>
                                             ) : (
-                                                <p className="text-xs text-gray-500 italic mt-3">Sin variables dinámicas</p>
+                                                <p className="text-xs text-muted-foreground italic mt-3">Sin variables dinámicas</p>
                                             )}
                                         </div>
                                     </div>
@@ -207,14 +207,14 @@ export const MensajesTab = () => {
                         })}
                     </div>
 
-                    <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                    <div className="mt-6 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-900/50 rounded-lg">
                         <div className="flex gap-3">
-                            <Info className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                            <Info className="h-5 w-5 text-amber-600 dark:text-amber-500 flex-shrink-0 mt-0.5" />
                             <div>
-                                <p className="text-sm font-semibold text-amber-900 mb-1">💡 Cómo usar las variables</p>
-                                <p className="text-xs text-amber-800">
+                                <p className="text-sm font-semibold text-amber-900 dark:text-amber-200 mb-1">💡 Cómo usar las variables</p>
+                                <p className="text-xs text-amber-800 dark:text-amber-300">
                                     Las variables se reemplazan automáticamente con datos reales al enviar el mensaje.
-                                    Por ejemplo, <code className="bg-amber-100 px-1.5 py-0.5 rounded text-amber-900">{'{clienteNombre}'}</code> se sustituirá por el nombre del cliente.
+                                    Por ejemplo, <code className="bg-amber-100 dark:bg-amber-900/40 px-1.5 py-0.5 rounded text-amber-900 dark:text-amber-200">{'{clienteNombre}'}</code> se sustituirá por el nombre del cliente.
                                 </p>
                             </div>
                         </div>
@@ -225,7 +225,7 @@ export const MensajesTab = () => {
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogContent className="sm:max-w-lg">
                     <DialogHeader>
-                        <DialogTitle className="text-xl font-bold">{currentMsg.id ? 'Editar' : 'Crear'} Plantilla</DialogTitle>
+                        <DialogTitle className="text-xl font-bold text-foreground">{currentMsg.id ? 'Editar' : 'Crear'} Plantilla</DialogTitle>
                     </DialogHeader>
                     <form onSubmit={handleSave} className="grid gap-4 py-4">
                         <div className="grid gap-2">
@@ -243,7 +243,7 @@ export const MensajesTab = () => {
                                     <option key={k.key} value={k.key}>{k.label}</option>
                                 ))}
                             </datalist>
-                            <p className="text-xs text-gray-400">Debe comenzar con MSG_</p>
+                            <p className="text-xs text-muted-foreground">Debe comenzar con MSG_</p>
                         </div>
 
                         <div className="grid gap-2">
@@ -260,7 +260,7 @@ export const MensajesTab = () => {
                                 if (hint && hint.description.includes('Variables:')) {
                                     const variables = hint.description.split('Variables:')[1].trim();
                                     return (
-                                        <p className="text-xs text-blue-500 bg-blue-50 p-2 rounded">
+                                        <p className="text-xs text-blue-500 bg-blue-50 dark:bg-blue-900/20 p-2 rounded">
                                             Variables disponibles: {variables}
                                         </p>
                                     );

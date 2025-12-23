@@ -233,7 +233,7 @@ export const ServiciosList = ({ readOnly = false }: { readOnly?: boolean }) => {
     });
 
     return (
-        <div className="font-sans text-gray-900 bg-gray-50 min-h-screen flex flex-col">
+        <div className="font-sans text-foreground bg-background min-h-screen flex flex-col">
 
             <div className="bg-[#0F172A] pt-32 pb-20 px-4 md:px-8 lg:px-20 relative overflow-hidden shadow-xl">
                 <div className="absolute top-0 right-0 p-12 opacity-5 scale-150 pointer-events-none">
@@ -245,7 +245,7 @@ export const ServiciosList = ({ readOnly = false }: { readOnly?: boolean }) => {
                         <h1 className="text-3xl md:text-5xl font-black text-white tracking-tight mb-2">
                             {readOnly ? 'Catálogo de Servicios' : 'Gestión de Servicios'}
                         </h1>
-                        <p className="text-slate-400 text-lg max-w-2xl">
+                        <p className="text-muted-foreground text-lg max-w-2xl">
                             {readOnly ? 'Explore los servicios disponibles.' : 'Administre el catálogo de servicios extra y comodidades.'}
                         </p>
                     </div>
@@ -263,22 +263,22 @@ export const ServiciosList = ({ readOnly = false }: { readOnly?: boolean }) => {
             </div>
 
             <main className="flex-grow py-5  px-4 md:px-8 lg:px-20 -mt-10 relative z-10">
-                <Card className="max-w-7xl mx-auto border-t-4 border-yellow-600 shadow-xl bg-white">
-                    <CardHeader className="border-b bg-gray-50/50 pb-6">
+                <Card className="max-w-7xl mx-auto border-t-4 border-gray-600 shadow-xl bg-card">
+                    <CardHeader className="border-b bg-muted/30 pb-6">
                         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
                             <div>
-                                <CardTitle className="text-xl font-bold text-gray-800">Catálogo de Servicios</CardTitle>
+                                <CardTitle className="text-xl font-bold text-card-foreground">Catálogo de Servicios</CardTitle>
                                 <CardDescription>Total de servicios: {totalItems}</CardDescription>
                             </div>
                             <div className="flex flex-col md:flex-row gap-4 items-center w-full md:w-auto">
                                 {!readOnly && <ActiveFilter showInactive={showInactive} onChange={(val) => { setShowInactive(val); setCurrentPage(0); }} inactiveLabel="Mostrar no disponibles" />}
                                 <div className="relative w-full md:w-96 group">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-yellow-600 transition-colors" />
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-yellow-600 transition-colors" />
                                     <Input
                                         placeholder="Buscar servicio..."
                                         value={searchFilter}
                                         onChange={(e) => setSearchFilter(e.target.value)}
-                                        className="pl-10 border-gray-200 focus:border-yellow-600 focus:ring-yellow-600/20 h-11 transition-all"
+                                        className="pl-10 border-input focus:border-yellow-600 focus:ring-yellow-600/20 h-11 transition-all"
                                     />
                                 </div>
                             </div>
@@ -287,12 +287,12 @@ export const ServiciosList = ({ readOnly = false }: { readOnly?: boolean }) => {
                     <CardContent className="p-6 md:p-10">
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
                             {loading ? (
-                                <div className="col-span-full h-32 flex flex-col items-center justify-center text-gray-500">
+                                <div className="col-span-full h-32 flex flex-col items-center justify-center text-muted-foreground">
                                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-600 mb-2"></div>
                                     <span>Cargando servicios...</span>
                                 </div>
                             ) : filteredServicios.length === 0 ? (
-                                <div className="col-span-full h-32 flex items-center justify-center text-gray-500 border-2 border-dashed rounded-lg">
+                                <div className="col-span-full h-32 flex items-center justify-center text-muted-foreground border-2 border-dashed rounded-lg">
                                     No se encontraron servicios
                                 </div>
                             ) : (
@@ -336,7 +336,7 @@ export const ServiciosList = ({ readOnly = false }: { readOnly?: boolean }) => {
                                 </DialogDescription>
                             </DialogHeader>
 
-                            <div className="p-6 bg-white overflow-y-auto max-h-[80vh]">
+                            <div className="p-6 bg-background overflow-y-auto max-h-[80vh]">
                                 <Form {...(form as any)}>
                                     <form onSubmit={form.handleSubmit(onSubmit as any)} className="space-y-5">
                                         <FormField
@@ -498,9 +498,9 @@ export const ServiciosList = ({ readOnly = false }: { readOnly?: boolean }) => {
                                             control={form.control as any}
                                             name="disponible"
                                             render={({ field }) => (
-                                                <FormItem className="flex flex-row items-center justify-between rounded-lg border border-gray-100 bg-gray-50 p-3">
+                                                <FormItem className="flex flex-row items-center justify-between rounded-lg border border-border bg-muted/30 p-3">
                                                     <div className="space-y-0.5">
-                                                        <FormLabel className="text-sm font-medium text-gray-700">Disponible</FormLabel>
+                                                        <FormLabel className="text-sm font-medium text-foreground">Disponible</FormLabel>
                                                     </div>
                                                     <FormControl>
                                                         <Switch
@@ -536,10 +536,10 @@ export const ServiciosList = ({ readOnly = false }: { readOnly?: boolean }) => {
                                 {selectedService?.nombre} - Configure los horarios y cupos.
                             </DialogDescription>
                         </DialogHeader>
-                        <div className="p-6 bg-white overflow-y-auto max-h-[80vh]">
+                        <div className="p-6 bg-background overflow-y-auto max-h-[80vh]">
                             {selectedService && <ServicioDisponibilidadManager servicio={selectedService} />}
                         </div>
-                        <div className="p-4 bg-gray-50 border-t flex justify-end">
+                        <div className="p-4 bg-muted border-t flex justify-end">
                             <Button variant="outline" onClick={() => setIsAvailabilityDialogOpen(false)}>Cerrar</Button>
                         </div>
                     </DialogContent>
@@ -556,12 +556,12 @@ export const ServiciosList = ({ readOnly = false }: { readOnly?: boolean }) => {
                                 Información detallada y calendario de disponibilidad.
                             </DialogDescription>
                         </DialogHeader>
-                        <div className="grid grid-cols-1 lg:grid-cols-3 bg-gray-50">
+                        <div className="grid grid-cols-1 lg:grid-cols-3 bg-muted/20">
                             {/* Panel izquierdo: Información */}
-                            <div className="p-6 space-y-6 lg:border-r border-gray-200">
+                            <div className="p-6 space-y-6 lg:border-r border-border">
                                 {selectedServiceForDetails && (
                                     <>
-                                        <div className="aspect-video w-full rounded-lg overflow-hidden border border-gray-200 bg-white shadow-sm">
+                                        <div className="aspect-video w-full rounded-lg overflow-hidden border border-border bg-card shadow-sm">
                                             {selectedServiceForDetails.urlImage ? (
                                                 <img
                                                     src={getImageUrl(selectedServiceForDetails.urlImage)}
@@ -569,27 +569,27 @@ export const ServiciosList = ({ readOnly = false }: { readOnly?: boolean }) => {
                                                     className="w-full h-full object-cover"
                                                 />
                                             ) : (
-                                                <div className="w-full h-full flex items-center justify-center text-gray-300">
+                                                <div className="w-full h-full flex items-center justify-center text-muted-foreground">
                                                     <ImageIcon className="w-12 h-12" />
                                                 </div>
                                             )}
                                         </div>
                                         <div>
-                                            <h3 className="text-xl font-bold text-gray-900 mb-2">{selectedServiceForDetails.nombre}</h3>
-                                            <p className="text-gray-600 text-sm leading-relaxed">
+                                            <h3 className="text-xl font-bold text-foreground mb-2">{selectedServiceForDetails.nombre}</h3>
+                                            <p className="text-muted-foreground text-sm leading-relaxed">
                                                 {selectedServiceForDetails.descripcion || 'Sin descripción disponible.'}
                                             </p>
                                         </div>
                                         <div>
-                                            <h4 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Detalles</h4>
+                                            <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Detalles</h4>
                                             <div className="grid grid-cols-2 gap-4">
-                                                <div className="bg-white p-3 rounded-lg border border-gray-100 shadow-sm">
-                                                    <div className="text-xs text-gray-500 mb-1">Precio</div>
+                                                <div className="bg-card p-3 rounded-lg border border-border shadow-sm">
+                                                    <div className="text-xs text-muted-foreground mb-1">Precio</div>
                                                     <div className="font-bold text-yellow-600">${selectedServiceForDetails.precio}</div>
                                                 </div>
-                                                <div className="bg-white p-3 rounded-lg border border-gray-100 shadow-sm">
-                                                    <div className="text-xs text-gray-500 mb-1">Tipo</div>
-                                                    <div className="font-bold text-gray-800">{selectedServiceForDetails.tipo}</div>
+                                                <div className="bg-card p-3 rounded-lg border border-border shadow-sm">
+                                                    <div className="text-xs text-muted-foreground mb-1">Tipo</div>
+                                                    <div className="font-bold text-foreground">{selectedServiceForDetails.tipo}</div>
                                                 </div>
                                             </div>
                                         </div>
@@ -598,16 +598,16 @@ export const ServiciosList = ({ readOnly = false }: { readOnly?: boolean }) => {
                             </div>
 
                             {/* Panel derecho: Calendario de Disponibilidad */}
-                            <div className="lg:col-span-2 p-6 bg-white overflow-y-auto max-h-[70vh]">
-                                <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                                    <Clock className="w-5 h-5 text-gray-500" />
+                            <div className="lg:col-span-2 p-6 bg-background overflow-y-auto max-h-[70vh]">
+                                <h4 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
+                                    <Clock className="w-5 h-5 text-muted-foreground" />
                                     Calendario de Disponibilidad
                                 </h4>
-                                <div className="text-sm text-gray-500 mb-4 bg-blue-50 text-blue-800 p-3 rounded-md border border-blue-200">
+                                <div className="text-sm text-foreground mb-4 bg-blue-500/10 text-blue-500 p-3 rounded-md border border-blue-500/20">
                                     <p>Seleccione una fecha para ver los horarios y cupos disponibles en tiempo real.</p>
                                 </div>
                                 {selectedServiceForDetails && selectedServiceForDetails.id && (
-                                    <div className="border border-gray-200 rounded-lg p-4 bg-white">
+                                    <div className="border border-border rounded-lg p-4 bg-card">
                                         <ServiceScheduleSelector
                                             servicioId={selectedServiceForDetails.id}
                                             onSelect={() => { }} // No-op, solo visualización
@@ -618,7 +618,7 @@ export const ServiciosList = ({ readOnly = false }: { readOnly?: boolean }) => {
                                 )}
                             </div>
                         </div>
-                        <div className="p-4 bg-gray-50 border-t flex justify-end">
+                        <div className="p-4 bg-muted border-t flex justify-end">
                             <Button variant="outline" onClick={() => setIsDetailsDialogOpen(false)}>Cerrar</Button>
                         </div>
                     </DialogContent>

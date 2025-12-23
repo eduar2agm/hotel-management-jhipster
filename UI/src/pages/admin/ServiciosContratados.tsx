@@ -114,7 +114,7 @@ export const AdminServiciosContratados = ({ basePath = '/admin' }: { basePath?: 
     });
 
     return (
-        <div className="font-sans text-gray-900 bg-gray-50 min-h-screen flex flex-col">
+        <div className="font-sans text-foreground bg-background min-h-screen flex flex-col">
             {/* HERO SECTION */}
             <PageHeader
                 title="Gestión de Reservas"
@@ -131,21 +131,21 @@ export const AdminServiciosContratados = ({ basePath = '/admin' }: { basePath?: 
                 </Button>
             </PageHeader>
 
-            <main className="flex-grow py-5 px-4 md:px-8 lg:px-20 -mt-10 relative z-10">
-                <Card className="max-w-7xl mx-auto border-t-4 border-yellow-600 shadow-xl bg-white">
-                    <CardHeader className="border-b bg-gray-50/50 pb-6">
+            <main className="flex-grow py-5 px-4 md:px-8 lg:px-20 -mt-10 relative z-10 transition-all">
+                <Card className="max-w-7xl mx-auto border-t-4 border-gray-600 shadow-xl bg-card">
+                    <CardHeader className="border-b bg-muted/30 pb-6">
                         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
                             <div>
-                                <CardTitle className="text-xl font-bold text-gray-800">Listado de Solicitudes</CardTitle>
+                                <CardTitle className="text-xl font-bold text-foreground">Listado de Solicitudes</CardTitle>
                                 <CardDescription>Mostrando {filteredItems.length} registros</CardDescription>
                             </div>
                             <div className="relative w-full md:w-96 group">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-yellow-600 transition-colors" />
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-yellow-600 transition-colors" />
                                 <Input
                                     placeholder="Buscar por cliente, servicio o reserva..."
                                     value={searchFilter}
                                     onChange={(e) => setSearchFilter(e.target.value)}
-                                    className="pl-10 border-gray-200 focus:border-yellow-600 focus:ring-yellow-600/20 h-11 transition-all"
+                                    className="pl-10 border-input bg-background focus:border-yellow-600 focus:ring-yellow-600/20 h-11 transition-all"
                                 />
                             </div>
                         </div>
@@ -154,46 +154,51 @@ export const AdminServiciosContratados = ({ basePath = '/admin' }: { basePath?: 
                         <div className="overflow-x-auto">
                             <Table>
                                 <TableHeader>
-                                    <TableRow className="bg-gray-50/50 hover:bg-gray-50/50">
-                                        <TableHead className="font-bold text-gray-600">ID</TableHead>
-                                        <TableHead className="font-bold text-gray-600">Fecha</TableHead>
-                                        <TableHead className="font-bold text-gray-600">Reserva</TableHead>
-                                        <TableHead className="font-bold text-gray-600">Cliente</TableHead>
-                                        <TableHead className="font-bold text-gray-600">Servicio</TableHead>
-                                        <TableHead className="font-bold text-gray-600 text-right">Cant.</TableHead>
-                                        <TableHead className="font-bold text-gray-600 text-right">Total</TableHead>
-                                        <TableHead className="font-bold text-gray-600 text-center">Estado</TableHead>
-                                        <TableHead className="font-bold text-gray-600 text-right">Acciones</TableHead>
+                                    <TableRow className="bg-muted/50 hover:bg-muted/50 border-b border-border">
+                                        <TableHead className="font-bold text-muted-foreground w-[60px]">ID</TableHead>
+                                        <TableHead className="font-bold text-muted-foreground">Fecha</TableHead>
+                                        <TableHead className="font-bold text-muted-foreground">Reserva</TableHead>
+                                        <TableHead className="font-bold text-muted-foreground">Cliente</TableHead>
+                                        <TableHead className="font-bold text-muted-foreground">Servicio</TableHead>
+                                        <TableHead className="font-bold text-muted-foreground text-right w-[80px]">Cant.</TableHead>
+                                        <TableHead className="font-bold text-muted-foreground text-right">Total</TableHead>
+                                        <TableHead className="font-bold text-muted-foreground text-center">Estado</TableHead>
+                                        <TableHead className="font-bold text-muted-foreground text-right p-4">Acciones</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                     {loading ? (
                                         <TableRow>
-                                            <TableCell colSpan={9} className="h-24 text-center">Cargando...</TableCell>
+                                            <TableCell colSpan={9} className="h-24 text-center text-muted-foreground">
+                                                <div className="flex flex-col items-center justify-center gap-2">
+                                                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-yellow-600"></div>
+                                                    <span>Cargando...</span>
+                                                </div>
+                                            </TableCell>
                                         </TableRow>
                                     ) : filteredItems.length === 0 ? (
                                         <TableRow>
-                                            <TableCell colSpan={9} className="h-24 text-center text-gray-500">No hay registros encontrados</TableCell>
+                                            <TableCell colSpan={9} className="h-24 text-center text-muted-foreground">No hay registros encontrados</TableCell>
                                         </TableRow>
                                     ) : (
                                         filteredItems.map((item) => (
-                                            <TableRow key={item.id} className="hover:bg-gray-50/50 transition-colors">
-                                                <TableCell className="font-medium text-gray-500">#{item.id}</TableCell>
-                                                <TableCell>{item.fechaContratacion ? format(new Date(item.fechaContratacion), 'dd/MM/yyyy HH:mm') : '-'}</TableCell>
+                                            <TableRow key={item.id} className="hover:bg-muted/50 transition-colors border-border">
+                                                <TableCell className="font-medium text-muted-foreground">#{item.id}</TableCell>
+                                                <TableCell className="text-foreground">{item.fechaContratacion ? format(new Date(item.fechaContratacion), 'dd/MM/yyyy HH:mm') : '-'}</TableCell>
                                                 <TableCell>
-                                                    <Badge variant="outline" className="font-mono bg-white">
+                                                    <Badge variant="outline" className="font-mono bg-background border-border text-foreground">
                                                         #{item.reserva?.id}
                                                     </Badge>
                                                 </TableCell>
                                                 <TableCell>
                                                     <div className="flex flex-col">
-                                                        <span className="font-medium">{item.cliente?.nombre} {item.cliente?.apellido}</span>
-                                                        <span className="text-xs text-gray-400">{item.cliente?.correo}</span>
+                                                        <span className="font-medium text-foreground">{item.cliente?.nombre} {item.cliente?.apellido}</span>
+                                                        <span className="text-xs text-muted-foreground">{item.cliente?.correo}</span>
                                                     </div>
                                                 </TableCell>
-                                                <TableCell className="font-medium text-blue-700">{item.servicio?.nombre}</TableCell>
-                                                <TableCell className="text-right">{item.cantidad}</TableCell>
-                                                <TableCell className="text-right font-bold text-green-600">
+                                                <TableCell className="font-medium text-blue-600 dark:text-blue-400">{item.servicio?.nombre}</TableCell>
+                                                <TableCell className="text-right text-foreground">{item.cantidad}</TableCell>
+                                                <TableCell className="text-right font-bold text-green-600 dark:text-green-400">
                                                     ${(Number(item.precioUnitario) * item.cantidad).toFixed(2)}
                                                 </TableCell>
                                                 <TableCell className="text-center">
@@ -201,10 +206,10 @@ export const AdminServiciosContratados = ({ basePath = '/admin' }: { basePath?: 
                                                         {item.estado}
                                                     </Badge>
                                                 </TableCell>
-                                                <TableCell className="text-right">
+                                                <TableCell className="text-right p-4">
                                                     <DropdownMenu>
                                                         <DropdownMenuTrigger asChild>
-                                                            <Button variant="ghost" className="h-8 w-8 p-0">
+                                                            <Button variant="ghost" className="h-8 w-8 p-0 text-muted-foreground hover:bg-muted hover:text-foreground">
                                                                 <span className="sr-only">Abrir menú</span>
                                                                 <MoreVertical className="h-4 w-4" />
                                                             </Button>
@@ -235,7 +240,7 @@ export const AdminServiciosContratados = ({ basePath = '/admin' }: { basePath?: 
                         </div>
 
                         {/* PAGINATION */}
-                        <div className="p-4 border-t">
+                        <div className="p-4 border-t border-border">
                             <PaginationControl
                                 currentPage={currentPage}
                                 totalItems={totalItems}

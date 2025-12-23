@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Navbar } from '../../components/layout/Navbar';
 import { Footer } from '../../components/layout/Footer';
-import { Sparkles, Utensils, Info } from 'lucide-react';
+import { Sparkles, Utensils, Info, ServerCog, HardDriveUpload, HandHeart } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ServicioService } from '../../services/servicio.service';
 import { ServicioDisponibilidadService } from '../../services/servicio-disponibilidad.service';
@@ -212,11 +212,12 @@ export const Servicios = () => {
 
 
   return (
-    <div className="bg-white min-h-screen font-sans text-gray-900 flex flex-col">
+    <div className="bg-background min-h-screen font-sans text-foreground flex flex-col">
 
       <PageHeader
         title="Experiencias & Servicios"
         subtitle="Elevamos tu estancia con detalles pensados para tu confort."
+        icon={HandHeart}
         category="Catálogo Exclusivo"
         className="bg-[#0F172A]"
       />
@@ -225,15 +226,15 @@ export const Servicios = () => {
       <section className="py-20 px-6 max-w-[1600px] mx-auto">
         <div className="flex items-center gap-4 mb-12">
           <div className="h-1 w-12 bg-yellow-500"></div>
-          <h2 className="text-3xl font-black text-gray-900 uppercase tracking-tight">Servicios Premium</h2>
+          <h2 className="text-3xl font-black text-muted-foreground uppercase tracking-tight">Servicios Premium</h2>
         </div>
 
         {pagos.length === 0 ? (
-          <p className="text-gray-500 italic">No hay servicios premium disponibles en este momento.</p>
+          <p className="text-muted-foreground italic">No hay servicios premium disponibles en este momento.</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {pagos.map((servicio) => (
-              <Card key={servicio.id} className="overflow-hidden border-0 shadow-lg group hover:shadow-xl transition-all duration-300 flex flex-col h-full bg-white">
+              <Card key={servicio.id} className="overflow-hidden border border-border shadow-lg group hover:shadow-xl transition-all duration-300 flex flex-col h-full bg-card">
                 <div className="relative h-64 overflow-hidden">
                   <img
                     src={servicio.urlImage ? (servicio.urlImage.startsWith('http') ? servicio.urlImage : `/images/${servicio.urlImage}`) : "https://images.unsplash.com/photo-1540555700478-4be289fbecef?q=80&w=2000&auto=format&fit=crop"} // Fallback image
@@ -247,11 +248,11 @@ export const Servicios = () => {
                   </div>
                 </div>
                 <CardHeader>
-                  <CardTitle className="text-2xl font-bold text-gray-900">{servicio.nombre}</CardTitle>
+                  <CardTitle className="text-2xl font-bold text-foreground">{servicio.nombre}</CardTitle>
                   <CardDescription>{servicio.disponible ? "Disponible" : "No disponible temporalmente"}</CardDescription>
                 </CardHeader>
                 <CardContent className="flex-grow">
-                  <p className="text-gray-600 leading-relaxed">
+                  <p className="text-muted-foreground leading-relaxed">
                     {servicio.descripcion || "Disfruta de este servicio exclusivo diseñado para ti."}
                   </p>
                 </CardContent>
@@ -259,9 +260,9 @@ export const Servicios = () => {
                   <Button
                     variant="outline"
                     onClick={() => handleInfoClick(servicio)}
-                    className="flex-1 border-gray-300 hover:bg-gray-100 transition-colors"
+                    className="flex-1 text-muted-foreground dark:hover:bg-gray-800 border-gray-800 hover:bg-gray-100 transition-colors"
                   >
-                    <Info size={16} className="mr-2" />
+                    <Info size={16} className="mr-2 text-muted-foreground" />
                     Info
                   </Button>
                   <Button
@@ -278,32 +279,32 @@ export const Servicios = () => {
       </section>
 
       {/* SECCIÓN 2: AMENIDADES (GRATUITO) */}
-      <section className="py-20 bg-gray-50 px-6">
+      <section className="py-20 bg-muted/10 px-6">
         <div className="max-w-[1600px] mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-black text-gray-900 uppercase mb-4">
+            <h2 className="text-3xl font-black text-foreground uppercase mb-4">
               Todo esto va por nuestra cuenta
             </h2>
-            <p className="text-gray-500 max-w-xl mx-auto">
+            <p className="text-muted-foreground max-w-xl mx-auto">
               Amenidades incluidas en tu tarifa para una estancia perfecta.
             </p>
           </div>
 
           {gratuitos.length === 0 ? (
-            <p className="text-center text-gray-500 italic">Estamos actualizando nuestras amenidades.</p>
+            <p className="text-center text-muted-foreground italic">Estamos actualizando nuestras amenidades.</p>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {gratuitos.map((servicio) => (
-                <div key={servicio.id} className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-100 flex flex-col items-center text-center">
-                  <div className="w-14 h-14 bg-yellow-50 rounded-full flex items-center justify-center text-yellow-600 mb-4 overflow-hidden">
+                <div key={servicio.id} className="bg-card p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow border border-border flex flex-col items-center text-center">
+                  <div className="w-14 h-14 bg-yellow-500/10 rounded-full flex items-center justify-center text-yellow-600 mb-4 overflow-hidden">
                     {servicio.urlImage ? (
                       <img src={servicio.urlImage.startsWith('http') ? servicio.urlImage : `/images/${servicio.urlImage}`} alt={servicio.nombre} className="w-full h-full object-cover" />
                     ) : (
                       <Sparkles size={24} />
                     )}
                   </div>
-                  <h3 className="text-lg font-bold text-gray-900 mb-2">{servicio.nombre}</h3>
-                  <p className="text-gray-500 text-sm">
+                  <h3 className="text-lg font-bold text-foreground mb-2">{servicio.nombre}</h3>
+                  <p className="text-muted-foreground text-sm">
                     {servicio.descripcion || "Disponible para todos nuestros huéspedes."}
                   </p>
                 </div>
@@ -378,9 +379,9 @@ export const Servicios = () => {
                   onChange={(e) => setCantidad(Number(e.target.value))}
                 />
               </div>
-              <div className="grid gap-2">
+              <div className="grid gap-2 ">
                 <Label>Precio Unitario</Label>
-                <div className="flex h-10 w-full rounded-md border border-input bg-gray-50 px-3 py-2 text-sm text-gray-500">
+                <div className="flex h-10  w-full bg-background rounded-md border border-input px-3 py-2 text-sm text-gray-500">
                   ${Number(contractingService?.precio || 0).toFixed(2)}
                 </div>
               </div>
@@ -416,7 +417,7 @@ export const Servicios = () => {
               </div>
             )}
 
-            <div className="flex flex-col gap-2 p-4 bg-yellow-50 rounded-lg">
+            <div className="flex flex-col gap-2 p-4 bg-yellow-50 dark:bg-yellow-900/30 rounded-lg">
               <div className="flex items-center justify-between">
                 <span className="font-bold text-yellow-800">Total Estimado:</span>
                 <span className="text-2xl font-black text-yellow-700">${totalPrice}</span>
@@ -451,13 +452,13 @@ export const Servicios = () => {
           <div className="space-y-4">
             {infoService?.descripcion && (
               <div>
-                <h4 className="font-semibold text-gray-900 mb-2">Descripción</h4>
-                <p className="text-gray-600">{infoService.descripcion}</p>
+                <h4 className="font-semibold text-foreground mb-2">Descripción</h4>
+                <p className="text-muted-foreground">{infoService.descripcion}</p>
               </div>
             )}
 
-            <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
-              <span className="font-semibold text-gray-700">Precio:</span>
+            <div className="flex items-center justify-between p-3 bg-yellow-500/10 rounded-lg">
+              <span className="font-semibold text-foreground">Precio:</span>
               <span className="text-xl font-bold text-yellow-700">
                 ${typeof infoService?.precio === 'number' ? infoService.precio.toFixed(2) : infoService?.precio}
               </span>

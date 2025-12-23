@@ -95,11 +95,11 @@ export const SistemaTab = () => {
 
     return (
         <>
-            <Card className="bg-white border-0 shadow-xl overflow-hidden rounded-2xl">
-                <CardHeader className="border-b border-gray-100 bg-white p-6 flex flex-row items-center justify-between">
+            <Card className="bg-card border-0 shadow-xl overflow-hidden rounded-2xl">
+                <CardHeader className="border-b border-border bg-card p-6 flex flex-row items-center justify-between">
                     <div>
-                        <CardTitle className="text-2xl font-bold text-gray-800">Variables del Sistema</CardTitle>
-                        <p className="text-gray-500 text-sm mt-1">Configuración técnica y operativa global.</p>
+                        <CardTitle className="text-2xl font-bold text-foreground">Variables del Sistema</CardTitle>
+                        <p className="text-muted-foreground text-sm mt-1">Configuración técnica y operativa global.</p>
                     </div>
                     <Button
                         onClick={() => { setCurrentSys({}); setIsDialogOpen(true); }}
@@ -110,31 +110,31 @@ export const SistemaTab = () => {
                 </CardHeader>
                 <CardContent className="p-0">
                     <Table>
-                        <TableHeader className="bg-gray-50">
-                            <TableRow>
-                                <TableHead className="font-bold text-gray-600 py-5 pl-8">CLAVE</TableHead>
-                                <TableHead className="font-bold text-gray-600 py-5">TIPO</TableHead>
-                                <TableHead className="font-bold text-gray-600 py-5">VALOR</TableHead>
-                                <TableHead className="font-bold text-gray-600 py-5 text-right pr-8">ACCIONES</TableHead>
+                        <TableHeader className="bg-muted/50">
+                            <TableRow className="border-border">
+                                <TableHead className="font-bold text-muted-foreground py-5 pl-8">CLAVE</TableHead>
+                                <TableHead className="font-bold text-muted-foreground py-5">TIPO</TableHead>
+                                <TableHead className="font-bold text-muted-foreground py-5">VALOR</TableHead>
+                                <TableHead className="font-bold text-muted-foreground py-5 text-right pr-8">ACCIONES</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {isLoading ? (
-                                <TableRow><TableCell colSpan={4} className="h-32 text-center text-gray-500">Cargando datos...</TableCell></TableRow>
+                                <TableRow><TableCell colSpan={4} className="h-32 text-center text-muted-foreground">Cargando datos...</TableCell></TableRow>
                             ) : configuraciones.length === 0 ? (
-                                <TableRow><TableCell colSpan={4} className="h-32 text-center text-gray-500">No hay configuraciones.</TableCell></TableRow>
+                                <TableRow><TableCell colSpan={4} className="h-32 text-center text-muted-foreground">No hay configuraciones.</TableCell></TableRow>
                             ) : (
                                 configuraciones.map(sys => (
-                                    <TableRow key={sys.id} className="hover:bg-gray-50/80 transition-colors border-b border-gray-100">
+                                    <TableRow key={sys.id} className="hover:bg-muted/50 transition-colors border-b border-border">
                                         <TableCell className="py-5 pl-8 font-mono text-xs">{sys.clave}</TableCell>
                                         <TableCell className="py-5"><Badge variant="outline">{sys.tipo}</Badge></TableCell>
-                                        <TableCell className="py-5 text-gray-600 text-sm truncate max-w-xs">{sys.valor}</TableCell>
+                                        <TableCell className="py-5 text-muted-foreground text-sm truncate max-w-xs">{sys.valor}</TableCell>
                                         <TableCell className="py-5 text-right pr-8">
                                             <div className="flex justify-end gap-2">
-                                                <Button variant="ghost" size="icon" className="h-10 w-10 hover:bg-indigo-50" onClick={() => { setCurrentSys(sys); setIsDialogOpen(true); }}>
+                                                <Button variant="ghost" size="icon" className="h-10 w-10 hover:bg-indigo-50 dark:hover:bg-indigo-900/30" onClick={() => { setCurrentSys(sys); setIsDialogOpen(true); }}>
                                                     <Pencil className="h-5 w-5" />
                                                 </Button>
-                                                <Button variant="ghost" size="icon" className="h-10 w-10 text-gray-400" onClick={() => Number(sys.id) && handleDelete(Number(sys.id))}>
+                                                <Button variant="ghost" size="icon" className="h-10 w-10 text-muted-foreground hover:bg-red-50 dark:hover:bg-red-900/30" onClick={() => Number(sys.id) && handleDelete(Number(sys.id))}>
                                                     <Trash2 className="h-5 w-5" />
                                                 </Button>
                                             </div>
@@ -150,7 +150,7 @@ export const SistemaTab = () => {
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
-                        <DialogTitle className="text-xl font-bold">{currentSys.id ? 'Editar' : 'Crear'} Configuración</DialogTitle>
+                        <DialogTitle className="text-xl font-bold text-foreground">{currentSys.id ? 'Editar' : 'Crear'} Configuración</DialogTitle>
                     </DialogHeader>
                     <form onSubmit={handleSave} className="grid gap-4 py-4">
                         <div className="grid gap-2">

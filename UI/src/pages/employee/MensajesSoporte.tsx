@@ -299,7 +299,7 @@ export const EmployeeMensajesSoporte = () => {
 
 
     return (
-        <div className="font-sans text-gray-900 bg-gray-50 min-h-screen flex flex-col">
+        <div className="font-sans text-foreground bg-background min-h-screen flex flex-col">
 
             {/* --- HERO SECTION --- */}
             <PageHeader
@@ -319,18 +319,18 @@ export const EmployeeMensajesSoporte = () => {
 
             <main className="flex-grow py-12 px-4 md:px-8 lg:px-20 relative z-10">
                 <div className="max-w-6xl mx-auto -mt-16">
-                    <div className="bg-white rounded-sm shadow-xl p-6 md:p-10 overflow-hidden border border-gray-100 min-h-[600px]">
+                    <div className="bg-card rounded-sm shadow-xl p-6 md:p-10 overflow-hidden border border-border min-h-[600px]">
 
                         {/* HEADER TOOLBAR */}
                         <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-8">
-                            <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                            <h3 className="text-xl font-bold text-card-foreground flex items-center gap-2">
                                 <MessageCircle className="h-5 w-5 text-yellow-600" /> Conversaciones Recientes
                             </h3>
                             <div className="relative w-full md:w-96">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                 <Input
                                     placeholder="Buscar cliente o mensaje..."
-                                    className="pl-10 bg-gray-50 border-gray-200 focus:bg-white transition-colors"
+                                    className="pl-10 bg-background border-input focus:bg-background/80 transition-colors text-foreground"
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                 />
@@ -338,20 +338,20 @@ export const EmployeeMensajesSoporte = () => {
                         </div>
 
                         {/* CONVERSATION LIST TABLE */}
-                        <div className="rounded-md border border-gray-100 overflow-hidden">
+                        <div className="rounded-md border border-border overflow-hidden">
                             <Table>
-                                <TableHeader className="bg-gray-50">
-                                    <TableRow>
-                                        <TableHead className="font-bold text-gray-700 uppercase tracking-wider text-xs py-4 pl-6">Usuario / Cliente</TableHead>
-                                        <TableHead className="font-bold text-gray-700 uppercase tracking-wider text-xs">Último Mensaje</TableHead>
-                                        <TableHead className="font-bold text-gray-700 uppercase tracking-wider text-xs hidden md:table-cell">Fecha</TableHead>
-                                        <TableHead className="text-right font-bold text-gray-700 uppercase tracking-wider text-xs pr-6"></TableHead>
+                                <TableHeader className="bg-muted/50">
+                                    <TableRow className="border-border hover:bg-transparent">
+                                        <TableHead className="font-bold text-muted-foreground uppercase tracking-wider text-xs py-4 pl-6">Usuario / Cliente</TableHead>
+                                        <TableHead className="font-bold text-muted-foreground uppercase tracking-wider text-xs">Último Mensaje</TableHead>
+                                        <TableHead className="font-bold text-muted-foreground uppercase tracking-wider text-xs hidden md:table-cell">Fecha</TableHead>
+                                        <TableHead className="text-right font-bold text-muted-foreground uppercase tracking-wider text-xs pr-6"></TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                     {loading ? (
                                         <TableRow>
-                                            <TableCell colSpan={4} className="text-center py-20 text-gray-500">
+                                            <TableCell colSpan={4} className="text-center py-20 text-muted-foreground">
                                                 <div className="flex justify-center items-center gap-2">
                                                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-600"></div>
                                                     Cargando conversaciones...
@@ -360,7 +360,7 @@ export const EmployeeMensajesSoporte = () => {
                                         </TableRow>
                                     ) : filteredConversations.length === 0 ? (
                                         <TableRow>
-                                            <TableCell colSpan={4} className="text-center py-20 text-gray-400 font-light text-lg">
+                                            <TableCell colSpan={4} className="text-center py-20 text-muted-foreground font-light text-lg">
                                                 No hay conversaciones registradas.
                                             </TableCell>
                                         </TableRow>
@@ -369,14 +369,14 @@ export const EmployeeMensajesSoporte = () => {
                                             <TableRow
                                                 key={conv.otherPartyId}
                                                 onClick={() => handleSelectConversation(conv)}
-                                                className={`cursor-pointer transition-all border-b border-gray-50 group
-                                                    ${conv.unreadCount > 0 ? 'bg-blue-50/40 hover:bg-blue-50' : 'hover:bg-slate-50'}
+                                                className={`cursor-pointer transition-all border-b border-border group
+                                                    ${conv.unreadCount > 0 ? 'bg-blue-500/10 hover:bg-blue-500/20' : 'hover:bg-muted/50'}
                                                 `}
                                             >
                                                 <TableCell className="pl-6 w-[250px]">
                                                     <div className="flex items-center gap-3">
                                                         <div className={`relative w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm
-                                                            ${conv.unreadCount > 0 ? 'bg-blue-600' : 'bg-slate-400'}
+                                                            ${conv.unreadCount > 0 ? 'bg-blue-600' : 'bg-muted/50 text-foreground'}
                                                         `}>
                                                             {conv.otherPartyName.charAt(0).toUpperCase()}
                                                             {conv.unreadCount > 0 && (
@@ -386,10 +386,10 @@ export const EmployeeMensajesSoporte = () => {
                                                             )}
                                                         </div>
                                                         <div className="flex flex-col">
-                                                            <span className={`text-sm ${conv.unreadCount > 0 ? 'font-bold text-slate-900' : 'font-medium text-slate-700'}`}>
+                                                            <span className={`text-sm ${conv.unreadCount > 0 ? 'font-bold text-foreground' : 'font-medium text-foreground'}`}>
                                                                 {conv.otherPartyName}
                                                             </span>
-                                                            <div className="flex items-center gap-1 text-xs text-slate-400">
+                                                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
                                                                 <User className="h-3 w-3" /> Cliente
                                                             </div>
                                                         </div>
@@ -397,8 +397,8 @@ export const EmployeeMensajesSoporte = () => {
                                                 </TableCell>
                                                 <TableCell>
                                                     <div className="max-w-xl">
-                                                        <p className={`text-sm truncate ${conv.unreadCount > 0 ? 'font-bold text-slate-800' : 'text-slate-600'}`}>
-                                                            <span className="text-xs text-gray-400 mr-2 font-normal">
+                                                        <p className={`text-sm truncate ${conv.unreadCount > 0 ? 'font-bold text-foreground' : 'text-muted-foreground'}`}>
+                                                            <span className="text-xs text-muted-foreground mr-2 font-normal">
                                                                 {conv.lastMessage.userId === user?.id ? 'Tú: ' : ''}
                                                             </span>
                                                             {conv.lastMessage.mensaje}
@@ -406,15 +406,15 @@ export const EmployeeMensajesSoporte = () => {
                                                     </div>
                                                 </TableCell>
                                                 <TableCell className="hidden md:table-cell w-[180px]">
-                                                    <span className={`text-xs ${conv.unreadCount > 0 ? 'font-bold text-blue-700' : 'text-gray-500'}`}>
+                                                    <span className={`text-xs ${conv.unreadCount > 0 ? 'font-bold text-blue-500' : 'text-muted-foreground'}`}>
                                                         {new Date(conv.lastMessage.fechaMensaje!).toLocaleDateString()}
                                                     </span>
-                                                    <div className="text-[10px] text-gray-400">
+                                                    <div className="text-[10px] text-muted-foreground">
                                                         {new Date(conv.lastMessage.fechaMensaje!).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                                     </div>
                                                 </TableCell>
                                                 <TableCell className="text-right pr-6 w-[50px]">
-                                                    <ChevronRight className="h-5 w-5 text-gray-300 group-hover:text-blue-500 transition-colors" />
+                                                    <ChevronRight className="h-5 w-5 text-muted-foreground/50 group-hover:text-blue-500 transition-colors" />
                                                 </TableCell>
                                             </TableRow>
                                         ))
@@ -442,16 +442,16 @@ export const EmployeeMensajesSoporte = () => {
                 <DialogContent className="sm:max-w-[700px] p-0 overflow-hidden flex flex-col h-[600px] gap-0">
 
                     {/* Header */}
-                    <DialogHeader className="p-4 bg-white border-b border-gray-100 flex-shrink-0 z-10 shadow-sm flex-row items-center justify-between space-y-0">
+                    <DialogHeader className="p-4 bg-card border-b border-border flex-shrink-0 z-10 shadow-sm flex-row items-center justify-between space-y-0">
                         <div className="flex items-center gap-3">
-                            <div className="bg-blue-50 p-2 rounded-full text-blue-600">
+                            <div className="bg-blue-50 dark:bg-blue-500/10 p-2 rounded-full text-blue-600 dark:text-blue-400">
                                 <User className="h-5 w-5" />
                             </div>
                             <div className="flex flex-col">
-                                <span className="text-lg font-bold text-slate-900 leading-tight">
+                                <span className="text-lg font-bold text-foreground leading-tight">
                                     {currentConversation?.otherPartyName}
                                 </span>
-                                <span className="text-xs text-green-600 font-medium flex items-center gap-1">
+                                <span className="text-xs text-green-600 dark:text-green-500 font-medium flex items-center gap-1">
                                     <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
                                     En línea
                                 </span>
@@ -460,7 +460,7 @@ export const EmployeeMensajesSoporte = () => {
                     </DialogHeader>
 
                     {/* Chat Messages */}
-                    <div className="flex-1 overflow-y-auto p-6 bg-slate-50 space-y-4">
+                    <div className="flex-1 overflow-y-auto p-6 bg-muted/10 space-y-4">
                         {currentConversation?.messages.map((msg, idx) => {
                             // Display as "Me" (Right/Blue) if it is from ANY Administrative staff or SYSTEM
                             const isStaffOrSystem = msg.remitente === Remitente.ADMINISTRATIVO || msg.remitente === Remitente.SISTEMA;
@@ -471,10 +471,10 @@ export const EmployeeMensajesSoporte = () => {
                                         ? isSystem
                                             ? 'bg-purple-600 text-white rounded-tr-none'
                                             : 'bg-blue-600 text-white rounded-tr-none'
-                                        : 'bg-white text-slate-800 border border-gray-100 rounded-tl-none'
+                                        : 'bg-card text-card-foreground border border-border rounded-tl-none'
                                         }`}>
                                         <p className="whitespace-pre-wrap leading-relaxed">{msg.mensaje}</p>
-                                        <div className={`flex items-center gap-1 mt-1 text-[10px] ${isStaffOrSystem ? 'text-blue-200 justify-end' : 'text-gray-400'}`}>
+                                        <div className={`flex items-center gap-1 mt-1 text-[10px] ${isStaffOrSystem ? 'text-blue-200 justify-end' : 'text-muted-foreground'}`}>
                                             {new Date(msg.fechaMensaje!).toLocaleDateString()} {new Date(msg.fechaMensaje!).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                             {isStaffOrSystem && msg.leido && <CheckCircle2 className="h-3 w-3 ml-1" />}
                                         </div>
@@ -491,13 +491,13 @@ export const EmployeeMensajesSoporte = () => {
                     </div>
 
                     {/* Reply Area */}
-                    <div className="p-4 bg-white border-t border-gray-100 flex-shrink-0">
+                    <div className="p-4 bg-card border-t border-border flex-shrink-0">
                         <div className="flex gap-2 items-center mb-3">
                             <Button
                                 onClick={handleSendWelcome}
                                 variant="outline"
                                 size="sm"
-                                className="text-xs border-purple-200 text-purple-700 hover:bg-purple-50"
+                                className="text-xs border-purple-200 text-purple-700 hover:bg-purple-50 dark:border-purple-800 dark:text-purple-400 dark:hover:bg-purple-900/20"
                             >
                                 <Sparkles className="h-3 w-3 mr-1" /> Enviar Bienvenida
                             </Button>
@@ -512,7 +512,7 @@ export const EmployeeMensajesSoporte = () => {
                             <Textarea
                                 value={replyText}
                                 onChange={(e) => setReplyText(e.target.value)}
-                                className="min-h-[50px] max-h-[120px] bg-gray-50 border-gray-200 resize-none focus:bg-white transition-all"
+                                className="min-h-[50px] max-h-[120px] bg-muted/30 border-input resize-none focus:bg-background transition-all text-foreground"
                                 placeholder="Escribe tu mensaje..."
                                 onKeyDown={(e) => {
                                     if (e.key === 'Enter' && !e.shiftKey) {
@@ -521,7 +521,7 @@ export const EmployeeMensajesSoporte = () => {
                                     }
                                 }}
                             />
-                            <Button type="submit" size="icon" className="h-11 w-11 bg-slate-900 hover:bg-slate-800 text-white rounded-lg flex-shrink-0" disabled={!replyText.trim()}>
+                            <Button type="submit" size="icon" className="h-11 w-11 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg flex-shrink-0" disabled={!replyText.trim()}>
                                 <Send className="h-5 w-5" />
                             </Button>
                         </form>

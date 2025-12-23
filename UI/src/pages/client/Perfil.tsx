@@ -16,10 +16,6 @@ import {
     TipoIdentificacion
 } from '../../utils/identification';
 
-// Importamos los componentes de UI del Hotel
-import { Navbar } from '../../components/layout/Navbar';
-import { Footer } from '../../components/layout/Footer';
-
 import { PageHeader } from '../../components/common/PageHeader';
 
 export const Perfil = () => {
@@ -180,8 +176,7 @@ export const Perfil = () => {
     // --- RENDERIZADO UI (REFACTORIZADO) ---
 
     return (
-        <div className="font-sans text-gray-900 bg-gray-50 min-h-screen flex flex-col">
-            <Navbar />
+        <div className="font-sans text-foreground bg-background min-h-screen flex flex-col">
 
             {/* --- HERO SECTION --- */}
             <PageHeader
@@ -197,34 +192,34 @@ export const Perfil = () => {
                     {isLoading ? (
                         <div className="text-center py-20">
                             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-600 mx-auto"></div>
-                            <p className="mt-4 text-gray-400 uppercase tracking-widest text-sm">Cargando información...</p>
+                            <p className="mt-4 text-muted-foreground uppercase tracking-widest text-sm">Cargando información...</p>
                         </div>
                     ) : (
-                        <div className="bg-white shadow-xl border-t-4 border-yellow-600 p-8 md:p-12 rounded-sm">
+                        <div className="bg-card shadow-xl border-t-4 border-yellow-600 p-8 md:p-12 rounded-sm border-x border-b border-border">
                             <form onSubmit={handleSave}>
                                 <div className="space-y-10">
 
                                     {/* Sección: Información Básica */}
                                     <div>
-                                        <div className="flex items-center gap-2 mb-6 pb-2 border-b border-gray-100">
+                                        <div className="flex items-center gap-2 mb-6 pb-2 border-b border-border">
                                             <UserCircle className="h-5 w-5 text-yellow-600" />
-                                            <h3 className="text-lg font-bold text-gray-900 uppercase tracking-wider">Información Básica</h3>
+                                            <h3 className="text-lg font-bold text-foreground uppercase tracking-wider">Información Básica</h3>
                                         </div>
 
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <div className="grid gap-2">
-                                                <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest">Nombre</Label>
+                                                <Label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Nombre</Label>
                                                 <Input
-                                                    className="border-gray-200 focus:border-yellow-600 focus:ring-yellow-600/20 h-11 bg-gray-50/50"
+                                                    className="border-input focus:border-yellow-600 focus:ring-yellow-600/20 h-11 bg-background"
                                                     value={cliente.nombre || ''}
                                                     onChange={e => setCliente({ ...cliente, nombre: e.target.value })}
                                                     required
                                                 />
                                             </div>
                                             <div className="grid gap-2">
-                                                <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest">Apellido</Label>
+                                                <Label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Apellido</Label>
                                                 <Input
-                                                    className="border-gray-200 focus:border-yellow-600 focus:ring-yellow-600/20 h-11 bg-gray-50/50"
+                                                    className="border-input focus:border-yellow-600 focus:ring-yellow-600/20 h-11 bg-background"
                                                     value={cliente.apellido || ''}
                                                     onChange={e => setCliente({ ...cliente, apellido: e.target.value })}
                                                     required
@@ -233,10 +228,10 @@ export const Perfil = () => {
                                         </div>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                                             <div className="grid gap-2">
-                                                <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest">Fecha de Nacimiento</Label>
+                                                <Label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Fecha de Nacimiento</Label>
                                                 <Input
                                                     type="date"
-                                                    className="border-gray-200 focus:border-yellow-600 focus:ring-yellow-600/20 h-11 bg-gray-50/50"
+                                                    className="border-input focus:border-yellow-600 focus:ring-yellow-600/20 h-11 bg-background dark:[color-scheme:dark]"
                                                     value={cliente.fechaNacimiento || ''}
                                                     onChange={e => setCliente({ ...cliente, fechaNacimiento: e.target.value })}
                                                     required
@@ -247,36 +242,36 @@ export const Perfil = () => {
 
                                     {/* Sección: Contacto */}
                                     <div>
-                                        <div className="flex items-center gap-2 mb-6 pb-2 border-b border-gray-100">
+                                        <div className="flex items-center gap-2 mb-6 pb-2 border-b border-border">
                                             <Contact className="h-5 w-5 text-yellow-600" />
-                                            <h3 className="text-lg font-bold text-gray-900 uppercase tracking-wider">Datos de Contacto</h3>
+                                            <h3 className="text-lg font-bold text-foreground uppercase tracking-wider">Datos de Contacto</h3>
                                         </div>
 
                                         <div className="grid gap-6">
                                             <div className="grid gap-2">
-                                                <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest">Correo Electrónico</Label>
+                                                <Label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Correo Electrónico</Label>
                                                 <Input
                                                     value={cliente.correo || ''}
                                                     disabled={true}
-                                                    className="bg-gray-100 border-gray-200 text-gray-500 h-11 cursor-not-allowed"
+                                                    className="bg-muted border-input text-muted-foreground h-11 cursor-not-allowed"
                                                 />
-                                                <p className="text-[10px] text-gray-400">El correo electrónico está vinculado a su cuenta de acceso y no se puede cambiar aquí.</p>
+                                                <p className="text-[10px] text-muted-foreground">El correo electrónico está vinculado a su cuenta de acceso y no se puede cambiar aquí.</p>
                                             </div>
 
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                                 <div className="grid gap-2">
-                                                    <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest">Teléfono</Label>
+                                                    <Label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Teléfono</Label>
                                                     <Input
-                                                        className="border-gray-200 focus:border-yellow-600 focus:ring-yellow-600/20 h-11 bg-gray-50/50"
+                                                        className="border-input focus:border-yellow-600 focus:ring-yellow-600/20 h-11 bg-background"
                                                         value={cliente.telefono || ''}
                                                         onChange={e => setCliente({ ...cliente, telefono: e.target.value })}
                                                         required
                                                     />
                                                 </div>
                                                 <div className="grid gap-2">
-                                                    <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest">Dirección</Label>
+                                                    <Label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Dirección</Label>
                                                     <Input
-                                                        className="border-gray-200 focus:border-yellow-600 focus:ring-yellow-600/20 h-11 bg-gray-50/50"
+                                                        className="border-input focus:border-yellow-600 focus:ring-yellow-600/20 h-11 bg-background"
                                                         value={cliente.direccion || ''}
                                                         onChange={e => setCliente({ ...cliente, direccion: e.target.value })}
                                                     />
@@ -287,19 +282,19 @@ export const Perfil = () => {
 
                                     {/* Sección: Identificación */}
                                     <div>
-                                        <div className="flex items-center gap-2 mb-6 pb-2 border-b border-gray-100">
+                                        <div className="flex items-center gap-2 mb-6 pb-2 border-b border-border">
                                             <ShieldCheck className="h-5 w-5 text-yellow-600" />
-                                            <h3 className="text-lg font-bold text-gray-900 uppercase tracking-wider">Identificación Legal</h3>
+                                            <h3 className="text-lg font-bold text-foreground uppercase tracking-wider">Identificación Legal</h3>
                                         </div>
 
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <div className="grid gap-2">
-                                                <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest">Tipo de Documento</Label>
+                                                <Label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Tipo de Documento</Label>
                                                 <Select
                                                     value={cliente.tipoIdentificacion || 'CEDULA'}
                                                     onValueChange={handleTypeChange}
                                                 >
-                                                    <SelectTrigger className="border-gray-200 h-11 bg-gray-50/50 focus:ring-yellow-600/20">
+                                                    <SelectTrigger className="border-input h-11 bg-background focus:ring-yellow-600/20">
                                                         <SelectValue />
                                                     </SelectTrigger>
                                                     <SelectContent>
@@ -312,13 +307,13 @@ export const Perfil = () => {
                                                 </Select>
                                             </div>
                                             <div className="grid gap-2">
-                                                <Label className="text-xs font-bold text-gray-500 uppercase tracking-widest">Número de Documento</Label>
+                                                <Label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Número de Documento</Label>
                                                 <div className="relative">
                                                     <Input
                                                         value={cliente.numeroIdentificacion || ''}
                                                         onChange={e => handleIdChange(e.target.value)}
                                                         required
-                                                        className={`h-11 bg-gray-50/50 ${idError ? "border-red-500 focus:border-red-500" : "border-gray-200 focus:border-yellow-600"}`}
+                                                        className={`h-11 bg-background ${idError ? "border-red-500 focus:border-red-500" : "border-input focus:border-yellow-600"}`}
                                                         placeholder={IDENTIFICATION_PLACEHOLDERS[cliente.tipoIdentificacion as TipoIdentificacion] || ''}
                                                     />
                                                     {idError && <span className="absolute text-xs text-red-500 -bottom-5 left-0">{idError}</span>}
@@ -327,11 +322,11 @@ export const Perfil = () => {
                                         </div>
                                     </div>
 
-                                    <div className="pt-6 border-t border-gray-100 flex justify-end">
+                                    <div className="pt-6 border-t border-border flex justify-end">
                                         <Button
                                             type="submit"
                                             disabled={isSaving || !!idError}
-                                            className="bg-gray-900 hover:bg-gray-800 text-white rounded-none px-8 py-6 h-auto text-sm uppercase tracking-widest transition-all shadow-lg hover:shadow-xl disabled:opacity-70"
+                                            className="bg-gray-900 dark:bg-yellow-900 dark:hover:bg-yellow-700 hover:bg-yellow-600 text-white rounded-sm px-8 py-6 h-auto text-sm uppercase tracking-widest transition-all shadow-lg hover:shadow-xl disabled:opacity-70"
                                         >
                                             <Save className="mr-2 h-4 w-4" />
                                             {isSaving ? 'Guardando...' : 'Guardar Cambios'}
@@ -344,7 +339,6 @@ export const Perfil = () => {
                 </div>
             </main>
 
-            <Footer />
         </div>
     );
 };

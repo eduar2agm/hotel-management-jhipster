@@ -173,7 +173,7 @@ export const MisServicios = () => {
     };
 
     return (
-        <div className="font-sans text-gray-900 bg-gray-50 min-h-screen flex flex-col">
+        <div className="font-sans text-foreground bg-background min-h-screen flex flex-col">
 
             <PageHeader
                 title="Mis Servicios Contratados"
@@ -197,30 +197,30 @@ export const MisServicios = () => {
                     )}
 
                     {/* RIGHT: List */}
-                    <div className={`${activeService ? 'lg:col-span-8' : 'lg:col-span-12'} order-2 transition-all duration-300`}>
-                        <Card className="border-t-4 border-yellow-600 shadow-xl bg-white">
-                            <CardHeader className="border-b bg-gray-50/50 pb-6">
+                    <div className={`${activeService ? 'lg:col-span-8' : 'lg:col-span-12'}  order-2 transition-all duration-300 `}>
+                        <Card className="border-t-4 border-gray-600 rounded-sm p-7 bg-background shadow-xl">
+                            <CardHeader className="border-b bg-background  pb-6">
                                 <div className="flex flex-col md:flex-row justify-between items-center gap-4">
                                     <div>
-                                        <CardTitle className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                                        <CardTitle className="text-xl font-bold text-foreground flex items-center gap-2">
                                             <Sparkles className="h-5 w-5 text-yellow-600" /> Servicios Activos e Históricos
                                         </CardTitle>
                                         <CardDescription>Mostrando {items.length} registros</CardDescription>
                                     </div>
                                 </div>
                             </CardHeader>
-                            <CardContent className="p-0">
-                                <div className="overflow-x-auto">
-                                    <Table>
-                                        <TableHeader>
-                                            <TableRow className="bg-gray-50/50 hover:bg-gray-50/50">
-                                                <TableHead className="font-bold text-gray-600">Servicio</TableHead>
-                                                <TableHead className="font-bold text-gray-600">Fecha</TableHead>
-                                                <TableHead className="font-bold text-gray-600">Reserva</TableHead>
-                                                <TableHead className="font-bold text-gray-600 text-right">Cantidad</TableHead>
-                                                <TableHead className="font-bold text-gray-600 text-right">Total</TableHead>
-                                                <TableHead className="font-bold text-gray-600 text-center">Estado</TableHead>
-                                                <TableHead className="font-bold text-gray-600 text-center">Acciones</TableHead>
+                            <CardContent className="p-0 bg-background">
+                                <div className="overflow-x-auto bg-background ">
+                                    <Table >
+                                        <TableHeader >
+                                            <TableRow className="bg-background border-l-4 border-transparent dark:bg-gray-800">
+                                                <TableHead className="font-bold text-muted-foreground ">Servicio</TableHead>
+                                                <TableHead className="font-bold text-muted-foreground">Fecha</TableHead>
+                                                <TableHead className="font-bold text-muted-foreground">Reserva</TableHead>
+                                                <TableHead className="font-bold text-muted-foreground text-right">Cantidad</TableHead>
+                                                <TableHead className="font-bold text-muted-foreground text-right">Total</TableHead>
+                                                <TableHead className="font-bold text-muted-foreground text-center">Estado</TableHead>
+                                                <TableHead className="font-bold text-muted-foreground text-center">Acciones</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
@@ -238,21 +238,22 @@ export const MisServicios = () => {
                                                     const canPay = item.estado === EstadoServicioContratado.PENDIENTE && Number(total) > 0;
 
                                                     return (
-                                                        <TableRow key={item.id} className={`hover:bg-gray-50/50 transition-colors ${activeService?.id === item.id ? 'bg-yellow-50/50 border-l-4 border-yellow-500' : ''}`}>
-                                                            <TableCell className="font-medium text-blue-700">
+                                                    
+                                                        <TableRow key={item.id} className={`hover:bg-muted/50 transition-colors ${activeService?.id === item.id ? 'bg-yellow-500/10 border-l-4 border-yellow-600' : 'border-l-4 border-transparent'}`}>
+                                                            <TableCell className="font-medium text-blue-400">
                                                                 {item.servicio?.nombre}
-                                                                {item.fechaServicio && <div className="text-xs text-gray-400 mt-1">
+                                                                {item.fechaServicio && <div className="text-xs text-muted-foreground mt-1">
                                                                     Programado: {format(new Date(item.fechaServicio), 'dd/MM/yyyy HH:mm')}
                                                                 </div>}
                                                             </TableCell>
                                                             <TableCell>{item.fechaContratacion ? format(new Date(item.fechaContratacion), 'dd/MM/yyyy') : '-'}</TableCell>
                                                             <TableCell>
-                                                                <Badge variant="outline" className="font-mono bg-white">
+                                                                <Badge variant="outline" className="font-mono bg-muted text-muted-foreground border-border">
                                                                     #{item.reserva?.id}
                                                                 </Badge>
                                                             </TableCell>
                                                             <TableCell className="text-right">{item.cantidad}</TableCell>
-                                                            <TableCell className="text-right font-bold text-green-600">
+                                                            <TableCell className="text-right font-bold text-green-500">
                                                                 ${total}
                                                             </TableCell>
                                                             <TableCell className="text-center">
@@ -265,7 +266,7 @@ export const MisServicios = () => {
                                                                     {canPay && (
                                                                         <Button
                                                                             size="sm"
-                                                                            className="bg-gray-900 hover:bg-yellow-600 text-xs px-2 h-8"
+                                                                            className="bg-yellow-600 hover:bg-yellow-700 text-white text-xs px-2 h-8"
                                                                             onClick={() => {
                                                                                 setActiveService(item);
                                                                                 window.scrollTo({ top: 0, behavior: 'smooth' });

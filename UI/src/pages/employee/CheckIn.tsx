@@ -164,7 +164,7 @@ export const CheckIn = () => {
     };
 
     return (
-        <div className="font-sans text-gray-900 bg-gray-50 min-h-screen flex flex-col">
+        <div className="font-sans text-foreground bg-background min-h-screen flex flex-col">
 
             {/* --- HERO SECTION --- */}
             <PageHeader
@@ -179,24 +179,24 @@ export const CheckIn = () => {
                 <div className="max-w-4xl mx-auto -mt-16 space-y-8">
 
                     {/* --- SEARCH CARD --- */}
-                    <Card className="border-none shadow-xl rounded-sm overflow-hidden bg-white">
-                        <CardHeader className="bg-slate-50 border-b border-gray-100 pb-6 pt-6">
-                            <CardTitle className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                    <Card className="border-none shadow-xl rounded-sm overflow-hidden bg-card">
+                        <CardHeader className="bg-muted/30 border-b border-border pb-6 pt-6">
+                            <CardTitle className="text-xl font-bold text-card-foreground flex items-center gap-2">
                                 <Search className="w-5 h-5 text-yellow-600" /> Buscar Reserva
                             </CardTitle>
-                            <CardDescription className="text-gray-500">
+                            <CardDescription className="text-muted-foreground">
                                 Ingrese el número de reserva o el nombre del titular para comenzar el proceso.
                             </CardDescription>
                         </CardHeader>
-                        <CardContent className="p-6 bg-white">
+                        <CardContent className="p-6 bg-card">
                             <div className="flex flex-col md:flex-row gap-4 items-end">
                                 <div className="grid w-full gap-2">
-                                    <Label htmlFor="search" className="font-semibold text-gray-700">ID Reserva / Nombre Cliente</Label>
+                                    <Label htmlFor="search" className="font-semibold text-foreground">ID Reserva / Nombre Cliente</Label>
                                     <div className="relative">
-                                        <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                                        <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                                         <Input
                                             id="search"
-                                            className="pl-9 h-12 bg-gray-50 border-gray-200 focus:border-yellow-500 focus:ring-yellow-500/20"
+                                            className="pl-9 h-12 bg-background border-input focus:border-yellow-500 focus:ring-yellow-500/20 text-foreground"
                                             placeholder="Ej. 1045 o Juan Pérez..."
                                             value={searchTerm}
                                             onChange={(e) => setSearchTerm(e.target.value)}
@@ -207,7 +207,7 @@ export const CheckIn = () => {
                                 <Button 
                                     onClick={handleSearch} 
                                     disabled={loading}
-                                    className="h-12 px-8 bg-slate-900 hover:bg-slate-800 text-white font-bold tracking-wide transition-all shadow-md"
+                                    className="h-12 px-8 bg-yellow-600 hover:bg-yellow-700 text-white font-bold tracking-wide transition-all shadow-md"
                                 >
                                     {loading ? <span className="animate-pulse">Buscando...</span> : 'BUSCAR'}
                                 </Button>
@@ -216,30 +216,30 @@ export const CheckIn = () => {
                             {/* --- SEARCH RESULTS --- */}
                             {reservas.length > 0 && !selectedReserva && (
                                 <div className="mt-8 animate-in fade-in slide-in-from-top-4 duration-500">
-                                    <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">Resultados Encontrados ({reservas.length})</h3>
+                                    <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-4">Resultados Encontrados ({reservas.length})</h3>
                                     <div className="grid gap-3">
                                         {reservas.map(r => (
                                             <div 
                                                 key={r.id} 
                                                 onClick={() => handleSelectReserva(r)}
-                                                className="group p-4 rounded-lg border border-gray-100 bg-white hover:border-yellow-400 hover:shadow-md cursor-pointer transition-all flex items-center justify-between"
+                                                className="group p-4 rounded-lg border border-border bg-card hover:border-yellow-400 hover:shadow-md cursor-pointer transition-all flex items-center justify-between"
                                             >
                                                 <div className="flex items-center gap-4">
-                                                    <div className="bg-blue-50 p-3 rounded-full group-hover:bg-yellow-50 transition-colors">
-                                                        <User className="w-5 h-5 text-blue-600 group-hover:text-yellow-600" />
+                                                    <div className="bg-blue-50 dark:bg-blue-500/10 p-3 rounded-full group-hover:bg-yellow-50 dark:group-hover:bg-yellow-500/10 transition-colors">
+                                                        <User className="w-5 h-5 text-blue-600 dark:text-blue-400 group-hover:text-yellow-600 dark:group-hover:text-yellow-400" />
                                                     </div>
                                                     <div>
-                                                        <p className="font-bold text-gray-900 text-lg">
+                                                        <p className="font-bold text-card-foreground text-lg">
                                                             {r.cliente?.nombre} {r.cliente?.apellido}
                                                         </p>
-                                                        <p className="text-sm text-gray-500 flex items-center gap-2">
-                                                            <span className="font-mono text-xs bg-slate-100 px-2 py-0.5 rounded text-slate-600">ID: #{r.id}</span>
+                                                        <p className="text-sm text-muted-foreground flex items-center gap-2">
+                                                            <span className="font-mono text-xs bg-muted px-2 py-0.5 rounded text-muted-foreground">ID: #{r.id}</span>
                                                             <span>•</span>
                                                             <Calendar className="w-3 h-3" /> {new Date(r.fechaInicio!).toLocaleDateString()}
                                                         </p>
                                                     </div>
                                                 </div>
-                                                <ArrowRight className="w-5 h-5 text-gray-300 group-hover:text-yellow-500 group-hover:translate-x-1 transition-all" />
+                                                <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-yellow-500 group-hover:translate-x-1 transition-all" />
                                             </div>
                                         ))}
                                     </div>
@@ -247,9 +247,9 @@ export const CheckIn = () => {
                             )}
 
                             {reservas.length === 0 && searchTerm && !loading && (
-                                <div className="mt-8 p-8 text-center bg-gray-50 rounded-lg border border-dashed border-gray-200">
-                                    <XCircle className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-                                    <p className="text-gray-500 font-medium">No se encontraron reservas con ese criterio.</p>
+                                <div className="mt-8 p-8 text-center bg-muted/30 rounded-lg border border-dashed border-border">
+                                    <XCircle className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
+                                    <p className="text-muted-foreground font-medium">No se encontraron reservas con ese criterio.</p>
                                 </div>
                             )}
                         </CardContent>
@@ -286,23 +286,23 @@ export const CheckIn = () => {
 
                             <Card className="rounded-t-none rounded-b-sm border-t-0 shadow-xl">
                                 <CardContent className="p-0">
-                                    <div className="bg-gray-50 px-6 py-4 border-b border-gray-100">
-                                        <h3 className="text-sm font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                                    <div className="bg-muted/30 px-6 py-4 border-b border-border">
+                                        <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
                                             <BedDouble className="w-4 h-4" /> Habitaciones Asignadas
                                         </h3>
                                     </div>
-                                    <div className="divide-y divide-gray-100">
+                                    <div className="divide-y divide-border">
                                         {detalles.map(det => {
                                             const status = det.id ? getStatusForDetalle(det.id) : 'UNKNOWN';
                                             return (
-                                                <div key={det.id} className="p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 hover:bg-slate-50 transition-colors group">
+                                                <div key={det.id} className="p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 hover:bg-muted/50 transition-colors group">
                                                     <div className="flex items-center gap-4">
-                                                        <div className="h-12 w-12 bg-white border border-gray-200 shadow-sm rounded flex items-center justify-center font-black text-xl text-slate-700 group-hover:border-yellow-400 group-hover:text-yellow-600 transition-colors">
+                                                        <div className="h-12 w-12 bg-card border border-border shadow-sm rounded flex items-center justify-center font-black text-xl text-foreground group-hover:border-yellow-400 group-hover:text-yellow-600 transition-colors">
                                                             {det.habitacion?.numero}
                                                         </div>
                                                         <div>
-                                                            <p className="font-bold text-gray-900">{det.habitacion?.categoriaHabitacion?.nombre || 'Habitación Suite'}</p>
-                                                            <p className="text-sm text-gray-500">Capacidad para {det.habitacion?.capacidad || 2} personas</p>
+                                                            <p className="font-bold text-foreground">{det.habitacion?.categoriaHabitacion?.nombre || 'Habitación Suite'}</p>
+                                                            <p className="text-sm text-muted-foreground">Capacidad para {det.habitacion?.capacidad || 2} personas</p>
                                                         </div>
                                                     </div>
 
@@ -363,7 +363,7 @@ export const CheckIn = () => {
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
-                        <DialogTitle className="flex items-center gap-2 text-xl font-bold text-slate-900">
+                        <DialogTitle className="flex items-center gap-2 text-xl font-bold text-foreground">
                             {actionType === 'CHECK_IN' ? <LogIn className="text-yellow-600" /> : <LogOut className="text-red-600" />}
                             Confirmar {actionType === 'CHECK_IN' ? 'Check-In' : 'Check-Out'}
                         </DialogTitle>

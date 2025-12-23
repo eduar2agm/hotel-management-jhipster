@@ -162,18 +162,18 @@ export const HabitacionFormDialog = ({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-lg p-0 overflow-hidden border-0 shadow-2xl">
-                <DialogHeader className="bg-[#0F172A] text-white p-6">
-                    <DialogTitle className="text-xl font-bold flex items-center gap-2">
+            <DialogContent className="max-w-lg p-0 overflow-hidden border border-border shadow-2xl">
+                <DialogHeader className="bg-muted/30 border-b border-border p-6">
+                    <DialogTitle className="text-xl font-bold flex items-center gap-2 text-foreground">
                         {isEditing ? <Pencil className="h-5 w-5 text-yellow-500" /> : <Plus className="h-5 w-5 text-yellow-500" />}
                         {isEditing ? 'Editar Habitación' : 'Nueva Habitación'}
                     </DialogTitle>
-                    <DialogDescription className="text-slate-400">
+                    <DialogDescription className="text-muted-foreground">
                         Detalles de configuración de la unidad.
                     </DialogDescription>
                 </DialogHeader>
 
-                <div className="p-6 bg-white overflow-y-auto max-h-[80vh]">
+                <div className="p-6 bg-background overflow-y-auto max-h-[80vh]">
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
                             <div className="grid grid-cols-2 gap-4">
@@ -182,7 +182,7 @@ export const HabitacionFormDialog = ({
                                     name="numero"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel className="text-xs font-bold text-gray-500 uppercase tracking-widest">Número</FormLabel>
+                                            <FormLabel className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Número</FormLabel>
                                             <FormControl>
                                                 <Input placeholder="101" className="h-9 font-mono" {...field} />
                                             </FormControl>
@@ -195,7 +195,7 @@ export const HabitacionFormDialog = ({
                                     name="capacidad"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel className="text-xs font-bold text-gray-500 uppercase tracking-widest">Capacidad</FormLabel>
+                                            <FormLabel className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Capacidad</FormLabel>
                                             <FormControl>
                                                 <Input type="number" className="h-9" {...field} />
                                             </FormControl>
@@ -210,7 +210,7 @@ export const HabitacionFormDialog = ({
                                 name="categoriaHabitacionId"
                                 render={({ field }) => (
                                     <FormItem className="flex flex-col">
-                                        <FormLabel className="text-xs font-bold text-gray-500 uppercase tracking-widest">Categoría</FormLabel>
+                                        <FormLabel className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Categoría</FormLabel>
                                         <Popover open={openCategoryPopover} onOpenChange={setOpenCategoryPopover}>
                                             <PopoverTrigger asChild>
                                                 <FormControl>
@@ -278,7 +278,7 @@ export const HabitacionFormDialog = ({
                                 name="estadoHabitacionId"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel className="text-xs font-bold text-gray-500 uppercase tracking-widest">Estado</FormLabel>
+                                        <FormLabel className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Estado</FormLabel>
                                         <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
                                             <FormControl>
                                                 <SelectTrigger className="h-9">
@@ -303,17 +303,17 @@ export const HabitacionFormDialog = ({
                                 name="imagen"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel className="text-xs font-bold text-gray-500 uppercase tracking-widest">Imagen de la Habitación</FormLabel>
+                                        <FormLabel className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Imagen de la Habitación</FormLabel>
                                         <FormControl>
                                             <div className="space-y-4">
                                                 <div
                                                     className={cn(
                                                         "relative overflow-hidden rounded-xl border-2 border-dashed transition-all duration-300 group",
-                                                        (field.value || localPreview) ? "border-yellow-600/50" : "border-gray-200 hover:border-yellow-400"
+                                                        (field.value || localPreview) ? "border-yellow-600/50" : "border-border hover:border-yellow-400"
                                                     )}
                                                 >
                                                     {field.value || localPreview ? (
-                                                        <div className="relative aspect-video w-full bg-gray-50">
+                                                        <div className="relative aspect-video w-full bg-muted/30">
                                                             <img
                                                                 src={localPreview || getImageUrl(field.value)}
                                                                 alt="Habitación"
@@ -340,15 +340,15 @@ export const HabitacionFormDialog = ({
                                                     ) : (
                                                         <div
                                                             onClick={() => fileInputRef.current?.click()}
-                                                            className="aspect-video w-full flex flex-col items-center justify-center cursor-pointer bg-gray-50/50 hover:bg-gray-50 transition-colors py-10"
+                                                            className="aspect-video w-full flex flex-col items-center justify-center cursor-pointer bg-muted/30 hover:bg-muted/50 transition-colors py-10"
                                                         >
-                                                            <div className="h-12 w-12 rounded-full bg-yellow-50 flex items-center justify-center mb-3">
+                                                            <div className="h-12 w-12 rounded-full bg-yellow-50 dark:bg-yellow-900/20 flex items-center justify-center mb-3">
                                                                 {loading ? <Loader2 className="h-6 w-6 animate-spin text-yellow-600" /> : <ImageIcon className="h-6 w-6 text-yellow-600" />}
                                                             </div>
-                                                            <p className="text-sm font-bold text-gray-600 uppercase tracking-tight">
+                                                            <p className="text-sm font-bold text-muted-foreground uppercase tracking-tight">
                                                                 {loading ? 'Guardando habitación...' : 'Haga clic para subir una imagen'}
                                                             </p>
-                                                            <p className="text-[10px] text-gray-400 uppercase tracking-widest mt-1">Formatos sugeridos: JPG, PNG • Max 5MB</p>
+                                                            <p className="text-[10px] text-muted-foreground uppercase tracking-widest mt-1">Formatos sugeridos: JPG, PNG • Max 5MB</p>
                                                         </div>
                                                     )}
                                                     <input
@@ -362,12 +362,12 @@ export const HabitacionFormDialog = ({
                                                 </div>
                                                 {field.value && (
                                                     <div className="flex justify-between items-center px-1">
-                                                        <span className="text-[10px] text-gray-400 font-mono truncate max-w-[200px]">{field.value}</span>
+                                                        <span className="text-[10px] text-muted-foreground font-mono truncate max-w-[200px]">{field.value}</span>
                                                         <Button
                                                             type="button"
                                                             variant="ghost"
                                                             size="sm"
-                                                            className="h-6 text-[10px] font-bold text-red-500 hover:text-red-600 hover:bg-red-50"
+                                                            className="h-6 text-[10px] font-bold text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30"
                                                             onClick={() => {
                                                                 field.onChange('');
                                                                 setLocalPreview(null);
@@ -390,7 +390,7 @@ export const HabitacionFormDialog = ({
                                 name="descripcion"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel className="text-xs font-bold text-gray-500 uppercase tracking-widest">Descripción</FormLabel>
+                                        <FormLabel className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Descripción</FormLabel>
                                         <FormControl>
                                             <Textarea
                                                 placeholder="Características de la habitación..."
@@ -407,9 +407,9 @@ export const HabitacionFormDialog = ({
                                 control={form.control}
                                 name="activo"
                                 render={({ field }) => (
-                                    <FormItem className="flex flex-row items-center justify-between rounded-lg border border-gray-100 bg-gray-50 p-3">
+                                    <FormItem className="flex flex-row items-center justify-between rounded-lg border border-border bg-muted/30 p-3">
                                         <div className="space-y-0.5">
-                                            <FormLabel className="text-sm font-medium text-gray-700">Habilitada para reservas</FormLabel>
+                                            <FormLabel className="text-sm font-medium text-foreground">Habilitada para reservas</FormLabel>
                                         </div>
                                         <FormControl>
                                             <Switch

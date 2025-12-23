@@ -16,6 +16,7 @@ import { apiClient } from '../../api/axios-instance';
 import { PagoService } from '../../services/pago.service';
 import { type ReservaDTO } from '../../types/api/Reserva';
 import { toast } from 'sonner';
+import { useTheme } from '@/components/theme-provider';
 
 // Initialize Stripe
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
@@ -39,6 +40,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
     onSuccess,
     servicioContratadoId
 }) => {
+    const { theme } = useTheme();
     const [view, setView] = useState<PaymentView>('METHOD_SELECTION');
     const [stripeClientSecret, setStripeClientSecret] = useState<string | null>(null);
     const [cashAmount, setCashAmount] = useState('');
@@ -148,7 +150,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                     <DialogHeader>
                         <DialogTitle className="text-xl font-bold text-center">Seleccionar Método de Pago</DialogTitle>
                         <DialogDescription className="text-center">
-                            Reserva #{reserva.id} • Total a Pagar: <span className="font-bold text-gray-900">${total.toFixed(2)}</span>
+                            Reserva #{reserva.id} • Total a Pagar: <span className="font-bold text-yellow-500">${total.toFixed(2)}</span>
                         </DialogDescription>
                     </DialogHeader>
 
@@ -156,24 +158,24 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                         <button
                             onClick={handleSelectStripe}
                             disabled={isProcessing}
-                            className="flex flex-col items-center justify-center p-6 border-2 border-gray-100 rounded-xl hover:border-yellow-500 hover:bg-yellow-50 transition-all gap-3 group"
+                            className="flex flex-col items-center justify-center p-6 border-2 border-border rounded-xl hover:border-yellow-600 hover:bg-yellow-500/10 transition-all gap-3 group"
                         >
-                            <div className="bg-white p-3 rounded-full shadow-sm group-hover:scale-110 transition-transform">
+                            <div className="bg-background dark:bg-muted p-3 rounded-full shadow-sm group-hover:scale-110 transition-transform">
                                 <CreditCard className="h-8 w-8 text-yellow-600" />
                             </div>
-                            <span className="font-bold text-gray-800">Pasarela de Pago</span>
-                            <span className="text-xs text-gray-400">Tarjeta Crédito/Débito</span>
+                            <span className="font-bold text-foreground">Pasarela de Pago</span>
+                            <span className="text-xs text-muted-foreground">Tarjeta Crédito/Débito</span>
                         </button>
 
                         <button
                             onClick={handleSelectCash}
-                            className="flex flex-col items-center justify-center p-6 border-2 border-gray-100 rounded-xl hover:border-green-500 hover:bg-green-50 transition-all gap-3 group"
+                            className="flex flex-col items-center justify-center p-6 border-2 border-border rounded-xl hover:border-green-600 hover:bg-green-500/10 transition-all gap-3 group"
                         >
-                            <div className="bg-white p-3 rounded-full shadow-sm group-hover:scale-110 transition-transform">
+                            <div className="bg-background dark:bg-muted p-3 rounded-full shadow-sm group-hover:scale-110 transition-transform">
                                 <Banknote className="h-8 w-8 text-green-600" />
                             </div>
-                            <span className="font-bold text-gray-800">Efectivo</span>
-                            <span className="text-xs text-gray-400">Pago presencial</span>
+                            <span className="font-bold text-foreground">Efectivo</span>
+                            <span className="text-xs text-muted-foreground">Pago presencial</span>
                         </button>
                     </div>
                 </DialogContent>
@@ -195,25 +197,25 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                         </DialogDescription>
                     </DialogHeader>
                     <form onSubmit={submitCashPayment} className="space-y-4 pt-2">
-                        <div className="bg-gray-50 p-3 rounded text-sm space-y-1">
+                        <div className="bg-muted/30 p-3 rounded text-sm space-y-1">
                             <div className="flex justify-between">
-                                <span className="text-gray-500">Cliente:</span>
-                                <span className="font-medium text-gray-900">{getClientName()}</span>
+                                <span className="text-muted-foreground">Cliente:</span>
+                                <span className="font-medium text-foreground">{getClientName()}</span>
                             </div>
                             <div className="flex justify-between">
-                                <span className="text-gray-500">Reserva:</span>
-                                <span className="font-medium text-gray-900">#{reserva.id}</span>
+                                <span className="text-muted-foreground">Reserva:</span>
+                                <span className="font-medium text-foreground">#{reserva.id}</span>
                             </div>
-                            <div className="flex justify-between border-t border-gray-200 pt-1 mt-1">
-                                <span className="text-gray-500 font-bold">Total Esperado:</span>
+                            <div className="flex justify-between border-t border-border pt-1 mt-1">
+                                <span className="text-muted-foreground font-bold">Total Esperado:</span>
                                 <span className="font-bold text-yellow-600">${total.toFixed(2)}</span>
                             </div>
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-xs font-bold uppercase text-gray-500">Monto A Recibir ($)</label>
+                            <label className="text-xs font-bold uppercase text-muted-foreground">Monto A Recibir ($)</label>
                             <div className="relative">
-                                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                 <Input
                                     className="pl-9 text-lg font-bold"
                                     type="number"
@@ -255,7 +257,10 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                         {stripeClientSecret && (
                             <Elements stripe={stripePromise} options={{
                                 clientSecret: stripeClientSecret,
-                                appearance: { theme: 'stripe', variables: { colorPrimary: '#ca8a04' } }
+                                appearance: {
+                                    theme: theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'night' : 'stripe',
+                                    variables: { colorPrimary: '#ca8a04' }
+                                }
                             }}>
                                 <StripePaymentForm
                                     onSuccess={handleStripeSuccess}
