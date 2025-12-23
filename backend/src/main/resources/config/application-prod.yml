@@ -105,3 +105,9 @@ jhipster:
 # ===================================================================
 
 # application:
+
+stripe:
+  # In production, set these values via environment variables for security
+  # For example: STRIPE_SECRET_KEY and STRIPE_WEBHOOK_SECRET
+  secret-key: ${STRIPE_SECRET_KEY:}
+  webhook-secret: ${STRIPE_WEBHOOK_SECRET:}
