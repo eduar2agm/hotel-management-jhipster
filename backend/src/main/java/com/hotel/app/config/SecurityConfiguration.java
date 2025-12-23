@@ -24,6 +24,7 @@ import org.springframework.security.oauth2.jwt.*;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.servlet.util.matcher.MvcRequestMatcher;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 import tech.jhipster.config.JHipsterProperties;
 
@@ -56,8 +57,9 @@ public class SecurityConfiguration {
                             .requestMatchers(mvc.pattern("/api/servicios/**")).permitAll()
                             .requestMatchers(mvc.pattern("/api/seccion-heroes/**")).permitAll()
                             .requestMatchers(mvc.pattern("/api/red-socials/**")).permitAll()
-                            .requestMatchers(mvc.pattern("/images/**")).permitAll()
                             .requestMatchers(mvc.pattern("/api/seccion-contactos/**")).permitAll()
+                            .requestMatchers(new AntPathRequestMatcher("/images/**")).permitAll()
+                            .requestMatchers(new AntPathRequestMatcher("/error/**")).permitAll()
                             .requestMatchers(mvc.pattern("/api/red-socials/**")).permitAll()
                             .requestMatchers(mvc.pattern("/api/telefonos/**")).permitAll()
                             .requestMatchers(mvc.pattern("/api/admin/**")).hasAuthority(AuthoritiesConstants.ADMIN)
