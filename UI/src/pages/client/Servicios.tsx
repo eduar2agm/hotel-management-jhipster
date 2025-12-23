@@ -35,6 +35,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from 'sonner';
 import { format, parseISO, startOfDay } from 'date-fns';
+import { getImageUrl } from '../../utils/imageUtils';
 
 import { PageHeader } from '../../components/common/PageHeader';
 import { ServiceAvailabilityInfo } from '../../components/services/ServiceAvailabilityInfo';
@@ -237,7 +238,7 @@ export const Servicios = () => {
               <Card key={servicio.id} className="overflow-hidden border border-border shadow-lg group hover:shadow-xl transition-all duration-300 flex flex-col h-full bg-card">
                 <div className="relative h-64 overflow-hidden">
                   <img
-                    src={servicio.urlImage ? (servicio.urlImage.startsWith('http') ? servicio.urlImage : `/images/${servicio.urlImage}`) : "https://images.unsplash.com/photo-1540555700478-4be289fbecef?q=80&w=2000&auto=format&fit=crop"} // Fallback image
+                    src={servicio.urlImage ? getImageUrl(servicio.urlImage) : "https://images.unsplash.com/photo-1540555700478-4be289fbecef?q=80&w=2000&auto=format&fit=crop"} // Fallback image
                     alt={servicio.nombre}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
@@ -298,7 +299,7 @@ export const Servicios = () => {
                 <div key={servicio.id} className="bg-card p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow border border-border flex flex-col items-center text-center">
                   <div className="w-14 h-14 bg-yellow-500/10 rounded-full flex items-center justify-center text-yellow-600 mb-4 overflow-hidden">
                     {servicio.urlImage ? (
-                      <img src={servicio.urlImage.startsWith('http') ? servicio.urlImage : `/images/${servicio.urlImage}`} alt={servicio.nombre} className="w-full h-full object-cover" />
+                      <img src={getImageUrl(servicio.urlImage)} alt={servicio.nombre} className="w-full h-full object-cover" />
                     ) : (
                       <Sparkles size={24} />
                     )}

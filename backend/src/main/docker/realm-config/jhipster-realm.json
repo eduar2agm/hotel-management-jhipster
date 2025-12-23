@@ -2720,6 +2720,90 @@
       "access": {
         "manage": true
       }
+    },
+    {
+      "id": "b8364128-4f1e-450b-a010-3841551e1d01",
+      "username": "juan.perez",
+      "firstName": "Juan Carlos",
+      "lastName": "Pérez García",
+      "email": "juan.perez@example.com",
+      "emailVerified": true,
+      "createdTimestamp": 1703203200000,
+      "enabled": true,
+      "totp": false,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user",
+          "temporary": false
+        }
+      ],
+      "disableableCredentialTypes": [],
+      "requiredActions": [],
+      "realmRoles": [
+        "ROLE_CLIENT",
+        "ROLE_USER"
+      ],
+      "notBefore": 0,
+      "access": {
+        "manage": true
+      }
+    },
+    {
+      "id": "5c184719-7411-4432-8493-271360050c02",
+      "username": "maria.rodriguez",
+      "firstName": "María Elena",
+      "lastName": "Rodríguez López",
+      "email": "maria.rodriguez@example.com",
+      "emailVerified": true,
+      "createdTimestamp": 1703203200000,
+      "enabled": true,
+      "totp": false,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user",
+          "temporary": false
+        }
+      ],
+      "disableableCredentialTypes": [],
+      "requiredActions": [],
+      "realmRoles": [
+        "ROLE_CLIENT",
+        "ROLE_USER"
+      ],
+      "notBefore": 0,
+      "access": {
+        "manage": true
+      }
+    },
+    {
+      "id": "9d023846-9533-4654-9721-50269338b803",
+      "username": "roberto.gonzalez",
+      "firstName": "Roberto",
+      "lastName": "González Martínez",
+      "email": "roberto.gonzalez@example.com",
+      "emailVerified": true,
+      "createdTimestamp": 1703203200000,
+      "enabled": true,
+      "totp": false,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user",
+          "temporary": false
+        }
+      ],
+      "disableableCredentialTypes": [],
+      "requiredActions": [],
+      "realmRoles": [
+        "ROLE_CLIENT",
+        "ROLE_USER"
+      ],
+      "notBefore": 0,
+      "access": {
+        "manage": true
+      }
     }
   ]
 }

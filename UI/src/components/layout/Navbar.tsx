@@ -1,4 +1,20 @@
-import { Link } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
+import React from 'react';
+import {
+  Home,
+  LayoutDashboard,
+  BedDouble,
+  Users,
+  CalendarCheck,
+  HandPlatter,
+  ClipboardList,
+  Image as ImageIcon,
+  Headset,
+  Settings,
+  Mail,
+  User,
+  KeyRound
+} from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { useUnreadSupport } from '../../hooks/useUnreadSupport';
 import logo from '../../assets/logoN.png';
@@ -17,6 +33,23 @@ export const Navbar = () => {
     );
   };
 
+  const NavItem = ({ to, children, icon: Icon, end }: { to: string; children: React.ReactNode; icon?: React.ElementType; end?: boolean }) => (
+    <NavLink
+      to={to}
+      end={end}
+      className={({ isActive }) =>
+        `group flex items-center gap-2 hover:text-yellow-400 transition-all duration-300 border-b-2 py-1
+         ${isActive ? 'border-yellow-400 text-yellow-400' : 'border-transparent'}
+        `
+      }
+    >
+      {Icon && <Icon className="w-5 h-5" />}
+      <span className={`${Icon ? 'hidden group-hover:block animate-in fade-in slide-in-from-left-1 duration-200' : 'block'}`}>
+        {children}
+      </span>
+    </NavLink>
+  );
+
   return (
     <nav className="absolute top-0 left-0 w-full z-[1000] flex bg-black/50 backdrop-blur-sm justify-between items-center px-10 py-6 text-white">
 
@@ -26,53 +59,53 @@ export const Navbar = () => {
       </div>
 
       {/* Menú Central */}
-      <div className="hidden md:flex space-x-4 text-xs font-bold uppercase tracking-widest">
+      <div className="hidden md:flex space-x-8 text-xs font-bold uppercase tracking-widest">
 
         {isAuthenticated && isClient() && (
           <>
-            <Link to="/client/" className="hover:text-yellow-400 transition-colors">Home</Link>
-            <Link to="/client/reservas" className="hover:text-yellow-400 transition-colors">Reservas</Link>
-            <Link to="/client/perfil" className="hover:text-yellow-400 transition-colors">Mi perfil</Link>
+            <NavItem to="/client/" end icon={Home}>Home</NavItem>
+            <NavItem to="/client/reservas" icon={CalendarCheck}>Reservas</NavItem>
+            <NavItem to="/client/perfil" icon={User}>Mi perfil</NavItem>
             <div className="relative inline-block">
-              <Link to="/client/soporte" className="hover:text-yellow-400 transition-colors">Soporte</Link>
+              <NavItem to="/client/soporte" icon={Headset}>Soporte</NavItem>
               <Badge count={unreadCount} />
             </div>
-            <Link to="/client/servicios" className="hover:text-yellow-400 transition-colors">Servicios</Link>
-            <Link to="/client/mis-servicios" className="hover:text-yellow-400 transition-colors">Mis Servicios</Link>
-            <Link to="/contacto" className="hover:text-yellow-400 transition-colors">Contacto</Link>
+            <NavItem to="/client/servicios" icon={HandPlatter}>Servicios</NavItem>
+            <NavItem to="/client/mis-servicios" icon={ClipboardList}>Mis Servicios</NavItem>
+            <NavItem to="/contacto" icon={Mail}>Contacto</NavItem>
           </>
         )}
         {isAuthenticated && isEmployee() && (
           <>
-            <Link to="/" className="hover:text-yellow-400 transition-colors">Home</Link>
-            <Link to="/employee/dashboard" className="hover:text-yellow-400 transition-colors">Dashboard</Link>
-            <Link to="/employee/clientes" className="hover:text-yellow-400 transition-colors">Clientes</Link>
-            <Link to="/employee/checkin" className="hover:text-yellow-400 transition-colors">Check-in</Link>
-            <Link to="/employee/reservas" className="hover:text-yellow-400 transition-colors">Reservas</Link>
-            <Link to="/employee/servicios-contratados" className="hover:text-yellow-400 transition-colors">Servicios</Link>
+            <NavItem to="/" end icon={Home}>Home</NavItem>
+            <NavItem to="/employee/dashboard" icon={LayoutDashboard}>Dashboard</NavItem>
+            <NavItem to="/employee/clientes" icon={Users}>Clientes</NavItem>
+            <NavItem to="/employee/checkin" icon={KeyRound}>Check-in</NavItem>
+            <NavItem to="/employee/reservas" icon={CalendarCheck}>Reservas</NavItem>
+            <NavItem to="/employee/servicios-contratados" icon={ClipboardList}>Servicios</NavItem>
             <div className="relative inline-block">
-              <Link to="/employee/soporte" className="hover:text-yellow-400 transition-colors">Soporte</Link>
+              <NavItem to="/employee/soporte" icon={Headset}>Soporte</NavItem>
               <Badge count={unreadCount} />
             </div>
-            <Link to="/contacto" className="hover:text-yellow-400 transition-colors">Contacto</Link>
+            <NavItem to="/contacto" icon={Mail}>Contacto</NavItem>
           </>
         )}
         {isAuthenticated && isAdmin() && (
           <>
-            <Link to="/" className="hover:text-yellow-400 transition-colors">Home</Link>
-            <Link to="/admin/dashboard" className="hover:text-yellow-400 transition-colors">Dashboard</Link>
-            <Link to="/admin/habitaciones" className="hover:text-yellow-400 transition-colors">Habitaciones</Link>
-            <Link to="/admin/clientes" className="hover:text-yellow-400 transition-colors">Clientes</Link>
-            <Link to="/admin/reservas" className="hover:text-yellow-400 transition-colors">Reservas</Link>
-            <Link to="/admin/servicios" className="hover:text-yellow-400 transition-colors">Servicios</Link>
-            <Link to="/admin/servicios-contratados" className="hover:text-yellow-400 transition-colors">Solicitudes</Link>
-            <Link to="/admin/imagenes" className="hover:text-yellow-400 transition-colors">Imágenes</Link>
+            <NavItem to="/" end icon={Home}>Home</NavItem>
+            <NavItem to="/admin/dashboard" icon={LayoutDashboard}>Dashboard</NavItem>
+            <NavItem to="/admin/habitaciones" icon={BedDouble}>Habitaciones</NavItem>
+            <NavItem to="/admin/clientes" icon={Users}>Clientes</NavItem>
+            <NavItem to="/admin/reservas" icon={CalendarCheck}>Reservas</NavItem>
+            <NavItem to="/admin/servicios" icon={HandPlatter}>Servicios</NavItem>
+            <NavItem to="/admin/servicios-contratados" icon={ClipboardList}>Solicitudes</NavItem>
+            <NavItem to="/admin/imagenes" icon={ImageIcon}>Imágenes</NavItem>
             <div className="relative inline-block">
-              <Link to="/admin/soporte" className="hover:text-yellow-400 transition-colors">Soporte</Link>
+              <NavItem to="/admin/soporte" icon={Headset}>Soporte</NavItem>
               <Badge count={unreadCount} />
             </div>
-            <Link to="/admin/configuracion" className="hover:text-yellow-400 transition-colors">Config</Link>
-            <Link to="/contacto" className="hover:text-yellow-400 transition-colors">Contacto</Link>
+            <NavItem to="/admin/configuracion" icon={Settings}>Config</NavItem>
+            <NavItem to="/contacto" icon={Mail}>Contacto</NavItem>
           </>
         )}
       </div>
@@ -97,12 +130,15 @@ export const Navbar = () => {
         ) : (
 
           <div className="flex items-center gap-6">
-            <Link
+            <NavLink
               to="/contacto"
-              className="text-xs font-bold uppercase tracking-widest hover:text-yellow-400 transition-colors cursor-pointer"
+              className={({ isActive }) =>
+                `text-xs font-bold uppercase tracking-widest hover:text-yellow-400 transition-colors cursor-pointer border-b-2 ${isActive ? 'border-yellow-400' : 'border-transparent'
+                }`
+              }
             >
               Contacto
-            </Link>
+            </NavLink>
             <button
               onClick={() => login()}
               className="border border-white px-6 py-2 text-sm uppercase font-bold hover:bg-white hover:text-black transition-all"

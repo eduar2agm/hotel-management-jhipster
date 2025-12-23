@@ -25,8 +25,7 @@ public class SeccionContacto implements Serializable {
     @Column(name = "titulo", length = 255, nullable = false)
     private String titulo;
 
-    @Lob
-    @Column(name = "descripcion", nullable = false)
+    @Column(name = "descripcion", length = 5000, nullable = false)
     private String descripcion;
 
     @NotNull
@@ -122,7 +121,8 @@ public class SeccionContacto implements Serializable {
         this.activo = activo;
     }
 
-    // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
+    // jhipster-needle-entity-add-getters-setters - JHipster will add getters and
+    // setters here
 
     @Override
     public boolean equals(Object o) {
@@ -137,7 +137,8 @@ public class SeccionContacto implements Serializable {
 
     @Override
     public int hashCode() {
-        // see https://vladmihalcea.com/how-to-implement-equals-and-hashcode-using-the-jpa-entity-identifier/
+        // see
+        // https://vladmihalcea.com/how-to-implement-equals-and-hashcode-using-the-jpa-entity-identifier/
         return getClass().hashCode();
     }
 
@@ -145,12 +146,12 @@ public class SeccionContacto implements Serializable {
     @Override
     public String toString() {
         return "SeccionContacto{" +
-            "id=" + getId() +
-            ", titulo='" + getTitulo() + "'" +
-            ", descripcion='" + getDescripcion() + "'" +
-            ", imagenFondoUrl='" + getImagenFondoUrl() + "'" +
-            ", correo='" + getCorreo() + "'" +
-            ", activo='" + getActivo() + "'" +
-            "}";
+                "id=" + getId() +
+                ", titulo='" + getTitulo() + "'" +
+                ", descripcion='" + getDescripcion() + "'" +
+                ", imagenFondoUrl='" + getImagenFondoUrl() + "'" +
+                ", correo='" + getCorreo() + "'" +
+                ", activo='" + getActivo() + "'" +
+                "}";
     }
 }

@@ -1,0 +1,480 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd
+                        http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog-ext/dbchangelog-ext.xsd">
+
+    <changeSet id="20251223000000-insert-categoria-habitacion" author="system">
+        <insert tableName="categoria_habitacion">
+            <column name="id" valueNumeric="1"/>
+            <column name="nombre" value="SENCILLA"/>
+            <column name="descripcion" value="Habitación sencilla con cama individual, ideal para una persona"/>
+            <column name="precio_base" valueNumeric="50.00"/>
+            <column name="activo" valueBoolean="true"/>
+        </insert>
+        <insert tableName="categoria_habitacion">
+            <column name="id" valueNumeric="2"/>
+            <column name="nombre" value="DOBLE"/>
+            <column name="descripcion" value="Habitación doble con cama matrimonial o dos camas individuales"/>
+            <column name="precio_base" valueNumeric="75.00"/>
+            <column name="activo" valueBoolean="true"/>
+        </insert>
+        <insert tableName="categoria_habitacion">
+            <column name="id" valueNumeric="3"/>
+            <column name="nombre" value="SUITE"/>
+            <column name="descripcion" value="Suite de lujo con sala de estar, jacuzzi y vista panorámica"/>
+            <column name="precio_base" valueNumeric="150.00"/>
+            <column name="activo" valueBoolean="true"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="20251223000000-insert-estado-habitacion" author="system">
+        <insert tableName="estado_habitacion">
+            <column name="id" valueNumeric="1"/>
+            <column name="nombre" value="DISPONIBLE"/>
+            <column name="descripcion" value="Habitación disponible para reserva"/>
+            <column name="activo" valueBoolean="true"/>
+        </insert>
+        <insert tableName="estado_habitacion">
+            <column name="id" valueNumeric="2"/>
+            <column name="nombre" value="OCUPADA"/>
+            <column name="descripcion" value="Habitación actualmente ocupada"/>
+            <column name="activo" valueBoolean="true"/>
+        </insert>
+        <insert tableName="estado_habitacion">
+            <column name="id" valueNumeric="3"/>
+            <column name="nombre" value="MANTENIMIENTO"/>
+            <column name="descripcion" value="Habitación en mantenimiento"/>
+            <column name="activo" valueBoolean="true"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="20251223000000-insert-clientes" author="system">
+        <insert tableName="cliente">
+            <column name="id" valueNumeric="1"/>
+            <column name="nombre" value="Juan Carlos"/>
+            <column name="apellido" value="Pérez García"/>
+            <column name="correo" value="juan.perez@example.com"/>
+            <column name="telefono" value="+505 8888-1234"/>
+            <column name="direccion" value="Managua, Nicaragua"/>
+            <column name="tipo_identificacion" value="CEDULA"/>
+            <column name="numero_identificacion" value="001-150590-0001A"/>
+            <column name="keycloak_id" value="b8364128-4f1e-450b-a010-3841551e1d01"/>
+            <column name="activo" valueBoolean="true"/>
+            <column name="fecha_nacimiento" value="1990-05-15"/>
+        </insert>
+        <insert tableName="cliente">
+            <column name="id" valueNumeric="2"/>
+            <column name="nombre" value="María Elena"/>
+            <column name="apellido" value="Rodríguez López"/>
+            <column name="correo" value="maria.rodriguez@example.com"/>
+            <column name="telefono" value="+505 8888-5678"/>
+            <column name="direccion" value="León, Nicaragua"/>
+            <column name="tipo_identificacion" value="CEDULA"/>
+            <column name="numero_identificacion" value="001-120885-0002B"/>
+            <column name="keycloak_id" value="5c184719-7411-4432-8493-271360050c02"/>
+            <column name="activo" valueBoolean="true"/>
+            <column name="fecha_nacimiento" value="1985-08-12"/>
+        </insert>
+        <insert tableName="cliente">
+            <column name="id" valueNumeric="3"/>
+            <column name="nombre" value="Roberto"/>
+            <column name="apellido" value="González Martínez"/>
+            <column name="correo" value="roberto.gonzalez@example.com"/>
+            <column name="telefono" value="+505 8888-9012"/>
+            <column name="direccion" value="Granada, Nicaragua"/>
+            <column name="tipo_identificacion" value="PASAPORTE"/>
+            <column name="numero_identificacion" value="P123456789"/>
+            <column name="keycloak_id" value="9d023846-9533-4654-9721-50269338b803"/>
+            <column name="activo" valueBoolean="true"/>
+            <column name="fecha_nacimiento" value="1988-03-22"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="20251223000000-insert-habitaciones" author="system">
+        <insert tableName="habitacion">
+            <column name="id" valueNumeric="1"/>
+            <column name="numero" value="101"/>
+            <column name="capacidad" valueNumeric="1"/>
+            <column name="descripcion" value="Habitación sencilla en el primer piso, vista al jardín"/>
+            <column name="imagen" value="/images/habitaciones/sencilla-101.jpg"/>
+            <column name="activo" valueBoolean="true"/>
+            <column name="categoria_habitacion_id" valueNumeric="1"/>
+            <column name="estado_habitacion_id" valueNumeric="1"/>
+        </insert>
+        <insert tableName="habitacion">
+            <column name="id" valueNumeric="2"/>
+            <column name="numero" value="102"/>
+            <column name="capacidad" valueNumeric="1"/>
+            <column name="descripcion" value="Habitación sencilla en el primer piso"/>
+            <column name="imagen" value="/images/habitaciones/sencilla-102.jpg"/>
+            <column name="activo" valueBoolean="true"/>
+            <column name="categoria_habitacion_id" valueNumeric="1"/>
+            <column name="estado_habitacion_id" valueNumeric="1"/>
+        </insert>
+        <insert tableName="habitacion">
+            <column name="id" valueNumeric="3"/>
+            <column name="numero" value="201"/>
+            <column name="capacidad" valueNumeric="2"/>
+            <column name="descripcion" value="Habitación doble en el segundo piso con balcón"/>
+            <column name="imagen" value="/images/habitaciones/doble-201.jpg"/>
+            <column name="activo" valueBoolean="true"/>
+            <column name="categoria_habitacion_id" valueNumeric="2"/>
+            <column name="estado_habitacion_id" valueNumeric="1"/>
+        </insert>
+        <insert tableName="habitacion">
+            <column name="id" valueNumeric="4"/>
+            <column name="numero" value="202"/>
+            <column name="capacidad" valueNumeric="2"/>
+            <column name="descripcion" value="Habitación doble con dos camas individuales"/>
+            <column name="imagen" value="/images/habitaciones/doble-202.jpg"/>
+            <column name="activo" valueBoolean="true"/>
+            <column name="categoria_habitacion_id" valueNumeric="2"/>
+            <column name="estado_habitacion_id" valueNumeric="2"/>
+        </insert>
+        <insert tableName="habitacion">
+            <column name="id" valueNumeric="5"/>
+            <column name="numero" value="301"/>
+            <column name="capacidad" valueNumeric="4"/>
+            <column name="descripcion" value="Suite presidencial con jacuzzi, sala de estar y vista panorámica"/>
+            <column name="imagen" value="/images/habitaciones/suite-301.jpg"/>
+            <column name="activo" valueBoolean="true"/>
+            <column name="categoria_habitacion_id" valueNumeric="3"/>
+            <column name="estado_habitacion_id" valueNumeric="1"/>
+        </insert>
+        <insert tableName="habitacion">
+            <column name="id" valueNumeric="6"/>
+            <column name="numero" value="302"/>
+            <column name="capacidad" valueNumeric="4"/>
+            <column name="descripcion" value="Suite familiar con dos habitaciones y sala"/>
+            <column name="imagen" value="/images/habitaciones/suite-302.jpg"/>
+            <column name="activo" valueBoolean="true"/>
+            <column name="categoria_habitacion_id" valueNumeric="3"/>
+            <column name="estado_habitacion_id" valueNumeric="3"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="20251223000000-insert-reservas" author="system">
+        <insert tableName="reserva">
+            <column name="id" valueNumeric="1"/>
+            <column name="fecha_reserva" value="2025-12-15T10:30:00Z"/>
+            <column name="fecha_inicio" value="2026-01-10T14:00:00Z"/>
+            <column name="fecha_fin" value="2026-01-15T12:00:00Z"/>
+            <column name="estado" value="PENDIENTE"/>
+            <column name="activo" valueBoolean="true"/>
+            <column name="cliente_id" valueNumeric="1"/>
+        </insert>
+        <insert tableName="reserva">
+            <column name="id" valueNumeric="2"/>
+            <column name="fecha_reserva" value="2025-12-16T14:20:00Z"/>
+            <column name="fecha_inicio" value="2026-01-20T15:00:00Z"/>
+            <column name="fecha_fin" value="2026-01-25T11:00:00Z"/>
+            <column name="estado" value="PENDIENTE"/>
+            <column name="activo" valueBoolean="true"/>
+            <column name="cliente_id" valueNumeric="2"/>
+        </insert>
+        <insert tableName="reserva">
+            <column name="id" valueNumeric="3"/>
+            <column name="fecha_reserva" value="2025-12-18T09:15:00Z"/>
+            <column name="fecha_inicio" value="2026-01-28T14:00:00Z"/>
+            <column name="fecha_fin" value="2026-01-30T12:00:00Z"/>
+            <column name="estado" value="PENDIENTE"/>
+            <column name="activo" valueBoolean="true"/>
+            <column name="cliente_id" valueNumeric="3"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="20251223000000-insert-reserva-detalles" author="system">
+        <insert tableName="reserva_detalle">
+            <column name="id" valueNumeric="1"/>
+            <column name="nota" value="Cliente prefiere planta alta"/>
+            <column name="activo" valueBoolean="true"/>
+            <column name="reserva_id" valueNumeric="1"/>
+            <column name="habitacion_id" valueNumeric="3"/>
+        </insert>
+        <insert tableName="reserva_detalle">
+            <column name="id" valueNumeric="2"/>
+            <column name="nota" value="Alergias: ninguna"/>
+            <column name="activo" valueBoolean="true"/>
+            <column name="reserva_id" valueNumeric="2"/>
+            <column name="habitacion_id" valueNumeric="4"/>
+        </insert>
+        <insert tableName="reserva_detalle">
+            <column name="id" valueNumeric="3"/>
+            <column name="nota" value="Reserva para luna de miel, decoración especial"/>
+            <column name="activo" valueBoolean="true"/>
+            <column name="reserva_id" valueNumeric="3"/>
+            <column name="habitacion_id" valueNumeric="5"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="20251223000000-insert-servicios" author="system">
+        <insert tableName="servicio">
+            <column name="id" valueNumeric="1"/>
+            <column name="nombre" value="Masaje Relajante"/>
+            <column name="descripcion" value="Masaje de relajación con aceites esenciales, 60 minutos"/>
+            <column name="tipo" value="PAGO"/>
+            <column name="precio" valueNumeric="35.00"/>
+            <column name="disponible" valueBoolean="true"/>
+            <column name="url_image" value="/images/servicios/masaje-relajante.jpg"/>
+        </insert>
+        <insert tableName="servicio">
+            <column name="id" valueNumeric="2"/>
+            <column name="nombre" value="Tour a Granada"/>
+            <column name="descripcion" value="Tour guiado por la ciudad colonial de Granada, incluye transporte"/>
+            <column name="tipo" value="PAGO"/>
+            <column name="precio" valueNumeric="25.00"/>
+            <column name="disponible" valueBoolean="true"/>
+            <column name="url_image" value="/images/servicios/tour-granada.jpg"/>
+        </insert>
+        <insert tableName="servicio">
+            <column name="id" valueNumeric="3"/>
+            <column name="nombre" value="WiFi Premium"/>
+            <column name="descripcion" value="Acceso a internet de alta velocidad en toda el área del hotel"/>
+            <column name="tipo" value="GRATUITO"/>
+            <column name="precio" valueNumeric="0.00"/>
+            <column name="disponible" valueBoolean="true"/>
+            <column name="url_image" value="/images/servicios/wifi-premium.jpg"/>
+        </insert>
+        <insert tableName="servicio">
+            <column name="id" valueNumeric="4"/>
+            <column name="nombre" value="Desayuno Buffet"/>
+            <column name="descripcion" value="Desayuno buffet continental con opciones calientes y frías"/>
+            <column name="tipo" value="PAGO"/>
+            <column name="precio" valueNumeric="12.00"/>
+            <column name="disponible" valueBoolean="true"/>
+            <column name="url_image" value="/images/servicios/desayuno-buffet.jpg"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="20251223000000-insert-servicio-disponibilidad" author="system">
+        <insert tableName="servicio_disponibilidad">
+            <column name="id" valueNumeric="1"/>
+            <column name="dia_semana" value="LUNES"/>
+            <column name="hora_inicio" value="09:00:00"/>
+            <column name="cupo_maximo" valueNumeric="2"/>
+            <column name="hora_fija" valueBoolean="true"/>
+            <column name="activo" valueBoolean="true"/>
+            <column name="servicio_id" valueNumeric="1"/>
+        </insert>
+        <insert tableName="servicio_disponibilidad">
+            <column name="id" valueNumeric="2"/>
+            <column name="dia_semana" value="LUNES"/>
+            <column name="hora_inicio" value="11:00:00"/>
+            <column name="cupo_maximo" valueNumeric="2"/>
+            <column name="hora_fija" valueBoolean="true"/>
+            <column name="activo" valueBoolean="true"/>
+            <column name="servicio_id" valueNumeric="1"/>
+        </insert>
+        <insert tableName="servicio_disponibilidad">
+            <column name="id" valueNumeric="3"/>
+            <column name="dia_semana" value="MARTES"/>
+            <column name="hora_inicio" value="08:00:00"/>
+            <column name="hora_fin" value="12:00:00"/>
+            <column name="cupo_maximo" valueNumeric="15"/>
+            <column name="hora_fija" valueBoolean="false"/>
+            <column name="activo" valueBoolean="true"/>
+            <column name="servicio_id" valueNumeric="2"/>
+        </insert>
+        <insert tableName="servicio_disponibilidad">
+            <column name="id" valueNumeric="4"/>
+            <column name="dia_semana" value="JUEVES"/>
+            <column name="hora_inicio" value="08:00:00"/>
+            <column name="hora_fin" value="12:00:00"/>
+            <column name="cupo_maximo" valueNumeric="15"/>
+            <column name="hora_fija" valueBoolean="false"/>
+            <column name="activo" valueBoolean="true"/>
+            <column name="servicio_id" valueNumeric="2"/>
+        </insert>
+        <insert tableName="servicio_disponibilidad">
+            <column name="id" valueNumeric="5"/>
+            <column name="dia_semana" value="LUNES"/>
+            <column name="hora_inicio" value="06:00:00"/>
+            <column name="hora_fin" value="10:00:00"/>
+            <column name="cupo_maximo" valueNumeric="50"/>
+            <column name="hora_fija" valueBoolean="false"/>
+            <column name="activo" valueBoolean="true"/>
+            <column name="servicio_id" valueNumeric="4"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="20251223000000-insert-servicios-contratados" author="system">
+        <insert tableName="servicio_contratado">
+            <column name="id" valueNumeric="1"/>
+            <column name="fecha_contratacion" value="2025-12-20T14:30:00Z"/>
+            <column name="fecha_servicio" value="2026-01-11T09:00:00-06:00"/>
+            <column name="numero_personas" valueNumeric="1"/>
+            <column name="cantidad" valueNumeric="1"/>
+            <column name="precio_unitario" valueNumeric="35.00"/>
+            <column name="estado" value="PENDIENTE"/>
+            <column name="observaciones" value="Primera sesión"/>
+            <column name="servicio_id" valueNumeric="1"/>
+            <column name="reserva_id" valueNumeric="1"/>
+            <column name="cliente_id" valueNumeric="1"/>
+        </insert>
+        <insert tableName="servicio_contratado">
+            <column name="id" valueNumeric="2"/>
+            <column name="fecha_contratacion" value="2025-12-20T16:00:00Z"/>
+            <column name="fecha_servicio" value="2026-01-21T08:00:00-06:00"/>
+            <column name="numero_personas" valueNumeric="2"/>
+            <column name="cantidad" valueNumeric="2"/>
+            <column name="precio_unitario" valueNumeric="25.00"/>
+            <column name="estado" value="PENDIENTE"/>
+            <column name="servicio_id" valueNumeric="2"/>
+            <column name="reserva_id" valueNumeric="2"/>
+            <column name="cliente_id" valueNumeric="2"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="20251223000000-insert-seccion-hero" author="system">
+        <insert tableName="seccion_hero">
+            <column name="id" valueNumeric="1"/>
+            <column name="titulo" value="Bienvenido al Hotel Paradise"/>
+            <column name="descripcion" value="Experimenta el lujo y la comodidad en el corazón de Nicaragua. Tu escape perfecto te espera."/>
+            <column name="imagen_fondo_url" value="/images/landing/hero-principal.jpg"/>
+            <column name="texto_boton" value="Reservar Ahora"/>
+            <column name="enlace_boton" value="/reservas"/>
+            <column name="orden" valueNumeric="1"/>
+            <column name="activo" valueBoolean="true"/>
+        </insert>
+        <insert tableName="seccion_hero">
+            <column name="id" valueNumeric="2"/>
+            <column name="titulo" value="Descubre Granada"/>
+            <column name="descripcion" value="Explora la ciudad colonial más hermosa de Centroamérica desde nuestro hotel"/>
+            <column name="imagen_fondo_url" value="/images/landing/hero-granada.jpg"/>
+            <column name="texto_boton" value="Ver Tours"/>
+            <column name="enlace_boton" value="/servicios"/>
+            <column name="orden" valueNumeric="2"/>
+            <column name="activo" valueBoolean="true"/>
+        </insert>
+    </changeSet>
+
+
+    <changeSet id="20251223000000-insert-configuracion-sistema" author="system">
+        <insert tableName="configuracion_sistema">
+            <column name="id" valueNumeric="1"/>
+            <column name="clave" value="hotel.nombre"/>
+            <column name="valor" value="Hotel Paradise Nicaragua"/>
+            <column name="tipo" value="TEXT"/>
+            <column name="categoria" value="GENERAL"/>
+            <column name="descripcion" value="Nombre oficial del hotel"/>
+            <column name="activo" valueBoolean="true"/>
+            <column name="fecha_modificacion" value="2025-12-01T00:00:00Z"/>
+        </insert>
+        <insert tableName="configuracion_sistema">
+            <column name="id" valueNumeric="2"/>
+            <column name="clave" value="hotel.direccion"/>
+            <column name="valor" value="Calle La Calzada, Granada, Nicaragua"/>
+            <column name="tipo" value="TEXT"/>
+            <column name="categoria" value="GENERAL"/>
+            <column name="descripcion" value="Dirección física del hotel"/>
+            <column name="activo" valueBoolean="true"/>
+            <column name="fecha_modificacion" value="2025-12-01T00:00:00Z"/>
+        </insert>
+        <insert tableName="configuracion_sistema">
+            <column name="id" valueNumeric="3"/>
+            <column name="clave" value="checkout.hora"/>
+            <column name="valor" value="12:00"/>
+            <column name="tipo" value="TEXT"/>
+            <column name="categoria" value="RESERVAS"/>
+            <column name="descripcion" value="Hora límite de checkout"/>
+            <column name="activo" valueBoolean="true"/>
+            <column name="fecha_modificacion" value="2025-12-01T00:00:00Z"/>
+        </insert>
+        <insert tableName="configuracion_sistema">
+            <column name="id" valueNumeric="4"/>
+            <column name="clave" value="checkin.hora"/>
+            <column name="valor" value="14:00"/>
+            <column name="tipo" value="TEXT"/>
+            <column name="categoria" value="RESERVAS"/>
+            <column name="descripcion" value="Hora de inicio de check-in"/>
+            <column name="activo" valueBoolean="true"/>
+            <column name="fecha_modificacion" value="2025-12-01T00:00:00Z"/>
+        </insert>
+        <insert tableName="configuracion_sistema">
+            <column name="id" valueNumeric="5"/>
+            <column name="clave" value="stripe.enabled"/>
+            <column name="valor" value="true"/>
+            <column name="tipo" value="BOOLEAN"/>
+            <column name="categoria" value="PAGOS"/>
+            <column name="descripcion" value="Habilitar pagos con Stripe"/>
+            <column name="activo" valueBoolean="true"/>
+            <column name="fecha_modificacion" value="2025-12-01T00:00:00Z"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="20251223000000-insert-seccion-contacto" author="system">
+        <insert tableName="seccion_contacto">
+            <column name="id" valueNumeric="1"/>
+            <column name="titulo" value="Contáctanos"/>
+            <column name="descripcion" value="Estamos aquí para asistirte en todo lo que necesites"/>
+            <column name="imagen_fondo_url" value="/images/landing/hero-principal.jpg"/>
+            <column name="correo" value="contacto@hotel.com"/>
+            <column name="activo" valueBoolean="true"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="20251223000000-insert-telefonos" author="system">
+        <insert tableName="telefono">
+            <column name="id" valueNumeric="1"/>
+            <column name="numero_tel" value="+505 8888-8888"/>
+            <column name="activo" valueBoolean="true"/>
+        </insert>
+        <insert tableName="telefono">
+            <column name="id" valueNumeric="2"/>
+            <column name="numero_tel" value="+505 2222-2222"/>
+            <column name="activo" valueBoolean="true"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="20251223000000-insert-redes-sociales" author="system">
+        <insert tableName="red_social">
+            <column name="id" valueNumeric="1"/>
+            <column name="nombre" value="Facebook"/>
+            <column name="url_enlace" value="https://facebook.com/hotelparadise"/>
+            <column name="icono_url" value="facebook"/>
+            <column name="color_hex" value="#1877F2"/>
+            <column name="activo" valueBoolean="true"/>
+        </insert>
+        <insert tableName="red_social">
+            <column name="id" valueNumeric="2"/>
+            <column name="nombre" value="Instagram"/>
+            <column name="url_enlace" value="https://instagram.com/hotelparadise"/>
+            <column name="icono_url" value="instagram"/>
+            <column name="color_hex" value="#E4405F"/>
+            <column name="activo" valueBoolean="true"/>
+        </insert>
+    </changeSet>
+
+
+    <changeSet id="20251223000000-insert-mensajes-soporte" author="system">
+        <insert tableName="mensaje_soporte">
+            <column name="id" valueNumeric="1"/>
+            <column name="mensaje" value="Hola, tengo una pregunta sobre mi reserva"/>
+            <column name="fecha_mensaje" value="2025-12-20T16:00:00Z"/>
+            <column name="user_id" value="b8364128-4f1e-450b-a010-3841551e1d01"/>
+            <column name="user_name" value="Juan Carlos Pérez García"/>
+            <column name="leido" valueBoolean="true"/>
+            <column name="activo" valueBoolean="true"/>
+            <column name="remitente" value="CLIENTE"/>
+            <column name="destinatario_id" value="4c973896-5761-41fc-8217-07c5d13a004b"/>
+            <column name="destinatario_name" value="Administrador"/>
+            <column name="reserva_id" valueNumeric="1"/>
+        </insert>
+        <insert tableName="mensaje_soporte">
+            <column name="id" valueNumeric="2"/>
+            <column name="mensaje" value="Claro, ¿en qué podemos ayudarte?"/>
+            <column name="fecha_mensaje" value="2025-12-20T16:05:00Z"/>
+            <column name="user_id" value="4c973896-5761-41fc-8217-07c5d13a004b"/>
+            <column name="user_name" value="Administrador"/>
+            <column name="leido" valueBoolean="true"/>
+            <column name="activo" valueBoolean="true"/>
+            <column name="remitente" value="ADMIN"/>
+            <column name="destinatario_id" value="b8364128-4f1e-450b-a010-3841551e1d01"/>
+            <column name="destinatario_name" value="Juan Carlos Pérez García"/>
+            <column name="reserva_id" valueNumeric="1"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>

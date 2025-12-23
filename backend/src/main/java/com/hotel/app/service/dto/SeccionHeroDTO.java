@@ -1,6 +1,5 @@
 package com.hotel.app.service.dto;
 
-import jakarta.persistence.Lob;
 import jakarta.validation.constraints.*;
 import java.io.Serializable;
 import java.util.Objects;
@@ -17,7 +16,6 @@ public class SeccionHeroDTO implements Serializable {
     @Size(max = 100)
     private String titulo;
 
-    @Lob
     private String descripcion;
 
     @NotNull
@@ -125,14 +123,14 @@ public class SeccionHeroDTO implements Serializable {
     @Override
     public String toString() {
         return "SeccionHeroDTO{" +
-            "id=" + getId() +
-            ", titulo='" + getTitulo() + "'" +
-            ", descripcion='" + getDescripcion() + "'" +
-            ", imagenFondoUrl='" + getImagenFondoUrl() + "'" +
-            ", textoBoton='" + getTextoBoton() + "'" +
-            ", enlaceBoton='" + getEnlaceBoton() + "'" +
-            ", orden=" + getOrden() +
-            ", activo='" + getActivo() + "'" +
-            "}";
+                "id=" + getId() +
+                ", titulo='" + getTitulo() + "'" +
+                ", descripcion='" + getDescripcion() + "'" +
+                ", imagenFondoUrl='" + getImagenFondoUrl() + "'" +
+                ", textoBoton='" + getTextoBoton() + "'" +
+                ", enlaceBoton='" + getEnlaceBoton() + "'" +
+                ", orden=" + getOrden() +
+                ", activo='" + getActivo() + "'" +
+                "}";
     }
 }

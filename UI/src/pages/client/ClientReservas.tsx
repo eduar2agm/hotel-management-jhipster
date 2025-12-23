@@ -199,7 +199,6 @@ export const ClientReservas = () => {
 
     return (
         <div className="font-sans text-foreground bg-background min-h-screen flex flex-col">
-            <Navbar />
 
             {/* --- HERO SECTION --- */}
             <PageHeader
@@ -296,7 +295,6 @@ export const ClientReservas = () => {
                 </div>
             </main>
 
-            <Footer />
         </div>
     );
 };

@@ -17,16 +17,21 @@ interface ReservaDetailsDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     reserva: ReservaDTO | null;
+    isAdmin?: boolean;
+    onStatusUpdate?: () => void;
 }
 
 export const ReservaDetailsDialog = ({
     open,
     onOpenChange,
-    reserva
+    reserva,
+    isAdmin = false,
+    onStatusUpdate
 }: ReservaDetailsDialogProps) => {
     const [rooms, setRooms] = useState<HabitacionDTO[]>([]);
     const [client, setClient] = useState<ClienteDTO | null>(null);
     const [loading, setLoading] = useState(false);
+    const [processing, setProcessing] = useState(false);
 
     useEffect(() => {
         if (open && reserva) {
@@ -83,17 +88,12 @@ export const ReservaDetailsDialog = ({
 
                 // Fallback sources
                 const detailWithRoom = detailsRes.data.find(d => d.habitacion?.id === id)?.habitacion;
-                
+
                 // Merge logic (Candidate > Detail)
                 const base = candidate || detailWithRoom;
                 if (!base) return undefined;
 
                 const result: HabitacionDTO = { ...base };
-
-                // Ensure fields if missing in candidate but present in detail (less likely but possible if detail stores snapshot)
-                // Actually detail stores reference, but JHipster might not populate everything.
-                // Assuming candidate (fresh fetch) is best.
-
                 return result;
             }));
 
@@ -105,6 +105,41 @@ export const ReservaDetailsDialog = ({
             toast.error('Error al cargar detalles');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleStatusChange = async (newStatus: string) => {
+        if (!reserva?.id) return;
+
+        // Validation for FINALIZADA
+        if (newStatus === 'FINALIZADA') {
+            if (reserva.estado !== 'CHECK_IN') {
+                if (!isAdmin) {
+                    toast.error('Solo se puede finalizar si está en Check-In.');
+                    return;
+                }
+                // Double confirmation for Admin
+                if (!confirm('⚠️ ADVERTENCIA: La reserva NO está en Check-In.\n\n¿Está seguro que desea finalizarla manualmente?')) {
+                    return;
+                }
+                if (!confirm('CONFIRMACIÓN FINAL: Esta acción finalizará la reserva inmediatamente.\n\n¿Proceder?')) {
+                    return;
+                }
+            }
+        }
+
+        try {
+            setProcessing(true);
+            await ReservaService.partialUpdateReserva(reserva.id, { id: reserva.id, estado: newStatus });
+            toast.success(`Reserva actualizada a ${newStatus}`);
+            if (onStatusUpdate) onStatusUpdate();
+            onOpenChange(false);
+        } catch (error: any) {
+            console.error('Error updating status', error);
+            const msg = error.response?.data?.title || 'Error al actualizar estado';
+            toast.error(msg);
+        } finally {
+            setProcessing(false);
         }
     };
 
@@ -127,7 +162,8 @@ export const ReservaDetailsDialog = ({
                             reserva?.estado === 'CONFIRMADA' ? "bg-green-500 text-white dark:bg-green-500/20 dark:text-green-400" :
                                 reserva?.estado === 'CANCELADA' ? "bg-red-500 text-white dark:bg-red-500/20 dark:text-red-400" :
                                     reserva?.estado === 'FINALIZADA' ? "bg-blue-500 text-white dark:bg-blue-500/20 dark:text-blue-400" :
-                                        "bg-yellow-500 text-black dark:bg-yellow-500/20 dark:text-yellow-400"
+                                        reserva?.estado === 'CHECK_IN' ? "bg-purple-500 text-white" :
+                                            "bg-yellow-500 text-black dark:bg-yellow-500/20 dark:text-yellow-400"
                         )}>
                             {reserva?.estado}
                         </Badge>
@@ -154,7 +190,8 @@ export const ReservaDetailsDialog = ({
                                     reserva.estado === 'CONFIRMADA' ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" :
                                         reserva.estado === 'CANCELADA' ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400" :
                                             reserva.estado === 'FINALIZADA' ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400" :
-                                                "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
+                                                reserva.estado === 'CHECK_IN' ? "bg-purple-100 text-purple-700" :
+                                                    "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
                                 )}>
                                     {reserva.estado || 'PENDIENTE'}
                                 </Badge>
@@ -249,8 +286,28 @@ export const ReservaDetailsDialog = ({
                     </div>
                 )}
 
-                <DialogFooter className="bg-muted/30 p-4 border-t border-border">
-                    <Button onClick={() => onOpenChange(false)} variant="outline" className="w-full bg-background hover:bg-muted border-border">Cerrar</Button>
+                <DialogFooter className="bg-gray-50 p-4 border-t flex justify-end gap-2">
+                    <Button onClick={() => onOpenChange(false)} variant="outline" disabled={processing}>Cerrar</Button>
+
+                    {reserva?.estado === 'CONFIRMADA' && (
+                        <Button
+                            onClick={() => handleStatusChange('CHECK_IN')}
+                            className="bg-purple-600 hover:bg-purple-700 text-white"
+                            disabled={processing}
+                        >
+                            {processing ? 'Procesando...' : 'Realizar Check-In'}
+                        </Button>
+                    )}
+
+                    {(reserva?.estado === 'CHECK_IN' || (isAdmin && reserva?.estado !== 'FINALIZADA' && reserva?.estado !== 'CANCELADA')) && (
+                        <Button
+                            onClick={() => handleStatusChange('FINALIZADA')}
+                            className="bg-blue-600 hover:bg-blue-700 text-white"
+                            disabled={processing}
+                        >
+                            {processing ? 'Finalizar' : 'Finalizar Estancia'}
+                        </Button>
+                    )}
                 </DialogFooter>
             </DialogContent>
         </Dialog>

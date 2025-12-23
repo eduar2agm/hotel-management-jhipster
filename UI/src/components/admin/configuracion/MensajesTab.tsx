@@ -38,6 +38,9 @@ const PREDEFINED_KEYS = [
     { key: 'MSG_SERVICE_CANCELADO', label: 'Cancelación Servicio', description: 'Notificación de cancelación. Variables: {servicioNombre}, {fechaServicio}' },
     { key: 'MSG_SERVICE_SOLICITUD_CANCELACION', label: 'Solicitud Cancelación Servicio', description: 'Confirmación de solicitud de cancelación. Variables: {servicioNombre}' },
     { key: 'MSG_SERVICE_AUTO_CANCEL_RESERVA', label: 'Cancelación Auto por Reserva', description: 'Cancelación automática al cancelar reserva. Variables: {reservaId}' },
+    { key: 'MSG_ADMIN_FORCED_FINALIZE', label: 'Admin Forced Finalize', description: 'Notificación cuando admin fuerza finalización. Variables: {reservaId}, {clienteNombre}' },
+    { key: 'MSG_SERVICE_AUTO_COMPLETED_CHECKOUT', label: 'Servicio Auto-Completado (Checkout)', description: 'Notificación cuando servicio se completa por checkout. Variables: {servicioNombre}' },
+    { key: 'MSG_SERVICE_ADMIN_FORCED_COMPLETION', label: 'Servicio Completado Manual (Admin)', description: 'Notificación cuando admin completa servicio manualmente. Variables: {servicioNombre}' },
 ];
 
 export const MensajesTab = () => {

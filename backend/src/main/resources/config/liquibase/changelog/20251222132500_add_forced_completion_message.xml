@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="20251222132500-1" author="system">
+        <comment>Inserción de nuevos mensajes predefinidos para gestión de servicios y reservas</comment>
+
+        <!-- MSG_SERVICE_ADMIN_FORCED_COMPLETION -->
+        <insert tableName="configuracion_sistema">
+            <column name="id" valueComputed="nextval('sequence_generator')"/>
+            <column name="clave" value="MSG_SERVICE_ADMIN_FORCED_COMPLETION"/>
+            <column name="valor" value="⚠️ Su servicio &quot;{servicioNombre}&quot; ha sido marcado como completado manualmente por la administración."/>
+            <column name="tipo" value="TEXT"/>
+            <column name="categoria" value="MENSAJES"/>
+            <column name="descripcion" value="Notificación cuando un admin fuerza la finalización de un servicio"/>
+            <column name="activo" valueBoolean="true"/>
+        </insert>
+
+        <!-- MSG_ADMIN_FORCED_FINALIZE -->
+        <insert tableName="configuracion_sistema">
+            <column name="id" valueComputed="nextval('sequence_generator')"/>
+            <column name="clave" value="MSG_ADMIN_FORCED_FINALIZE"/>
+            <column name="valor" value="⚠️ Su reserva #{reservaId} ha sido finalizada administrativamente sin registro de Check-In."/>
+            <column name="tipo" value="TEXT"/>
+            <column name="categoria" value="MENSAJES"/>
+            <column name="descripcion" value="Notificación cuando admin fuerza fin de reserva sin check-in"/>
+            <column name="activo" valueBoolean="true"/>
+        </insert>
+
+        <!-- MSG_SERVICE_AUTO_COMPLETED_CHECKOUT -->
+        <insert tableName="configuracion_sistema">
+            <column name="id" valueComputed="nextval('sequence_generator')"/>
+            <column name="clave" value="MSG_SERVICE_AUTO_COMPLETED_CHECKOUT"/>
+            <column name="valor" value="✅ Su servicio &quot;{servicioNombre}&quot; ha sido completado automáticamente al finalizar su estancia."/>
+            <column name="tipo" value="TEXT"/>
+            <column name="categoria" value="MENSAJES"/>
+            <column name="descripcion" value="Notificación cuando servicio se completa por checkout"/>
+            <column name="activo" valueBoolean="true"/>
+        </insert>
+        
+    </changeSet>
+
+</databaseChangeLog>
