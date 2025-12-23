@@ -23,6 +23,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.hotel.app.security.AuthoritiesConstants;
+import com.hotel.app.security.SecurityUtils;
 
 /**
  * Service Implementation for managing {@link com.hotel.app.domain.Reserva}.
@@ -73,7 +75,19 @@ public class ReservaServiceImpl implements ReservaService {
             // Check for Finalized
             if (existingReserva.getEstado() != EstadoReserva.FINALIZADA
                     && reservaDTO.getEstado() == EstadoReserva.FINALIZADA) {
+
+                // Validate if allowed to finalize
+                if (existingReserva.getEstado() != EstadoReserva.CHECK_IN) {
+                    if (!SecurityUtils.hasCurrentUserThisAuthority(AuthoritiesConstants.ADMIN)) {
+                        throw new BadRequestAlertException(
+                                "Solo los administradores pueden finalizar una reserva que no ha hecho Check-In",
+                                "reserva",
+                                "finalizeRestricted");
+                    }
+                }
+
                 sendFinalizadaMessage(existingReserva);
+                completeAssociatedServices(existingReserva);
             }
             // Check for Canceled - Cascade services
             if (existingReserva.getEstado() != EstadoReserva.CANCELADA
@@ -96,7 +110,21 @@ public class ReservaServiceImpl implements ReservaService {
                 .map(existingReserva -> {
                     if (existingReserva.getEstado() != EstadoReserva.FINALIZADA
                             && reservaDTO.getEstado() == EstadoReserva.FINALIZADA) {
-                        sendFinalizadaMessage(existingReserva);
+
+                        String finishMsgKey = "MSG_ADMIN_FINALIZE";
+                        // Validate if allowed to finalize
+                        if (existingReserva.getEstado() != EstadoReserva.CHECK_IN) {
+                            if (!SecurityUtils.hasCurrentUserThisAuthority(AuthoritiesConstants.ADMIN)) {
+                                throw new BadRequestAlertException(
+                                        "Solo los administradores pueden finalizar una reserva que no ha hecho Check-In",
+                                        "reserva",
+                                        "finalizeRestricted");
+                            }
+                            finishMsgKey = "MSG_ADMIN_FORCED_FINALIZE";
+                        }
+
+                        sendFinalizadaMessage(existingReserva, finishMsgKey);
+                        completeAssociatedServices(existingReserva);
                     }
                     if (existingReserva.getEstado() != EstadoReserva.CANCELADA
                             && reservaDTO.getEstado() == EstadoReserva.CANCELADA) {
@@ -229,12 +257,16 @@ public class ReservaServiceImpl implements ReservaService {
     }
 
     private void sendFinalizadaMessage(Reserva reserva) {
+        sendFinalizadaMessage(reserva, "MSG_ADMIN_FINALIZE");
+    }
+
+    private void sendFinalizadaMessage(Reserva reserva, String key) {
         if (reserva.getCliente() != null) {
             String msgText = "Su reserva con ID " + reserva.getId() + " ha sido finalizada. Gracias por su estancia.";
 
             // Try to fetch custom message template
             try {
-                var configOpt = configuracionSistemaService.findByClave("MSG_ADMIN_FINALIZE");
+                var configOpt = configuracionSistemaService.findByClave(key);
                 if (configOpt.isPresent() && configOpt.get().getValor() != null) {
                     String template = configOpt.get().getValor();
                     msgText = template
@@ -254,8 +286,16 @@ public class ReservaServiceImpl implements ReservaService {
             MensajeSoporteDTO mensaje = new MensajeSoporteDTO();
             mensaje.setMensaje(msgText);
             mensaje.setFechaMensaje(Instant.now());
-            mensaje.setUserId(reserva.getCliente().getKeycloakId());
-            mensaje.setUserName(reserva.getCliente().getNombre() + " " + reserva.getCliente().getApellido());
+            if (reserva.getCliente().getKeycloakId() != null) {
+                mensaje.setUserId(reserva.getCliente().getKeycloakId());
+            } else {
+                mensaje.setUserId("unknown");
+            }
+
+            String nombre = Optional.ofNullable(reserva.getCliente().getNombre()).orElse("Cliente");
+            String apellido = Optional.ofNullable(reserva.getCliente().getApellido()).orElse("");
+            mensaje.setUserName((nombre + " " + apellido).trim());
+
             mensaje.setLeido(false);
             mensaje.setActivo(true);
             mensaje.setRemitente("SISTEMA");
@@ -310,6 +350,17 @@ public class ReservaServiceImpl implements ReservaService {
                 // The plan mentions MSG_SERVICE_AUTO_CANCEL_RESERVA, we could send it here or
                 // let system handle
                 // For now, assume simple cancellation is enough or basic message
+            }
+        }
+    }
+
+    private void completeAssociatedServices(Reserva reserva) {
+        List<ServicioContratadoDTO> servicios = servicioContratadoService.findByReservaId(reserva.getId());
+        for (ServicioContratadoDTO servicio : servicios) {
+            if (servicio.getEstado() != com.hotel.app.domain.enumeration.EstadoServicioContratado.COMPLETADO
+                    && servicio.getEstado() != com.hotel.app.domain.enumeration.EstadoServicioContratado.CANCELADO) {
+
+                servicioContratadoService.completar(servicio.getId(), "MSG_SERVICE_AUTO_COMPLETED_CHECKOUT");
             }
         }
     }
