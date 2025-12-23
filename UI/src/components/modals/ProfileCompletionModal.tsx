@@ -80,7 +80,7 @@ export const ProfileCompletionModal = () => {
         return () => { document.body.style.overflow = 'unset'; };
     }, [isOpen]);
 
-    const { logout } = useAuth();
+
 
     // GUARDIA ABSOLUTA: Si no hay login, el componente es invisible.
     if (authLoading || !isAuthenticated || !isClient() || !user) {
@@ -172,39 +172,32 @@ export const ProfileCompletionModal = () => {
 
     return (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/90 backdrop-blur-xl p-4 overflow-y-auto">
-            <div className="bg-white w-full max-w-2xl rounded-sm shadow-2xl border-t-8 border-yellow-600 animate-in fade-in zoom-in duration-300 my-8">
+            <div className="bg-white w-full max-w-xl rounded-sm shadow-2xl border-t-8 border-yellow-600 animate-in fade-in zoom-in duration-300 my-8">
 
                 {/* Header del Modal */}
-                <div className="p-8 border-b border-gray-100 flex flex-col items-center text-center relative">
-                    <button
-                        onClick={() => logout()}
-                        className="absolute top-4 right-4 text-[10px] uppercase font-bold text-gray-400 hover:text-red-500 transition-colors flex items-center gap-1"
-                    >
-                        Salir <Loader2 className="h-3 w-3 rotate-45" />
-                    </button>
-
-                    <div className="bg-yellow-50 p-4 rounded-full mb-4">
-                        <Hotel className="h-10 w-10 text-yellow-600" />
+                <div className="p-6 border-b border-gray-100 flex flex-col items-center text-center relative">
+                    <div className="bg-yellow-50 p-3 rounded-full mb-3">
+                        <Hotel className="h-8 w-8 text-yellow-600" />
                     </div>
-                    <h2 className="text-3xl font-black text-gray-900 font-serif lowercase"><span className="uppercase">C</span>ompletar <span className="uppercase">R</span>egistro</h2>
-                    <p className="text-gray-500 mt-2 font-light max-w-md italic">
+                    <h2 className="text-2xl font-black text-gray-900 font-serif lowercase"><span className="uppercase">C</span>ompletar <span className="uppercase">R</span>egistro</h2>
+                    <p className="text-gray-400 mt-1 text-xs font-light max-w-md italic">
                         Paso obligatorio para acceder a nuestra plataforma de reservas.
                     </p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-8 md:p-10 space-y-8">
+                <form onSubmit={handleSubmit} className="p-6 md:p-8 space-y-6">
 
                     {/* Sección: Información Básica (Read-only from Keycloak) */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
                             <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">Nombre completo</Label>
-                            <div className="h-11 px-3 flex items-center bg-gray-50 border border-gray-100 text-gray-500 text-sm font-medium">
+                            <div className="h-9 px-3 flex items-center bg-gray-50 border border-gray-100 text-gray-500 text-xs font-medium">
                                 {formData.nombre} {formData.apellido}
                             </div>
                         </div>
-                        <div className="space-y-2">
+                        <div className="space-y-1.5">
                             <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">Correo electrónico</Label>
-                            <div className="h-11 px-3 flex items-center bg-gray-50 border border-gray-100 text-gray-500 text-sm font-medium">
+                            <div className="h-9 px-3 flex items-center bg-gray-50 border border-gray-100 text-gray-500 text-xs font-medium">
                                 {formData.correo}
                             </div>
                         </div>
@@ -213,50 +206,50 @@ export const ProfileCompletionModal = () => {
                     <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent w-full"></div>
 
                     {/* Sección: Datos de Negocio */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-                        <div className="space-y-6">
-                            <div className="flex items-center gap-2 mb-2 font-bold text-gray-900 text-xs uppercase tracking-wider">
-                                <Contact className="h-4 w-4 text-yellow-600" /> Contacto
+                        <div className="space-y-4">
+                            <div className="flex items-center gap-2 mb-1 font-bold text-gray-900 text-xs uppercase tracking-wider">
+                                <Contact className="h-3.5 w-3.5 text-yellow-600" /> Contacto
                             </div>
-                            <div className="space-y-2">
+                            <div className="space-y-1.5">
                                 <Label className="text-[10px] font-bold text-gray-500 uppercase">Teléfono móvil</Label>
                                 <Input
                                     required
                                     placeholder="+505 0000 0000"
-                                    className="h-12 border-gray-200 focus:border-yellow-600 focus:ring-yellow-600/20"
+                                    className="h-10 text-sm border-gray-200 focus:border-yellow-600 focus:ring-yellow-600/20"
                                     value={formData.telefono}
                                     onChange={e => setFormData({ ...formData, telefono: e.target.value })}
                                 />
                             </div>
-                            <div className="space-y-2">
+                            <div className="space-y-1.5">
                                 <Label className="text-[10px] font-bold text-gray-500 uppercase">Dirección de domicilio</Label>
                                 <Input
-                                    className="h-12 border-gray-200 focus:border-yellow-600 focus:ring-yellow-600/20"
+                                    className="h-10 text-sm border-gray-200 focus:border-yellow-600 focus:ring-yellow-600/20"
                                     placeholder="Ciudad, departamento..."
                                     value={formData.direccion}
                                     onChange={e => setFormData({ ...formData, direccion: e.target.value })}
                                 />
                             </div>
-                            <div className="space-y-2">
+                            <div className="space-y-1.5">
                                 <Label className="text-[10px] font-bold text-gray-500 uppercase">Fecha de Nacimiento</Label>
                                 <Input
                                     type="date"
                                     required
-                                    className="h-12 border-gray-200 focus:border-yellow-600 focus:ring-yellow-600/20"
+                                    className="h-10 text-sm border-gray-200 focus:border-yellow-600 focus:ring-yellow-600/20"
                                     value={formData.fechaNacimiento}
                                     onChange={e => setFormData({ ...formData, fechaNacimiento: e.target.value })}
                                 />
                             </div>
                         </div>
-                        <div className="space-y-6">
-                            <div className="flex items-center gap-2 mb-2 font-bold text-gray-900 text-xs uppercase tracking-wider">
-                                <ShieldCheck className="h-4 w-4 text-yellow-600" /> Identificación
+                        <div className="space-y-4">
+                            <div className="flex items-center gap-2 mb-1 font-bold text-gray-900 text-xs uppercase tracking-wider">
+                                <ShieldCheck className="h-3.5 w-3.5 text-yellow-600" /> Identificación
                             </div>
-                            <div className="space-y-2">
+                            <div className="space-y-1.5">
                                 <Label className="text-[10px] font-bold text-gray-500 uppercase">Tipo de documento</Label>
                                 <Select value={formData.tipoIdentificacion} onValueChange={handleTypeChange}>
-                                    <SelectTrigger className="h-12 border-gray-200 focus:ring-yellow-600/20">
+                                    <SelectTrigger className="h-10 text-sm border-gray-200 focus:ring-yellow-600/20">
                                         <SelectValue placeholder="Seleccione tipo" />
                                     </SelectTrigger>
                                     <SelectContent className="z-[99999]">
@@ -266,12 +259,12 @@ export const ProfileCompletionModal = () => {
                                     </SelectContent>
                                 </Select>
                             </div>
-                            <div className="space-y-2">
+                            <div className="space-y-1.5">
                                 <Label className="text-[10px] font-bold text-gray-500 uppercase">Número de documento</Label>
                                 <div className="relative">
                                     <Input
                                         required
-                                        className={`h-12 ${idError ? "border-red-500 focus:border-red-500" : "border-gray-200 focus:border-yellow-600"}`}
+                                        className={`h-10 text-sm ${idError ? "border-red-500 focus:border-red-500" : "border-gray-200 focus:border-yellow-600"}`}
                                         placeholder={IDENTIFICATION_PLACEHOLDERS[formData.tipoIdentificacion] || 'Ingrese número'}
                                         value={formData.numeroIdentificacion}
                                         onChange={e => handleIdChange(e.target.value)}
@@ -283,11 +276,11 @@ export const ProfileCompletionModal = () => {
                     </div>
 
                     {/* Footer / Acción */}
-                    <div className="pt-10 flex flex-col gap-4">
+                    <div className="pt-6 flex flex-col gap-3">
                         <Button
                             type="submit"
                             disabled={isSaving || !!idError}
-                            className="w-full h-14 bg-gray-900 hover:bg-gray-800 text-white rounded-none uppercase text-xs tracking-widest font-black transition-all shadow-xl disabled:opacity-50"
+                            className="w-full h-11 bg-gray-900 hover:bg-gray-800 text-white rounded-none uppercase text-xs tracking-widest font-black transition-all shadow-xl disabled:opacity-50"
                         >
                             {isSaving ? (
                                 <span className="flex items-center gap-2">
