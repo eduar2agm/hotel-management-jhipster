@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <databaseChangeLog
     xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -51,5 +51,9 @@
     <include file="config/liquibase/changelog/20241221174000_added_entity_ServicioDisponibilidad.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20241221174100_add_mensajes_servicios.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20251222014000_added_fecha_nacimiento_to_cliente.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20251222132500_add_forced_completion_message.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20251223000000_insert_initial_data.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20251223025000_modify_imagen_nullable.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20251223020000_insert_imagenes_referencias.xml" relativeToChangelogFile="false"/>
     <!-- jhipster-needle-liquibase-add-incremental-changelog - JHipster will add incremental liquibase changelogs here -->
 </databaseChangeLog>

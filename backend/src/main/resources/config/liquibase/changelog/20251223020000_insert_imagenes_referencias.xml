@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd
+                        http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog-ext/dbchangelog-ext.xsd">
+
+    <!-- 
+        Insertar referencias de imágenes existentes en el sistema.
+        IMPORTANTE: Solo se insertan las rutas, NO los archivos BLOB.
+        Los archivos físicos ya existen en backend/images/
+    -->
+    
+    <changeSet id="20251223020000-insert-imagenes-habitaciones-ref" author="system">
+        <!-- Referencias a imágenes de Habitaciones -->
+        <insert tableName="imagen">
+            <column name="id" valueNumeric="1"/>
+            <column name="nombre" value="Habitación Sencilla 101"/>
+            <column name="descripcion" value="Vista de la habitación sencilla 101 con cama individual"/>
+            <column name="nombre_archivo" value="habitaciones/sencilla-101.jpg"/>
+            <column name="activo" valueBoolean="true"/>
+            <column name="fecha_creacion" valueComputed="TO_TIMESTAMP('2025-12-23 00:00:00', 'YYYY-MM-DD HH24:MI:SS')"/>
+            <column name="habitacion_id" valueNumeric="1"/>
+        </insert>
+        
+        <insert tableName="imagen">
+            <column name="id" valueNumeric="2"/>
+            <column name="nombre" value="Habitación Sencilla 102"/>
+            <column name="descripcion" value="Vista de la habitación sencilla 102"/>
+            <column name="nombre_archivo" value="habitaciones/sencilla-102.jpg"/>
+            <column name="activo" valueBoolean="true"/>
+            <column name="fecha_creacion" valueComputed="TO_TIMESTAMP('2025-12-23 00:00:00', 'YYYY-MM-DD HH24:MI:SS')"/>
+            <column name="habitacion_id" valueNumeric="2"/>
+        </insert>
+        
+        <insert tableName="imagen">
+            <column name="id" valueNumeric="3"/>
+            <column name="nombre" value="Habitación Doble 201"/>
+            <column name="descripcion" value="Vista de la habitación doble 201 con balcón"/>
+            <column name="nombre_archivo" value="habitaciones/doble-201.jpg"/>
+            <column name="activo" valueBoolean="true"/>
+            <column name="fecha_creacion" valueComputed="TO_TIMESTAMP('2025-12-23 00:00:00', 'YYYY-MM-DD HH24:MI:SS')"/>
+            <column name="habitacion_id" valueNumeric="3"/>
+        </insert>
+        
+        <insert tableName="imagen">
+            <column name="id" valueNumeric="4"/>
+            <column name="nombre" value="Habitación Doble 202"/>
+            <column name="descripcion" value="Vista de la habitación doble 202"/>
+            <column name="nombre_archivo" value="habitaciones/doble-202.jpg"/>
+            <column name="activo" valueBoolean="true"/>
+            <column name="fecha_creacion" valueComputed="TO_TIMESTAMP('2025-12-23 00:00:00', 'YYYY-MM-DD HH24:MI:SS')"/>
+            <column name="habitacion_id" valueNumeric="4"/>
+        </insert>
+        
+        <insert tableName="imagen">
+            <column name="id" valueNumeric="5"/>
+            <column name="nombre" value="Suite 301"/>
+            <column name="descripcion" value="Vista de la suite presidencial 301 con jacuzzi"/>
+            <column name="nombre_archivo" value="habitaciones/suite-301.jpg"/>
+            <column name="activo" valueBoolean="true"/>
+            <column name="fecha_creacion" valueComputed="TO_TIMESTAMP('2025-12-23 00:00:00', 'YYYY-MM-DD HH24:MI:SS')"/>
+            <column name="habitacion_id" valueNumeric="5"/>
+        </insert>
+        
+        <insert tableName="imagen">
+            <column name="id" valueNumeric="6"/>
+            <column name="nombre" value="Suite 302"/>
+            <column name="descripcion" value="Vista de la suite familiar 302"/>
+            <column name="nombre_archivo" value="habitaciones/suite-302.jpg"/>
+            <column name="activo" valueBoolean="true"/>
+            <column name="fecha_creacion" valueComputed="TO_TIMESTAMP('2025-12-23 00:00:00', 'YYYY-MM-DD HH24:MI:SS')"/>
+            <column name="habitacion_id" valueNumeric="6"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="20251223020000-insert-imagenes-servicios-ref" author="system">
+        <!-- Referencias a imágenes de Servicios -->
+        <insert tableName="imagen">
+            <column name="id" valueNumeric="7"/>
+            <column name="nombre" value="Masaje Relajante"/>
+            <column name="descripcion" value="Sala de masajes con ambiente relajante"/>
+            <column name="nombre_archivo" value="servicios/masaje-relajante.jpg"/>
+            <column name="activo" valueBoolean="true"/>
+            <column name="fecha_creacion" valueComputed="TO_TIMESTAMP('2025-12-23 00:00:00', 'YYYY-MM-DD HH24:MI:SS')"/>
+            <column name="servicio_id" valueNumeric="1"/>
+        </insert>
+        
+        <insert tableName="imagen">
+            <column name="id" valueNumeric="8"/>
+            <column name="nombre" value="Tour Granada"/>
+            <column name="descripcion" value="Vista del centro colonial de Granada"/>
+            <column name="nombre_archivo" value="servicios/tour-granada.jpg"/>
+            <column name="activo" valueBoolean="true"/>
+            <column name="fecha_creacion" valueComputed="TO_TIMESTAMP('2025-12-23 00:00:00', 'YYYY-MM-DD HH24:MI:SS')"/>
+            <column name="servicio_id" valueNumeric="2"/>
+        </insert>
+        
+        <insert tableName="imagen">
+            <column name="id" valueNumeric="9"/>
+            <column name="nombre" value="WiFi Premium"/>
+            <column name="descripcion" value="Conexión WiFi de alta velocidad"/>
+            <column name="nombre_archivo" value="servicios/wifi-premium.jpg"/>
+            <column name="activo" valueBoolean="true"/>
+            <column name="fecha_creacion" valueComputed="TO_TIMESTAMP('2025-12-23 00:00:00', 'YYYY-MM-DD HH24:MI:SS')"/>
+            <column name="servicio_id" valueNumeric="3"/>
+        </insert>
+        
+        <insert tableName="imagen">
+            <column name="id" valueNumeric="10"/>
+            <column name="nombre" value="Desayuno Buffet"/>
+            <column name="descripcion" value="Buffet de desayuno continental"/>
+            <column name="nombre_archivo" value="servicios/desayuno-buffet.jpg"/>
+            <column name="activo" valueBoolean="true"/>
+            <column name="fecha_creacion" valueComputed="TO_TIMESTAMP('2025-12-23 00:00:00', 'YYYY-MM-DD HH24:MI:SS')"/>
+            <column name="servicio_id" valueNumeric="4"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="20251223020000-insert-imagenes-landing-ref" author="system">
+        <!-- Referencias a imágenes de Landing (carousel general) -->
+        <insert tableName="imagen">
+            <column name="id" valueNumeric="11"/>
+            <column name="nombre" value="Hero Principal"/>
+            <column name="descripcion" value="Imagen principal del landing page"/>
+            <column name="nombre_archivo" value="landing/hero-principal.jpg"/>
+            <column name="activo" valueBoolean="true"/>
+            <column name="fecha_creacion" valueComputed="TO_TIMESTAMP('2025-12-23 00:00:00', 'YYYY-MM-DD HH24:MI:SS')"/>
+        </insert>
+        
+        <insert tableName="imagen">
+            <column name="id" valueNumeric="12"/>
+            <column name="nombre" value="Hero Granada"/>
+            <column name="descripcion" value="Imagen de Granada para el landing"/>
+            <column name="nombre_archivo" value="landing/hero-granada.jpg"/>
+            <column name="activo" valueBoolean="true"/>
+            <column name="fecha_creacion" valueComputed="TO_TIMESTAMP('2025-12-23 00:00:00', 'YYYY-MM-DD HH24:MI:SS')"/>
+        </insert>
+        
+        <insert tableName="imagen">
+            <column name="id" valueNumeric="13"/>
+            <column name="nombre" value="Contacto Background"/>
+            <column name="descripcion" value="Imagen de fondo para la sección de contacto"/>
+            <column name="nombre_archivo" value="contacto/contacto-bg.jpg"/>
+            <column name="activo" valueBoolean="true"/>
+            <column name="fecha_creacion" valueComputed="TO_TIMESTAMP('2025-12-23 00:00:00', 'YYYY-MM-DD HH24:MI:SS')"/>
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>
