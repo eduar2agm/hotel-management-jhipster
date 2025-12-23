@@ -60,6 +60,15 @@ const searchSchema = z.object({
 
 type SearchFormValues = z.infer<typeof searchSchema>;
 
+const guestSchema = z.object({
+    nombre: z.string().min(1, 'El nombre es obligatorio'),
+    apellido: z.string().min(1, 'El apellido es obligatorio'),
+    correo: z.string().email('Correo inválido'),
+    telefono: z.string().min(1, 'El teléfono es obligatorio'),
+});
+
+type GuestValues = z.infer<typeof guestSchema>;
+
 export const NuevaReserva = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
@@ -80,6 +89,16 @@ export const NuevaReserva = () => {
         defaultValues: {
             start: '',
             end: ''
+        }
+    });
+
+    const guestForm = useForm<GuestValues>({
+        resolver: zodResolver(guestSchema),
+        defaultValues: {
+            nombre: '',
+            apellido: '',
+            correo: '',
+            telefono: ''
         }
     });
 
@@ -161,7 +180,21 @@ export const NuevaReserva = () => {
     };
 
     const confirmReservation = async () => {
-        if (!clienteId) return;
+        // Validation check
+        let finalClientePayload: any = null;
+
+        if (user && clienteId) {
+            finalClientePayload = { id: clienteId };
+        } else {
+            // Validate Guest Form
+            const valid = await guestForm.trigger();
+            if (!valid) {
+                toast.error("Por favor complete los datos del huésped");
+                return;
+            }
+            finalClientePayload = guestForm.getValues();
+        }
+
         if (selectedRooms.length === 0) return;
         if (!confirm(`¿Confirmar reserva por ${selectedRooms.length} habitaciones?`)) return;
 
@@ -187,7 +220,7 @@ export const NuevaReserva = () => {
                 fechaFin: endDateLocal.toISOString(),
                 estado: 'PENDIENTE',
                 activo: true,
-                cliente: { id: clienteId! },
+                cliente: finalClientePayload,
             };
 
             const res = await ReservaService.createReserva(newReserva);
@@ -382,6 +415,69 @@ export const NuevaReserva = () => {
                                                         />
                                                     );
                                                 })}
+                                        </div>
+                                    )}
+                                    {/* --- GUEST FORM (If not logged in) --- */}
+                                    {!user && selectedRooms.length > 0 && (
+                                        <div className="bg-white p-6 rounded-sm shadow-md border-t-4 border-gray-900 mb-8 mt-8">
+                                            <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                                                <div className="bg-gray-900 text-white p-1 rounded-full"><span className="w-4 h-4 block" /></div>
+                                                Datos del Huésped
+                                            </h2>
+                                            <p className="text-sm text-gray-500 mb-6">Complete sus datos para continuar con la reserva sin registrarse.</p>
+
+                                            <Form {...(guestForm as any)}>
+                                                <form className="space-y-4">
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                        <FormField
+                                                            control={guestForm.control as any}
+                                                            name="nombre"
+                                                            render={({ field }) => (
+                                                                <FormItem>
+                                                                    <FormLabel>Nombre</FormLabel>
+                                                                    <FormControl><Input {...field} /></FormControl>
+                                                                    <FormMessage />
+                                                                </FormItem>
+                                                            )}
+                                                        />
+                                                        <FormField
+                                                            control={guestForm.control as any}
+                                                            name="apellido"
+                                                            render={({ field }) => (
+                                                                <FormItem>
+                                                                    <FormLabel>Apellido</FormLabel>
+                                                                    <FormControl><Input {...field} /></FormControl>
+                                                                    <FormMessage />
+                                                                </FormItem>
+                                                            )}
+                                                        />
+                                                    </div>
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                        <FormField
+                                                            control={guestForm.control as any}
+                                                            name="correo"
+                                                            render={({ field }) => (
+                                                                <FormItem>
+                                                                    <FormLabel>Correo Electrónico</FormLabel>
+                                                                    <FormControl><Input {...field} /></FormControl>
+                                                                    <FormMessage />
+                                                                </FormItem>
+                                                            )}
+                                                        />
+                                                        <FormField
+                                                            control={guestForm.control as any}
+                                                            name="telefono"
+                                                            render={({ field }) => (
+                                                                <FormItem>
+                                                                    <FormLabel>Teléfono</FormLabel>
+                                                                    <FormControl><Input {...field} /></FormControl>
+                                                                    <FormMessage />
+                                                                </FormItem>
+                                                            )}
+                                                        />
+                                                    </div>
+                                                </form>
+                                            </Form>
                                         </div>
                                     )}
                                 </div>

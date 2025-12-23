@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="20251223120000-1" author="eduardo">
+        <dropNotNullConstraint tableName="cliente" columnName="tipo_identificacion" columnDataType="varchar(255)"/>
+        <dropNotNullConstraint tableName="cliente" columnName="numero_identificacion" columnDataType="varchar(255)"/>
+        <dropNotNullConstraint tableName="cliente" columnName="keycloak_id" columnDataType="varchar(255)"/>
+        <dropNotNullConstraint tableName="cliente" columnName="fecha_nacimiento" columnDataType="date"/>
+    </changeSet>
+</databaseChangeLog>
