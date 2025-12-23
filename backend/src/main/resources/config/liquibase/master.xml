@@ -32,6 +32,7 @@
     <include file="config/liquibase/changelog/20251222003707_added_entity_SeccionContacto.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20251222003708_added_entity_RedSocial.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20251222003709_added_entity_Telefono.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20251222203245_added_entity_Ubicacion.xml" relativeToChangelogFile="false"/>
     <!-- jhipster-needle-liquibase-add-changelog - JHipster will add liquibase changelogs here -->
     <include file="config/liquibase/changelog/20251211014117_added_entity_constraints_Habitacion.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20251211014119_added_entity_constraints_Reserva.xml" relativeToChangelogFile="false"/>
