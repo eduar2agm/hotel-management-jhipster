@@ -154,3 +154,5 @@ coverage/
 .env
 /images/*
 !/images/.gitkeep
+!/images/README.md
+!/images/**/.gitkeep
