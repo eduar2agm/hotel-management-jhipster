@@ -5,9 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
-import { BedDouble, Image as ImageIcon, Info, Wifi, Tv, Coffee, Check, X } from 'lucide-react';
+import { BedDouble, Info, Wifi, Tv, Coffee, Check, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { getImageUrl } from '../../utils/imageUtils';
 import { DetailsImageGallery } from '../common/DetailsImageGallery';
 import type { ImagenDTO } from '../../types/api/Imagen';
 import { ImagenService } from '../../services/imagen.service';
@@ -33,12 +32,12 @@ export const CardRoom = ({
     const [extraImages, setExtraImages] = useState<ImagenDTO[]>([]);
 
     useEffect(() => {
-        if (isDetailsOpen && h.id) {
+        if (h.id) {
             ImagenService.getImagens({ 'habitacionId.equals': h.id })
                 .then(res => setExtraImages(res.data))
                 .catch(err => console.error("Error fetching images", err));
         }
-    }, [isDetailsOpen, h.id]);
+    }, [h.id]);
 
     const precioBase = Number(h.categoriaHabitacion?.precioBase || 0).toFixed(2);
     const nombreCategoria = h.categoriaHabitacion?.nombre || 'Estándar';
@@ -55,37 +54,23 @@ export const CardRoom = ({
             )}>
                 {/* Image Section */}
                 <div className="relative h-64 w-full overflow-hidden bg-gray-100">
-                    <img
-                        src={h.imagen ? getImageUrl(h.imagen) : '/placeholder-room.jpg'}
-                        alt={`Habitación ${h.numero}`}
-                        className={cn(
-                            "w-full h-full object-cover transition-transform duration-700 group-hover:scale-110",
-                            !h.imagen && "opacity-0"
-                        )}
-                        onError={(e) => {
-                            e.currentTarget.src = '/placeholder-room.jpg';
-                            e.currentTarget.classList.add('opacity-50');
-                        }}
+                    <DetailsImageGallery
+                        mainImage={h.imagen}
+                        extraImages={extraImages}
+                        className="h-full w-full"
+                        autoPlay={false}
                     />
-                    {!h.imagen && (
-                        <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-400">
-                            <ImageIcon className="h-12 w-12 opacity-20" />
-                            <span className="mt-2 text-xs font-medium uppercase tracking-wider">Sin Imagen</span>
-                        </div>
-                    )}
 
                     {/* Selection Overlay */}
                     {isSelected && (
-                        <div className="absolute inset-0 bg-yellow-900/40 flex items-center justify-center backdrop-blur-[2px] animate-in fade-in">
+                        <div className="absolute inset-0 bg-yellow-900/40 flex items-center justify-center backdrop-blur-[2px] animate-in fade-in z-10 pointer-events-none">
                             <div className="bg-white text-yellow-700 px-4 py-2 rounded-full font-bold shadow-lg flex items-center gap-2">
                                 <Check className="w-5 h-5" /> Seleccionada
                             </div>
                         </div>
                     )}
 
-
-
-                    <div className="absolute top-4 right-4">
+                    <div className="absolute top-4 right-4 z-10 pointer-events-none">
                         <Badge variant="secondary" className="bg-white/90 text-gray-900 font-bold shadow-sm backdrop-blur-sm">
                             #{h.numero}
                         </Badge>
