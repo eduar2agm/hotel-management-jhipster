@@ -21,10 +21,15 @@ export const useMessageNotifications = () => {
      * Load cached notifications on mount
      */
     useEffect(() => {
-        const cached = NotificationService.getCachedNotifications();
-        setNotifications(cached);
-        updateUnreadCount(cached);
-    }, []);
+        if (user?.id) {
+            const cached = NotificationService.getCachedNotifications(user.id);
+            setNotifications(cached);
+            updateUnreadCount(cached);
+        } else {
+            setNotifications([]);
+            setUnreadCount(0);
+        }
+    }, [user?.id]);
 
     /**
      * Update unread count
@@ -104,7 +109,9 @@ export const useMessageNotifications = () => {
                             existingMap.set(n.id, n);
                             hasChanges = true;
                             // Also cache it
-                            NotificationService.cacheNotification(n);
+                            if (user?.id) {
+                                NotificationService.cacheNotification(n, user.id);
+                            }
                         }
                     });
 
@@ -175,8 +182,10 @@ export const useMessageNotifications = () => {
      * Mark notification as read
      */
     const markNotificationAsRead = async (notificationId: string) => {
+        if (!user?.id) return;
+
         // Optimistic update
-        NotificationService.markAsRead(notificationId);
+        NotificationService.markAsRead(notificationId, user.id);
         const updated = notifications.map(n =>
             n.id === notificationId ? { ...n, read: true } : n
         );
@@ -197,7 +206,9 @@ export const useMessageNotifications = () => {
      * Mark all notifications as read
      */
     const markAllAsRead = async () => {
-        NotificationService.markAllAsRead();
+        if (!user?.id) return;
+
+        NotificationService.markAllAsRead(user.id);
         const updated = notifications.map(n => ({ ...n, read: true }));
         setNotifications(updated);
 
@@ -216,7 +227,9 @@ export const useMessageNotifications = () => {
      * Clear all notifications
      */
     const clearAllNotifications = () => {
-        NotificationService.clearCache();
+        if (user?.id) {
+            NotificationService.clearCache(user.id);
+        }
         setNotifications([]);
         setUnreadCount(0);
     };
