@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="20251223200000-insert-mapa-cliente" author="eduardo">
+        <insert tableName="ubicacion">
+            <column name="id" valueNumeric="1"/>
+            <column name="latitud" valueNumeric="11.93097"/>
+            <column name="longitud" valueNumeric="-85.95456"/>
+            <column name="nombre" value="Hotel, Nicaragua - Granada"/>
+            <column name="direccion" value="Parque central, Del Parque Central 25vrs Al Oeste, C. La Libertad, Granada"/>
+            <column name="google_maps_url" value="https://maps.app.goo.gl/2iUQuCoJyyMV1Ccw8"/>
+            <column name="activo" valueBoolean="true"/>
+        </insert>
+
+        <insert tableName="cliente">
+            <column name="id" valueNumeric="4"/>
+            <column name="nombre" value="Mary"/>
+            <column name="apellido" value="Smith"/>
+            <column name="correo" value="client@hotel.com"/>
+            <column name="telefono" value="+1 555-0199"/>
+            <column name="direccion" value="Managua, Nicaragua"/>
+            <column name="tipo_identificacion" value="PASAPORTE"/>
+            <column name="numero_identificacion" value="A12345678"/>
+            <column name="keycloak_id" value="ee79c8b7-1ac4-488c-a851-53ac10df09b9"/>
+            <column name="activo" valueBoolean="true"/>
+            <column name="fecha_nacimiento" value="1995-01-01"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>
