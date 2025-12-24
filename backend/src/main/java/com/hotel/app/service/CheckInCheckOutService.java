@@ -55,4 +55,12 @@ public interface CheckInCheckOutService {
      * @param id the id of the entity.
      */
     void delete(Long id);
+
+    /**
+     * Get the checkInCheckOut by reservaDetalleId.
+     *
+     * @param reservaDetalleId the id of the reservaDetalle.
+     * @return the entity.
+     */
+    Optional<CheckInCheckOutDTO> findOneByReservaDetalleId(Long reservaDetalleId);
 }

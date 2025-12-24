@@ -43,7 +43,8 @@ public class CheckInCheckOutResource {
 
     private final CheckInCheckOutRepository checkInCheckOutRepository;
 
-    public CheckInCheckOutResource(CheckInCheckOutService checkInCheckOutService, CheckInCheckOutRepository checkInCheckOutRepository) {
+    public CheckInCheckOutResource(CheckInCheckOutService checkInCheckOutService,
+            CheckInCheckOutRepository checkInCheckOutRepository) {
         this.checkInCheckOutService = checkInCheckOutService;
         this.checkInCheckOutRepository = checkInCheckOutRepository;
     }
@@ -52,39 +53,46 @@ public class CheckInCheckOutResource {
      * {@code POST  /check-in-check-outs} : Create a new checkInCheckOut.
      *
      * @param checkInCheckOutDTO the checkInCheckOutDTO to create.
-     * @return the {@link ResponseEntity} with status {@code 201 (Created)} and with body the new checkInCheckOutDTO, or with status {@code 400 (Bad Request)} if the checkInCheckOut has already an ID.
+     * @return the {@link ResponseEntity} with status {@code 201 (Created)} and with
+     *         body the new checkInCheckOutDTO, or with status
+     *         {@code 400 (Bad Request)} if the checkInCheckOut has already an ID.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_EMPLOYEE')")
     @PostMapping("")
-    public ResponseEntity<CheckInCheckOutDTO> createCheckInCheckOut(@Valid @RequestBody CheckInCheckOutDTO checkInCheckOutDTO)
-        throws URISyntaxException {
+    public ResponseEntity<CheckInCheckOutDTO> createCheckInCheckOut(
+            @Valid @RequestBody CheckInCheckOutDTO checkInCheckOutDTO)
+            throws URISyntaxException {
         LOG.debug("REST request to save CheckInCheckOut : {}", checkInCheckOutDTO);
         if (checkInCheckOutDTO.getId() != null) {
-            throw new BadRequestAlertException("A new checkInCheckOut cannot already have an ID", ENTITY_NAME, "idexists");
+            throw new BadRequestAlertException("A new checkInCheckOut cannot already have an ID", ENTITY_NAME,
+                    "idexists");
         }
         checkInCheckOutDTO = checkInCheckOutService.save(checkInCheckOutDTO);
         return ResponseEntity.created(new URI("/api/check-in-check-outs/" + checkInCheckOutDTO.getId()))
-            .headers(HeaderUtil.createEntityCreationAlert(applicationName, false, ENTITY_NAME, checkInCheckOutDTO.getId().toString()))
-            .body(checkInCheckOutDTO);
+                .headers(HeaderUtil.createEntityCreationAlert(applicationName, false, ENTITY_NAME,
+                        checkInCheckOutDTO.getId().toString()))
+                .body(checkInCheckOutDTO);
     }
 
     /**
      * {@code PUT  /check-in-check-outs/:id} : Updates an existing checkInCheckOut.
      *
-     * @param id the id of the checkInCheckOutDTO to save.
+     * @param id                 the id of the checkInCheckOutDTO to save.
      * @param checkInCheckOutDTO the checkInCheckOutDTO to update.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated checkInCheckOutDTO,
-     * or with status {@code 400 (Bad Request)} if the checkInCheckOutDTO is not valid,
-     * or with status {@code 500 (Internal Server Error)} if the checkInCheckOutDTO couldn't be updated.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body
+     *         the updated checkInCheckOutDTO,
+     *         or with status {@code 400 (Bad Request)} if the checkInCheckOutDTO is
+     *         not valid,
+     *         or with status {@code 500 (Internal Server Error)} if the
+     *         checkInCheckOutDTO couldn't be updated.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_EMPLOYEE')")
     @PutMapping("/{id}")
     public ResponseEntity<CheckInCheckOutDTO> updateCheckInCheckOut(
-        @PathVariable(value = "id", required = false) final Long id,
-        @Valid @RequestBody CheckInCheckOutDTO checkInCheckOutDTO
-    ) throws URISyntaxException {
+            @PathVariable(value = "id", required = false) final Long id,
+            @Valid @RequestBody CheckInCheckOutDTO checkInCheckOutDTO) throws URISyntaxException {
         LOG.debug("REST request to update CheckInCheckOut : {}, {}", id, checkInCheckOutDTO);
         if (checkInCheckOutDTO.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
@@ -99,27 +107,32 @@ public class CheckInCheckOutResource {
 
         checkInCheckOutDTO = checkInCheckOutService.update(checkInCheckOutDTO);
         return ResponseEntity.ok()
-            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME, checkInCheckOutDTO.getId().toString()))
-            .body(checkInCheckOutDTO);
+                .headers(HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME,
+                        checkInCheckOutDTO.getId().toString()))
+                .body(checkInCheckOutDTO);
     }
 
     /**
-     * {@code PATCH  /check-in-check-outs/:id} : Partial updates given fields of an existing checkInCheckOut, field will ignore if it is null
+     * {@code PATCH  /check-in-check-outs/:id} : Partial updates given fields of an
+     * existing checkInCheckOut, field will ignore if it is null
      *
-     * @param id the id of the checkInCheckOutDTO to save.
+     * @param id                 the id of the checkInCheckOutDTO to save.
      * @param checkInCheckOutDTO the checkInCheckOutDTO to update.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated checkInCheckOutDTO,
-     * or with status {@code 400 (Bad Request)} if the checkInCheckOutDTO is not valid,
-     * or with status {@code 404 (Not Found)} if the checkInCheckOutDTO is not found,
-     * or with status {@code 500 (Internal Server Error)} if the checkInCheckOutDTO couldn't be updated.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body
+     *         the updated checkInCheckOutDTO,
+     *         or with status {@code 400 (Bad Request)} if the checkInCheckOutDTO is
+     *         not valid,
+     *         or with status {@code 404 (Not Found)} if the checkInCheckOutDTO is
+     *         not found,
+     *         or with status {@code 500 (Internal Server Error)} if the
+     *         checkInCheckOutDTO couldn't be updated.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_EMPLOYEE')")
     @PatchMapping(value = "/{id}", consumes = { "application/json", "application/merge-patch+json" })
     public ResponseEntity<CheckInCheckOutDTO> partialUpdateCheckInCheckOut(
-        @PathVariable(value = "id", required = false) final Long id,
-        @NotNull @RequestBody CheckInCheckOutDTO checkInCheckOutDTO
-    ) throws URISyntaxException {
+            @PathVariable(value = "id", required = false) final Long id,
+            @NotNull @RequestBody CheckInCheckOutDTO checkInCheckOutDTO) throws URISyntaxException {
         LOG.debug("REST request to partial update CheckInCheckOut partially : {}, {}", id, checkInCheckOutDTO);
         if (checkInCheckOutDTO.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
@@ -135,25 +148,32 @@ public class CheckInCheckOutResource {
         Optional<CheckInCheckOutDTO> result = checkInCheckOutService.partialUpdate(checkInCheckOutDTO);
 
         return ResponseUtil.wrapOrNotFound(
-            result,
-            HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME, checkInCheckOutDTO.getId().toString())
-        );
+                result,
+                HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME,
+                        checkInCheckOutDTO.getId().toString()));
     }
 
     /**
      * {@code GET  /check-in-check-outs} : get all the checkInCheckOuts.
      *
      * @param pageable the pagination information.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of checkInCheckOuts in body.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list
+     *         of checkInCheckOuts in body.
      */
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_EMPLOYEE', 'ROLE_CLIENT')")
     @GetMapping("")
     public ResponseEntity<List<CheckInCheckOutDTO>> getAllCheckInCheckOuts(
-        @org.springdoc.core.annotations.ParameterObject Pageable pageable
-    ) {
+            @org.springdoc.core.annotations.ParameterObject Pageable pageable,
+            @RequestParam(name = "reservaDetalleId.equals", required = false) Long reservaDetalleId) {
         LOG.debug("REST request to get a page of CheckInCheckOuts");
+        if (reservaDetalleId != null) {
+            Optional<CheckInCheckOutDTO> cico = checkInCheckOutService.findOneByReservaDetalleId(reservaDetalleId);
+            return cico.map(dto -> ResponseEntity.ok().body(List.of(dto)))
+                    .orElse(ResponseEntity.ok().body(List.of()));
+        }
         Page<CheckInCheckOutDTO> page = checkInCheckOutService.findAll(pageable);
-        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
+        HttpHeaders headers = PaginationUtil
+                .generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
         return ResponseEntity.ok().headers(headers).body(page.getContent());
     }
 
@@ -161,7 +181,8 @@ public class CheckInCheckOutResource {
      * {@code GET  /check-in-check-outs/:id} : get the "id" checkInCheckOut.
      *
      * @param id the id of the checkInCheckOutDTO to retrieve.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the checkInCheckOutDTO, or with status {@code 404 (Not Found)}.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body
+     *         the checkInCheckOutDTO, or with status {@code 404 (Not Found)}.
      */
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_EMPLOYEE', 'ROLE_CLIENT')")
     @GetMapping("/{id}")
@@ -183,7 +204,7 @@ public class CheckInCheckOutResource {
         LOG.debug("REST request to delete CheckInCheckOut : {}", id);
         checkInCheckOutService.delete(id);
         return ResponseEntity.noContent()
-            .headers(HeaderUtil.createEntityDeletionAlert(applicationName, false, ENTITY_NAME, id.toString()))
-            .build();
+                .headers(HeaderUtil.createEntityDeletionAlert(applicationName, false, ENTITY_NAME, id.toString()))
+                .build();
     }
 }
