@@ -11,6 +11,7 @@ export interface ServicioDTO {
     precio: string | number;
     disponible: boolean;
     urlImage?: string | null;
+    imagenes?: import('./Imagen').ImagenDTO[] | null;
 }
 
 export type NewServicioDTO = Omit<ServicioDTO, 'id'> | { id?: null };
