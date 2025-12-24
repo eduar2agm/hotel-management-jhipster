@@ -62,6 +62,7 @@ public class SecurityConfiguration {
                             .permitAll()
                             .requestMatchers(new AntPathRequestMatcher("/images/**")).permitAll()
                             .requestMatchers(mvc.pattern("/api/imagens/**")).permitAll()
+                            .requestMatchers(mvc.pattern("/api/servicio-disponibilidads/**")).permitAll()
                             .requestMatchers(new AntPathRequestMatcher("/error/**")).permitAll()
                             .requestMatchers(mvc.pattern("/api/red-socials/**")).permitAll()
                             .requestMatchers(mvc.pattern("/api/telefonos/**")).permitAll()
