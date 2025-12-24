@@ -189,9 +189,14 @@ export const AdminContratarServicio = ({ returnPath = '/admin/servicios-contrata
             toast.success('Servicios registrados. Proceda al pago.');
             setIsPaymentModalOpen(true);
 
-        } catch (error) {
+        } catch (error: any) {
             console.error(error);
-            toast.error('Error al contratar servicio.');
+            const problem = error.response?.data;
+            if (problem?.message === 'error.reservanotactive' || problem?.title === 'Reservation is not confirmed or checked-in') {
+                toast.error('No se puede contratar servicios. La reserva debe estar confirmada o en check-in.');
+            } else {
+                toast.error('Error al contratar servicio.');
+            }
         }
     };
 

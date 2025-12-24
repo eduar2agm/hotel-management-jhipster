@@ -280,9 +280,14 @@ export const Servicios = () => {
       );
       setContractingService(null);
       navigate('/client/mis-servicios');
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      toast.error("Error al contratar el servicio.");
+      const problem = error.response?.data;
+      if (problem?.message === 'error.reservanotactive' || problem?.title === 'Reservation is not confirmed or checked-in') {
+        toast.error('No se puede contratar servicios. Su reserva debe estar confirmada o en check-in.');
+      } else {
+        toast.error("Error al contratar el servicio.");
+      }
     } finally {
       setSubmitting(false);
     }
