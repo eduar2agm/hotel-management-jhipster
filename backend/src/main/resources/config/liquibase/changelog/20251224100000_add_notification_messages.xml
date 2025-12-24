@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="20251224100000-1" author="system">
+        <comment>Agregar plantillas de mensajes de notificaciones automáticas</comment>
+
+        <!-- MENSAJES DE RESERVAS -->
+        <insert tableName="configuracion_sistema">
+            <column name="clave" value="MSG_RESERVA_CREADA"/>
+            <column name="valor" value="¡Hola {clienteNombre}! Su reserva #{reservaId} ha sido creada exitosamente. Fechas: {fechaInicio} - {fechaFin}. Estado: PENDIENTE DE PAGO."/>
+            <column name="descripcion" value="Mensaje enviado cuando se crea una nueva reserva"/>
+            <column name="tipo" value="MENSAJE"/>
+            <column name="activo" value="true"/>
+        </insert>
+
+        <insert tableName="configuracion_sistema">
+            <column name="clave" value="MSG_RESERVA_CONFIRMADA"/>
+            <column name="valor" value="✅ ¡Reserva confirmada! Su reserva #{reservaId} ha sido confirmada tras recibir el pago. ¡Le esperamos el {fechaInicio}!"/>
+            <column name="descripcion" value="Mensaje enviado cuando se confirma una reserva tras el pago"/>
+            <column name="tipo" value="MENSAJE"/>
+            <column name="activo" value="true"/>
+        </insert>
+
+        <insert tableName="configuracion_sistema">
+            <column name="clave" value="MSG_RESERVA_CANCELADA"/>
+            <column name="valor" value="Su reserva #{reservaId} ha sido cancelada. Si tiene alguna pregunta, no dude en contactarnos."/>
+            <column name="descripcion" value="Mensaje enviado cuando se cancela una reserva"/>
+            <column name="tipo" value="MENSAJE"/>
+            <column name="activo" value="true"/>
+        </insert>
+
+        <!-- MENSAJES DE CHECK-IN/CHECK-OUT -->
+        <insert tableName="configuracion_sistema">
+            <column name="clave" value="MSG_CHECK_IN_REALIZADO"/>
+            <column name="valor" value="🏨 ¡Bienvenido {clienteNombre}! Su check-in ha sido realizado exitosamente. Habitación(es): {habitaciones}. Disfrute su estancia."/>
+            <column name="descripcion" value="Mensaje enviado cuando se realiza el check-in"/>
+            <column name="tipo" value="MENSAJE"/>
+            <column name="activo" value="true"/>
+        </insert>
+
+        <insert tableName="configuracion_sistema">
+            <column name="clave" value="MSG_CHECK_OUT_REALIZADO"/>
+            <column name="valor" value="👋 Check-out realizado. Gracias por hospedarse con nosotros, {clienteNombre}. Esperamos verle pronto."/>
+            <column name="descripcion" value="Mensaje enviado cuando se realiza el check-out"/>
+            <column name="tipo" value="MENSAJE"/>
+            <column name="activo" value="true"/>
+        </insert>
+
+        <!-- MENSAJES DE SERVICIOS CONTRATADOS -->
+        <insert tableName="configuracion_sistema">
+            <column name="clave" value="MSG_SERVICIO_CONTRATADO"/>
+            <column name="valor" value="📋 Servicio '{servicioNombre}' contratado para el {fechaServicio}. Estado: PENDIENTE DE PAGO."/>
+            <column name="descripcion" value="Mensaje enviado cuando se contrata un servicio"/>
+            <column name="tipo" value="MENSAJE"/>
+            <column name="activo" value="true"/>
+        </insert>
+
+        <!-- MENSAJES DE PAGOS -->
+        <insert tableName="configuracion_sistema">
+            <column name="clave" value="MSG_PAGO_EXITOSO_RESERVA"/>
+            <column name="valor" value="💳 ¡Pago recibido! Su pago de ${monto} para la reserva #{reservaId} ha sido procesado exitosamente."/>
+            <column name="descripcion" value="Mensaje enviado cuando se procesa un pago exitoso de reserva"/>
+            <column name="tipo" value="MENSAJE"/>
+            <column name="activo" value="true"/>
+        </insert>
+
+        <insert tableName="configuracion_sistema">
+            <column name="clave" value="MSG_PAGO_EXITOSO_SERVICIO"/>
+            <column name="valor" value="💳 ¡Pago recibido! Su pago de ${monto} para el servicio '{servicioNombre}' ha sido procesado exitosamente."/>
+            <column name="descripcion" value="Mensaje enviado cuando se procesa un pago exitoso de servicio"/>
+            <column name="tipo" value="MENSAJE"/>
+            <column name="activo" value="true"/>
+        </insert>
+
+        <insert tableName="configuracion_sistema">
+            <column name="clave" value="MSG_PAGO_FALLIDO"/>
+            <column name="valor" value="❌ Pago rechazado. Hubo un problema al procesar su pago. Por favor, intente nuevamente o contacte a su banco."/>
+            <column name="descripcion" value="Mensaje enviado cuando falla un pago"/>
+            <column name="tipo" value="MENSAJE"/>
+            <column name="activo" value="true"/>
+        </insert>
+
+        <insert tableName="configuracion_sistema">
+            <column name="clave" value="MSG_PAGO_PENDIENTE"/>
+            <column name="valor" value="⏳ Pago pendiente. Su reserva/servicio quedará confirmado una vez que se complete el pago."/>
+            <column name="descripcion" value="Mensaje recordatorio de pago pendiente"/>
+            <column name="tipo" value="MENSAJE"/>
+            <column name="activo" value="true"/>
+        </insert>
+
+        <!-- MENSAJES RECORDATORIOS -->
+        <insert tableName="configuracion_sistema">
+            <column name="clave" value="MSG_RECORDATORIO_CHECK_IN"/>
+            <column name="valor" value="📅 Recordatorio: Su check-in está programado para mañana ({fechaInicio}). Reserva #{reservaId}. ¡Le esperamos!"/>
+            <column name="descripcion" value="Mensaje recordatorio enviado 1 día antes del check-in"/>
+            <column name="tipo" value="MENSAJE"/>
+            <column name="activo" value="true"/>
+        </insert>
+
+        <insert tableName="configuracion_sistema">
+            <column name="clave" value="MSG_RECORDATORIO_SERVICIO"/>
+            <column name="valor" value="📅 Recordatorio: Tiene el servicio '{servicioNombre}' programado para mañana a las {horaServicio}."/>
+            <column name="descripcion" value="Mensaje recordatorio enviado 1 día antes del servicio"/>
+            <column name="tipo" value="MENSAJE"/>
+            <column name="activo" value="true"/>
+        </insert>
+
+        <!-- MENSAJES DE SERVICIOS - Adicionales -->
+        <insert tableName="configuracion_sistema">
+            <column name="clave" value="MSG_SERVICIO_COMPLETADO"/>
+            <column name="valor" value="✅ El servicio '{servicioNombre}' ha sido marcado como completado. ¡Esperamos que haya disfrutado!"/>
+            <column name="descripcion" value="Mensaje cuando un servicio se completa automáticamente"/>
+            <column name="tipo" value="MENSAJE"/>
+            <column name="activo" value="true"/>
+        </insert>
+
+        <insert tableName="configuracion_sistema">
+            <column name="clave" value="MSG_SERVICIO_CANCELADO"/>
+            <column name="valor" value="❌ El servicio '{servicioNombre}' programado para {fechaServicio} ha sido cancelado. Si tiene alguna pregunta, contáctenos."/>
+            <column name="descripcion" value="Mensaje cuando un servicio se cancela"/>
+            <column name="tipo" value="MENSAJE"/>
+            <column name="activo" value="true"/>
+        </insert>
+
+        <!-- Previene errores si ya existen -->
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="configuracion_sistema_backup"/>
+            </not>
+        </preConditions>
+    </changeSet>
+</databaseChangeLog>
