@@ -9,4 +9,5 @@ public enum TipoConfiguracion {
     BOOLEAN,
     IMAGE,
     TEXTO,
+    MENSAJE,
 }

@@ -6,6 +6,7 @@ export enum TipoConfiguracion {
     BOOLEAN = 'BOOLEAN',
     IMAGE = 'IMAGE',
     TEXTO = 'TEXTO',
+    MENSAJE = 'MENSAJE',
 }
 
 export interface ConfiguracionSistemaDTO {
