@@ -17,7 +17,7 @@ import { ShieldCheck, Contact, Hotel, Save, Loader2 } from 'lucide-react';
 import type { NewClienteDTO } from '../../types/api';
 
 export const ProfileCompletionModal = () => {
-    const { user, isAuthenticated, isLoading: authLoading, isClient } = useAuth();
+    const { user, isAuthenticated, isLoading: authLoading, isClient, isAdmin, isEmployee } = useAuth();
     const [isOpen, setIsOpen] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [idError, setIdError] = useState<string | null>(null);
@@ -37,6 +37,12 @@ export const ProfileCompletionModal = () => {
         const checkClientRecord = async () => {
             // EVITAR EN HOME: Si el usuario está en la página principal, no molestamos con el modal.
             const isHomePage = window.location.pathname === '/' || window.location.pathname === '/HomePage';
+
+            // SKIP FOR STAFF: Admins and Employees don't need "Cliente" profile
+            if (isAdmin() || isEmployee()) {
+                setIsOpen(false);
+                return;
+            }
 
             if (isAuthenticated && isClient() && user?.email && !isHomePage) {
                 try {
@@ -68,7 +74,7 @@ export const ProfileCompletionModal = () => {
         if (!authLoading && user) {
             checkClientRecord();
         }
-    }, [isAuthenticated, isClient, user, authLoading, window.location.pathname]);
+    }, [isAuthenticated, isClient, isAdmin, isEmployee, user, authLoading, window.location.pathname]);
 
     // Bloquear scroll del body cuando el modal esté abierto
     useEffect(() => {
@@ -82,8 +88,8 @@ export const ProfileCompletionModal = () => {
 
 
 
-    // GUARDIA ABSOLUTA: Si no hay login, el componente es invisible.
-    if (authLoading || !isAuthenticated || !isClient() || !user) {
+    // GUARDIA ABSOLUTA: Si no hay login, o es Staff, el componente es invisible.
+    if (authLoading || !isAuthenticated || !isClient() || !user || isAdmin() || isEmployee()) {
         return null;
     }
 

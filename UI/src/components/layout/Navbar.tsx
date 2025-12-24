@@ -13,7 +13,8 @@ import {
   Settings,
   Mail,
   User,
-  KeyRound
+  KeyRound,
+  UserCog
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { useUnreadSupport } from '../../hooks/useUnreadSupport';
@@ -54,7 +55,7 @@ export const Navbar = () => {
   return (
     <nav className="absolute top-0 left-0 w-full z-[1000] flex bg-black/50 backdrop-blur-sm justify-between items-center px-10 py-6 text-white">
       <div className="text-xl font-bold tracking-wide flex items-center gap-3">
-      <NavLink to="/"><img src={logo} alt="Logo" title="Hotel" className="w-10 h-10" /></NavLink>
+        <NavLink to="/"><img src={logo} alt="Logo" title="Hotel" className="w-10 h-10" /></NavLink>
         <span>Hotel</span>
       </div>
 
@@ -98,6 +99,7 @@ export const Navbar = () => {
             <NavItem to="/admin/dashboard" icon={LayoutDashboard}>Dashboard</NavItem>
             <NavItem to="/admin/habitaciones" icon={BedDouble}>Habitaciones</NavItem>
             <NavItem to="/admin/clientes" icon={Users}>Clientes</NavItem>
+            <NavItem to="/admin/empleados" icon={UserCog}>Empleados</NavItem>
             <NavItem to="/admin/checkin" icon={KeyRound}>Check-in</NavItem>
             <NavItem to="/admin/reservas" icon={CalendarCheck}>Reservas</NavItem>
             <NavItem to="/admin/servicios" icon={HandPlatter}>Servicios</NavItem>
