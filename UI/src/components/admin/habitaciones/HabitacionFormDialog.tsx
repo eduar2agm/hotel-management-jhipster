@@ -207,7 +207,15 @@ export const HabitacionFormDialog = ({
                                         <FormItem>
                                             <FormLabel className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Número</FormLabel>
                                             <FormControl>
-                                                <Input placeholder="101" className="h-9 font-mono" maxLength={50} {...field} />
+                                                <div className="relative">
+                                                    <Input placeholder="101" className="h-9 font-mono" maxLength={50} {...field} />
+                                                    <div className="flex justify-end gap-2 mt-1">
+                                                        <span className={cn("text-[10px]", (field.value?.length || 0) >= 50 ? "text-red-500 font-bold" : "text-muted-foreground")}>
+                                                            {(field.value?.length || 0) >= 50 ? '¡Límite alcanzado! ' : ''}
+                                                            {field.value?.length || 0}/50
+                                                        </span>
+                                                    </div>
+                                                </div>
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -427,12 +435,20 @@ export const HabitacionFormDialog = ({
                                     <FormItem>
                                         <FormLabel className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Descripción</FormLabel>
                                         <FormControl>
-                                            <Textarea
-                                                placeholder="Características de la habitación..."
-                                                className="resize-none h-20"
-                                                maxLength={255}
-                                                {...field}
-                                            />
+                                            <div className="relative">
+                                                <Textarea
+                                                    placeholder="Características de la habitación..."
+                                                    className="resize-none h-20"
+                                                    maxLength={255}
+                                                    {...field}
+                                                />
+                                                <div className="flex justify-end gap-2 mt-1">
+                                                    <span className={cn("text-[10px]", (field.value?.length || 0) >= 255 ? "text-red-500 font-bold" : "text-muted-foreground")}>
+                                                        {(field.value?.length || 0) >= 255 ? '¡Límite alcanzado! ' : ''}
+                                                        {field.value?.length || 0}/255
+                                                    </span>
+                                                </div>
+                                            </div>
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>

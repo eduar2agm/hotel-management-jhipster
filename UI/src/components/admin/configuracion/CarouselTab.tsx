@@ -162,10 +162,22 @@ export const CarouselTab = () => {
                         <div className="grid gap-2">
                             <Label>Título</Label>
                             <Input value={currentItem.titulo || ''} onChange={e => setCurrentItem({ ...currentItem, titulo: e.target.value })} required maxLength={150} />
+                            <div className="flex justify-end gap-2 mt-1">
+                                <span className={`text-[10px] ${(currentItem.titulo?.length || 0) >= 150 ? "text-red-500 font-bold" : "text-gray-400"}`}>
+                                    {(currentItem.titulo?.length || 0) >= 150 ? '¡Límite alcanzado! ' : ''}
+                                    {currentItem.titulo?.length || 0}/150
+                                </span>
+                            </div>
                         </div>
                         <div className="grid gap-2">
                             <Label>Descripción</Label>
                             <Input value={currentItem.descripcion || ''} onChange={e => setCurrentItem({ ...currentItem, descripcion: e.target.value })} maxLength={500} />
+                            <div className="flex justify-end gap-2 mt-1">
+                                <span className={`text-[10px] ${(currentItem.descripcion?.length || 0) >= 500 ? "text-red-500 font-bold" : "text-gray-400"}`}>
+                                    {(currentItem.descripcion?.length || 0) >= 500 ? '¡Límite alcanzado! ' : ''}
+                                    {currentItem.descripcion?.length || 0}/500
+                                </span>
+                            </div>
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="grid gap-2">

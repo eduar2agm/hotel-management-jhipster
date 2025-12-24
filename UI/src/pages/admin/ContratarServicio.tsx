@@ -407,7 +407,15 @@ export const AdminContratarServicio = ({ returnPath = '/admin/servicios-contrata
                                         <FormItem>
                                             <FormLabel className="text-sm font-bold text-foreground">Observaciones</FormLabel>
                                             <FormControl>
-                                                <Input placeholder="Comentarios adicionales..." maxLength={500} {...field} />
+                                                <div className="relative">
+                                                    <Input placeholder="Comentarios adicionales..." maxLength={500} {...field} />
+                                                    <div className="flex justify-end gap-2 mt-1">
+                                                        <span className={cn("text-[10px]", (field.value?.length || 0) >= 500 ? "text-red-500 font-bold" : "text-muted-foreground")}>
+                                                            {(field.value?.length || 0) >= 500 ? '¡Límite alcanzado! ' : ''}
+                                                            {field.value?.length || 0}/500
+                                                        </span>
+                                                    </div>
+                                                </div>
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>

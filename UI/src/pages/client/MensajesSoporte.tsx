@@ -178,6 +178,12 @@ export const ClientMensajesSoporte = () => {
                                 disabled={sending}
                                 maxLength={4096}
                             />
+                            <div className="flex justify-end gap-2 mt-1 px-1">
+                                <span className={`text-[10px] ${(inputText.length || 0) >= 4096 ? "text-red-500 font-bold" : "text-muted-foreground"}`}>
+                                    {(inputText.length || 0) >= 4096 ? '¡Límite alcanzado! ' : ''}
+                                    {inputText.length || 0}/4096
+                                </span>
+                            </div>
                             <Button
                                 onClick={handleSend}
                                 disabled={!inputText.trim() || sending}
