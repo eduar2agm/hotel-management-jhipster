@@ -142,7 +142,7 @@
             <column name="id" valueNumeric="13"/>
             <column name="nombre" value="Contacto Background"/>
             <column name="descripcion" value="Imagen de fondo para la sección de contacto"/>
-            <column name="nombre_archivo" value="contacto/contacto-bg.jpg"/>
+            <column name="nombre_archivo" value="contactos/contacto-bg.jpg"/>
             <column name="activo" valueBoolean="true"/>
             <column name="fecha_creacion" valueComputed="TO_TIMESTAMP('2025-12-23 00:00:00', 'YYYY-MM-DD HH24:MI:SS')"/>
         </insert>

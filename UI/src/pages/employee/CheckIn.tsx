@@ -163,6 +163,14 @@ export const CheckIn = () => {
         return 'UNKNOWN';
     };
 
+    const isSameDay = (d1: Date, d2: Date) => {
+        return d1.getFullYear() === d2.getFullYear() &&
+            d1.getMonth() === d2.getMonth() &&
+            d1.getDate() === d2.getDate();
+    };
+
+    const canCheckIn = selectedReserva?.fechaInicio ? isSameDay(new Date(), new Date(selectedReserva.fechaInicio)) : false;
+
     return (
         <div className="font-sans text-foreground bg-background min-h-screen flex flex-col">
 
@@ -204,8 +212,8 @@ export const CheckIn = () => {
                                         />
                                     </div>
                                 </div>
-                                <Button 
-                                    onClick={handleSearch} 
+                                <Button
+                                    onClick={handleSearch}
                                     disabled={loading}
                                     className="h-12 px-8 bg-yellow-600 hover:bg-yellow-700 text-white font-bold tracking-wide transition-all shadow-md"
                                 >
@@ -219,8 +227,8 @@ export const CheckIn = () => {
                                     <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-4">Resultados Encontrados ({reservas.length})</h3>
                                     <div className="grid gap-3">
                                         {reservas.map(r => (
-                                            <div 
-                                                key={r.id} 
+                                            <div
+                                                key={r.id}
                                                 onClick={() => handleSelectReserva(r)}
                                                 className="group p-4 rounded-lg border border-border bg-card hover:border-yellow-400 hover:shadow-md cursor-pointer transition-all flex items-center justify-between"
                                             >
@@ -257,7 +265,7 @@ export const CheckIn = () => {
 
                     {/* --- DETAILS & ACTIONS SECTION --- */}
                     {selectedReserva && (
-                         <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
+                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
                             <div className="bg-slate-900 text-white p-6 rounded-t-sm shadow-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                                 <div>
                                     <div className="flex items-center gap-3 mb-2">
@@ -325,15 +333,23 @@ export const CheckIn = () => {
 
                                                         <div className="flex gap-2">
                                                             {status === 'PENDIENTE' && (
-                                                                <Button 
-                                                                    onClick={() => initiateAction('CHECK_IN', det)}
-                                                                    className="bg-yellow-600 hover:bg-yellow-700 text-white font-bold shadow-md"
-                                                                >
-                                                                    <LogIn className="mr-2 h-4 w-4" /> REALIZAR CHECK-IN
-                                                                </Button>
+                                                                <div className="flex flex-col items-end gap-1">
+                                                                    <Button
+                                                                        onClick={() => initiateAction('CHECK_IN', det)}
+                                                                        disabled={!canCheckIn}
+                                                                        className="bg-yellow-600 hover:bg-yellow-700 text-white font-bold shadow-md disabled:bg-gray-300 disabled:text-gray-500 disabled:shadow-none"
+                                                                    >
+                                                                        <LogIn className="mr-2 h-4 w-4" /> REALIZAR CHECK-IN
+                                                                    </Button>
+                                                                    {!canCheckIn && (
+                                                                        <p className="text-[10px] text-red-600 font-bold flex items-center gap-1 animate-pulse">
+                                                                            <AlertCircle className="w-3 h-3" /> Solo permitido en fecha de entrada
+                                                                        </p>
+                                                                    )}
+                                                                </div>
                                                             )}
                                                             {status === 'CHECKED_IN' && (
-                                                                <Button 
+                                                                <Button
                                                                     variant="destructive"
                                                                     onClick={() => initiateAction('CHECK_OUT', det)}
                                                                     className="font-bold shadow-md"
@@ -355,7 +371,7 @@ export const CheckIn = () => {
                                     </div>
                                 </CardContent>
                             </Card>
-                         </div>
+                        </div>
                     )}
                 </div>
             </main>
@@ -368,10 +384,10 @@ export const CheckIn = () => {
                             Confirmar {actionType === 'CHECK_IN' ? 'Check-In' : 'Check-Out'}
                         </DialogTitle>
                         <div className="text-sm text-gray-500 mt-2">
-                             {actionType === 'CHECK_IN' 
-                                ? 'Está a punto de registrar la entrada del huésped. Asegúrese de haber verificado su identidad.' 
+                            {actionType === 'CHECK_IN'
+                                ? 'Está a punto de registrar la entrada del huésped. Asegúrese de haber verificado su identidad.'
                                 : 'Está a punto de registrar la salida. Verifique que la habitación se encuentre en buen estado.'
-                             }
+                            }
                         </div>
                     </DialogHeader>
                     <div className="grid gap-4 py-4">
@@ -389,7 +405,7 @@ export const CheckIn = () => {
                     </div>
                     <DialogFooter className="flex gap-2 sm:justify-end">
                         <Button variant="outline" onClick={() => setIsDialogOpen(false)} className="border-gray-300">Cancelar</Button>
-                        <Button 
+                        <Button
                             onClick={executeAction}
                             className={`${actionType === 'CHECK_IN' ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-red-600 hover:bg-red-700'} text-white font-bold`}
                         >

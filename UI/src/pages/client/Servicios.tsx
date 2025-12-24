@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Navbar } from '../../components/layout/Navbar';
 import { Footer } from '../../components/layout/Footer';
 import { Sparkles, Utensils, Info, ServerCog, HardDriveUpload, HandHeart } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { ServicioService } from '../../services/servicio.service';
 import { ServicioDisponibilidadService } from '../../services/servicio-disponibilidad.service';
 import { ReservaService } from '../../services/reserva.service';
@@ -43,6 +43,7 @@ import { ServiceScheduleSelector } from '../../components/services/ServiceSchedu
 
 export const Servicios = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [servicios, setServicios] = useState<ServicioDTO[]>([]);
   const [reservas, setReservas] = useState<ReservaDTO[]>([]);
   const [loading, setLoading] = useState(true);
@@ -91,6 +92,17 @@ export const Servicios = () => {
     loadDat();
   }, []);
 
+  // Effect to handle pre-selected service from navigation (e.g. from Home Carousel)
+  useEffect(() => {
+    if (!loading && location.state && (location.state as any).preSelectedService) {
+      const preSelected = (location.state as any).preSelectedService;
+      // Invoke contracting logic
+      handleContratarClick(preSelected);
+      // Clear state to prevent re-opening on refresh/re-render
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [loading, location.state]);
+
   const gratuitos = servicios.filter(s => s.tipo === TipoServicio.GRATUITO);
   const pagos = servicios.filter(s => s.tipo === TipoServicio.PAGO);
 
@@ -111,7 +123,8 @@ export const Servicios = () => {
 
   const handleContratarClick = (servicio: ServicioDTO) => {
     if (reservas.length === 0) {
-      toast.error("Necesitas tener una reserva activa para contratar servicios.");
+      toast.error("Necesitas tener una reserva activa para contratar servicios. Redirigiendo a reservas...");
+      setTimeout(() => navigate('/client/nueva-reserva'), 1500);
       return;
     }
     setContractingService(servicio);
