@@ -37,15 +37,20 @@ export function DetailsImageGallery({
         }
 
         if (src) {
-            const getFilename = (path: string) => path.split('/').pop()?.split('?')[0] || '';
+            const getFilename = (path: string) => path.split(/[/\\]/).pop()?.split('?')[0] || '';
             const srcFilename = getFilename(decodeURIComponent(src));
             const mainFilename = mainImageSrc ? getFilename(decodeURIComponent(mainImageSrc)) : '';
 
-            // Check for exact match OR filename match (ignoring folder structure differences which often cause duplicates)
+            // Check for exact match OR filename match (ignoring folder structure)
+            // Also explicitly check img.nombreArchivo if available, as src might be a data URI (base64) 
+            // which won't match the mainImageSrc URL, but they might be the same file logically.
+            const matchesByName = mainImage && img.nombreArchivo && getFilename(img.nombreArchivo) === getFilename(mainImage);
+
             const isDuplicate = mainImageSrc && (
                 src === mainImageSrc ||
                 decodeURIComponent(src).trim() === decodeURIComponent(mainImageSrc).trim() ||
-                (srcFilename && mainFilename && srcFilename === mainFilename)
+                (srcFilename && mainFilename && srcFilename === mainFilename) ||
+                matchesByName
             );
 
             if (!isDuplicate) {

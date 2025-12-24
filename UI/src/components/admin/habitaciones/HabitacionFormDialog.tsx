@@ -141,7 +141,7 @@ export const HabitacionFormDialog = ({
         }
 
         setSelectedFile(file);
-        form.setValue('imagen', `habitaciones/${file.name}`);
+        // form.setValue('imagen', `habitaciones/${file.name}`); // Let backend determine the final path
         const objectUrl = URL.createObjectURL(file);
         setLocalPreview(objectUrl);
         toast.info('Imagen seleccionada. Se guardará al guardar la habitación.');
