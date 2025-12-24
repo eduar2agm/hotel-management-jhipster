@@ -44,4 +44,6 @@ public interface ReservaRepository extends JpaRepository<Reserva, Long> {
 
     List<Reserva> findByFechaFinBeforeAndEstadoIn(java.time.Instant fechaFin,
             java.util.List<com.hotel.app.domain.enumeration.EstadoReserva> estados);
+
+    List<Reserva> findAllByFechaReservaBetween(java.time.Instant fechaInicio, java.time.Instant fechaFin);
 }

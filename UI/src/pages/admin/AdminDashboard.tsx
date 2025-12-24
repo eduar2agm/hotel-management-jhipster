@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { ReservaService, HabitacionService, PagoService, ClienteService } from '../../services';
 import { PageHeader } from '../../components/common/PageHeader'; // Nuevo
 import { StatsCard } from '../../components/ui/StatsCard'; // Nuevo
+import { GraficoReservas } from '../../components/admin/GraficoReservas';
 import { AdminReportes } from './Reportes'; // Import Reportes
 import { 
     BedDouble, 
@@ -41,7 +42,6 @@ export const AdminDashboard = () => {
 
     useEffect(() => {
         const loadStats = async () => {
-             // ... (keep existing loadStats logic)
              try {
                 const [reservas, habitaciones, pagos, clientes] = await Promise.all([
                     ReservaService.getReservas({ size: 1000 }),
@@ -54,22 +54,48 @@ export const AdminDashboard = () => {
 
                 const pendientes = reservas.data.filter((r: any) => r.estado === 'PENDIENTE').length;
                 const ocupadas = habitaciones.data.filter((h: any) => h.estadoHabitacion?.nombre === 'OCUPADA').length;
+                
+                const now = new Date(); // Local time
+                
+                // Filter payments correctly for the current month in local time
                 const ingresos = pagos.data
-                    .filter((p: any) => p.estado === 'COMPLETADO')
+                    .filter((p: any) => p.estado === 'COMPLETADO' && p.fechaPago && isSameMonth(parseISO(p.fechaPago), now))
                     .reduce((acc: number, curr: any) => acc + (curr.monto || 0), 0);
                 
-                const today = new Date().toISOString().split('T')[0];
-                const reservasHoyCount = reservas.data.filter((r: any) => r.fechaInicio?.startsWith(today)).length;
+                // Count reservations made/starting today in local time
+                const reservasHoyCount = reservas.data.filter((r: any) => r.fechaInicio && isSameDay(parseISO(r.fechaInicio), now)).length;
 
-                // Mocking activity logic 
-                const recentReservations = reservas.data.slice(0, 3).map((r: any) => ({
-                    id: r.id, type: 'RESERVA', description: `Nueva reserva: ${r.cliente?.apellido || 'Cliente'}`, time: 'Reciente', status: r.estado
-                }));
-                const recentPayments = pagos.data.slice(0, 2).map((p: any) => ({
-                    id: p.id, type: 'PAGO', description: `Pago recibido: $${p.monto}`, time: 'Reciente', status: 'COMPLETADO'
-                }));
+                // Improved recent activity with real local formatted time
+                const recentReservations = reservas.data
+                    .sort((a: any, b: any) => new Date(b.fechaReserva).getTime() - new Date(a.fechaReserva).getTime())
+                    .slice(0, 3)
+                    .map((r: any) => ({
+                        id: r.id, 
+                        type: 'RESERVA', 
+                        description: `Nueva reserva: ${r.cliente?.apellido || 'Cliente'}`, 
+                        time: r.fechaReserva ? format(parseISO(r.fechaReserva), "d MMM, HH:mm", { locale: es }) : 'Reciente', 
+                        status: r.estado
+                    }));
 
-                setRecentActivity([...recentReservations, ...recentPayments]);
+                const recentPayments = pagos.data
+                    .sort((a: any, b: any) => new Date(b.fechaPago).getTime() - new Date(a.fechaPago).getTime())
+                    .slice(0, 2)
+                    .map((p: any) => ({
+                        id: p.id, 
+                        type: 'PAGO', 
+                        description: `Pago recibido: $${p.monto}`, 
+                        time: p.fechaPago ? format(parseISO(p.fechaPago), "d MMM, HH:mm", { locale: es }) : 'Reciente', 
+                        status: 'COMPLETADO'
+                    }));
+
+                // Combine and sort by most recent
+                const combinedActivity = [...recentReservations, ...recentPayments].sort((a, b) => {
+                     // Simple sort for now, assuming mixed activity; could parse time string back or keep raw date
+                     return 0; 
+                });
+                
+                // Re-sort combined list if needed or just take what we have since we sorted individually
+                 setRecentActivity([...recentReservations, ...recentPayments]);
 
                 setStats({
                     reservasPendientes: pendientes,
@@ -95,7 +121,7 @@ export const AdminDashboard = () => {
         let filterFn: (date: Date, rDate: Date) => boolean;
 
         if (timeRange === 'day') {
-            const start = subDays(now, 6);
+            const start = subDays(now, 9);
             intervals = eachDayOfInterval({ start, end: now });
             dateFormat = 'EEEE';
             filterFn = isSameDay;
@@ -113,8 +139,8 @@ export const AdminDashboard = () => {
 
         const data = intervals.map(date => {
             const reservasInPeriod = rawReservas.filter(r => {
-                if (!r.fechaInicio) return false;
-                const rDate = parseISO(r.fechaInicio);
+                if (!r.fechaReserva) return false;
+                const rDate = parseISO(r.fechaReserva);
                 return filterFn(date, rDate);
             });
 
@@ -123,10 +149,11 @@ export const AdminDashboard = () => {
                 confirmadas: reservasInPeriod.filter(r => r.estado === 'CONFIRMADA').length,
                 pendientes: reservasInPeriod.filter(r => r.estado === 'PENDIENTE').length,
                 canceladas: reservasInPeriod.filter(r => r.estado === 'CANCELADA').length,
+                finalizadas: reservasInPeriod.filter(r => r.estado === 'FINALIZADA').length,
             };
         });
 
-        setChartData(data);
+        setChartData(data.reverse());
     }, [rawReservas, timeRange]);
 
     return (
@@ -209,91 +236,7 @@ export const AdminDashboard = () => {
                                 
                                 {/* CHART SECTION */}
                                 <div className="md:col-span-4 lg:col-span-5 space-y-8">
-                                    <Card className="shadow-xl border-border overflow-hidden bg-card">
-                                        <CardHeader className="border-b border-border pb-4 flex flex-row items-center justify-between">
-                                            <div>
-                                                <CardTitle className="text-lg font-bold text-card-foreground">Estadísticas de Reservas</CardTitle>
-                                                <CardDescription>Resumen de actividad por periodo</CardDescription>
-                                            </div>
-                                            <div className="flex items-center bg-muted gap-4 p-1 rounded-md">
-                                                {(['day', 'week', 'month'] as const).map((cycle) => (
-                                                    <button
-                                                        key={cycle}
-                                                        onClick={() => setTimeRange(cycle)}
-                                                        className={`
-                                                            px-3 py-1.5 text-sm font-medium rounded-sm transition-all
-                                                            ${timeRange === cycle 
-                                                                ? 'bg-background text-foreground shadow-sm' 
-                                                                : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'}
-                                                        `}
-                                                    >
-                                                        {cycle === 'day' ? 'Día' : cycle === 'week' ? 'Semana' : 'Mes'}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        </CardHeader>
-                                        <CardContent className="p-6">
-                                            <div className="h-[350px] w-full">
-                                                <ResponsiveContainer width="100%" height="100%">
-                                                    <AreaChart data={chartData} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
-                                                        <defs>
-                                                            <linearGradient id="colorConfirmadas" x1="0" y1="0" x2="0" y2="1">
-                                                                <stop offset="5%" stopColor="#22c55e" stopOpacity={0.8}/>
-                                                                <stop offset="95%" stopColor="#22c55e" stopOpacity={0}/>
-                                                            </linearGradient>
-                                                            <linearGradient id="colorPendientes" x1="0" y1="0" x2="0" y2="1">
-                                                                <stop offset="5%" stopColor="#eab308" stopOpacity={0.8}/>
-                                                                <stop offset="95%" stopColor="#eab308" stopOpacity={0}/>
-                                                            </linearGradient>
-                                                            <linearGradient id="colorCanceladas" x1="0" y1="0" x2="0" y2="1">
-                                                                <stop offset="5%" stopColor="#ef4444" stopOpacity={0.8}/>
-                                                                <stop offset="95%" stopColor="#ef4444" stopOpacity={0}/>
-                                                            </linearGradient>
-                                                        </defs>
-                                                        <XAxis 
-                                                            dataKey="name" 
-                                                            stroke="#94a3b8" 
-                                                            fontSize={12} 
-                                                            tickLine={false} 
-                                                            axisLine={false} 
-                                                            tickMargin={10}
-                                                        />
-                                                        <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
-                                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                                                        <Tooltip 
-                                                            contentStyle={{ backgroundColor: 'var(--card)', borderRadius: '8px', border: '1px solid var(--border)', color: 'var(--card-foreground)' }}
-                                                            itemStyle={{ fontSize: '12px' }}
-                                                        />
-                                                        <Legend iconType="circle" />
-                                                        <Area 
-                                                            type="monotone" 
-                                                            dataKey="confirmadas" 
-                                                            name="Confirmadas"
-                                                            stroke="#22c55e" 
-                                                            fillOpacity={1} 
-                                                            fill="url(#colorConfirmadas)" 
-                                                        />
-                                                        <Area 
-                                                            type="monotone" 
-                                                            dataKey="pendientes" 
-                                                            name="Pendientes"
-                                                            stroke="#eab308" 
-                                                            fillOpacity={1} 
-                                                            fill="url(#colorPendientes)" 
-                                                        />
-                                                        <Area 
-                                                            type="monotone" 
-                                                            dataKey="canceladas" 
-                                                            name="Canceladas"
-                                                            stroke="#ef4444" 
-                                                            fillOpacity={1} 
-                                                            fill="url(#colorCanceladas)" 
-                                                        />
-                                                    </AreaChart>
-                                                </ResponsiveContainer>
-                                            </div>
-                                        </CardContent>
-                                    </Card>
+                                    <GraficoReservas />
                                     
                                     {/* MINI CARDS */}
                                     <div className="grid grid-cols-1 md:grid-cols-1 gap-6">

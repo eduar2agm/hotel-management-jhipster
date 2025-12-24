@@ -382,4 +382,20 @@ public class ReservaResource {
         reservaService.deactivate(id);
         return ResponseEntity.ok().build();
     }
+
+    /**
+     * {@code GET  /reservas/stats-grafico} : get stats for chart.
+     *
+     * @param periodo the period (semana, mes).
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the stats
+     *         in body.
+     */
+    @GetMapping("/stats-grafico")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_EMPLOYEE')")
+    public ResponseEntity<List<java.util.Map<String, Object>>> getEstadisticasGrafico(
+            @RequestParam(value = "periodo", defaultValue = "semana") String periodo) {
+        LOG.debug("REST request to get Reserva stats for chart: {}", periodo);
+        List<java.util.Map<String, Object>> stats = reservaService.obtenerEstadisticasGrafico(periodo);
+        return ResponseEntity.ok().body(stats);
+    }
 }
