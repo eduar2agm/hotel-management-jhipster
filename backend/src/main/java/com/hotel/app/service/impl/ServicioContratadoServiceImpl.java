@@ -331,11 +331,16 @@ public class ServicioContratadoServiceImpl implements ServicioContratadoService 
 
     @Override
     public void cancelar(Long id) {
-        LOG.debug("Request to cancel ServicioContratado : {}", id);
+        cancelar(id, "MSG_SERVICE_CANCELADO");
+    }
+
+    @Override
+    public void cancelar(Long id, String notificationKey) {
+        LOG.debug("Request to cancel ServicioContratado : {} with key {}", id, notificationKey);
         servicioContratadoRepository.findById(id).ifPresent(servicioContratado -> {
             servicioContratado.setEstado(com.hotel.app.domain.enumeration.EstadoServicioContratado.CANCELADO);
             servicioContratadoRepository.save(servicioContratado);
-            sendMessage(servicioContratado, "MSG_SERVICE_CANCELADO");
+            sendMessage(servicioContratado, notificationKey != null ? notificationKey : "MSG_SERVICE_CANCELADO");
         });
     }
 

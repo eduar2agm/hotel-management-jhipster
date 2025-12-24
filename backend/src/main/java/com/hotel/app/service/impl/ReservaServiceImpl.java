@@ -62,6 +62,18 @@ public class ReservaServiceImpl implements ReservaService {
     @Override
     public ReservaDTO save(ReservaDTO reservaDTO) {
         LOG.debug("Request to save Reserva : {}", reservaDTO);
+
+        // If this is an update (ID exists), check status transition
+        if (reservaDTO.getId() != null) {
+            reservaRepository.findById(reservaDTO.getId()).ifPresent(existingReserva -> {
+                // Check for Canceled - Cascade services
+                if (existingReserva.getEstado() != EstadoReserva.CANCELADA
+                        && reservaDTO.getEstado() == EstadoReserva.CANCELADA) {
+                    cancelAssociatedServices(existingReserva);
+                }
+            });
+        }
+
         Reserva reserva = reservaMapper.toEntity(reservaDTO);
         reserva = reservaRepository.save(reserva);
         return reservaMapper.toDto(reserva);
@@ -343,7 +355,7 @@ public class ReservaServiceImpl implements ReservaService {
         List<ServicioContratadoDTO> servicios = servicioContratadoService.findByReservaId(reserva.getId());
         for (ServicioContratadoDTO servicio : servicios) {
             if (servicio.getEstado() != com.hotel.app.domain.enumeration.EstadoServicioContratado.CANCELADO) {
-                servicioContratadoService.cancelar(servicio.getId());
+                servicioContratadoService.cancelar(servicio.getId(), "MSG_SERVICE_AUTO_CANCEL_RESERVA");
 
                 // Optional: Send notification for service cancellation (if not covered by other
                 // flows)

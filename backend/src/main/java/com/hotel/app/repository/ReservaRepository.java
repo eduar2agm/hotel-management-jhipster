@@ -41,4 +41,7 @@ public interface ReservaRepository extends JpaRepository<Reserva, Long> {
 
     @Query("select distinct reserva from Reserva reserva left join fetch reserva.cliente where reserva.activo = :activo")
     Page<Reserva> findByActivoWithEagerRelationships(@Param("activo") Boolean activo, Pageable pageable);
+
+    List<Reserva> findByFechaFinBeforeAndEstadoIn(java.time.Instant fechaFin,
+            java.util.List<com.hotel.app.domain.enumeration.EstadoReserva> estados);
 }
