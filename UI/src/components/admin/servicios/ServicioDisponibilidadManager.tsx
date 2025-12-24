@@ -140,10 +140,10 @@ export const ServicioDisponibilidadManager = ({ servicio }: Props) => {
 
     return (
         <div className="space-y-6">
-            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+            <div className="bg-muted/30 p-4 rounded-lg border border-border">
                 <div className="flex items-center gap-2 mb-4">
                     <Calendar className="h-5 w-5 text-yellow-600" />
-                    <h3 className="font-bold text-gray-800">
+                    <h3 className="font-bold text-foreground">
                         {editingId ? 'Editar Regla' : 'Nueva Regla de Disponibilidad'}
                     </h3>
                 </div>
@@ -156,10 +156,10 @@ export const ServicioDisponibilidadManager = ({ servicio }: Props) => {
                                 name="diaSemana"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel className="text-xs uppercase font-bold text-gray-500">Día</FormLabel>
+                                        <FormLabel className="text-xs uppercase font-bold text-muted-foreground">Día</FormLabel>
                                         <Select onValueChange={field.onChange} value={field.value}>
                                             <FormControl>
-                                                <SelectTrigger className="bg-white"><SelectValue /></SelectTrigger>
+                                                <SelectTrigger className="bg-background"><SelectValue /></SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
                                                 {Object.values(DiaSemana).map(day => (
@@ -176,9 +176,9 @@ export const ServicioDisponibilidadManager = ({ servicio }: Props) => {
                                 name="cupoMaximo"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel className="text-xs uppercase font-bold text-gray-500">Cupo</FormLabel>
+                                        <FormLabel className="text-xs uppercase font-bold text-muted-foreground">Cupo</FormLabel>
                                         <FormControl>
-                                            <Input type="number" min="1" className="bg-white" {...field} />
+                                            <Input type="number" min="1" className="bg-background" {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -192,9 +192,9 @@ export const ServicioDisponibilidadManager = ({ servicio }: Props) => {
                                 name="horaInicio"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel className="text-xs uppercase font-bold text-gray-500">Hora Inicio</FormLabel>
+                                        <FormLabel className="text-xs uppercase font-bold text-muted-foreground">Hora Inicio</FormLabel>
                                         <FormControl>
-                                            <Input type="time" className="bg-white" {...field} />
+                                            <Input type="time" className="bg-background" {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -205,9 +205,9 @@ export const ServicioDisponibilidadManager = ({ servicio }: Props) => {
                                 name="horaFin"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel className="text-xs uppercase font-bold text-gray-500">Hora Fin</FormLabel>
+                                        <FormLabel className="text-xs uppercase font-bold text-muted-foreground">Hora Fin</FormLabel>
                                         <FormControl>
-                                            <Input type="time" className="bg-white" disabled={form.watch('horaFija')} {...field} />
+                                            <Input type="time" className="bg-background" disabled={form.watch('horaFija')} {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -224,7 +224,7 @@ export const ServicioDisponibilidadManager = ({ servicio }: Props) => {
                                         <FormControl>
                                             <Switch checked={field.value} onCheckedChange={field.onChange} />
                                         </FormControl>
-                                        <FormLabel className="font-normal cursor-pointer">Hora Fija (Punto exacto)</FormLabel>
+                                        <FormLabel className="font-normal cursor-pointer text-foreground">Hora Fija (Punto exacto)</FormLabel>
                                     </FormItem>
                                 )}
                             />
@@ -236,7 +236,7 @@ export const ServicioDisponibilidadManager = ({ servicio }: Props) => {
                                         <FormControl>
                                             <Switch checked={field.value} onCheckedChange={field.onChange} />
                                         </FormControl>
-                                        <FormLabel className="font-normal cursor-pointer">Activo</FormLabel>
+                                        <FormLabel className="font-normal cursor-pointer text-foreground">Activo</FormLabel>
                                     </FormItem>
                                 )}
                             />
@@ -248,7 +248,7 @@ export const ServicioDisponibilidadManager = ({ servicio }: Props) => {
                                     Cancelar
                                 </Button>
                             )}
-                            <Button type="submit" size="sm" className="bg-yellow-600 hover:bg-yellow-700">
+                            <Button type="submit" size="sm" className="bg-yellow-600 hover:bg-yellow-700 text-white">
                                 {editingId ? <Pencil className="w-4 h-4 mr-2" /> : <Plus className="w-4 h-4 mr-2" />}
                                 {editingId ? 'Actualizar Regla' : 'Agregar Regla'}
                             </Button>
@@ -257,7 +257,7 @@ export const ServicioDisponibilidadManager = ({ servicio }: Props) => {
                 </Form>
             </div>
 
-            <div className="border rounded-md">
+            <div className="border border-border rounded-md">
                 <Table>
                     <TableHeader>
                         <TableRow>
@@ -272,42 +272,42 @@ export const ServicioDisponibilidadManager = ({ servicio }: Props) => {
                     <TableBody>
                         {items.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                                     No hay reglas de disponibilidad configuradas.
                                 </TableCell>
                             </TableRow>
                         ) : (
                             items.map(item => (
                                 <TableRow key={item.id}>
-                                    <TableCell className="font-medium">{item.diaSemana}</TableCell>
+                                    <TableCell className="font-medium text-foreground">{item.diaSemana}</TableCell>
                                     <TableCell>
-                                        <div className="flex items-center gap-1">
-                                            <Clock className="w-3 h-3 text-gray-400" />
+                                        <div className="flex items-center gap-1 text-foreground">
+                                            <Clock className="w-3 h-3 text-muted-foreground" />
                                             {item.horaInicio?.substring(0, 5)}
                                             {!item.horaFija && ` - ${item.horaFin?.substring(0, 5)}`}
                                         </div>
                                     </TableCell>
                                     <TableCell>
-                                        <div className="flex items-center gap-1">
-                                            <Users className="w-3 h-3 text-gray-400" />
+                                        <div className="flex items-center gap-1 text-foreground">
+                                            <Users className="w-3 h-3 text-muted-foreground" />
                                             {item.cupoMaximo}
                                         </div>
                                     </TableCell>
                                     <TableCell>
                                         {item.horaFija ? (
-                                            <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">Fijo</span>
+                                            <span className="text-xs bg-blue-500/10 text-blue-500 px-2 py-1 rounded-full border border-blue-500/20">Fijo</span>
                                         ) : (
-                                            <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">Rango</span>
+                                            <span className="text-xs bg-green-500/10 text-green-500 px-2 py-1 rounded-full border border-green-500/20">Rango</span>
                                         )}
                                     </TableCell>
                                     <TableCell>
                                         <Switch checked={item.activo} disabled />
                                     </TableCell>
                                     <TableCell className="text-right space-x-2">
-                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-600" onClick={() => handleEdit(item)}>
+                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-500 hover:text-blue-600 hover:bg-blue-500/10" onClick={() => handleEdit(item)}>
                                             <Pencil className="w-4 h-4" />
                                         </Button>
-                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-red-600" onClick={() => handleDelete(item.id)}>
+                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-500/10" onClick={() => handleDelete(item.id)}>
                                             <Trash2 className="w-4 h-4" />
                                         </Button>
                                     </TableCell>

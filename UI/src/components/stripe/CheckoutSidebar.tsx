@@ -74,9 +74,9 @@ export const CheckoutSidebar = ({ reserva, details, onClose, onPaymentSuccess }:
   };
 
   return (
-    <div className="bg-card rounded-xl shadow-2xl border border-border overflow-hidden sticky top-32 animate-in slide-in-from-right duration-300">
+    <div className="bg-card rounded-xl shadow-2xl border border-border flex flex-col max-h-[calc(100vh-9rem)] sticky top-32 animate-in slide-in-from-right duration-300 overflow-hidden">
         {/* Header */}
-        <div className="bg-slate-900 text-white p-6 flex justify-between items-start">
+        <div className="bg-slate-900 text-white p-6 flex justify-between items-start shrink-0">
             <div>
                 <span className="text-yellow-500 font-bold tracking-widest text-xs uppercase mb-1 block">Checkout</span>
                 <h3 className="text-xl font-bold">Reserva #{reserva.id}</h3>
@@ -86,7 +86,7 @@ export const CheckoutSidebar = ({ reserva, details, onClose, onPaymentSuccess }:
             </button>
         </div>
 
-        <div className="p-6">
+        <div className="p-6 overflow-y-auto custom-scrollbar">
             {/* Summary Details */}
             <div className="space-y-4 mb-8">
                 <div className="flex justify-between text-sm">
