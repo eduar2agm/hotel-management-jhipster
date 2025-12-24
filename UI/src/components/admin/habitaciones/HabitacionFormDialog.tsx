@@ -30,9 +30,9 @@ import { Switch } from '@/components/ui/switch';
 
 const habitacionSchema = z.object({
     id: z.number().optional(),
-    numero: z.string().min(1, 'Número es requerido'),
+    numero: z.string().min(1, 'Número es requerido').max(50, 'Máximo 50 caracteres'),
     capacidad: z.coerce.number().min(1, 'Capacidad mínima es 1').max(20, 'Capacidad máxima es 20'),
-    descripcion: z.string().optional().or(z.literal('')),
+    descripcion: z.string().max(255, 'Máximo 255 caracteres').optional().or(z.literal('')),
     imagen: z.string().optional().or(z.literal('')),
     activo: z.boolean().default(true),
     categoriaHabitacionId: z.string().min(1, 'Categoría es requerida'),
@@ -207,7 +207,7 @@ export const HabitacionFormDialog = ({
                                         <FormItem>
                                             <FormLabel className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Número</FormLabel>
                                             <FormControl>
-                                                <Input placeholder="101" className="h-9 font-mono" {...field} />
+                                                <Input placeholder="101" className="h-9 font-mono" maxLength={50} {...field} />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -430,6 +430,7 @@ export const HabitacionFormDialog = ({
                                             <Textarea
                                                 placeholder="Características de la habitación..."
                                                 className="resize-none h-20"
+                                                maxLength={255}
                                                 {...field}
                                             />
                                         </FormControl>

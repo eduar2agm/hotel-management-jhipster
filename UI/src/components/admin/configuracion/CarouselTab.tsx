@@ -51,11 +51,11 @@ export const CarouselTab = () => {
                 sort: 'orden,asc'
             });
             setCarouselItems(res.data);
-            
+
             // Also load images for dropdown
             const imgRes = await ImagenService.getImagens({ size: 1000 });
             setImagenes(imgRes.data);
-            
+
         } catch (error) {
             toast.error('Error al cargar datos del carrusel');
         } finally {
@@ -153,7 +153,7 @@ export const CarouselTab = () => {
                 </CardContent>
             </Card>
 
-             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
                         <DialogTitle className="text-xl font-bold">{currentItem.id ? 'Editar' : 'Crear'} Item</DialogTitle>
@@ -161,11 +161,11 @@ export const CarouselTab = () => {
                     <form onSubmit={handleSave} className="grid gap-4 py-4">
                         <div className="grid gap-2">
                             <Label>Título</Label>
-                            <Input value={currentItem.titulo || ''} onChange={e => setCurrentItem({ ...currentItem, titulo: e.target.value })} required />
+                            <Input value={currentItem.titulo || ''} onChange={e => setCurrentItem({ ...currentItem, titulo: e.target.value })} required maxLength={150} />
                         </div>
                         <div className="grid gap-2">
                             <Label>Descripción</Label>
-                            <Input value={currentItem.descripcion || ''} onChange={e => setCurrentItem({ ...currentItem, descripcion: e.target.value })} />
+                            <Input value={currentItem.descripcion || ''} onChange={e => setCurrentItem({ ...currentItem, descripcion: e.target.value })} maxLength={500} />
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="grid gap-2">
@@ -190,8 +190,8 @@ export const CarouselTab = () => {
                             </Select>
                         </div>
                         <DialogFooter>
-                             <Button type="button" variant="ghost" onClick={() => setIsDialogOpen(false)}>Cancelar</Button>
-                             <Button type="submit" className="bg-yellow-600 hover:bg-yellow-700 text-white">Guardar</Button>
+                            <Button type="button" variant="ghost" onClick={() => setIsDialogOpen(false)}>Cancelar</Button>
+                            <Button type="submit" className="bg-yellow-600 hover:bg-yellow-700 text-white">Guardar</Button>
                         </DialogFooter>
                     </form>
                 </DialogContent>

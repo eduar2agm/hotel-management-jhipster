@@ -184,6 +184,7 @@ export const CategoriasTab = () => {
                                 value={currentCat.descripcion || ''}
                                 onChange={e => setCurrentCat({ ...currentCat, descripcion: e.target.value })}
                                 className="col-span-3"
+                                maxLength={255}
                             />
                         </div>
                         <div className="grid gap-2">

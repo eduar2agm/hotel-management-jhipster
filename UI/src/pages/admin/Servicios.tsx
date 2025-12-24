@@ -35,8 +35,8 @@ import { DetailsImageGallery } from '../../components/common/DetailsImageGallery
 
 const servicioSchema = z.object({
     id: z.number().optional(),
-    nombre: z.string().min(1, 'Nombre es requerido'),
-    descripcion: z.string().optional().or(z.literal('')),
+    nombre: z.string().min(1, 'Nombre es requerido').max(100, 'Máximo 100 caracteres'),
+    descripcion: z.string().max(1000, 'Máximo 1000 caracteres').optional().or(z.literal('')),
     tipo: z.nativeEnum(TipoServicio).default(TipoServicio.PAGO),
     precio: z.coerce.number().min(0, 'Precio no puede ser negativo'),
     disponible: z.boolean().default(true),
@@ -378,7 +378,7 @@ export const ServiciosList = ({ readOnly = false }: { readOnly?: boolean }) => {
                                                 <FormItem>
                                                     <FormLabel className="text-xs font-bold text-gray-500 uppercase tracking-widest">Nombre</FormLabel>
                                                     <FormControl>
-                                                        <Input placeholder="Ej: Spa Completo" className="h-9" {...field} />
+                                                        <Input placeholder="Ej: Spa Completo" className="h-9" maxLength={100} {...field} />
                                                     </FormControl>
                                                     <FormMessage />
                                                 </FormItem>
@@ -395,6 +395,7 @@ export const ServiciosList = ({ readOnly = false }: { readOnly?: boolean }) => {
                                                         <Textarea
                                                             placeholder="Detalles del servicio..."
                                                             className="resize-none h-20"
+                                                            maxLength={1000}
                                                             {...field}
                                                         />
                                                     </FormControl>

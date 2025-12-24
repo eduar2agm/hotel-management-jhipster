@@ -34,7 +34,7 @@ const contratoSchema = z.object({
     reservaId: z.string().min(1, 'Debe seleccionar una reserva'),
     servicioId: z.string().min(1, 'Debe seleccionar un servicio'),
     cantidad: z.number().min(1, 'La cantidad mínima es 1'),
-    observaciones: z.string().optional()
+    observaciones: z.string().max(500, 'Máximo 500 caracteres').optional()
 });
 
 type ContratoFormValues = z.infer<typeof contratoSchema>;
@@ -407,7 +407,7 @@ export const AdminContratarServicio = ({ returnPath = '/admin/servicios-contrata
                                         <FormItem>
                                             <FormLabel className="text-sm font-bold text-foreground">Observaciones</FormLabel>
                                             <FormControl>
-                                                <Input placeholder="Comentarios adicionales..." {...field} />
+                                                <Input placeholder="Comentarios adicionales..." maxLength={500} {...field} />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>

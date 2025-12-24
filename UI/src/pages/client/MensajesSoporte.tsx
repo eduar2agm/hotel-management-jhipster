@@ -176,6 +176,7 @@ export const ClientMensajesSoporte = () => {
                                 placeholder="Escriba su mensaje aquí..."
                                 className="min-h-[50px] max-h-[120px] bg-muted border-border resize-none focus:bg-background focus:ring-yellow-500/20 focus:border-yellow-500 transition-all text-foreground placeholder:text-muted-foreground"
                                 disabled={sending}
+                                maxLength={4096}
                             />
                             <Button
                                 onClick={handleSend}
