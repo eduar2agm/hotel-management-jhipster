@@ -104,8 +104,8 @@ export const ReservaFormDialog = ({
     // Reset form when dialog opens/closes or reservaToEdit changes
     useEffect(() => {
         if (open) {
-            if (isEditing && reservaToEdit) {
-                // Fetch details for roomIds
+            if (isEditing && reservaToEdit && reservaToEdit.id) {
+                // Edit Mode: Load Details from Backend
                 const fetchDetails = async () => {
                     try {
                         const detailsRes = await ReservaDetalleService.getReservaDetalles({ 'reservaId.equals': reservaToEdit.id });
@@ -125,18 +125,13 @@ export const ReservaFormDialog = ({
                             activo: reservaToEdit.activo ?? true
                         });
 
-                        // Load active rooms generally, but we'll let availability checker handle the specific list
-                        // For improved UX, show all active rooms initially combined with current rooms
                         const res = await HabitacionService.getHabitacions({ 'activo.equals': true, size: 100 });
-
-                        // Merge current rooms if not in active list (e.g. if they are somehow inactive now but in reservation)
                         const allRooms = res.data;
                         rooms.forEach(r => {
                             if (!allRooms.find(ar => ar.id === r.id)) {
                                 allRooms.push(r);
                             }
                         });
-
                         setHabitaciones(allRooms);
                     } catch (error) {
                         console.error("Error fetching details for edit", error);
@@ -144,7 +139,24 @@ export const ReservaFormDialog = ({
                     }
                 };
                 fetchDetails();
+            } else if (reservaToEdit) {
+                // Pre-filled Create Mode (Incoming from RoomInfoModal state)
+                setCurrentRooms([]);
+                form.reset({
+                    id: undefined,
+                    roomIds: (reservaToEdit as any).roomIds || [],
+                    fechaInicio: reservaToEdit.fechaInicio ? reservaToEdit.fechaInicio.split('T')[0] : '',
+                    fechaFin: reservaToEdit.fechaFin ? reservaToEdit.fechaFin.split('T')[0] : '',
+                    estado: reservaToEdit.estado || 'PENDIENTE',
+                    activo: true,
+                    clienteId: reservaToEdit.clienteId || 0
+                });
+
+                HabitacionService.getHabitacions({ 'activo.equals': true, size: 100 })
+                    .then(res => setHabitaciones(res.data))
+                    .catch(e => console.error(e));
             } else {
+                // Standard Create Mode
                 setCurrentRooms([]);
                 form.reset({
                     roomIds: [],
@@ -154,15 +166,9 @@ export const ReservaFormDialog = ({
                     activo: true,
                     clienteId: 0
                 });
-                const fetchInitial = async () => {
-                    try {
-                        const res = await HabitacionService.getHabitacions({ 'activo.equals': true, size: 100 });
-                        setHabitaciones(res.data);
-                    } catch (e) {
-                        console.error("Error fetching initial rooms", e);
-                    }
-                }
-                fetchInitial();
+                HabitacionService.getHabitacions({ 'activo.equals': true, size: 100 })
+                    .then(res => setHabitaciones(res.data))
+                    .catch(e => console.error(e));
             }
         }
     }, [open, isEditing, reservaToEdit, form]);

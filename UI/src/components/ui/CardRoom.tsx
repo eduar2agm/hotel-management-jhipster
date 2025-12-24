@@ -43,16 +43,22 @@ export const CardRoom = ({
             )}>
                 {/* Image Section */}
                 <div className="relative h-64 w-full overflow-hidden bg-gray-100">
-                    {h.imagen ? (
-                        <img
-                            src={getImageUrl(h.imagen)}
-                            alt={`Habitación ${h.numero}`}
-                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                        />
-                    ) : (
-                        <div className="flex h-full w-full flex-col items-center justify-center bg-muted text-muted-foreground">
+                    <img
+                        src={h.imagen ? getImageUrl(h.imagen) : '/placeholder-room.jpg'}
+                        alt={`Habitación ${h.numero}`}
+                        className={cn(
+                            "w-full h-full object-cover transition-transform duration-700 group-hover:scale-110",
+                            !h.imagen && "opacity-0"
+                        )}
+                        onError={(e) => {
+                            e.currentTarget.src = '/placeholder-room.jpg';
+                            e.currentTarget.classList.add('opacity-50');
+                        }}
+                    />
+                    {!h.imagen && (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-400">
                             <ImageIcon className="h-12 w-12 opacity-20" />
-                            <span className="mt-2 text-xs font-medium uppercase tracking-wider">No Imagen</span>
+                            <span className="mt-2 text-xs font-medium uppercase tracking-wider">Sin Imagen</span>
                         </div>
                     )}
 
@@ -160,10 +166,16 @@ export const CardRoom = ({
                     <div className="grid md:grid-cols-2">
                         {/* Image Side */}
                         <div className="relative h-64 md:h-full bg-gray-100">
-                            {h.imagen ? (
-                                <img src={getImageUrl(h.imagen)} alt={h.numero} className="h-full w-full object-cover" />
-                            ) : (
-                                <div className="flex h-full items-center justify-center">
+                            <img
+                                src={h.imagen ? getImageUrl(h.imagen) : '/placeholder-room.jpg'}
+                                alt={h.numero}
+                                className="h-full w-full object-cover"
+                                onError={(e) => {
+                                    e.currentTarget.src = '/placeholder-room.jpg';
+                                }}
+                            />
+                            {!h.imagen && (
+                                <div className="absolute inset-0 flex items-center justify-center">
                                     <ImageIcon className="h-16 w-16 text-gray-300" />
                                 </div>
                             )}

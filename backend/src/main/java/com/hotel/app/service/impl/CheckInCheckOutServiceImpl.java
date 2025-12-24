@@ -10,6 +10,9 @@ import com.hotel.app.repository.ReservaRepository;
 import com.hotel.app.service.CheckInCheckOutService;
 import com.hotel.app.service.dto.CheckInCheckOutDTO;
 import com.hotel.app.service.mapper.CheckInCheckOutMapper;
+import com.hotel.app.web.rest.errors.BadRequestAlertException;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import org.slf4j.Logger;
@@ -51,6 +54,24 @@ public class CheckInCheckOutServiceImpl implements CheckInCheckOutService {
     @Override
     public CheckInCheckOutDTO save(CheckInCheckOutDTO checkInCheckOutDTO) {
         LOG.debug("Request to save CheckInCheckOut : {}", checkInCheckOutDTO);
+
+        if (checkInCheckOutDTO.getReservaDetalle() != null && checkInCheckOutDTO.getReservaDetalle().getId() != null) {
+            reservaDetalleRepository.findById(checkInCheckOutDTO.getReservaDetalle().getId()).ifPresent(detalle -> {
+                Reserva reserva = detalle.getReserva();
+                if (reserva != null && reserva.getFechaInicio() != null) {
+                    LocalDate hoy = LocalDate.now();
+                    LocalDate fechaInicio = LocalDate.ofInstant(reserva.getFechaInicio(), ZoneId.systemDefault());
+
+                    if (!hoy.equals(fechaInicio)) {
+                        throw new BadRequestAlertException(
+                                "El check-in solo está permitido en la fecha de entrada",
+                                "CheckInCheckOut",
+                                "checkInDateInvalid");
+                    }
+                }
+            });
+        }
+
         CheckInCheckOut checkInCheckOut = checkInCheckOutMapper.toEntity(checkInCheckOutDTO);
         checkInCheckOut = checkInCheckOutRepository.save(checkInCheckOut);
         actualizarEstadoReservaSiEsCheckOut(checkInCheckOut);

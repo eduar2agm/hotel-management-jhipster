@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import {
     Table,
@@ -28,6 +28,7 @@ import {
     Search,
     Calendar
 } from 'lucide-react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { PaymentModal } from '../../components/modals/PaymentModal';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -65,6 +66,39 @@ export const AdminReservas = () => {
     // Filter State
     const [searchTerm, setSearchTerm] = useState('');
     const [showInactive, setShowInactive] = useState(false);
+
+    const location = useLocation();
+    const navigate = useNavigate();
+    const hasProcessedState = useRef(false);
+
+    // --- HANDLE REDIRECTION FROM HOMEPAGE (RoomInfoModal) ---
+    useEffect(() => {
+        const state = location.state as {
+            preSelectedRoom?: any;
+            startDate?: string;
+            endDate?: string;
+            preSelectedCliente?: any;
+        };
+
+        if (state?.preSelectedRoom && !hasProcessedState.current) {
+            hasProcessedState.current = true;
+
+            // Synthesize a dummy reservation object to trigger the form with pre-filled data
+            const prefilledData = {
+                fechaInicio: state.startDate,
+                fechaFin: state.endDate,
+                clienteId: state.preSelectedCliente?.id,
+                cliente: state.preSelectedCliente,
+                roomIds: [state.preSelectedRoom.id] // Custom prop for our form
+            };
+
+            setSelectedReserva(prefilledData as any);
+            setIsDialogOpen(true);
+
+            // Clean state
+            navigate(location.pathname, { replace: true, state: {} });
+        }
+    }, [location.state, location.pathname, navigate]);
 
     const loadData = useCallback(async () => {
         try {
