@@ -4,6 +4,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { HabitacionService } from '../../../services/habitacion.service';
 import type { HabitacionDTO, CategoriaHabitacionDTO, EstadoHabitacionDTO } from '../../../types/api';
+import type { ImagenDTO } from '../../../types/api/Imagen';
+import { ImagenService } from '../../../services/imagen.service';
+import { MultiImageUpload } from '../../common/MultiImageUpload';
 import { getImageUrl } from '../../../utils/imageUtils';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -60,7 +63,27 @@ export const HabitacionFormDialog = ({
     const [openCategoryPopover, setOpenCategoryPopover] = useState(false);
     const [localPreview, setLocalPreview] = useState<string | null>(null);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [galleryImages, setGalleryImages] = useState<ImagenDTO[]>([]);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const fetchGallery = async () => {
+        if (habitacion?.id) {
+            try {
+                // Assuming standard JHipster filter usage
+                const res = await ImagenService.getImagens({ 'habitacionId.equals': habitacion.id });
+                setGalleryImages(res.data);
+            } catch (e) { console.error(e); }
+        } else {
+            setGalleryImages([]);
+        }
+    };
+
+    useEffect(() => {
+        if (open) {
+            fetchGallery();
+            // ... existing reset logic below
+        }
+    }, [open, habitacion]);
 
     const form = useForm<HabitacionFormValues>({
         resolver: zodResolver(habitacionSchema) as any,
@@ -79,7 +102,7 @@ export const HabitacionFormDialog = ({
         if (open) {
             setLocalPreview(null);
             setSelectedFile(null);
-            
+
             if (habitacion) {
                 form.reset({
                     id: habitacion.id,
@@ -94,7 +117,7 @@ export const HabitacionFormDialog = ({
             } else {
                 const activeStates = estados.filter(e => e.activo !== false);
                 const defaultState = activeStates.find(e => e.nombre === 'DISPONIBLE')?.id?.toString() || '';
-                
+
                 form.reset({
                     numero: '',
                     capacidad: 2,
@@ -303,9 +326,10 @@ export const HabitacionFormDialog = ({
                                 name="imagen"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Imagen de la Habitación</FormLabel>
+                                        <FormLabel className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Imagen Principal</FormLabel>
                                         <FormControl>
                                             <div className="space-y-4">
+                                                {/* Existing Main Image Upload UI */}
                                                 <div
                                                     className={cn(
                                                         "relative overflow-hidden rounded-xl border-2 border-dashed transition-all duration-300 group",
@@ -384,6 +408,17 @@ export const HabitacionFormDialog = ({
                                     </FormItem>
                                 )}
                             />
+
+                            {/* Gallery Section */}
+                            <div className="space-y-2 pt-4 border-t border-border">
+                                <FormLabel className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Galería Adicional</FormLabel>
+                                <MultiImageUpload
+                                    parentId={habitacion?.id}
+                                    parentType="habitacion"
+                                    images={galleryImages}
+                                    onUpdate={fetchGallery}
+                                />
+                            </div>
 
                             <FormField
                                 control={form.control}

@@ -51,7 +51,9 @@ public class ImagenResource {
      * {@code POST  /imagens} : Create a new imagen.
      *
      * @param imagenDTO the imagenDTO to create.
-     * @return the {@link ResponseEntity} with status {@code 201 (Created)} and with body the new imagenDTO, or with status {@code 400 (Bad Request)} if the imagen has already an ID.
+     * @return the {@link ResponseEntity} with status {@code 201 (Created)} and with
+     *         body the new imagenDTO, or with status {@code 400 (Bad Request)} if
+     *         the imagen has already an ID.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PostMapping("")
@@ -62,25 +64,28 @@ public class ImagenResource {
         }
         imagenDTO = imagenService.save(imagenDTO);
         return ResponseEntity.created(new URI("/api/imagens/" + imagenDTO.getId()))
-            .headers(HeaderUtil.createEntityCreationAlert(applicationName, false, ENTITY_NAME, imagenDTO.getId().toString()))
-            .body(imagenDTO);
+                .headers(HeaderUtil.createEntityCreationAlert(applicationName, false, ENTITY_NAME,
+                        imagenDTO.getId().toString()))
+                .body(imagenDTO);
     }
 
     /**
      * {@code PUT  /imagens/:id} : Updates an existing imagen.
      *
-     * @param id the id of the imagenDTO to save.
+     * @param id        the id of the imagenDTO to save.
      * @param imagenDTO the imagenDTO to update.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated imagenDTO,
-     * or with status {@code 400 (Bad Request)} if the imagenDTO is not valid,
-     * or with status {@code 500 (Internal Server Error)} if the imagenDTO couldn't be updated.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body
+     *         the updated imagenDTO,
+     *         or with status {@code 400 (Bad Request)} if the imagenDTO is not
+     *         valid,
+     *         or with status {@code 500 (Internal Server Error)} if the imagenDTO
+     *         couldn't be updated.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PutMapping("/{id}")
     public ResponseEntity<ImagenDTO> updateImagen(
-        @PathVariable(value = "id", required = false) final Long id,
-        @Valid @RequestBody ImagenDTO imagenDTO
-    ) throws URISyntaxException {
+            @PathVariable(value = "id", required = false) final Long id,
+            @Valid @RequestBody ImagenDTO imagenDTO) throws URISyntaxException {
         LOG.debug("REST request to update Imagen : {}, {}", id, imagenDTO);
         if (imagenDTO.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
@@ -95,26 +100,30 @@ public class ImagenResource {
 
         imagenDTO = imagenService.update(imagenDTO);
         return ResponseEntity.ok()
-            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME, imagenDTO.getId().toString()))
-            .body(imagenDTO);
+                .headers(HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME,
+                        imagenDTO.getId().toString()))
+                .body(imagenDTO);
     }
 
     /**
-     * {@code PATCH  /imagens/:id} : Partial updates given fields of an existing imagen, field will ignore if it is null
+     * {@code PATCH  /imagens/:id} : Partial updates given fields of an existing
+     * imagen, field will ignore if it is null
      *
-     * @param id the id of the imagenDTO to save.
+     * @param id        the id of the imagenDTO to save.
      * @param imagenDTO the imagenDTO to update.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated imagenDTO,
-     * or with status {@code 400 (Bad Request)} if the imagenDTO is not valid,
-     * or with status {@code 404 (Not Found)} if the imagenDTO is not found,
-     * or with status {@code 500 (Internal Server Error)} if the imagenDTO couldn't be updated.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body
+     *         the updated imagenDTO,
+     *         or with status {@code 400 (Bad Request)} if the imagenDTO is not
+     *         valid,
+     *         or with status {@code 404 (Not Found)} if the imagenDTO is not found,
+     *         or with status {@code 500 (Internal Server Error)} if the imagenDTO
+     *         couldn't be updated.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PatchMapping(value = "/{id}", consumes = { "application/json", "application/merge-patch+json" })
     public ResponseEntity<ImagenDTO> partialUpdateImagen(
-        @PathVariable(value = "id", required = false) final Long id,
-        @NotNull @RequestBody ImagenDTO imagenDTO
-    ) throws URISyntaxException {
+            @PathVariable(value = "id", required = false) final Long id,
+            @NotNull @RequestBody ImagenDTO imagenDTO) throws URISyntaxException {
         LOG.debug("REST request to partial update Imagen partially : {}, {}", id, imagenDTO);
         if (imagenDTO.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
@@ -130,31 +139,43 @@ public class ImagenResource {
         Optional<ImagenDTO> result = imagenService.partialUpdate(imagenDTO);
 
         return ResponseUtil.wrapOrNotFound(
-            result,
-            HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME, imagenDTO.getId().toString())
-        );
+                result,
+                HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME, imagenDTO.getId().toString()));
     }
 
     /**
      * {@code GET  /imagens} : get all the imagens.
      *
-     * @param pageable the pagination information.
-     * @param eagerload flag to eager load entities from relationships (This is applicable for many-to-many).
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of imagens in body.
+     * @param pageable  the pagination information.
+     * @param eagerload flag to eager load entities from relationships (This is
+     *                  applicable for many-to-many).
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list
+     *         of imagens in body.
      */
     @GetMapping("")
     public ResponseEntity<List<ImagenDTO>> getAllImagens(
-        @org.springdoc.core.annotations.ParameterObject Pageable pageable,
-        @RequestParam(name = "eagerload", required = false, defaultValue = "true") boolean eagerload
-    ) {
+            @org.springdoc.core.annotations.ParameterObject Pageable pageable,
+            @RequestParam(name = "eagerload", required = false, defaultValue = "true") boolean eagerload,
+            @RequestParam(name = "habitacionId.equals", required = false) Long habitacionId,
+            @RequestParam(name = "servicioId.equals", required = false) Long servicioId) {
         LOG.debug("REST request to get a page of Imagens");
+
+        if (habitacionId != null) {
+            return ResponseEntity.ok(imagenService.findByHabitacionId(habitacionId));
+        }
+
+        if (servicioId != null) {
+            return ResponseEntity.ok(imagenService.findByServicioId(servicioId));
+        }
+
         Page<ImagenDTO> page;
         if (eagerload) {
             page = imagenService.findAllWithEagerRelationships(pageable);
         } else {
             page = imagenService.findAll(pageable);
         }
-        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
+        HttpHeaders headers = PaginationUtil
+                .generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
         return ResponseEntity.ok().headers(headers).body(page.getContent());
     }
 
@@ -162,7 +183,8 @@ public class ImagenResource {
      * {@code GET  /imagens/:id} : get the "id" imagen.
      *
      * @param id the id of the imagenDTO to retrieve.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the imagenDTO, or with status {@code 404 (Not Found)}.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body
+     *         the imagenDTO, or with status {@code 404 (Not Found)}.
      */
     @GetMapping("/{id}")
     public ResponseEntity<ImagenDTO> getImagen(@PathVariable("id") Long id) {
@@ -182,7 +204,7 @@ public class ImagenResource {
         LOG.debug("REST request to delete Imagen : {}", id);
         imagenService.delete(id);
         return ResponseEntity.noContent()
-            .headers(HeaderUtil.createEntityDeletionAlert(applicationName, false, ENTITY_NAME, id.toString()))
-            .build();
+                .headers(HeaderUtil.createEntityDeletionAlert(applicationName, false, ENTITY_NAME, id.toString()))
+                .build();
     }
 }

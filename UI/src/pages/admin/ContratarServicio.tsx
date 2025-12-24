@@ -354,6 +354,7 @@ export const AdminContratarServicio = ({ returnPath = '/admin/servicios-contrata
                                             onQuotaAvailable={setMaxCupo}
                                             selectedFechas={fechas}
                                             selectedHora={hora}
+                                            adminMode={true}
                                         />
                                     </div>
                                 )}

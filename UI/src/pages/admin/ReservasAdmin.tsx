@@ -367,7 +367,7 @@ export const AdminReservas = () => {
                                             </TableCell>
                                             <TableCell>
                                                 <div className="flex items-center gap-3">
-                                                     <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground font-bold text-xs ring-2 ring-background shadow-sm">
+                                                    <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground font-bold text-xs ring-2 ring-background shadow-sm">
                                                         {reserva.cliente?.nombre ? reserva.cliente.nombre.charAt(0).toUpperCase() : <User className="h-4 w-4" />}
                                                     </div>
                                                     <div className="flex flex-col">
@@ -422,9 +422,9 @@ export const AdminReservas = () => {
                                                         variant="ghost"
                                                         size="sm"
                                                         onClick={() => handleOpenPayment(reserva)}
-                                                        disabled={!reserva.activo}
-                                                        className="h-8 w-8 p-0 text-muted-foreground rounded-full transition-colors hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-600"
-                                                        title="Gestionar Pago"
+                                                        disabled={!reserva.activo || ['CONFIRMADA', 'CANCELADA', 'FINALIZADA'].includes(reserva.estado || '')}
+                                                        className="h-8 w-8 p-0 text-muted-foreground rounded-full transition-colors hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                        title={['CONFIRMADA', 'CANCELADA', 'FINALIZADA'].includes(reserva.estado || '') ? `Pago no disponible (${reserva.estado})` : "Gestionar Pago"}
                                                     >
                                                         <CreditCard className="h-4 w-4" />
                                                     </Button>

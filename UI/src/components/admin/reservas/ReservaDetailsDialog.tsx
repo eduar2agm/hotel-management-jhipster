@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { User, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { ReservaService } from '../../../services/reserva.service';
+
 import { ReservaDetalleService } from '../../../services/reserva-detalle.service';
 import { ClienteService } from '../../../services/cliente.service';
 import { HabitacionService } from '../../../services/habitacion.service';
@@ -24,14 +24,11 @@ interface ReservaDetailsDialogProps {
 export const ReservaDetailsDialog = ({
     open,
     onOpenChange,
-    reserva,
-    isAdmin = false,
-    onStatusUpdate
+    reserva
 }: ReservaDetailsDialogProps) => {
     const [rooms, setRooms] = useState<HabitacionDTO[]>([]);
     const [client, setClient] = useState<ClienteDTO | null>(null);
     const [loading, setLoading] = useState(false);
-    const [processing, setProcessing] = useState(false);
 
     useEffect(() => {
         if (open && reserva) {
@@ -108,40 +105,7 @@ export const ReservaDetailsDialog = ({
         }
     };
 
-    const handleStatusChange = async (newStatus: string) => {
-        if (!reserva?.id) return;
 
-        // Validation for FINALIZADA
-        if (newStatus === 'FINALIZADA') {
-            if (reserva.estado !== 'CHECK_IN') {
-                if (!isAdmin) {
-                    toast.error('Solo se puede finalizar si está en Check-In.');
-                    return;
-                }
-                // Double confirmation for Admin
-                if (!confirm('⚠️ ADVERTENCIA: La reserva NO está en Check-In.\n\n¿Está seguro que desea finalizarla manualmente?')) {
-                    return;
-                }
-                if (!confirm('CONFIRMACIÓN FINAL: Esta acción finalizará la reserva inmediatamente.\n\n¿Proceder?')) {
-                    return;
-                }
-            }
-        }
-
-        try {
-            setProcessing(true);
-            await ReservaService.partialUpdateReserva(reserva.id, { id: reserva.id, estado: newStatus });
-            toast.success(`Reserva actualizada a ${newStatus}`);
-            if (onStatusUpdate) onStatusUpdate();
-            onOpenChange(false);
-        } catch (error: any) {
-            console.error('Error updating status', error);
-            const msg = error.response?.data?.title || 'Error al actualizar estado';
-            toast.error(msg);
-        } finally {
-            setProcessing(false);
-        }
-    };
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -287,27 +251,7 @@ export const ReservaDetailsDialog = ({
                 )}
 
                 <DialogFooter className="bg-background p-4 border-t flex justify-end gap-2">
-                    <Button onClick={() => onOpenChange(false)} variant="outline" disabled={processing}>Cerrar</Button>
-
-                    {reserva?.estado === 'CONFIRMADA' && (
-                        <Button
-                            onClick={() => handleStatusChange('CHECK_IN')}
-                            className="bg-purple-600 hover:bg-purple-700 text-white"
-                            disabled={processing}
-                        >
-                            {processing ? 'Procesando...' : 'Realizar Check-In'}
-                        </Button>
-                    )}
-
-                    {(reserva?.estado === 'CHECK_IN' || (isAdmin && reserva?.estado !== 'FINALIZADA' && reserva?.estado !== 'CANCELADA')) && (
-                        <Button
-                            onClick={() => handleStatusChange('FINALIZADA')}
-                            className="bg-blue-600 hover:bg-blue-700 text-white"
-                            disabled={processing}
-                        >
-                            {processing ? 'Finalizar' : 'Finalizar Estancia'}
-                        </Button>
-                    )}
+                    <Button onClick={() => onOpenChange(false)} variant="outline">Cerrar</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>

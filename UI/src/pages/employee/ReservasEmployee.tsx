@@ -454,8 +454,9 @@ export const EmployeeReservas = () => {
                                                             variant="ghost"
                                                             size="sm"
                                                             onClick={(e) => { e.stopPropagation(); handleOpenPayment(reserva); }}
-                                                            className="hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-600 hover:border-green-200 border border-transparent rounded-full transition-all text-muted-foreground"
-                                                            title="Gestionar Pago"
+                                                            disabled={['CONFIRMADA', 'CANCELADA', 'FINALIZADA'].includes(reserva.estado || '')}
+                                                            className="hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-600 hover:border-green-200 border border-transparent rounded-full transition-all text-muted-foreground disabled:opacity-50 disabled:cursor-not-allowed"
+                                                            title={['CONFIRMADA', 'CANCELADA', 'FINALIZADA'].includes(reserva.estado || '') ? `Pago no disponible (${reserva.estado})` : "Gestionar Pago"}
                                                         >
                                                             <CreditCard className="h-4 w-4" />
                                                         </Button>

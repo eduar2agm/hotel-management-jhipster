@@ -72,17 +72,16 @@ public class ReservaAutoCheckoutJob {
         List<ServicioContratado> servicios = servicioContratadoRepository.findByReservaId(reserva.getId());
 
         for (ServicioContratado servicio : servicios) {
-            // Solo completar si no está cancelado ni ya completado
-            if (servicio.getEstado() != EstadoServicioContratado.CANCELADO &&
-                    servicio.getEstado() != EstadoServicioContratado.COMPLETADO) {
-
+            if (servicio.getEstado() == EstadoServicioContratado.CONFIRMADO) {
                 log.debug("Auto-completando Servicio Contratado ID: {} de Reserva ID: {}", servicio.getId(),
                         reserva.getId());
                 servicio.setEstado(EstadoServicioContratado.COMPLETADO);
                 servicioContratadoRepository.save(servicio);
-                // Note: MensajeSoporteService for service completion could be sent here too if
-                // desired,
-                // but usually the "Reservation Checkout" message covers the general idea.
+            } else if (servicio.getEstado() == EstadoServicioContratado.PENDIENTE) {
+                log.debug("Cancelando Servicio Contratado PENDIENTE ID: {} de Reserva ID: {}", servicio.getId(),
+                        reserva.getId());
+                servicio.setEstado(EstadoServicioContratado.CANCELADO);
+                servicioContratadoRepository.save(servicio);
             }
         }
     }

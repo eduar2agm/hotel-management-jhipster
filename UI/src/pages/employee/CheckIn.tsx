@@ -28,6 +28,8 @@ export const CheckIn = () => {
     const [checkIns, setCheckIns] = useState<CheckInCheckOutDTO[]>([]);
     const [loading, setLoading] = useState(false);
 
+    const [hasSearched, setHasSearched] = useState(false);
+
     // Dialog State
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [actionType, setActionType] = useState<'CHECK_IN' | 'CHECK_OUT' | null>(null);
@@ -38,6 +40,7 @@ export const CheckIn = () => {
     const handleSearch = async () => {
         if (!searchTerm) return;
         setLoading(true);
+        setHasSearched(true);
         setSelectedReserva(null);
         setDetalles([]);
         setCheckIns([]);
@@ -155,6 +158,102 @@ export const CheckIn = () => {
         }
     };
 
+    // Bulk Check-In for all rooms
+    const executeCheckInAll = async () => {
+        if (!selectedReserva || !canCheckIn) {
+            toast.error('No se puede realizar check-in masivo en este momento');
+            return;
+        }
+
+        const pendingDetails = detalles.filter(det => {
+            const status = det.id ? getStatusForDetalle(det.id) : 'UNKNOWN';
+            return status === 'PENDIENTE';
+        });
+
+        if (pendingDetails.length === 0) {
+            toast.info('No hay habitaciones pendientes de check-in');
+            return;
+        }
+
+        try {
+            const estadosRes = await EstadoHabitacionService.getEstados();
+            const estados = estadosRes.data;
+            const estadoOcupada = estados.find(e => e.nombre === 'OCUPADA');
+
+            for (const det of pendingDetails) {
+                await CheckInCheckOutService.create({
+                    fechaHoraCheckIn: new Date().toISOString(),
+                    estado: EstadoCheckInCheckOut.REALIZADO,
+                    comentarios: 'Check-in masivo',
+                    activo: true,
+                    reservaDetalle: det
+                });
+
+                if (estadoOcupada && det.habitacion?.id) {
+                    await HabitacionService.partialUpdateHabitacion(det.habitacion.id, {
+                        id: det.habitacion.id,
+                        estadoHabitacion: estadoOcupada
+                    });
+                }
+            }
+
+            toast.success(`Check-In realizado en ${pendingDetails.length} habitaciones`);
+            handleSelectReserva(selectedReserva);
+        } catch (error) {
+            console.error(error);
+            toast.error('Error al realizar check-in masivo');
+        }
+    };
+
+    // Bulk Check-Out for all rooms
+    const executeCheckOutAll = async () => {
+        if (!selectedReserva) {
+            toast.error('No se puede realizar check-out masivo');
+            return;
+        }
+
+        const checkedInDetails = detalles.filter(det => {
+            const status = det.id ? getStatusForDetalle(det.id) : 'UNKNOWN';
+            return status === 'CHECKED_IN';
+        });
+
+        if (checkedInDetails.length === 0) {
+            toast.info('No hay habitaciones activas para check-out');
+            return;
+        }
+
+        try {
+            const estadosRes = await EstadoHabitacionService.getEstados();
+            const estados = estadosRes.data;
+            const estadoLimpieza = estados.find(e => e.nombre === 'LIMPIEZA') ?? estados.find(e => e.nombre === 'DISPONIBLE');
+
+            for (const det of checkedInDetails) {
+                const existing = checkIns.find(c => c.reservaDetalle?.id === det.id);
+                if (existing && existing.id) {
+                    await CheckInCheckOutService.partialUpdate(existing.id, {
+                        id: existing.id,
+                        fechaHoraCheckOut: new Date().toISOString(),
+                        estado: EstadoCheckInCheckOut.REALIZADO,
+                        comentarios: existing.comentarios + ' | Checkout masivo'
+                    });
+
+                    if (estadoLimpieza && det.habitacion?.id) {
+                        await HabitacionService.partialUpdateHabitacion(det.habitacion.id, {
+                            id: det.habitacion.id,
+                            estadoHabitacion: estadoLimpieza
+                        });
+                    }
+                }
+            }
+
+            toast.success(`Check-Out realizado en ${checkedInDetails.length} habitaciones`);
+            handleSelectReserva(selectedReserva);
+        } catch (error) {
+            console.error(error);
+            toast.error('Error al realizar check-out masivo');
+        }
+    };
+
     const getStatusForDetalle = (detalleId: number) => {
         const checkIn = checkIns.find(c => c.reservaDetalle?.id === detalleId);
         if (!checkIn) return 'PENDIENTE';
@@ -169,7 +268,9 @@ export const CheckIn = () => {
             d1.getDate() === d2.getDate();
     };
 
-    const canCheckIn = selectedReserva?.fechaInicio ? isSameDay(new Date(), new Date(selectedReserva.fechaInicio)) : false;
+    const canCheckInDate = selectedReserva?.fechaInicio ? isSameDay(new Date(), new Date(selectedReserva.fechaInicio)) : false;
+    const isConfirmed = selectedReserva?.estado === 'CONFIRMADA';
+    const canCheckIn = canCheckInDate && isConfirmed;
 
     return (
         <div className="font-sans text-foreground bg-background min-h-screen flex flex-col">
@@ -207,7 +308,10 @@ export const CheckIn = () => {
                                             className="pl-9 h-12 bg-background border-input focus:border-yellow-500 focus:ring-yellow-500/20 text-foreground"
                                             placeholder="Ej. 1045 o Juan Pérez..."
                                             value={searchTerm}
-                                            onChange={(e) => setSearchTerm(e.target.value)}
+                                            onChange={(e) => {
+                                                setSearchTerm(e.target.value);
+                                                setHasSearched(false);
+                                            }}
                                             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                                         />
                                     </div>
@@ -254,7 +358,7 @@ export const CheckIn = () => {
                                 </div>
                             )}
 
-                            {reservas.length === 0 && searchTerm && !loading && (
+                            {reservas.length === 0 && searchTerm && hasSearched && !loading && (
                                 <div className="mt-8 p-8 text-center bg-muted/30 rounded-lg border border-dashed border-border">
                                     <XCircle className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
                                     <p className="text-muted-foreground font-medium">No se encontraron reservas con ese criterio.</p>
@@ -299,6 +403,46 @@ export const CheckIn = () => {
                                             <BedDouble className="w-4 h-4" /> Habitaciones Asignadas
                                         </h3>
                                     </div>
+
+                                    {/* Bulk Action Buttons - Only show when multiple rooms */}
+                                    {detalles.length > 1 && (
+                                        <div className="bg-blue-50 dark:bg-blue-950/20 px-6 py-4 border-b border-border flex flex-col sm:flex-row gap-3 items-center justify-between">
+                                            <div className="flex items-center gap-2 text-sm text-blue-800 dark:text-blue-300">
+                                                <AlertCircle className="w-4 h-4" />
+                                                <span className="font-medium">Esta reserva tiene {detalles.length} habitaciones</span>
+                                            </div>
+                                            <div className="flex gap-2">
+                                                {detalles.some(d => {
+                                                    const status = d.id ? getStatusForDetalle(d.id) : 'UNKNOWN';
+                                                    return status === 'PENDIENTE';
+                                                }) && (
+                                                        <Button
+                                                            onClick={executeCheckInAll}
+                                                            disabled={!canCheckIn}
+                                                            size="sm"
+                                                            className="bg-green-600 hover:bg-green-700 text-white font-bold shadow-md disabled:bg-gray-300 disabled:text-gray-500"
+                                                        >
+                                                            <LogIn className="mr-2 h-4 w-4" />
+                                                            Check-In en Todas
+                                                        </Button>
+                                                    )}
+                                                {detalles.some(d => {
+                                                    const status = d.id ? getStatusForDetalle(d.id) : 'UNKNOWN';
+                                                    return status === 'CHECKED_IN';
+                                                }) && (
+                                                        <Button
+                                                            onClick={executeCheckOutAll}
+                                                            size="sm"
+                                                            variant="destructive"
+                                                            className="font-bold shadow-md"
+                                                        >
+                                                            <LogOut className="mr-2 h-4 w-4" />
+                                                            Check-Out en Todas
+                                                        </Button>
+                                                    )}
+                                            </div>
+                                        </div>
+                                    )}
                                     <div className="divide-y divide-border">
                                         {detalles.map(det => {
                                             const status = det.id ? getStatusForDetalle(det.id) : 'UNKNOWN';
@@ -343,7 +487,8 @@ export const CheckIn = () => {
                                                                     </Button>
                                                                     {!canCheckIn && (
                                                                         <p className="text-[10px] text-red-600 font-bold flex items-center gap-1 animate-pulse">
-                                                                            <AlertCircle className="w-3 h-3" /> Solo permitido en fecha de entrada
+                                                                            <AlertCircle className="w-3 h-3" />
+                                                                            {!isConfirmed ? 'Reserva no confirmada (Pendiente Pago)' : 'Solo permitido en fecha de entrada'}
                                                                         </p>
                                                                     )}
                                                                 </div>

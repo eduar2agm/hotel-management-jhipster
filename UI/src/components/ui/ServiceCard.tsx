@@ -4,8 +4,11 @@ import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { Pencil, Trash2, Image as ImageIcon, Clock, Eye } from 'lucide-react';
-import { getImageUrl } from '../../utils/imageUtils';
+import { Pencil, Trash2, Clock, Eye } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { ImagenService } from '../../services/imagen.service';
+import type { ImagenDTO } from '../../types/api/Imagen';
+import { DetailsImageGallery } from '../common/DetailsImageGallery';
 
 interface ServiceCardProps {
     servicio: ServicioDTO;
@@ -18,26 +21,32 @@ interface ServiceCardProps {
 }
 
 export const ServiceCard = ({ servicio, onEdit, onDelete, onToggleActive, onManageAvailability, onViewDetails, readOnly = false }: ServiceCardProps) => {
+    const [extraImages, setExtraImages] = useState<ImagenDTO[]>([]);
+
+    useEffect(() => {
+        if (servicio.id) {
+            ImagenService.getImagens({ 'servicioId.equals': servicio.id })
+                .then(res => setExtraImages(res.data))
+                .catch(err => console.error("Error fetching service images", err));
+        }
+    }, [servicio.id]);
+
     return (
         <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300 group border-border">
             <div className="relative h-48 bg-muted overflow-hidden">
-                {servicio.urlImage ? (
-                    <img
-                        src={getImageUrl(servicio.urlImage)}
-                        alt={servicio.nombre}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                ) : (
-                    <div className="w-full h-full flex items-center justify-center text-muted-foreground/30">
-                        <ImageIcon className="w-12 h-12" />
-                    </div>
-                )}
-                <div className="absolute top-2 right-2 flex gap-2">
+                <DetailsImageGallery
+                    mainImage={servicio.urlImage}
+                    extraImages={extraImages}
+                    className="h-full w-full rounded-none"
+                    autoPlay={false}
+                />
+
+                <div className="absolute top-2 right-2 flex gap-2 pointer-events-none">
                     <Badge variant={servicio.tipo === TipoServicio.GRATUITO ? "secondary" : "default"} className="font-bold shadow-sm">
                         {servicio.tipo}
                     </Badge>
                 </div>
-                <div className="absolute top-2 left-2">
+                <div className="absolute top-2 left-2 pointer-events-none">
                     <Badge variant={servicio.disponible ? "default" : "destructive"} className={servicio.disponible ? "bg-green-600 hover:bg-green-700 shadow-sm" : "shadow-sm"}>
                         {servicio.disponible ? 'Disponible' : 'No disponible'}
                     </Badge>

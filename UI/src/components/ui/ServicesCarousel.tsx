@@ -13,7 +13,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { ExternalLink, Info } from 'lucide-react';
+import { ExternalLink, Info, Check, ChevronsUpDown, Calendar } from 'lucide-react';
 import { ServiceAvailabilityInfo } from '../services/ServiceAvailabilityInfo';
 import { ServicioDisponibilidadService } from '../../services/servicio-disponibilidad.service';
 import type { ServicioDisponibilidadDTO } from '../../types/api/ServicioDisponibilidad';
@@ -21,11 +21,13 @@ import type { ServicioDisponibilidadDTO } from '../../types/api/ServicioDisponib
 import { toast } from 'sonner';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Check, ChevronsUpDown, User, Calendar } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ReservaService } from '../../services/reserva.service';
 import type { ReservaDTO } from '../../types/api/Reserva';
 import { format } from 'date-fns';
+import { ImagenService } from '../../services/imagen.service';
+import type { ImagenDTO } from '../../types/api/Imagen';
+import { DetailsImageGallery } from '../common/DetailsImageGallery';
 
 export const ServicesCarousel = () => {
     const [servicios, setServicios] = useState<ServicioDTO[]>([]);
@@ -35,6 +37,7 @@ export const ServicesCarousel = () => {
 
     const [loadingDetails, setLoadingDetails] = useState(false);
     const [isServiceDetailOpen, setIsServiceDetailOpen] = useState(false);
+    const [extraImages, setExtraImages] = useState<ImagenDTO[]>([]);
 
     // Client Selection for Admin/Employee
     const [isClientSelectOpen, setIsClientSelectOpen] = useState(false);
@@ -67,12 +70,18 @@ export const ServicesCarousel = () => {
         setSelectedService(servicio);
         setIsServiceDetailOpen(true);
         setLoadingDetails(true);
+        setExtraImages([]); // Clear previous images
+
         try {
-            const res = await ServicioDisponibilidadService.getByServicio(servicio.id);
-            setDisponibilidades(res.data);
+            const [dispoRes, imgRes] = await Promise.all([
+                ServicioDisponibilidadService.getByServicio(servicio.id),
+                ImagenService.getImagens({ 'servicioId.equals': servicio.id })
+            ]);
+
+            setDisponibilidades(dispoRes.data);
+            setExtraImages(imgRes.data);
         } catch (error) {
             console.error("Error loading details", error);
-            // Silent error or mild toast, avoiding disruption
         } finally {
             setLoadingDetails(false);
         }
@@ -130,28 +139,7 @@ export const ServicesCarousel = () => {
 
     if (loading || servicios.length === 0) return null;
 
-    // Use duplicated list only if there are enough items to warrant a loop,
-    // otherwise duplication looks weird on small lists.
-    // However, to scroll continuously, we MUST duplicate or it will just stop.
-    // The user hated "duplication".
-    // If we have few items (e.g. 2), and we want them to move, maybe just bouncing?
-    // Or maybe just duplicate ONCE to fill the screen?
-    // Let's bring back the animation but only duplicate if the list is short?
-    // No, standard marquee requires duplication to wrap around.
-    // Let's try duplicating but ensuring the animation is smooth.
-
-    // NOTE: User said "no se tiene que repetir". If I have 2 items, I can't loop seamlessly without visually "repeating" them in the stream.
-    // But maybe they meant "don't show duplicated items *adjacently* if not needed"?
-    // I will duplicate them to enable the animation logic, but maybe spread them out?
-
-    // Let's assume the user wants the animation back but didn't like seeing the exact same item twice on screen at once.
-    // With only 2 items, that is unavoidable on a wide screen.
-    // I will revert to duplication (necessary for infinite scroll) but add a comment or try a slower speed.
-    // Actually, I will use a different animation keyframe that doesn't strictly need 2 sets if I just scroll back and forth? No, that's ugly.
-
-    // I will restore the animation exactly as `ImageCarousel` has it (which they seemingly like or haven't complained about yet),
-    // which DOES use `[...rooms, ...rooms]`.
-    // I will restore it to `[...servicios, ...servicios]` to enable the loop.
+    // Use duplicated list only if there are enough items to warrant a loop
     const displayServices = [...servicios, ...servicios];
 
     return (
@@ -217,11 +205,12 @@ export const ServicesCarousel = () => {
                 </DialogHeader>
 
                     <div className="flex-1 overflow-y-auto p-6 pt-2 space-y-6">
-                        <div className="relative h-48 w-full rounded-lg ">
-                            <img
-                                src={selectedService?.urlImage ? getImageUrl(selectedService.urlImage) : '/placeholder.jpg'}
-                                alt={selectedService?.nombre}
-                                className="w-full h-full object-cover"
+                        <div className="relative h-64 w-full rounded-lg  bg-gray-100">
+                            <DetailsImageGallery
+                                mainImage={selectedService?.urlImage}
+                                extraImages={extraImages}
+                                className="h-full w-full"
+                                autoPlay={true}
                             />
                         </div>
 

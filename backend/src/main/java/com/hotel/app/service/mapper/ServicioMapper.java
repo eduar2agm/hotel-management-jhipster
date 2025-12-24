@@ -8,4 +8,7 @@ import org.mapstruct.*;
  * Mapper for the entity {@link Servicio} and its DTO {@link ServicioDTO}.
  */
 @Mapper(componentModel = "spring")
-public interface ServicioMapper extends EntityMapper<ServicioDTO, Servicio> {}
+public interface ServicioMapper extends EntityMapper<ServicioDTO, Servicio> {
+    @Mapping(target = "imagenes", ignore = true)
+    ServicioDTO toDto(Servicio s);
+}

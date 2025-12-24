@@ -23,6 +23,7 @@ import { EmployeeMensajesSoporte } from './pages/employee/MensajesSoporte';
 import { EmployeeServicios } from './pages/employee/Servicios';
 import { EmployeeServiciosContratados } from './pages/employee/ServiciosContratados';
 import { EmployeeContratarServicio } from './pages/employee/ContratarServicio';
+import { EmployeeHabitaciones } from './pages/employee/Habitaciones';
 import { ClientReservas } from './pages/client/ClientReservas';
 import { NuevaReserva } from './pages/client/NuevaReserva';
 import { Perfil } from './pages/client/Perfil';
@@ -60,6 +61,7 @@ function App() {
             <Route path="/admin/habitaciones" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN']}><AdminHabitaciones /></ProtectedRoute>} />
             <Route path="/admin/clientes" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN']}><AdminClientes /></ProtectedRoute>} />
             <Route path="/admin/reservas" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN']}><AdminReservas /></ProtectedRoute>} />
+            <Route path="/admin/checkin" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN']}><CheckIn /></ProtectedRoute>} />
             <Route path="/admin/soporte" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN']}><AdminMensajesSoporte /></ProtectedRoute>} />
             <Route path="/admin/reportes" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN']}><AdminReportes /></ProtectedRoute>} />
             <Route path="/admin/configuracion" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN']}><AdminConfiguracion /></ProtectedRoute>} />
@@ -75,6 +77,7 @@ function App() {
             <Route path="/employee/reservas" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN', 'ROLE_EMPLOYEE']}><EmployeeReservas /></ProtectedRoute>} />
             <Route path="/employee/soporte" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN', 'ROLE_EMPLOYEE']}><EmployeeMensajesSoporte /></ProtectedRoute>} />
             <Route path="/employee/servicios" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN', 'ROLE_EMPLOYEE']}><EmployeeServicios /></ProtectedRoute>} />
+            <Route path="/employee/habitaciones" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN', 'ROLE_EMPLOYEE']}><EmployeeHabitaciones /></ProtectedRoute>} />
             <Route path="/employee/servicios-contratados" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN', 'ROLE_EMPLOYEE']}><EmployeeServiciosContratados /></ProtectedRoute>} />
             <Route path="/employee/servicios/contratar" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN', 'ROLE_EMPLOYEE']}><EmployeeContratarServicio /></ProtectedRoute>} />
 

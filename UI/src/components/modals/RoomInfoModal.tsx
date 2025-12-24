@@ -8,13 +8,15 @@ import {
     DialogDescription
 } from "../ui/dialog";
 import type { HabitacionDTO } from "../../types/api/Habitacion";
-import { getImageUrl } from "../../utils/imageUtils";
 import { Button } from "../ui/button";
 import { Users, Info, DollarSign, Tag, Calendar, CheckCircle2, XCircle, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { ClienteService } from "../../services/cliente.service";
 import type { ClienteDTO } from "../../types/api/Cliente";
+import type { ImagenDTO } from "../../types/api/Imagen";
+import { ImagenService } from "../../services/imagen.service";
+import { DetailsImageGallery } from "../common/DetailsImageGallery";
 import {
     Command,
     CommandEmpty,
@@ -79,8 +81,15 @@ export const RoomInfoModal = ({ room, isOpen, onClose }: RoomInfoModalProps) => 
             setEndDate('');
             setAvailabilityStatus('idle');
             setSelectedCliente(null);
+            setExtraImages([]);
+        } else if (room?.id) {
+            ImagenService.getImagens({ 'habitacionId.equals': room.id })
+                .then(res => setExtraImages(res.data))
+                .catch(err => console.error(err));
         }
-    }, [isOpen]);
+    }, [isOpen, room]);
+
+    const [extraImages, setExtraImages] = useState<ImagenDTO[]>([]);
 
     if (!room) return null;
 
@@ -162,15 +171,12 @@ export const RoomInfoModal = ({ room, isOpen, onClose }: RoomInfoModalProps) => 
                         Detalles de la habitación {room.numero} y consulta de disponibilidad.
                     </DialogDescription>
                     <div className="relative h-48 w-full flex-shrink-0">
-                    <img
-                        src={room.imagen ? getImageUrl(room.imagen) : '/placeholder-room.jpg'}
-                        alt={`Habitación ${room.numero}`}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                            e.currentTarget.src = '/placeholder-room.jpg';
-                        }}
+                    <DetailsImageGallery
+                        mainImage={room.imagen}
+                        extraImages={extraImages}
+                        className="w-full h-full"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none"></div>
                     <div className="absolute bottom-4 left-6">
                         <DialogTitle className="text-3xl font-bold text-white tracking-tight">
                             Habitación {room.numero}

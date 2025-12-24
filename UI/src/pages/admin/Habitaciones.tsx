@@ -17,7 +17,7 @@ import { PriceRangeFilter } from '@/components/common/PriceRangeFilter';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Filter } from 'lucide-react';
 
-export const AdminHabitaciones = () => {
+export const HabitacionesList = ({ canCreate = true, canEdit = true, canDelete = true }: { canCreate?: boolean; canEdit?: boolean; canDelete?: boolean; }) => {
     const [habitaciones, setHabitaciones] = useState<HabitacionDTO[]>([]);
     const [categorias, setCategorias] = useState<CategoriaHabitacionDTO[]>([]);
     const [estados, setEstados] = useState<EstadoHabitacionDTO[]>([]);
@@ -71,6 +71,7 @@ export const AdminHabitaciones = () => {
     };
 
     const handleToggleActivo = async (id: number, currentStatus: boolean | undefined) => {
+        if (!canEdit) return;
         try {
             if (currentStatus) {
                 await HabitacionService.desactivarHabitacion(id);
@@ -92,6 +93,7 @@ export const AdminHabitaciones = () => {
     };
 
     const handleEdit = (item: HabitacionDTO) => {
+        if (!canEdit) return;
         if (!item.activo) {
             toast.warning('No se puede editar una habitación inactiva');
             return;
@@ -101,11 +103,13 @@ export const AdminHabitaciones = () => {
     };
 
     const handleCreate = () => {
+        if (!canCreate) return;
         setCurrentHabitacion(null);
         setIsDialogOpen(true);
     };
 
     const handleDelete = async (id: number) => {
+        if (!canDelete) return;
         if (!confirm('¿Estás seguro de eliminar esta habitación?')) return;
         try {
             await HabitacionService.deleteHabitacion(id);
@@ -150,12 +154,14 @@ export const AdminHabitaciones = () => {
                 icon={Hotel}
             >
                 <div className="flex flex-col md:flex-row gap-4">
-                    <Button
-                        onClick={handleCreate}
-                        className="bg-yellow-600 hover:bg-yellow-700 text-white border-0 shadow-lg hover:shadow-yellow-600/20 transition-all rounded-sm px-6 py-4 md:py-6 text-xs md:text-sm uppercase tracking-widest font-bold"
-                    >
-                        <Plus className="mr-2 h-4 w-4 md:h-5 md:w-5" /> <span className="hidden md:inline">Nueva Habitación</span><span className="md:hidden">Nueva</span>
-                    </Button>
+                    {canCreate && (
+                        <Button
+                            onClick={handleCreate}
+                            className="bg-yellow-600 hover:bg-yellow-700 text-white border-0 shadow-lg hover:shadow-yellow-600/20 transition-all rounded-sm px-6 py-4 md:py-6 text-xs md:text-sm uppercase tracking-widest font-bold"
+                        >
+                            <Plus className="mr-2 h-4 w-4 md:h-5 md:w-5" /> <span className="hidden md:inline">Nueva Habitación</span><span className="md:hidden">Nueva</span>
+                        </Button>
+                    )}
                 </div>
             </PageHeader>
 
@@ -182,7 +188,7 @@ export const AdminHabitaciones = () => {
                                         />
                                     </div>
 
-                                    {/* Estado Filter */}
+                                    {/* Estado Filter - Only if can Edit, otherwise usually restricted? No, allow view inactive for employees too */}
                                     <div className="flex items-center gap-2 bg-background border border-border p-1 rounded-md h-10">
                                         <ActiveFilter
                                             showInactive={showInactive}
@@ -234,9 +240,9 @@ export const AdminHabitaciones = () => {
                                         <RoomCard
                                             key={h.id}
                                             habitacion={h}
-                                            onEdit={handleEdit}
-                                            onDelete={(id) => handleDelete(id)}
-                                            onToggleActive={handleToggleActivo}
+                                            onEdit={canEdit ? handleEdit : undefined}
+                                            onDelete={canDelete ? handleDelete : undefined}
+                                            onToggleActive={canEdit ? handleToggleActivo : undefined}
                                         />
                                     ))
                                 )}
@@ -267,4 +273,6 @@ export const AdminHabitaciones = () => {
         </div>
     );
 };
+
+export const AdminHabitaciones = () => <HabitacionesList />;
 
