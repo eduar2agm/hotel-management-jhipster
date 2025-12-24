@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -43,6 +43,7 @@ import { PaymentModal } from '../../components/modals/PaymentModal';
 
 export const AdminContratarServicio = ({ returnPath = '/admin/servicios-contratados' }: { returnPath?: string }) => {
     const navigate = useNavigate();
+    const location = useLocation();
     const [servicios, setServicios] = useState<ServicioDTO[]>([]);
     const [allReservas, setAllReservas] = useState<ReservaDTO[]>([]);
     const [openReservaCombobox, setOpenReservaCombobox] = useState(false);
@@ -73,13 +74,12 @@ export const AdminContratarServicio = ({ returnPath = '/admin/servicios-contrata
         const loadData = async () => {
             try {
                 const [serviciosRes, reservasRes] = await Promise.all([
-                    ServicioService.getServiciosDisponibles(),
+                    ServicioService.getServiciosDisponibles({ size: 100 }),
                     ReservaService.getReservas({ size: 200, sort: 'fechaInicio,desc' })
                 ]);
 
-                // Filtrar solo servicios de pago (no gratuitos)
-                const serviciosPago = serviciosRes.data.filter(s => s.tipo === TipoServicio.PAGO);
-                setServicios(serviciosPago);
+                // Mostrar todos los servicios disponibles (no filtrar solo pagos, ya que el usuario ya eligió uno)
+                setServicios(serviciosRes.data);
                 setAllReservas(reservasRes.data);
             } catch (error) {
                 console.error('Error loading data:', error);
@@ -88,6 +88,38 @@ export const AdminContratarServicio = ({ returnPath = '/admin/servicios-contrata
         };
         loadData();
     }, []);
+
+    // Effect to handle pre-selections from other pages (e.g. ServicesCarousel)
+    useEffect(() => {
+        if (servicios.length > 0 && allReservas.length > 0 && location.state) {
+            const state = location.state as any;
+            let updated = false;
+
+            if (state.preSelectedService) {
+                const s = servicios.find(srv => srv.id === state.preSelectedService.id);
+                if (s) {
+                    setSelectedServicio(s);
+                    form.setValue('servicioId', String(s.id));
+                    updated = true;
+                }
+            }
+
+            if (state.preSelectedReserva) {
+                const r = allReservas.find(re => re.id === state.preSelectedReserva.id);
+                if (r) {
+                    setSelectedReserva(r);
+                    form.setValue('reservaId', String(r.id));
+                    updated = true;
+                }
+            }
+
+            if (updated) {
+                // Clean state to avoid loops, but maybe keep it for reference? 
+                // Standard is to replace history state
+                navigate(location.pathname, { replace: true, state: {} });
+            }
+        }
+    }, [servicios, allReservas, location.state, navigate, form]);
 
     const handlePaymentSuccess = async () => {
         try {

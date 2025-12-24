@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import {
     Table,
@@ -19,6 +19,7 @@ import { type HabitacionDTO } from '../../types/api/Habitacion';
 import { toast } from 'sonner';
 import { Pencil, Plus, CalendarCheck, User, BedDouble, Eye, Search, CreditCard } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { ActiveFilter } from '@/components/ui/ActiveFilter';
 import { PaginationControl } from '@/components/common/PaginationControl';
 import { PageHeader } from '../../components/common/PageHeader';
@@ -53,6 +54,40 @@ export const EmployeeReservas = () => {
     // Filter State
     const [searchTerm, setSearchTerm] = useState('');
     const [showInactive, setShowInactive] = useState(false);
+
+    const location = useLocation();
+    const navigate = useNavigate();
+    const hasProcessedState = useRef(false);
+
+    // --- HANDLE REDIRECTION FROM HOMEPAGE (RoomInfoModal) ---
+    useEffect(() => {
+        const state = location.state as {
+            preSelectedRoom?: any;
+            startDate?: string;
+            endDate?: string;
+            preSelectedCliente?: any;
+        };
+
+        if (state?.preSelectedRoom && !hasProcessedState.current) {
+            hasProcessedState.current = true;
+
+            // Synthesize a dummy reservation object
+            const prefilledData = {
+                fechaInicio: state.startDate,
+                fechaFin: state.endDate,
+                clienteId: state.preSelectedCliente?.id,
+                cliente: state.preSelectedCliente,
+                roomIds: [state.preSelectedRoom.id]
+            };
+
+            setReservaToEdit(prefilledData as any);
+            setIsEditing(false); // We want "Nueva Reserva" mode but with data
+            setIsDialogOpen(true);
+
+            // Clean state
+            navigate(location.pathname, { replace: true, state: {} });
+        }
+    }, [location.state, location.pathname, navigate]);
 
     const handleViewDetails = (reserva: ReservaDTO) => {
         setSelectedReserva(reserva);

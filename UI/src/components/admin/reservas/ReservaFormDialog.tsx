@@ -103,11 +103,11 @@ export const ReservaFormDialog = ({
     // Reset Form on Open
     useEffect(() => {
         if (open) {
-            // Load base list of rooms (all or just available will be filtered by date watcher)
+            // Load base list of rooms
             HabitacionService.getHabitacions({ size: 100 }).then(res => setHabitaciones(res.data));
 
-            if (reserva) {
-                // Edit Mode: Load Details
+            if (reserva && reserva.id) {
+                // Edit Mode: Load Details from Backend
                 ReservaDetalleService.getReservaDetalles({ 'reservaId.equals': reserva.id })
                     .then(res => {
                         const roomIds = res.data.map(d => d.habitacion?.id).filter(id => id !== undefined) as number[];
@@ -122,8 +122,19 @@ export const ReservaFormDialog = ({
                         });
                     })
                     .catch(() => toast.error('Error cargando detalles de reserva'));
+            } else if (reserva) {
+                // Pre-filled Create Mode (Incoming from RoomInfoModal state)
+                form.reset({
+                    id: undefined,
+                    roomIds: (reserva as any).roomIds || [],
+                    fechaInicio: reserva.fechaInicio ? reserva.fechaInicio.split('T')[0] : '',
+                    fechaFin: reserva.fechaFin ? reserva.fechaFin.split('T')[0] : '',
+                    estado: reserva.estado || 'PENDIENTE',
+                    activo: true,
+                    clienteId: reserva.clienteId || 0
+                });
             } else {
-                // Create Mode
+                // Standard Create Mode
                 form.reset({
                     roomIds: [],
                     fechaInicio: '',
