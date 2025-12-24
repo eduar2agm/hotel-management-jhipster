@@ -35,6 +35,23 @@ export const useMessageNotifications = () => {
     };
 
     /**
+     * Map API message to NotificationData
+     */
+    const mapToNotification = (message: any): NotificationData => ({
+        id: `msg-${message.id}`,
+        title: message.remitente === Remitente.CLIENTE
+            ? `Nuevo mensaje de ${message.userName || 'Cliente'}`
+            : message.remitente === Remitente.SISTEMA
+                ? 'Mensaje del Sistema'
+                : 'Nuevo mensaje de Soporte',
+        message: message.mensaje?.substring(0, 100) || 'Mensaje nuevo',
+        timestamp: new Date(message.fechaMensaje || new Date()),
+        read: !!message.leido,
+        type: message.remitente === Remitente.SISTEMA ? 'system' : 'message',
+        conversationId: message.userId
+    });
+
+    /**
      * Check for new messages and create notifications
      */
     const checkForNewMessages = async () => {
@@ -70,18 +87,44 @@ export const useMessageNotifications = () => {
             }
 
             // Process new messages
-            if (newMessages.length > 0 && hasInitialized.current) {
+            if (newMessages.length > 0) {
                 const latestMessage = newMessages[0];
+                const latestId = latestMessage.id;
 
-                // Only notify if this is a truly new message (not from initial load)
-                if (lastMessageIdRef.current && latestMessage.id !== lastMessageIdRef.current) {
+                // Convert server messages to notifications
+                const serverNotifications = newMessages.map(mapToNotification);
+
+                // Update notifications state properly merging with existing
+                setNotifications(prev => {
+                    const existingMap = new Map(prev.map(n => [n.id, n]));
+
+                    let hasChanges = false;
+                    serverNotifications.forEach(n => {
+                        if (!existingMap.has(n.id)) {
+                            existingMap.set(n.id, n);
+                            hasChanges = true;
+                            // Also cache it
+                            NotificationService.cacheNotification(n);
+                        }
+                    });
+
+                    if (!hasChanges) return prev;
+
+                    return Array.from(existingMap.values())
+                        .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+                });
+
+                // Handle Notification/Sound for THE New Message
+                // We only notify if it's strictly NEWER than the last one we saw in this session
+                if (hasInitialized.current && latestId !== lastMessageIdRef.current) {
                     await handleNewMessage(latestMessage);
                 }
 
-                lastMessageIdRef.current = latestMessage.id || null;
-            } else if (newMessages.length > 0) {
-                // Just update the ref on initial load
-                lastMessageIdRef.current = newMessages[0].id || null;
+                // Update ref
+                lastMessageIdRef.current = latestId;
+
+            } else {
+                // No unread messages on server.
             }
 
             // Mark as initialized after first check
@@ -93,32 +136,16 @@ export const useMessageNotifications = () => {
         }
     };
 
+    // Update unread count when notifications change
+    useEffect(() => {
+        updateUnreadCount(notifications);
+    }, [notifications]);
+
     /**
      * Handle a new message notification
      */
     const handleNewMessage = async (message: any) => {
-        // Create notification data
-        const notification: NotificationData = {
-            id: `msg-${message.id}-${Date.now()}`,
-            title: message.remitente === Remitente.CLIENTE
-                ? `Nuevo mensaje de ${message.userName || 'Cliente'}`
-                : message.remitente === Remitente.SISTEMA
-                    ? 'Mensaje del Sistema'
-                    : 'Nuevo mensaje de Soporte',
-            message: message.mensaje?.substring(0, 100) || 'Mensaje nuevo',
-            timestamp: new Date(message.fechaMensaje || new Date()),
-            read: false,
-            type: message.remitente === Remitente.SISTEMA ? 'system' : 'message',
-            conversationId: message.userId
-        };
-
-        // Cache the notification
-        NotificationService.cacheNotification(notification);
-
-        // Update local state
-        const updatedNotifications = [notification, ...notifications];
-        setNotifications(updatedNotifications);
-        updateUnreadCount(updatedNotifications);
+        const notification = mapToNotification(message);
 
         // Play notification sound
         NotificationService.playNotificationSound();
@@ -147,23 +174,42 @@ export const useMessageNotifications = () => {
     /**
      * Mark notification as read
      */
-    const markNotificationAsRead = (notificationId: string) => {
+    const markNotificationAsRead = async (notificationId: string) => {
+        // Optimistic update
         NotificationService.markAsRead(notificationId);
         const updated = notifications.map(n =>
             n.id === notificationId ? { ...n, read: true } : n
         );
         setNotifications(updated);
-        updateUnreadCount(updated);
+
+        // Update backend
+        try {
+            const numericId = parseInt(notificationId.replace('msg-', ''), 10);
+            if (!isNaN(numericId)) {
+                await MensajeSoporteService.partialUpdateMensaje(numericId, { leido: true });
+            }
+        } catch (error) {
+            console.error('Error marking message as read on backend:', error);
+        }
     };
 
     /**
      * Mark all notifications as read
      */
-    const markAllAsRead = () => {
+    const markAllAsRead = async () => {
         NotificationService.markAllAsRead();
         const updated = notifications.map(n => ({ ...n, read: true }));
         setNotifications(updated);
-        updateUnreadCount(updated);
+
+        // Update backend for all unread messages
+        const unreadIds = notifications
+            .filter(n => !n.read)
+            .map(n => parseInt(n.id.replace('msg-', ''), 10))
+            .filter(id => !isNaN(id));
+
+        unreadIds.forEach(id => {
+            MensajeSoporteService.partialUpdateMensaje(id, { leido: true }).catch(console.error);
+        });
     };
 
     /**

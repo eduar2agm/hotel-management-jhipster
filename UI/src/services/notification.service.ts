@@ -18,9 +18,45 @@ const MAX_CACHED_NOTIFICATIONS = 50;
 
 class NotificationServiceClass {
     private permissionGranted = false;
+    private audioContext: AudioContext | null = null;
 
     constructor() {
         this.checkPermission();
+        this.setupAudioUnlock();
+    }
+
+    /**
+     * Setup listeners to unlock audio context on first interaction
+     */
+    private setupAudioUnlock() {
+        const unlock = () => {
+            if (this.audioContext && this.audioContext.state === 'suspended') {
+                this.audioContext.resume();
+            } else if (!this.audioContext) {
+                this.getAudioContext(); // Initialize it
+            }
+
+            // Remove listeners once assumed unlocked/initialized
+            document.removeEventListener('click', unlock);
+            document.removeEventListener('touchstart', unlock);
+            document.removeEventListener('keydown', unlock);
+        };
+
+        if (typeof window !== 'undefined') {
+            document.addEventListener('click', unlock);
+            document.addEventListener('touchstart', unlock);
+            document.addEventListener('keydown', unlock);
+        }
+    }
+
+    /**
+     * Get or create AudioContext
+     */
+    private getAudioContext(): AudioContext {
+        if (!this.audioContext) {
+            this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+        }
+        return this.audioContext;
     }
 
     /**
@@ -83,23 +119,34 @@ class NotificationServiceClass {
      */
     playNotificationSound(): void {
         try {
-            // Create a subtle notification sound using AudioContext
-            const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
+            const ctx = this.getAudioContext();
+
+            // Ensure context is running
+            if (ctx.state === 'suspended') {
+                ctx.resume();
+            }
+
+            const now = ctx.currentTime;
+
+            // Create oscillator and gain node
+            const oscillator = ctx.createOscillator();
+            const gainNode = ctx.createGain();
 
             oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
+            gainNode.connect(ctx.destination);
 
-            // Subtle bell-like sound
-            oscillator.frequency.value = 800;
+            // "Ding" - High pitch
             oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(880, now); // A5
+            oscillator.frequency.exponentialRampToValueAtTime(500, now + 0.5);
 
-            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+            // Volume envelope
+            gainNode.gain.setValueAtTime(0.5, now);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
 
-            oscillator.start(audioContext.currentTime);
-            oscillator.stop(audioContext.currentTime + 0.3);
+            oscillator.start(now);
+            oscillator.stop(now + 0.5);
+
         } catch (error) {
             console.error('Error playing notification sound:', error);
         }
@@ -132,11 +179,14 @@ class NotificationServiceClass {
         try {
             const cached = this.getCachedNotifications();
 
+            // Remove if exists to avoid duplicates
+            const filtered = cached.filter(n => n.id !== notification.id);
+
             // Add new notification at the beginning
-            cached.unshift(notification);
+            filtered.unshift(notification);
 
             // Keep only the most recent notifications
-            const trimmed = cached.slice(0, MAX_CACHED_NOTIFICATIONS);
+            const trimmed = filtered.slice(0, MAX_CACHED_NOTIFICATIONS);
 
             localStorage.setItem(NOTIFICATION_CACHE_KEY, JSON.stringify(trimmed));
         } catch (error) {
