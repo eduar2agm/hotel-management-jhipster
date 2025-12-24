@@ -5,6 +5,11 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
 
     <changeSet id="20251224100000-1" author="system">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="configuracion_sistema_backup"/>
+            </not>
+        </preConditions>
         <comment>Agregar plantillas de mensajes de notificaciones automáticas</comment>
 
         <!-- MENSAJES DE RESERVAS -->
@@ -124,12 +129,5 @@
             <column name="tipo" value="MENSAJE"/>
             <column name="activo" value="true"/>
         </insert>
-
-        <!-- Previene errores si ya existen -->
-        <preConditions onFail="MARK_RAN">
-            <not>
-                <tableExists tableName="configuracion_sistema_backup"/>
-            </not>
-        </preConditions>
     </changeSet>
 </databaseChangeLog>
