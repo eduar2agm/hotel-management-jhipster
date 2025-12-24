@@ -200,6 +200,7 @@ public class ReservaDetalleResource {
             @org.springdoc.core.annotations.ParameterObject Pageable pageable,
             @RequestParam(name = "eagerload", required = false, defaultValue = "true") boolean eagerload,
             @RequestParam(name = "reservaId.equals", required = false) Long reservaId,
+            @RequestParam(name = "habitacionId.equals", required = false) Long habitacionId,
             @RequestParam(name = "activo", required = false) Boolean activo) {
         LOG.debug("REST request to get a page of ReservaDetalles");
         Page<ReservaDetalleDTO> page;
@@ -215,6 +216,8 @@ public class ReservaDetalleResource {
             });
 
             page = reservaDetalleService.findAllByReservaId(reservaId, pageable);
+        } else if (habitacionId != null) {
+            page = reservaDetalleService.findAllByHabitacionId(habitacionId, pageable);
         } else if (eagerload) {
             // Default to active=true even for eager load, since 'activo' is null here
             page = reservaDetalleService.findByActivoWithEagerRelationships(true, pageable);

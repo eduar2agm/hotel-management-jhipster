@@ -63,4 +63,12 @@ public interface ReservaDetalleRepository extends JpaRepository<ReservaDetalle, 
             "and rd.reserva.fechaFin >= :fechaInicio")
     List<Long> findOccupiedHabitacionIds(@Param("fechaInicio") java.time.Instant fechaInicio,
             @Param("fechaFin") java.time.Instant fechaFin);
+
+    @Query("select reservaDetalle from ReservaDetalle reservaDetalle " +
+            "left join fetch reservaDetalle.habitacion h " +
+            "left join fetch h.categoriaHabitacion " +
+            "left join fetch reservaDetalle.reserva r " +
+            "left join fetch r.cliente " +
+            "where reservaDetalle.habitacion.id = :habitacionId")
+    Page<ReservaDetalle> findAllByHabitacionId(@Param("habitacionId") Long habitacionId, Pageable pageable);
 }

@@ -109,4 +109,11 @@ public class ReservaDetalleServiceImpl implements ReservaDetalleService {
         return reservaDetalleRepository.findByActivoWithEagerRelationships(activo, pageable)
                 .map(reservaDetalleMapper::toDto);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ReservaDetalleDTO> findAllByHabitacionId(Long habitacionId, Pageable pageable) {
+        LOG.debug("Request to get all ReservaDetalles by habitacionId : {}", habitacionId);
+        return reservaDetalleRepository.findAllByHabitacionId(habitacionId, pageable).map(reservaDetalleMapper::toDto);
+    }
 }
