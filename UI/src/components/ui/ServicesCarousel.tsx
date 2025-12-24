@@ -174,10 +174,6 @@ export const ServicesCarousel = () => {
             </style>
 
             <div className="relative w-full max-w-[1920px] mx-auto">
-                <div className="text-center mb-10">
-                    <h2 className="text-3xl font-bold text-white uppercase tracking-widest">Nuestros Servicios</h2>
-                    <p className="text-gray-400 mt-2">Experiencias únicas para tu estancia</p>
-                </div>
 
                 {/* Gradient Masks */}
                 <div className="absolute left-0 top-0 bottom-0 w-20 z-10 bg-gradient-to-r from-gray-900 to-transparent pointer-events-none"></div>

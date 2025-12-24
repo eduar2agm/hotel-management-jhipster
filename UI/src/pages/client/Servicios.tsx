@@ -479,7 +479,7 @@ export const Servicios = () => {
             </div>
 
             <div>
-              <h4 className="font-semibold text-gray-900 mb-3">Disponibilidad</h4>
+              <h4 className="font-semibold text-foreground mb-3">Disponibilidad</h4>
               {loadingDisponibilidades ? (
                 <div className="flex items-center justify-center py-4">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-600"></div>
