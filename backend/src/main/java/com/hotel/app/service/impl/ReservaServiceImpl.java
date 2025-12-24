@@ -332,7 +332,7 @@ public class ReservaServiceImpl implements ReservaService {
     }
 
     private void sendWelcomeMessage(Reserva reserva) {
-        if (reserva.getCliente() != null) {
+        if (reserva.getCliente() != null && reserva.getCliente().getKeycloakId() != null) {
             String msgText = "👋 ¡Bienvenido a nuestro servicio de soporte!\n\nEstamos aquí para ayudarle con cualquier consulta o necesidad durante su estancia.\n\nNormalmente respondemos en pocos minutos.";
 
             // Try to fetch custom welcome message template

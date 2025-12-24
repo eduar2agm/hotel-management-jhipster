@@ -36,48 +36,89 @@ export function DetailsImageGallery({
             src = getImageUrl(img.nombreArchivo);
         }
 
-        // Add if valid src and not a duplicate of main image
-        if (src && src !== mainImageSrc) {
-            images.push({ id: img.id || `extra-${idx}`, src });
+        if (src) {
+            const getFilename = (path: string) => path.split('/').pop()?.split('?')[0] || '';
+            const srcFilename = getFilename(decodeURIComponent(src));
+            const mainFilename = mainImageSrc ? getFilename(decodeURIComponent(mainImageSrc)) : '';
+
+            // Check for exact match OR filename match (ignoring folder structure differences which often cause duplicates)
+            const isDuplicate = mainImageSrc && (
+                src === mainImageSrc ||
+                decodeURIComponent(src).trim() === decodeURIComponent(mainImageSrc).trim() ||
+                (srcFilename && mainFilename && srcFilename === mainFilename)
+            );
+
+            if (!isDuplicate) {
+                images.push({ id: img.id || `extra-${idx}`, src });
+            }
         }
     });
 
+    const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isPlaying, setIsPlaying] = useState(autoPlay);
 
-    // Reset index if images array changes or shrinks
-    if (currentIndex >= images.length && images.length > 0) {
-        setCurrentIndex(0);
-    }
+    // Filter out failed images from the display list
+    const validImages = images.filter(img => !failedImages.has(img.src));
 
+    // Reset index if validImages shrinks or current index is out of bounds
+    useEffect(() => {
+        if (currentIndex >= validImages.length && validImages.length > 0) {
+            setCurrentIndex(0);
+        }
+    }, [validImages.length, currentIndex]);
 
     useEffect(() => {
         let interval: any;
-        if (isPlaying && images.length > 1) {
+        if (isPlaying && validImages.length > 1) {
             interval = setInterval(() => {
-                setCurrentIndex((prev) => (prev + 1) % images.length);
+                setCurrentIndex((prev) => (prev + 1) % validImages.length);
             }, autoPlayInterval);
         }
         return () => clearInterval(interval);
-    }, [isPlaying, images.length, autoPlayInterval]);
+    }, [isPlaying, validImages.length, autoPlayInterval]);
 
     const handleNext = () => {
-        setCurrentIndex((prev) => (prev + 1) % images.length);
-        setIsPlaying(false); // Stop autoplay on interaction
+        if (validImages.length === 0) return;
+        setCurrentIndex((prev) => (prev + 1) % validImages.length);
+        setIsPlaying(false);
     };
 
     const handlePrev = () => {
-        setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
-        setIsPlaying(false); // Stop autoplay on interaction
+        if (validImages.length === 0) return;
+        setCurrentIndex((prev) => (prev - 1 + validImages.length) % validImages.length);
+        setIsPlaying(false);
     };
 
-    if (images.length === 0) {
+    const handleImageError = (src: string) => {
+        console.warn("Image failed to load:", src);
+        setFailedImages(prev => {
+            const next = new Set(prev);
+            next.add(src);
+            return next;
+        });
+        // If the current image failed, try to move to the next one immediately if possible
+        if (validImages.length > 1) {
+            setCurrentIndex((prev) => (prev + 1) % (validImages.length - 1));
+        }
+    };
+
+    if (validImages.length === 0) {
+        // If we have "images" originally but all failed, maybe show Main anyway with a placeholder or just the empty state?
+        // If we really have no images (or all failed), show placeholder.
         return (
             <div className={`flex items-center justify-center bg-muted text-muted-foreground rounded-lg overflow-hidden ${className}`}>
+                {/* Only attempt to show the first image if it exists to trigger potential load (and then fail), 
+                    but since we filter validImages, we just show placeholder here. */}
                 <ImageIcon className="h-12 w-12 opacity-50" />
             </div>
         );
     }
+
+    const currentImage = validImages[currentIndex];
+
+    // Safety check in case render happens before effect resets index
+    if (!currentImage) return null;
 
     return (
         <div
@@ -85,15 +126,15 @@ export function DetailsImageGallery({
             onMouseEnter={() => setIsPlaying(false)}
             onMouseLeave={() => setIsPlaying(autoPlay)}
         >
-            {images[currentIndex] && (
-                <img
-                    src={images[currentIndex].src}
-                    alt="Gallery"
-                    className="w-full h-full object-cover transition-all duration-500"
-                />
-            )}
+            <img
+                key={currentImage.src} // Key helps React remount if src changes
+                src={currentImage.src}
+                alt="Gallery"
+                onError={() => handleImageError(currentImage.src)}
+                className="w-full h-full object-cover transition-all duration-500"
+            />
 
-            {images.length > 1 && (
+            {validImages.length > 1 && (
                 <>
                     <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-60 pointer-events-none" />
 
@@ -117,7 +158,7 @@ export function DetailsImageGallery({
 
                     <div className="absolute bottom-3 left-0 right-0 z-10 flex flex-col items-center gap-2">
                         <div className="flex justify-center gap-1.5 px-4 backdrop-blur-sm bg-black/20 p-1.5 rounded-full">
-                            {images.map((_, idx) => (
+                            {validImages.map((_, idx) => (
                                 <button
                                     key={idx}
                                     onClick={() => { setCurrentIndex(idx); setIsPlaying(false); }}
