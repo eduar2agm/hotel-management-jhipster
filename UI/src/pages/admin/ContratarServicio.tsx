@@ -34,7 +34,7 @@ const contratoSchema = z.object({
     reservaId: z.string().min(1, 'Debe seleccionar una reserva'),
     servicioId: z.string().min(1, 'Debe seleccionar un servicio'),
     cantidad: z.number().min(1, 'La cantidad mínima es 1'),
-    observaciones: z.string().optional()
+    observaciones: z.string().max(500, 'Máximo 500 caracteres').optional()
 });
 
 type ContratoFormValues = z.infer<typeof contratoSchema>;
@@ -189,9 +189,14 @@ export const AdminContratarServicio = ({ returnPath = '/admin/servicios-contrata
             toast.success('Servicios registrados. Proceda al pago.');
             setIsPaymentModalOpen(true);
 
-        } catch (error) {
+        } catch (error: any) {
             console.error(error);
-            toast.error('Error al contratar servicio.');
+            const problem = error.response?.data;
+            if (problem?.message === 'error.reservanotactive' || problem?.title === 'Reservation is not confirmed or checked-in') {
+                toast.error('No se puede contratar servicios. La reserva debe estar confirmada o en check-in.');
+            } else {
+                toast.error('Error al contratar servicio.');
+            }
         }
     };
 
@@ -402,7 +407,15 @@ export const AdminContratarServicio = ({ returnPath = '/admin/servicios-contrata
                                         <FormItem>
                                             <FormLabel className="text-sm font-bold text-foreground">Observaciones</FormLabel>
                                             <FormControl>
-                                                <Input placeholder="Comentarios adicionales..." {...field} />
+                                                <div className="relative">
+                                                    <Input placeholder="Comentarios adicionales..." maxLength={500} {...field} />
+                                                    <div className="flex justify-end gap-2 mt-1">
+                                                        <span className={cn("text-[10px]", (field.value?.length || 0) >= 500 ? "text-red-500 font-bold" : "text-muted-foreground")}>
+                                                            {(field.value?.length || 0) >= 500 ? '¡Límite alcanzado! ' : ''}
+                                                            {field.value?.length || 0}/500
+                                                        </span>
+                                                    </div>
+                                                </div>
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>

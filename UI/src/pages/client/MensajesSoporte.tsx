@@ -176,7 +176,14 @@ export const ClientMensajesSoporte = () => {
                                 placeholder="Escriba su mensaje aquí..."
                                 className="min-h-[50px] max-h-[120px] bg-muted border-border resize-none focus:bg-background focus:ring-yellow-500/20 focus:border-yellow-500 transition-all text-foreground placeholder:text-muted-foreground"
                                 disabled={sending}
+                                maxLength={4096}
                             />
+                            <div className="flex justify-end gap-2 mt-1 px-1">
+                                <span className={`text-[10px] ${(inputText.length || 0) >= 4096 ? "text-red-500 font-bold" : "text-muted-foreground"}`}>
+                                    {(inputText.length || 0) >= 4096 ? '¡Límite alcanzado! ' : ''}
+                                    {inputText.length || 0}/4096
+                                </span>
+                            </div>
                             <Button
                                 onClick={handleSend}
                                 disabled={!inputText.trim() || sending}

@@ -35,8 +35,8 @@ import { DetailsImageGallery } from '../../components/common/DetailsImageGallery
 
 const servicioSchema = z.object({
     id: z.number().optional(),
-    nombre: z.string().min(1, 'Nombre es requerido'),
-    descripcion: z.string().optional().or(z.literal('')),
+    nombre: z.string().min(1, 'Nombre es requerido').max(100, 'Máximo 100 caracteres'),
+    descripcion: z.string().max(1000, 'Máximo 1000 caracteres').optional().or(z.literal('')),
     tipo: z.nativeEnum(TipoServicio).default(TipoServicio.PAGO),
     precio: z.coerce.number().min(0, 'Precio no puede ser negativo'),
     disponible: z.boolean().default(true),
@@ -378,7 +378,15 @@ export const ServiciosList = ({ readOnly = false }: { readOnly?: boolean }) => {
                                                 <FormItem>
                                                     <FormLabel className="text-xs font-bold text-gray-500 uppercase tracking-widest">Nombre</FormLabel>
                                                     <FormControl>
-                                                        <Input placeholder="Ej: Spa Completo" className="h-9" {...field} />
+                                                        <div className="relative">
+                                                            <Input placeholder="Ej: Spa Completo" className="h-9" maxLength={100} {...field} />
+                                                            <div className="flex justify-end gap-2 mt-1">
+                                                                <span className={cn("text-[10px]", (field.value?.length || 0) >= 100 ? "text-red-500 font-bold" : "text-muted-foreground")}>
+                                                                    {(field.value?.length || 0) >= 100 ? '¡Límite alcanzado! ' : ''}
+                                                                    {field.value?.length || 0}/100
+                                                                </span>
+                                                            </div>
+                                                        </div>
                                                     </FormControl>
                                                     <FormMessage />
                                                 </FormItem>
@@ -392,11 +400,20 @@ export const ServiciosList = ({ readOnly = false }: { readOnly?: boolean }) => {
                                                 <FormItem>
                                                     <FormLabel className="text-xs font-bold text-gray-500 uppercase tracking-widest">Descripción</FormLabel>
                                                     <FormControl>
-                                                        <Textarea
-                                                            placeholder="Detalles del servicio..."
-                                                            className="resize-none h-20"
-                                                            {...field}
-                                                        />
+                                                        <div className="relative">
+                                                            <Textarea
+                                                                placeholder="Detalles del servicio..."
+                                                                className="resize-none h-20"
+                                                                maxLength={1000}
+                                                                {...field}
+                                                            />
+                                                            <div className="flex justify-end gap-2 mt-1">
+                                                                <span className={cn("text-[10px]", (field.value?.length || 0) >= 1000 ? "text-red-500 font-bold" : "text-muted-foreground")}>
+                                                                    {(field.value?.length || 0) >= 1000 ? '¡Límite alcanzado! ' : ''}
+                                                                    {field.value?.length || 0}/1000
+                                                                </span>
+                                                            </div>
+                                                        </div>
                                                     </FormControl>
                                                     <FormMessage />
                                                 </FormItem>

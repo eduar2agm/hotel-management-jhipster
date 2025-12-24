@@ -155,9 +155,17 @@ class NotificationServiceClass {
     /**
      * Get cached notifications from localStorage
      */
-    getCachedNotifications(): NotificationData[] {
+    private getCacheKey(userId: string): string {
+        return `${NOTIFICATION_CACHE_KEY}_${userId}`;
+    }
+
+    /**
+     * Get cached notifications from localStorage for specific user
+     */
+    getCachedNotifications(userId: string): NotificationData[] {
+        if (!userId) return [];
         try {
-            const cached = localStorage.getItem(NOTIFICATION_CACHE_KEY);
+            const cached = localStorage.getItem(this.getCacheKey(userId));
             if (!cached) return [];
 
             const notifications = JSON.parse(cached);
@@ -175,9 +183,10 @@ class NotificationServiceClass {
     /**
      * Save notification to cache
      */
-    cacheNotification(notification: NotificationData): void {
+    cacheNotification(notification: NotificationData, userId: string): void {
+        if (!userId) return;
         try {
-            const cached = this.getCachedNotifications();
+            const cached = this.getCachedNotifications(userId);
 
             // Remove if exists to avoid duplicates
             const filtered = cached.filter(n => n.id !== notification.id);
@@ -188,7 +197,7 @@ class NotificationServiceClass {
             // Keep only the most recent notifications
             const trimmed = filtered.slice(0, MAX_CACHED_NOTIFICATIONS);
 
-            localStorage.setItem(NOTIFICATION_CACHE_KEY, JSON.stringify(trimmed));
+            localStorage.setItem(this.getCacheKey(userId), JSON.stringify(trimmed));
         } catch (error) {
             console.error('Error caching notification:', error);
         }
@@ -197,13 +206,14 @@ class NotificationServiceClass {
     /**
      * Mark notification as read
      */
-    markAsRead(notificationId: string): void {
+    markAsRead(notificationId: string, userId: string): void {
+        if (!userId) return;
         try {
-            const cached = this.getCachedNotifications();
+            const cached = this.getCachedNotifications(userId);
             const updated = cached.map(n =>
                 n.id === notificationId ? { ...n, read: true } : n
             );
-            localStorage.setItem(NOTIFICATION_CACHE_KEY, JSON.stringify(updated));
+            localStorage.setItem(this.getCacheKey(userId), JSON.stringify(updated));
         } catch (error) {
             console.error('Error marking notification as read:', error);
         }
@@ -212,11 +222,12 @@ class NotificationServiceClass {
     /**
      * Mark all notifications as read
      */
-    markAllAsRead(): void {
+    markAllAsRead(userId: string): void {
+        if (!userId) return;
         try {
-            const cached = this.getCachedNotifications();
+            const cached = this.getCachedNotifications(userId);
             const updated = cached.map(n => ({ ...n, read: true }));
-            localStorage.setItem(NOTIFICATION_CACHE_KEY, JSON.stringify(updated));
+            localStorage.setItem(this.getCacheKey(userId), JSON.stringify(updated));
         } catch (error) {
             console.error('Error marking all notifications as read:', error);
         }
@@ -225,9 +236,10 @@ class NotificationServiceClass {
     /**
      * Clear all cached notifications
      */
-    clearCache(): void {
+    clearCache(userId: string): void {
+        if (!userId) return;
         try {
-            localStorage.removeItem(NOTIFICATION_CACHE_KEY);
+            localStorage.removeItem(this.getCacheKey(userId));
         } catch (error) {
             console.error('Error clearing notification cache:', error);
         }
@@ -236,8 +248,9 @@ class NotificationServiceClass {
     /**
      * Get unread notification count
      */
-    getUnreadCount(): number {
-        const cached = this.getCachedNotifications();
+    getUnreadCount(userId: string): number {
+        if (!userId) return 0;
+        const cached = this.getCachedNotifications(userId);
         return cached.filter(n => !n.read).length;
     }
 }

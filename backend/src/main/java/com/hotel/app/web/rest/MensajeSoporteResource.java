@@ -209,7 +209,7 @@ public class MensajeSoporteResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list
      *         of mensajeSoportes in body.
      */
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_EMPLOYEE', 'ROLE_CLIENT')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_EMPLOYEE')")
     @GetMapping("")
     public ResponseEntity<List<MensajeSoporteDTO>> getAllMensajeSoportes(
             @org.springdoc.core.annotations.ParameterObject Pageable pageable,
@@ -272,17 +272,20 @@ public class MensajeSoporteResource {
             userId = jwt.getSubject(); // This is the Keycloak UUID
         }
 
-        // Check if user is a client - if so, only show their direct messages
-        boolean isClient = authentication.getAuthorities().stream()
-                .anyMatch(auth -> auth.getAuthority().equals("ROLE_CLIENT"));
+        // Check if user is support staff (Admin or Employee)
+        // If so, they can see messages assigned to them AND unassigned messages
+        boolean isSupportStaff = authentication.getAuthorities().stream()
+                .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN")
+                        || auth.getAuthority().equals("ROLE_EMPLOYEE"));
 
         Page<MensajeSoporteDTO> page;
-        if (isClient) {
-            // Clients only see messages they sent or received directly
-            page = mensajeSoporteService.findByUserIdOnly(userId, pageable);
-        } else {
+        if (isSupportStaff) {
             // Admin/Employee see all support messages including unassigned ones
             page = mensajeSoporteService.findByUserId(userId, pageable);
+        } else {
+            // Clients (and others) only see messages they sent or received directly
+            // This prevents them from seeing "unassigned" messages meant for support
+            page = mensajeSoporteService.findByUserIdOnly(userId, pageable);
         }
 
         HttpHeaders headers = PaginationUtil

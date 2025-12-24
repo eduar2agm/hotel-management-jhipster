@@ -30,9 +30,9 @@ import { Switch } from '@/components/ui/switch';
 
 const habitacionSchema = z.object({
     id: z.number().optional(),
-    numero: z.string().min(1, 'Número es requerido'),
+    numero: z.string().min(1, 'Número es requerido').max(50, 'Máximo 50 caracteres'),
     capacidad: z.coerce.number().min(1, 'Capacidad mínima es 1').max(20, 'Capacidad máxima es 20'),
-    descripcion: z.string().optional().or(z.literal('')),
+    descripcion: z.string().max(255, 'Máximo 255 caracteres').optional().or(z.literal('')),
     imagen: z.string().optional().or(z.literal('')),
     activo: z.boolean().default(true),
     categoriaHabitacionId: z.string().min(1, 'Categoría es requerida'),
@@ -207,7 +207,15 @@ export const HabitacionFormDialog = ({
                                         <FormItem>
                                             <FormLabel className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Número</FormLabel>
                                             <FormControl>
-                                                <Input placeholder="101" className="h-9 font-mono" {...field} />
+                                                <div className="relative">
+                                                    <Input placeholder="101" className="h-9 font-mono" maxLength={50} {...field} />
+                                                    <div className="flex justify-end gap-2 mt-1">
+                                                        <span className={cn("text-[10px]", (field.value?.length || 0) >= 50 ? "text-red-500 font-bold" : "text-muted-foreground")}>
+                                                            {(field.value?.length || 0) >= 50 ? '¡Límite alcanzado! ' : ''}
+                                                            {field.value?.length || 0}/50
+                                                        </span>
+                                                    </div>
+                                                </div>
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -427,11 +435,20 @@ export const HabitacionFormDialog = ({
                                     <FormItem>
                                         <FormLabel className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Descripción</FormLabel>
                                         <FormControl>
-                                            <Textarea
-                                                placeholder="Características de la habitación..."
-                                                className="resize-none h-20"
-                                                {...field}
-                                            />
+                                            <div className="relative">
+                                                <Textarea
+                                                    placeholder="Características de la habitación..."
+                                                    className="resize-none h-20"
+                                                    maxLength={255}
+                                                    {...field}
+                                                />
+                                                <div className="flex justify-end gap-2 mt-1">
+                                                    <span className={cn("text-[10px]", (field.value?.length || 0) >= 255 ? "text-red-500 font-bold" : "text-muted-foreground")}>
+                                                        {(field.value?.length || 0) >= 255 ? '¡Límite alcanzado! ' : ''}
+                                                        {field.value?.length || 0}/255
+                                                    </span>
+                                                </div>
+                                            </div>
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>

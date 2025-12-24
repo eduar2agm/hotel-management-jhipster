@@ -51,7 +51,7 @@ export const SistemaTab = () => {
                 sort: 'id,asc'
             });
             setConfiguraciones(res.data);
-            
+
             const imgRes = await ImagenService.getImagens({ size: 1000 });
             setImagenes(imgRes.data);
         } catch (error) {
@@ -155,7 +155,13 @@ export const SistemaTab = () => {
                     <form onSubmit={handleSave} className="grid gap-4 py-4">
                         <div className="grid gap-2">
                             <Label>Clave Única</Label>
-                            <Input value={currentSys.clave || ''} onChange={e => setCurrentSys({ ...currentSys, clave: e.target.value })} placeholder="hotel_name" required />
+                            <Input value={currentSys.clave || ''} onChange={e => setCurrentSys({ ...currentSys, clave: e.target.value })} placeholder="hotel_name" required maxLength={100} />
+                            <div className="flex justify-end gap-2 mt-1">
+                                <span className={`text-[10px] ${(currentSys.clave?.length || 0) >= 100 ? "text-red-500 font-bold" : "text-gray-400"}`}>
+                                    {(currentSys.clave?.length || 0) >= 100 ? '¡Límite alcanzado! ' : ''}
+                                    {currentSys.clave?.length || 0}/100
+                                </span>
+                            </div>
                         </div>
                         <div className="grid gap-2">
                             <Label>Tipo</Label>
@@ -171,7 +177,13 @@ export const SistemaTab = () => {
                         </div>
                         <div className="grid gap-2">
                             <Label>Valor</Label>
-                            <Input value={currentSys.valor || ''} onChange={e => setCurrentSys({ ...currentSys, valor: e.target.value })} placeholder="Valor de la config" />
+                            <Input value={currentSys.valor || ''} onChange={e => setCurrentSys({ ...currentSys, valor: e.target.value })} placeholder="Valor de la config" maxLength={2000} />
+                            <div className="flex justify-end gap-2 mt-1">
+                                <span className={`text-[10px] ${(currentSys.valor?.length || 0) >= 2000 ? "text-red-500 font-bold" : "text-gray-400"}`}>
+                                    {(currentSys.valor?.length || 0) >= 2000 ? '¡Límite alcanzado! ' : ''}
+                                    {currentSys.valor?.length || 0}/2000
+                                </span>
+                            </div>
                         </div>
                         <div className="grid gap-2">
                             <Label>Imagen (Opcional si tipo es IMAGE)</Label>
@@ -190,8 +202,8 @@ export const SistemaTab = () => {
                             </Select>
                         </div>
                         <DialogFooter>
-                             <Button type="button" variant="ghost" onClick={() => setIsDialogOpen(false)}>Cancelar</Button>
-                             <Button type="submit" className="bg-indigo-600 hover:bg-indigo-700 text-white">Guardar</Button>
+                            <Button type="button" variant="ghost" onClick={() => setIsDialogOpen(false)}>Cancelar</Button>
+                            <Button type="submit" className="bg-indigo-600 hover:bg-indigo-700 text-white">Guardar</Button>
                         </DialogFooter>
                     </form>
                 </DialogContent>
