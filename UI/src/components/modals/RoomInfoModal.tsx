@@ -165,11 +165,12 @@ export const RoomInfoModal = ({ room, isOpen, onClose }: RoomInfoModalProps) => 
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto bg-white text-gray-900 border-none p-0">
-                <DialogDescription className="sr-only">
-                    Detalles de la habitación {room.numero} y consulta de disponibilidad.
-                </DialogDescription>
-                <div className="relative h-64 w-full flex-shrink-0">
+            <DialogContent className="sm:max-w-[500px] max-h-[85vh] flex flex-col bg-background text-foreground border-none p-0 gap-0">
+                <div className="flex-1 overflow-y-auto min-h-0">
+                    <DialogDescription className="sr-only">
+                        Detalles de la habitación {room.numero} y consulta de disponibilidad.
+                    </DialogDescription>
+                    <div className="relative h-48 w-full flex-shrink-0">
                     <DetailsImageGallery
                         mainImage={room.imagen}
                         extraImages={extraImages}
@@ -186,48 +187,48 @@ export const RoomInfoModal = ({ room, isOpen, onClose }: RoomInfoModalProps) => 
                 <div className="p-8 space-y-6">
                     <div className="grid grid-cols-2 gap-6">
                         <div className="flex items-start gap-3">
-                            <div className="p-2 bg-yellow-50 rounded-lg">
+                            <div className="p-2 bg-yellow-50 rounded-lg dark:bg-yellow-600/20">
                                 <Tag className="w-5 h-5 text-yellow-600" />
                             </div>
                             <div>
-                                <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Categoría</p>
-                                <p className="text-base font-semibold text-gray-800">
+                                <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Categoría</p>
+                                <p className="text-base font-semibold text-gray-800 dark:text-gray-200">
                                     {room.categoriaHabitacion?.nombre || 'General'}
                                 </p>
                             </div>
                         </div>
 
                         <div className="flex items-start gap-3">
-                            <div className="p-2 bg-green-50 rounded-lg">
+                            <div className="p-2 bg-green-50 rounded-lg dark:bg-green-600/20">
                                 <DollarSign className="w-5 h-5 text-green-600" />
                             </div>
                             <div>
-                                <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Precio por noche</p>
-                                <p className="text-base font-semibold text-gray-800 text-xl">
+                                <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Precio por noche</p>
+                                <p className="text-base font-semibold text-gray-800 dark:text-gray-200 text-xl">
                                     ${room.categoriaHabitacion?.precioBase?.toLocaleString() || '0'}
                                 </p>
                             </div>
                         </div>
 
                         <div className="flex items-start gap-3">
-                            <div className="p-2 bg-blue-50 rounded-lg">
+                            <div className="p-2 bg-blue-50 rounded-lg dark:bg-blue-600/20">
                                 <Users className="w-5 h-5 text-blue-600" />
                             </div>
                             <div>
-                                <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Capacidad</p>
-                                <p className="text-base font-semibold text-gray-800">
+                                <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Capacidad</p>
+                                <p className="text-base font-semibold text-gray-800 dark:text-gray-200">
                                     {room.capacidad} {room.capacidad === 1 ? 'Persona' : 'Personas'}
                                 </p>
                             </div>
                         </div>
 
                         <div className="flex items-start gap-3 col-span-2 border-t pt-4">
-                            <div className="p-2 bg-purple-50 rounded-lg">
+                            <div className="p-2 bg-purple-50 rounded-lg dark:bg-purple-600/20">
                                 <Info className="w-5 h-5 text-purple-600" />
                             </div>
                             <div>
-                                <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Descripción</p>
-                                <p className="text-sm text-gray-600 leading-relaxed">
+                                <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Descripción</p>
+                                <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
                                     {room.descripcion || 'Sin descripción disponible para esta habitación.'}
                                 </p>
                             </div>
@@ -235,10 +236,10 @@ export const RoomInfoModal = ({ room, isOpen, onClose }: RoomInfoModalProps) => 
                     </div>
 
                     {/* Verificador de Disponibilidad */}
-                    <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100 space-y-4">
+                    <div className=" p-6 rounded-2xl border-none space-y-4 bg-background dark:bg-slate-900">
                         <div className="flex items-center gap-2 mb-2">
                             <Calendar className="w-5 h-5 text-yellow-600" />
-                            <h3 className="text-sm font-bold text-gray-800 uppercase tracking-widest">Consultar Disponibilidad</h3>
+                            <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-widest">Consultar Disponibilidad</h3>
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
@@ -253,7 +254,7 @@ export const RoomInfoModal = ({ room, isOpen, onClose }: RoomInfoModalProps) => 
                                         setAvailabilityStatus('idle');
                                     }}
                                     min={getLocalTodayStr()}
-                                    className="h-11 bg-white border-gray-200 focus:ring-yellow-500"
+                                    className="h-11 bg-background text-foreground border-input dark:[color-scheme:dark] focus:ring-yellow-500"
                                 />
                             </div>
                             <div className="space-y-1.5">
@@ -267,7 +268,7 @@ export const RoomInfoModal = ({ room, isOpen, onClose }: RoomInfoModalProps) => 
                                         setAvailabilityStatus('idle');
                                     }}
                                     min={startDate || getLocalTodayStr()}
-                                    className="h-11 bg-white border-gray-200 focus:ring-yellow-500"
+                                    className="h-11 bg-background text-foreground border-input dark:[color-scheme:dark] focus:ring-yellow-500"
                                 />
                             </div>
                         </div>
@@ -275,7 +276,7 @@ export const RoomInfoModal = ({ room, isOpen, onClose }: RoomInfoModalProps) => 
                         <Button
                             onClick={checkAvailability}
                             disabled={!startDate || !endDate || isChecking}
-                            className="w-full bg-slate-900 hover:bg-slate-800 text-white h-12 text-xs font-black uppercase tracking-[0.2em] transition-all"
+                            className="w-full bg-slate-900 hover:bg-slate-800 text-white dark:bg-yellow-600/20 dark:hover:bg-yellow-600/30 dark:text-yellow-500 hover:dark:text-yellow-400 h-12 text-xs font-black uppercase tracking-[0.2em] transition-all"
                         >
                             {isChecking ? (
                                 <span className="flex items-center gap-2">
@@ -358,20 +359,21 @@ export const RoomInfoModal = ({ room, isOpen, onClose }: RoomInfoModalProps) => 
                         </div>
                     )}
                 </div>
+                </div>
 
-                <DialogFooter className="p-6 bg-gray-50 border-t border-gray-100 gap-3 sm:gap-0">
+                <DialogFooter className="p-4 bg-gray-50 border-t border-gray-100 dark:bg-slate-900 dark:border-slate-800 gap-2 sm:gap-0 shrink-0 z-10">
                     <Button
                         variant="ghost"
                         onClick={onClose}
-                        className="text-gray-500 hover:text-gray-700 hover:bg-gray-200/50 font-bold"
+                        className="text-gray-500 ring-1 ring-gray-800 hover:text-gray-700 px-10 h-12 hover:bg-gray-200/50 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-slate-800 font-bold"
                     >
                         Cerrar
                     </Button>
                     <Button
                         onClick={handleContinue}
-                        className={`font-black px-10 h-12 shadow-xl transition-all hover:-translate-y-1 active:translate-y-0 ${availabilityStatus === 'available'
+                        className={`font-black px-10 h-12 shadow-lg transition-all hover:-translate-y-1 active:translate-y-0 ${availabilityStatus === 'available'
                             ? 'bg-green-600 hover:bg-green-700 text-white shadow-green-200'
-                            : 'bg-yellow-500 hover:bg-yellow-600 text-black shadow-yellow-200'
+                            : 'bg-yellow-500 hover:bg-yellow-600 text-black shadow-yellow-200/40'
                             }`}
                     >
                         {availabilityStatus === 'available' ? 'RESERVAR AHORA' : 'IR A RESERVAS'}

@@ -399,15 +399,15 @@ export const Servicios = () => {
       </section>
 
       <Dialog open={!!contractingService} onOpenChange={(open) => !open && setContractingService(null)}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
+        <DialogContent className="sm:max-w-[500px] max-h-[85vh] flex flex-col p-0 gap-0">
+          <DialogHeader className="p-6 pb-2 shrink-0">
             <DialogTitle>Contratar {contractingService?.nombre}</DialogTitle>
             <DialogDescription>
               Complete los detalles para validar su solicitud.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="grid gap-4 py-4">
+          <div className="flex-1 overflow-y-auto p-6 pt-2 space-y-4">
             <div className="grid gap-2">
               <Label htmlFor="reserva">Seleccionar Reserva</Label>
               <Select
@@ -440,7 +440,7 @@ export const Servicios = () => {
               </div>
               <div className="grid gap-2 ">
                 <Label>Precio Unitario</Label>
-                <div className="flex h-10  w-full bg-background rounded-md border border-input px-3 py-2 text-sm text-gray-500">
+                <div className="flex h-10 w-full bg-background rounded-md border border-input px-3 py-2 text-sm text-muted-foreground">
                   ${Number(contractingService?.precio || 0).toFixed(2)}
                 </div>
               </div>
@@ -476,20 +476,20 @@ export const Servicios = () => {
               </div>
             )}
 
-            <div className="flex flex-col gap-2 p-4 bg-yellow-50 dark:bg-yellow-900/30 rounded-lg">
+            <div className="flex flex-col gap-2 p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
               <div className="flex items-center justify-between">
-                <span className="font-bold text-yellow-800">Total Estimado:</span>
-                <span className="text-2xl font-black text-yellow-700">${totalPrice}</span>
+                <span className="font-bold text-yellow-800 dark:text-yellow-500">Total Estimado:</span>
+                <span className="text-2xl font-black text-yellow-700 dark:text-yellow-400">${totalPrice}</span>
               </div>
               {maxCupo > 0 && fechas.length > 0 && hora && (
-                <div className="text-xs text-yellow-600 font-medium text-right">
+                <div className="text-xs text-yellow-600 dark:text-yellow-500 font-medium text-right">
                   Cupo máximo disponible: {maxCupo} personas
                 </div>
               )}
             </div>
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="p-6 pt-0 shrink-0">
             <Button variant="outline" onClick={() => setContractingService(null)}>Cancelar</Button>
             <Button onClick={confirmContratacion} disabled={submitting || !selectedReservaId || (maxCupo > 0 && cantidad > maxCupo)} className="bg-yellow-600 hover:bg-yellow-700 text-white">
               {submitting ? 'Procesando...' : 'Confirmar Solicitud'}
@@ -530,7 +530,7 @@ export const Servicios = () => {
             </div>
 
             <div>
-              <h4 className="font-semibold text-gray-900 mb-3">Disponibilidad</h4>
+              <h4 className="font-semibold text-foreground mb-3">Disponibilidad</h4>
               {loadingDisponibilidades ? (
                 <div className="flex items-center justify-center py-4">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-600"></div>

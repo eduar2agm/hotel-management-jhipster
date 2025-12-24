@@ -549,7 +549,7 @@ export const AdminClientes = () => {
 
                 {/* CONVERT TO USER CONFIRMATION DIALOG */}
                 <Dialog open={isConvertDialogOpen} onOpenChange={setIsConvertDialogOpen}>
-                    <DialogContent className="max-w-[400px]">
+                    <DialogContent className="max-w-[400px] border-none cursor-pointer">
                         <DialogHeader>
                             <DialogTitle className="text-blue-700 flex items-center gap-2">
                                 <UserCircle className="h-5 w-5" />
@@ -557,18 +557,18 @@ export const AdminClientes = () => {
                             </DialogTitle>
                             <DialogDescription className="space-y-2">
                                 <p>¿Está seguro de que desea crear una cuenta de usuario para <b>{conversionCliente?.nombre} {conversionCliente?.apellido}</b>?</p>
-                                <p className="text-xs text-slate-500 bg-slate-100 p-2 rounded">
+                                <p className="text-xs text-slate-500 bg-mute-background p-2 rounded">
                                     Esto transformará al cliente anónimo en un <b>Usuario Registrado</b>. El cliente podrá iniciar sesión en la plataforma para ver sus reservas y gestionar su perfil.
                                 </p>
                             </DialogDescription>
                         </DialogHeader>
-                        <div className="bg-blue-50 p-4 rounded-md border border-blue-100 text-sm text-blue-800 my-2">
+                        <div className="bg-mute-background p-4 rounded-md border border-none text-sm text-blue-800 my-2 cursor-pointer">
                             <div className="flex gap-2">
                                 <ShieldCheck className="h-5 w-5 shrink-0" />
                                 <div>
                                     <p className="font-bold mb-1">Credenciales Temporales</p>
                                     <p>Se generará un usuario en el sistema.</p>
-                                    <p className="mt-2 font-mono bg-white px-2 py-1 rounded border inline-block">Contraseña: Bienvenido@123</p>
+                                    <p className="mt-2 font-mono bg-background text-foreground px-2 py-1 rounded border cursor-text inline-block">Contraseña: Bienvenido@123</p>
                                     <p className="mt-2 text-xs opacity-80">Por favor informe al cliente de esta contraseña temporal.</p>
                                 </div>
                             </div>

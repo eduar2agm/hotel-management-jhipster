@@ -419,7 +419,7 @@ export const ReservaFormDialog = ({
                                             <FormItem>
                                                 <FormLabel className="text-xs font-semibold text-muted-foreground uppercase">Fecha Entrada</FormLabel>
                                                 <FormControl>
-                                                    <Input type="date" className="h-11 bg-background" {...field} disabled={isReadOnly} />
+                                                    <Input type="date" className="h-11 bg-background dark:[color-scheme:dark]" {...field} disabled={isReadOnly} />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -432,7 +432,7 @@ export const ReservaFormDialog = ({
                                             <FormItem>
                                                 <FormLabel className="text-xs font-semibold text-muted-foreground uppercase">Fecha Salida</FormLabel>
                                                 <FormControl>
-                                                    <Input type="date" className="h-11 bg-background" {...field} disabled={isReadOnly} />
+                                                    <Input type="date" className="h-11 bg-background dark:[color-scheme:dark]" {...field} disabled={isReadOnly} />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -449,7 +449,7 @@ export const ReservaFormDialog = ({
                                     <FormItem>
                                         <div className="mb-3">
                                             <FormLabel className="text-sm font-semibold text-foreground flex items-center gap-2">
-                                                <Calendar className="h-4 w-4" />
+                                                <Calendar className="h-4 w-4 " />
                                                 Habitaciones {isEditing ? '(Mostrando todas)' : '(Disponibles)'}
                                             </FormLabel>
                                             <FormDescription className="text-xs text-muted-foreground mt-1">

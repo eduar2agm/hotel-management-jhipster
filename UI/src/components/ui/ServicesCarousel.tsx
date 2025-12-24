@@ -161,18 +161,14 @@ export const ServicesCarousel = () => {
                 `}
             </style>
 
-            <div className="relative w-full max-w-[1920px] mx-auto">
-                <div className="text-center mb-10">
-                    <h2 className="text-3xl font-bold text-white uppercase tracking-widest">Nuestros Servicios</h2>
-                    <p className="text-gray-400 mt-2">Experiencias únicas para tu estancia</p>
-                </div>
+            <div className="relative w-full max-w-[1920px] mx-auto ">
 
                 {/* Gradient Masks */}
                 <div className="absolute left-0 top-0 bottom-0 w-20 z-10 bg-gradient-to-r from-gray-900 to-transparent pointer-events-none"></div>
                 <div className="absolute right-0 top-0 bottom-0 w-20 z-10 bg-gradient-to-l from-gray-900 to-transparent pointer-events-none"></div>
 
                 <div
-                    className="flex gap-6 w-max animate-scroll-services"
+                    className="flex gap-6 w-max animate-scroll-services "
                 >
                     {displayServices.map((servicio, idx) => (
                         <div
@@ -200,16 +196,16 @@ export const ServicesCarousel = () => {
 
             {/* SERVICE INFO DIALOG */}
             <Dialog open={isServiceDetailOpen} onOpenChange={setIsServiceDetailOpen}>
-                <DialogContent className="sm:max-w-[600px] bg-white text-gray-900">
-                    <DialogHeader>
-                        <DialogTitle className="text-2xl font-bold">{selectedService?.nombre}</DialogTitle>
-                        <DialogDescription className="text-gray-500">
-                            Detalles del servicio
-                        </DialogDescription>
-                    </DialogHeader>
+                <DialogContent className="sm:max-w-[600px] max-h-[85vh] flex flex-col p-0 gap-0 bg-background text-foreground border-none">
+                <DialogHeader className="p-6 pb-2 shrink-0">
+                    <DialogTitle className="text-2xl font-bold">{selectedService?.nombre}</DialogTitle>
+                    <DialogDescription className="text-gray-500">
+                        Detalles del servicio
+                    </DialogDescription>
+                </DialogHeader>
 
-                    <div className="space-y-6 py-4">
-                        <div className="relative h-64 w-full rounded-lg overflow-hidden bg-gray-100">
+                    <div className="flex-1 overflow-y-auto p-6 pt-2 space-y-6">
+                        <div className="relative h-64 w-full rounded-lg  bg-gray-100">
                             <DetailsImageGallery
                                 mainImage={selectedService?.urlImage}
                                 extraImages={extraImages}
@@ -223,8 +219,8 @@ export const ServicesCarousel = () => {
                         </p>
 
                         {selectedService?.tipo === TipoServicio.PAGO && (
-                            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-100">
-                                <span className="font-bold text-gray-600">Precio</span>
+                            <div className="flex items-center justify-between p-4 bg-gray-200 dark:bg-gray-800 rounded-lg border-none">
+                                <span className="font-bold text-foreground">Precio</span>
                                 <span className="text-2xl font-bold text-yellow-600">
                                     ${selectedService?.precio !== undefined ? selectedService.precio : '0.00'}
                                 </span>
@@ -241,14 +237,14 @@ export const ServicesCarousel = () => {
 
 
                         {selectedService?.tipo === TipoServicio.PAGO ? (
-                            <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4 mt-4">
+                            <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4 mt-4 dark:bg-yellow-900/20">
                                 <div className="flex">
                                     <div className="flex-shrink-0">
                                         <Info className="h-5 w-5 text-yellow-500" aria-hidden="true" />
                                     </div>
                                     <div className="ml-3">
                                         <p className="text-sm text-yellow-700">
-                                            Nota: Solo puedes contratar servicios para clientes con una reserva activa.
+                                            Nota: Los servicios solo pueden ser contratados por clientes que tengan una reserva activa.
                                         </p>
                                     </div>
                                 </div>
@@ -269,15 +265,15 @@ export const ServicesCarousel = () => {
                         ) : null}
                     </div>
 
-                    <DialogFooter className="gap-2 sm:gap-0">
-                        <Button variant="outline" onClick={() => setIsServiceDetailOpen(false)}>Cerrar</Button>
-                        {selectedService?.tipo === TipoServicio.PAGO && (
-                            <Button onClick={handleContratar} className="bg-yellow-600 hover:bg-yellow-700 text-white font-bold">
-                                {isAdmin() || isEmployee() ? 'Gestionar Contratación' : 'Ir a Contratar'} <ExternalLink className="ml-2 w-4 h-4" />
-                            </Button>
-                        )}
-                    </DialogFooter>
-                </DialogContent>
+                <DialogFooter className="p-6 pt-0 gap-2 sm:gap-0 shrink-0">
+                    <Button variant="outline" onClick={() => setIsServiceDetailOpen(false)}>Cerrar</Button>
+                    {selectedService?.tipo === TipoServicio.PAGO && (
+                        <Button onClick={handleContratar} className="bg-yellow-600 hover:bg-yellow-700 text-white font-bold">
+                            {isAdmin() || isEmployee() ? 'Gestionar Contratación' : 'Ir a Contratar'} <ExternalLink className="ml-2 w-4 h-4" />
+                        </Button>
+                    )}
+                </DialogFooter>
+            </DialogContent>
             </Dialog>
 
             {/* ADMIN/EMPLOYEE CLIENT SELECTION DIALOG */}

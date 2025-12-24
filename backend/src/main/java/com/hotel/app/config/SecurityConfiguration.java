@@ -53,6 +53,7 @@ public class SecurityConfiguration {
                             .requestMatchers(mvc.pattern("/api/stripe/webhook")).permitAll()
                             .requestMatchers(mvc.pattern("/api/authenticate")).permitAll()
                             .requestMatchers(mvc.pattern("/api/auth-info")).permitAll()
+                            .requestMatchers(mvc.pattern("/api/ubicacions/**")).permitAll()
                             .requestMatchers(mvc.pattern("/api/habitacions/**")).permitAll()
                             .requestMatchers(mvc.pattern("/api/servicios/**")).permitAll()
                             .requestMatchers(mvc.pattern("/api/seccion-heroes/**")).permitAll()
