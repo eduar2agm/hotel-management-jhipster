@@ -79,10 +79,12 @@ export const Navbar = () => {
           <>
             <NavItem to="/" end icon={Home}>Home</NavItem>
             <NavItem to="/employee/dashboard" icon={LayoutDashboard}>Dashboard</NavItem>
+            <NavItem to="/employee/habitaciones" icon={BedDouble}>Habitaciones</NavItem>
             <NavItem to="/employee/clientes" icon={Users}>Clientes</NavItem>
             <NavItem to="/employee/checkin" icon={KeyRound}>Check-in</NavItem>
             <NavItem to="/employee/reservas" icon={CalendarCheck}>Reservas</NavItem>
-            <NavItem to="/employee/servicios-contratados" icon={ClipboardList}>Servicios</NavItem>
+            <NavItem to="/employee/servicios" icon={HandPlatter}>Catálogo</NavItem>
+            <NavItem to="/employee/servicios-contratados" icon={ClipboardList}>Solicitudes</NavItem>
             <div className="relative inline-block">
               <NavItem to="/employee/soporte" icon={Headset}>Soporte</NavItem>
               <Badge count={unreadCount} />

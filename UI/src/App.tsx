@@ -23,6 +23,7 @@ import { EmployeeMensajesSoporte } from './pages/employee/MensajesSoporte';
 import { EmployeeServicios } from './pages/employee/Servicios';
 import { EmployeeServiciosContratados } from './pages/employee/ServiciosContratados';
 import { EmployeeContratarServicio } from './pages/employee/ContratarServicio';
+import { EmployeeHabitaciones } from './pages/employee/Habitaciones';
 import { ClientReservas } from './pages/client/ClientReservas';
 import { NuevaReserva } from './pages/client/NuevaReserva';
 import { Perfil } from './pages/client/Perfil';
@@ -75,6 +76,7 @@ function App() {
             <Route path="/employee/reservas" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN', 'ROLE_EMPLOYEE']}><EmployeeReservas /></ProtectedRoute>} />
             <Route path="/employee/soporte" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN', 'ROLE_EMPLOYEE']}><EmployeeMensajesSoporte /></ProtectedRoute>} />
             <Route path="/employee/servicios" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN', 'ROLE_EMPLOYEE']}><EmployeeServicios /></ProtectedRoute>} />
+            <Route path="/employee/habitaciones" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN', 'ROLE_EMPLOYEE']}><EmployeeHabitaciones /></ProtectedRoute>} />
             <Route path="/employee/servicios-contratados" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN', 'ROLE_EMPLOYEE']}><EmployeeServiciosContratados /></ProtectedRoute>} />
             <Route path="/employee/servicios/contratar" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN', 'ROLE_EMPLOYEE']}><EmployeeContratarServicio /></ProtectedRoute>} />
 
