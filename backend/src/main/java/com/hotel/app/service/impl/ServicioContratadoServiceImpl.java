@@ -161,8 +161,16 @@ public class ServicioContratadoServiceImpl implements ServicioContratadoService 
             }
         }
 
+        boolean isNewService = servicioContratadoDTO.getId() == null;
+
         ServicioContratado servicioContratado = servicioContratadoMapper.toEntity(servicioContratadoDTO);
         servicioContratado = servicioContratadoRepository.save(servicioContratado);
+
+        // Send notification for new service contracts
+        if (isNewService && servicioContratado.getCliente() != null) {
+            sendServiceContractedMessage(servicioContratado);
+        }
+
         return servicioContratadoMapper.toDto(servicioContratado);
     }
 
@@ -377,6 +385,46 @@ public class ServicioContratadoServiceImpl implements ServicioContratadoService 
             mensaje.setActivo(true);
             mensaje.setRemitente("SISTEMA");
             mensajeSoporteService.save(mensaje);
+        }
+    }
+
+    private void sendServiceContractedMessage(ServicioContratado servicio) {
+        if (servicio.getCliente() == null || servicio.getCliente().getKeycloakId() == null) {
+            return;
+        }
+
+        try {
+            String servicioNombre = servicio.getServicio() != null ? servicio.getServicio().getNombre() : "Servicio";
+            String fechaServicio = servicio.getFechaServicio() != null ? servicio.getFechaServicio().toString() : "";
+
+            String msgText = "📋 Servicio '" + servicioNombre + "' contratado para el " + fechaServicio
+                    + ". Estado: PENDIENTE DE PAGO.";
+
+            try {
+                var configOpt = configuracionSistemaService.findByClave("MSG_SERVICIO_CONTRATADO");
+                if (configOpt.isPresent() && configOpt.get().getValor() != null) {
+                    msgText = configOpt.get().getValor()
+                            .replace("{servicioNombre}", servicioNombre)
+                            .replace("{fechaServicio}", fechaServicio);
+                }
+            } catch (Exception e) {
+                LOG.debug("Using default service contracted message");
+            }
+
+            MensajeSoporteDTO mensaje = new MensajeSoporteDTO();
+            mensaje.setMensaje(msgText);
+            mensaje.setFechaMensaje(Instant.now());
+            mensaje.setUserId(servicio.getCliente().getKeycloakId());
+            String nombre = Optional.ofNullable(servicio.getCliente().getNombre()).orElse("Cliente");
+            String apellido = Optional.ofNullable(servicio.getCliente().getApellido()).orElse("");
+            mensaje.setUserName((nombre + " " + apellido).trim());
+
+            mensaje.setLeido(false);
+            mensaje.setActivo(true);
+            mensaje.setRemitente("SISTEMA");
+            mensajeSoporteService.save(mensaje);
+        } catch (Exception e) {
+            LOG.error("Error sending service contracted message", e);
         }
     }
 
