@@ -157,4 +157,11 @@ public class CheckInCheckOutServiceImpl implements CheckInCheckOutService {
         LOG.debug("Request to delete CheckInCheckOut : {}", id);
         checkInCheckOutRepository.deleteById(id);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<CheckInCheckOutDTO> findOneByReservaDetalleId(Long reservaDetalleId) {
+        LOG.debug("Request to get CheckInCheckOut by reservaDetalleId : {}", reservaDetalleId);
+        return checkInCheckOutRepository.findByReservaDetalleId(reservaDetalleId).map(checkInCheckOutMapper::toDto);
+    }
 }

@@ -71,17 +71,7 @@ export const CardRoom = ({
                         </div>
                     )}
 
-                    {/* Badges Overlay */}
-                    <div className="absolute top-4 left-4 flex gap-2">
-                        <Badge className={cn(
-                            "px-3 py-1 text-xs font-bold uppercase tracking-wider shadow-sm backdrop-blur-md",
-                            isDisponible
-                                ? "bg-green-500/90 hover:bg-green-600 text-white"
-                                : "bg-gray-800/90 text-white"
-                        )}>
-                            {estado}
-                        </Badge>
-                    </div>
+
 
                     <div className="absolute top-4 right-4">
                         <Badge variant="secondary" className="bg-white/90 text-gray-900 font-bold shadow-sm backdrop-blur-sm">

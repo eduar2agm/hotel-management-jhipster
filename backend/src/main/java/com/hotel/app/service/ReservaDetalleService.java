@@ -91,4 +91,13 @@ public interface ReservaDetalleService {
      * @return the list of entities.
      */
     Page<ReservaDetalleDTO> findByActivoWithEagerRelationships(Boolean activo, Pageable pageable);
+
+    /**
+     * Get all the reservaDetalles by habitacionId.
+     *
+     * @param habitacionId the habitacion id.
+     * @param pageable     the pagination information.
+     * @return the list of entities.
+     */
+    Page<ReservaDetalleDTO> findAllByHabitacionId(Long habitacionId, Pageable pageable);
 }
