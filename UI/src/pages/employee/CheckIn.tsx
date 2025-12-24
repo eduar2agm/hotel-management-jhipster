@@ -28,6 +28,8 @@ export const CheckIn = () => {
     const [checkIns, setCheckIns] = useState<CheckInCheckOutDTO[]>([]);
     const [loading, setLoading] = useState(false);
 
+    const [hasSearched, setHasSearched] = useState(false);
+
     // Dialog State
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [actionType, setActionType] = useState<'CHECK_IN' | 'CHECK_OUT' | null>(null);
@@ -38,6 +40,7 @@ export const CheckIn = () => {
     const handleSearch = async () => {
         if (!searchTerm) return;
         setLoading(true);
+        setHasSearched(true);
         setSelectedReserva(null);
         setDetalles([]);
         setCheckIns([]);
@@ -169,7 +172,9 @@ export const CheckIn = () => {
             d1.getDate() === d2.getDate();
     };
 
-    const canCheckIn = selectedReserva?.fechaInicio ? isSameDay(new Date(), new Date(selectedReserva.fechaInicio)) : false;
+    const canCheckInDate = selectedReserva?.fechaInicio ? isSameDay(new Date(), new Date(selectedReserva.fechaInicio)) : false;
+    const isConfirmed = selectedReserva?.estado === 'CONFIRMADA';
+    const canCheckIn = canCheckInDate && isConfirmed;
 
     return (
         <div className="font-sans text-foreground bg-background min-h-screen flex flex-col">
@@ -207,7 +212,10 @@ export const CheckIn = () => {
                                             className="pl-9 h-12 bg-background border-input focus:border-yellow-500 focus:ring-yellow-500/20 text-foreground"
                                             placeholder="Ej. 1045 o Juan Pérez..."
                                             value={searchTerm}
-                                            onChange={(e) => setSearchTerm(e.target.value)}
+                                            onChange={(e) => {
+                                                setSearchTerm(e.target.value);
+                                                setHasSearched(false);
+                                            }}
                                             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                                         />
                                     </div>
@@ -254,7 +262,7 @@ export const CheckIn = () => {
                                 </div>
                             )}
 
-                            {reservas.length === 0 && searchTerm && !loading && (
+                            {reservas.length === 0 && searchTerm && hasSearched && !loading && (
                                 <div className="mt-8 p-8 text-center bg-muted/30 rounded-lg border border-dashed border-border">
                                     <XCircle className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
                                     <p className="text-muted-foreground font-medium">No se encontraron reservas con ese criterio.</p>
@@ -343,7 +351,8 @@ export const CheckIn = () => {
                                                                     </Button>
                                                                     {!canCheckIn && (
                                                                         <p className="text-[10px] text-red-600 font-bold flex items-center gap-1 animate-pulse">
-                                                                            <AlertCircle className="w-3 h-3" /> Solo permitido en fecha de entrada
+                                                                            <AlertCircle className="w-3 h-3" />
+                                                                            {!isConfirmed ? 'Reserva no confirmada (Pendiente Pago)' : 'Solo permitido en fecha de entrada'}
                                                                         </p>
                                                                     )}
                                                                 </div>

@@ -61,6 +61,7 @@ function App() {
             <Route path="/admin/habitaciones" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN']}><AdminHabitaciones /></ProtectedRoute>} />
             <Route path="/admin/clientes" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN']}><AdminClientes /></ProtectedRoute>} />
             <Route path="/admin/reservas" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN']}><AdminReservas /></ProtectedRoute>} />
+            <Route path="/admin/checkin" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN']}><CheckIn /></ProtectedRoute>} />
             <Route path="/admin/soporte" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN']}><AdminMensajesSoporte /></ProtectedRoute>} />
             <Route path="/admin/reportes" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN']}><AdminReportes /></ProtectedRoute>} />
             <Route path="/admin/configuracion" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN']}><AdminConfiguracion /></ProtectedRoute>} />

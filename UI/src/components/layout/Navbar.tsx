@@ -98,6 +98,7 @@ export const Navbar = () => {
             <NavItem to="/admin/dashboard" icon={LayoutDashboard}>Dashboard</NavItem>
             <NavItem to="/admin/habitaciones" icon={BedDouble}>Habitaciones</NavItem>
             <NavItem to="/admin/clientes" icon={Users}>Clientes</NavItem>
+            <NavItem to="/admin/checkin" icon={KeyRound}>Check-in</NavItem>
             <NavItem to="/admin/reservas" icon={CalendarCheck}>Reservas</NavItem>
             <NavItem to="/admin/servicios" icon={HandPlatter}>Servicios</NavItem>
             <NavItem to="/admin/servicios-contratados" icon={ClipboardList}>Solicitudes</NavItem>
