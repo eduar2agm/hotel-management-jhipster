@@ -648,6 +648,7 @@ export const ServiciosList = ({ readOnly = false }: { readOnly?: boolean }) => {
                                             servicioId={selectedServiceForDetails.id}
                                             onSelect={() => { }} // No-op, solo visualización
                                             reserva={null}
+                                            adminMode={true}
                                         // No pasamos fechas seleccionadas para que el usuario pueda explorar libremente
                                         />
                                     </div>
