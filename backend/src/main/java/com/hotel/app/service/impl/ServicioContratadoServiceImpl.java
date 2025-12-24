@@ -79,8 +79,12 @@ public class ServicioContratadoServiceImpl implements ServicioContratadoService 
             // 1. Validate Date Range - Compare only dates, not times
             if (reserva.getEstado() != com.hotel.app.domain.enumeration.EstadoReserva.CONFIRMADA
                     && reserva.getEstado() != com.hotel.app.domain.enumeration.EstadoReserva.CHECK_IN) {
-                throw new BadRequestAlertException("Reservation is not confirmed or checked-in", "servicioContratado",
-                        "reservanotactive");
+                if (!SecurityUtils.hasCurrentUserThisAuthority(AuthoritiesConstants.ADMIN)
+                        && !SecurityUtils.hasCurrentUserThisAuthority(AuthoritiesConstants.EMPLOYEE)) {
+                    throw new BadRequestAlertException("Reservation is not confirmed or checked-in",
+                            "servicioContratado",
+                            "reservanotactive");
+                }
             }
 
             // Convert to LocalDate using system timezone to compare only days
