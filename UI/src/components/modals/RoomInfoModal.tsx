@@ -286,7 +286,7 @@ export const RoomInfoModal = ({ room, isOpen, onClose }: RoomInfoModalProps) => 
                         </Button>
 
                         {availabilityStatus === 'available' && (
-                            <div className="flex items-center justify-center gap-2 p-3 bg-green-50 rounded-lg text-green-700 border border-green-100 animate-in fade-in zoom-in duration-300">
+                            <div className="flex items-center justify-center gap-2 p-3 bg-green-50 rounded-lg text-green-700 border border-none animate-in fade-in zoom-in duration-300 dark:bg-green-900/20">
                                 <CheckCircle2 className="w-5 h-5" />
                                 <span className="text-sm font-bold">¡Disponible para las fechas seleccionadas!</span>
                             </div>
@@ -301,10 +301,10 @@ export const RoomInfoModal = ({ room, isOpen, onClose }: RoomInfoModalProps) => 
 
                     {/* SELECCION DE CLIENTE (SOLO ADMIN/EMPLOYEE) */}
                     {isStaff && availabilityStatus === 'available' && (
-                        <div className="bg-blue-50/50 p-6 rounded-2xl border border-blue-100 space-y-4 animate-in fade-in slide-in-from-top-2">
+                        <div className="bg-gray-200 p-6 rounded-2xl border border-none dark:bg-background dark:ring-1 dark:ring-gray-800 space-y-4 animate-in fade-in slide-in-from-top-2">
                             <div className="flex items-center gap-2 mb-2">
                                 <User className="w-5 h-5 text-blue-600" />
-                                <h3 className="text-sm font-bold text-gray-800 uppercase tracking-widest">Seleccionar Cliente</h3>
+                                <h3 className="text-sm font-bold text-foreground uppercase tracking-widest">Seleccionar Cliente</h3>
                             </div>
 
                             <Popover open={openClientCombo} onOpenChange={setOpenClientCombo}>
@@ -313,7 +313,7 @@ export const RoomInfoModal = ({ room, isOpen, onClose }: RoomInfoModalProps) => 
                                         variant="outline"
                                         role="combobox"
                                         aria-expanded={openClientCombo}
-                                        className="w-full justify-between h-12 bg-white border-blue-200"
+                                        className="w-full justify-between h-12 dark:ring-1 dark:ring-gray-800 bg-muted-background border-none"
                                     >
                                         {selectedCliente
                                             ? `${selectedCliente.nombre} ${selectedCliente.apellido} (${selectedCliente.numeroIdentificacion || 'Sin ID'})`

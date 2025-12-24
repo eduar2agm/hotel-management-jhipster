@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { 
-    BarChart, 
-    Bar, 
+    AreaChart, 
+    Area, 
     XAxis, 
     YAxis, 
     CartesianGrid, 
@@ -78,11 +78,29 @@ export const GraficoReservas: React.FC<GraficoReservasProps> = ({ className }) =
                 )}
                 <div className="h-[350px] w-full">
                     <ResponsiveContainer width="100%" height="100%">
-                        <BarChart
+                        <AreaChart
                             data={data}
                             margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
                         >
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                            <defs>
+                                <linearGradient id="colorConfirmadas" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="#22c55e" stopOpacity={0.8}/>
+                                    <stop offset="95%" stopColor="#22c55e" stopOpacity={0}/>
+                                </linearGradient>
+                                <linearGradient id="colorPendientes" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="#eab308" stopOpacity={0.8}/>
+                                    <stop offset="95%" stopColor="#eab308" stopOpacity={0}/>
+                                </linearGradient>
+                                <linearGradient id="colorFinalizadas" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
+                                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                                </linearGradient>
+                                <linearGradient id="colorCanceladas" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="#ef4444" stopOpacity={0.8}/>
+                                    <stop offset="95%" stopColor="#ef4444" stopOpacity={0}/>
+                                </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" strokeOpacity={0.5} />
                             <XAxis 
                                 dataKey="name" 
                                 stroke="#94a3b8" 
@@ -101,16 +119,45 @@ export const GraficoReservas: React.FC<GraficoReservasProps> = ({ className }) =
                                     backgroundColor: 'var(--card)', 
                                     borderRadius: '8px', 
                                     border: '1px solid var(--border)', 
-                                    color: 'var(--card-foreground)' 
+                                    color: 'var(--card-foreground)',
+                                    boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
                                 }}
-                                cursor={{ fill: 'var(--muted)', opacity: 0.2 }}
+                                itemStyle={{ fontSize: '13px', fontWeight: 500 }}
                             />
-                            <Legend />
-                            <Bar dataKey="CONFIRMADA" stackId="a" fill="#22c55e" name="Confirmadas" radius={[0, 0, 4, 4]} />
-                            <Bar dataKey="PENDIENTE" stackId="a" fill="#eab308" name="Pendientes" />
-                            <Bar dataKey="FINALIZADA" stackId="a" fill="#3b82f6" name="Finalizadas" />
-                            <Bar dataKey="CANCELADA" stackId="a" fill="#ef4444" name="Canceladas" radius={[4, 4, 0, 0]} />
-                        </BarChart>
+                            <Legend wrapperStyle={{ paddingTop: '20px' }}/>
+                            <Area 
+                                type="monotone" 
+                                dataKey="CANCELADA" 
+                                stroke="#ef4444" 
+                                fill="url(#colorCanceladas)" 
+                                name="Canceladas" 
+                                strokeWidth={2}
+                            />
+                            <Area 
+                                type="monotone" 
+                                dataKey="PENDIENTE" 
+                                stroke="#eab308" 
+                                fill="url(#colorPendientes)" 
+                                name="Pendientes" 
+                                strokeWidth={2}
+                            />
+                            <Area 
+                                type="monotone" 
+                                dataKey="FINALIZADA" 
+                                stroke="#3b82f6" 
+                                fill="url(#colorFinalizadas)" 
+                                name="Finalizadas" 
+                                strokeWidth={2}
+                            />
+                            <Area 
+                                type="monotone" 
+                                dataKey="CONFIRMADA" 
+                                stroke="#22c55e" 
+                                fill="url(#colorConfirmadas)" 
+                                name="Confirmadas" 
+                                strokeWidth={2}
+                            />
+                        </AreaChart>
                     </ResponsiveContainer>
                 </div>
             </CardContent>
