@@ -112,6 +112,14 @@ public interface ServicioContratadoService {
     void cancelar(Long id);
 
     /**
+     * Cancel a servicioContratado with a specific notification message.
+     *
+     * @param id              the id of the entity.
+     * @param notificationKey the key of the message template to send.
+     */
+    void cancelar(Long id, String notificationKey);
+
+    /**
      * Get all servicios contratados by cliente and servicio in a date range.
      * Excludes cancelled services.
      *

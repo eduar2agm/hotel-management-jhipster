@@ -4,6 +4,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { HabitacionService } from '../../../services/habitacion.service';
 import type { HabitacionDTO, CategoriaHabitacionDTO, EstadoHabitacionDTO } from '../../../types/api';
+import type { ImagenDTO } from '../../../types/api/Imagen';
+import { ImagenService } from '../../../services/imagen.service';
+import { MultiImageUpload } from '../../common/MultiImageUpload';
 import { getImageUrl } from '../../../utils/imageUtils';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -27,9 +30,9 @@ import { Switch } from '@/components/ui/switch';
 
 const habitacionSchema = z.object({
     id: z.number().optional(),
-    numero: z.string().min(1, 'Número es requerido'),
+    numero: z.string().min(1, 'Número es requerido').max(50, 'Máximo 50 caracteres'),
     capacidad: z.coerce.number().min(1, 'Capacidad mínima es 1').max(20, 'Capacidad máxima es 20'),
-    descripcion: z.string().optional().or(z.literal('')),
+    descripcion: z.string().max(255, 'Máximo 255 caracteres').optional().or(z.literal('')),
     imagen: z.string().optional().or(z.literal('')),
     activo: z.boolean().default(true),
     categoriaHabitacionId: z.string().min(1, 'Categoría es requerida'),
@@ -60,7 +63,27 @@ export const HabitacionFormDialog = ({
     const [openCategoryPopover, setOpenCategoryPopover] = useState(false);
     const [localPreview, setLocalPreview] = useState<string | null>(null);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [galleryImages, setGalleryImages] = useState<ImagenDTO[]>([]);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const fetchGallery = async () => {
+        if (habitacion?.id) {
+            try {
+                // Assuming standard JHipster filter usage
+                const res = await ImagenService.getImagens({ 'habitacionId.equals': habitacion.id });
+                setGalleryImages(res.data);
+            } catch (e) { console.error(e); }
+        } else {
+            setGalleryImages([]);
+        }
+    };
+
+    useEffect(() => {
+        if (open) {
+            fetchGallery();
+            // ... existing reset logic below
+        }
+    }, [open, habitacion]);
 
     const form = useForm<HabitacionFormValues>({
         resolver: zodResolver(habitacionSchema) as any,
@@ -79,7 +102,7 @@ export const HabitacionFormDialog = ({
         if (open) {
             setLocalPreview(null);
             setSelectedFile(null);
-            
+
             if (habitacion) {
                 form.reset({
                     id: habitacion.id,
@@ -94,7 +117,7 @@ export const HabitacionFormDialog = ({
             } else {
                 const activeStates = estados.filter(e => e.activo !== false);
                 const defaultState = activeStates.find(e => e.nombre === 'DISPONIBLE')?.id?.toString() || '';
-                
+
                 form.reset({
                     numero: '',
                     capacidad: 2,
@@ -118,7 +141,7 @@ export const HabitacionFormDialog = ({
         }
 
         setSelectedFile(file);
-        form.setValue('imagen', `habitaciones/${file.name}`);
+        // form.setValue('imagen', `habitaciones/${file.name}`); // Let backend determine the final path
         const objectUrl = URL.createObjectURL(file);
         setLocalPreview(objectUrl);
         toast.info('Imagen seleccionada. Se guardará al guardar la habitación.');
@@ -184,7 +207,15 @@ export const HabitacionFormDialog = ({
                                         <FormItem>
                                             <FormLabel className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Número</FormLabel>
                                             <FormControl>
-                                                <Input placeholder="101" className="h-9 font-mono" {...field} />
+                                                <div className="relative">
+                                                    <Input placeholder="101" className="h-9 font-mono" maxLength={50} {...field} />
+                                                    <div className="flex justify-end gap-2 mt-1">
+                                                        <span className={cn("text-[10px]", (field.value?.length || 0) >= 50 ? "text-red-500 font-bold" : "text-muted-foreground")}>
+                                                            {(field.value?.length || 0) >= 50 ? '¡Límite alcanzado! ' : ''}
+                                                            {field.value?.length || 0}/50
+                                                        </span>
+                                                    </div>
+                                                </div>
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -303,9 +334,10 @@ export const HabitacionFormDialog = ({
                                 name="imagen"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Imagen de la Habitación</FormLabel>
+                                        <FormLabel className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Imagen Principal</FormLabel>
                                         <FormControl>
                                             <div className="space-y-4">
+                                                {/* Existing Main Image Upload UI */}
                                                 <div
                                                     className={cn(
                                                         "relative overflow-hidden rounded-xl border-2 border-dashed transition-all duration-300 group",
@@ -385,6 +417,17 @@ export const HabitacionFormDialog = ({
                                 )}
                             />
 
+                            {/* Gallery Section */}
+                            <div className="space-y-2 pt-4 border-t border-border">
+                                <FormLabel className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Galería Adicional</FormLabel>
+                                <MultiImageUpload
+                                    parentId={habitacion?.id}
+                                    parentType="habitacion"
+                                    images={galleryImages}
+                                    onUpdate={fetchGallery}
+                                />
+                            </div>
+
                             <FormField
                                 control={form.control}
                                 name="descripcion"
@@ -392,11 +435,20 @@ export const HabitacionFormDialog = ({
                                     <FormItem>
                                         <FormLabel className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Descripción</FormLabel>
                                         <FormControl>
-                                            <Textarea
-                                                placeholder="Características de la habitación..."
-                                                className="resize-none h-20"
-                                                {...field}
-                                            />
+                                            <div className="relative">
+                                                <Textarea
+                                                    placeholder="Características de la habitación..."
+                                                    className="resize-none h-20"
+                                                    maxLength={255}
+                                                    {...field}
+                                                />
+                                                <div className="flex justify-end gap-2 mt-1">
+                                                    <span className={cn("text-[10px]", (field.value?.length || 0) >= 255 ? "text-red-500 font-bold" : "text-muted-foreground")}>
+                                                        {(field.value?.length || 0) >= 255 ? '¡Límite alcanzado! ' : ''}
+                                                        {field.value?.length || 0}/255
+                                                    </span>
+                                                </div>
+                                            </div>
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>

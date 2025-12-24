@@ -184,7 +184,14 @@ export const CategoriasTab = () => {
                                 value={currentCat.descripcion || ''}
                                 onChange={e => setCurrentCat({ ...currentCat, descripcion: e.target.value })}
                                 className="col-span-3"
+                                maxLength={255}
                             />
+                            <div className="flex justify-end gap-2 mt-1">
+                                <span className={`text-[10px] ${(currentCat.descripcion?.length || 0) >= 255 ? "text-red-500 font-bold" : "text-gray-400"}`}>
+                                    {(currentCat.descripcion?.length || 0) >= 255 ? '¡Límite alcanzado! ' : ''}
+                                    {currentCat.descripcion?.length || 0}/255
+                                </span>
+                            </div>
                         </div>
                         <div className="grid gap-2">
                             <Label className="text-sm font-semibold text-foreground">Precio Base ($)</Label>

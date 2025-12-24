@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -34,7 +34,7 @@ const contratoSchema = z.object({
     reservaId: z.string().min(1, 'Debe seleccionar una reserva'),
     servicioId: z.string().min(1, 'Debe seleccionar un servicio'),
     cantidad: z.number().min(1, 'La cantidad mínima es 1'),
-    observaciones: z.string().optional()
+    observaciones: z.string().max(500, 'Máximo 500 caracteres').optional()
 });
 
 type ContratoFormValues = z.infer<typeof contratoSchema>;
@@ -43,6 +43,7 @@ import { PaymentModal } from '../../components/modals/PaymentModal';
 
 export const AdminContratarServicio = ({ returnPath = '/admin/servicios-contratados' }: { returnPath?: string }) => {
     const navigate = useNavigate();
+    const location = useLocation();
     const [servicios, setServicios] = useState<ServicioDTO[]>([]);
     const [allReservas, setAllReservas] = useState<ReservaDTO[]>([]);
     const [openReservaCombobox, setOpenReservaCombobox] = useState(false);
@@ -73,13 +74,12 @@ export const AdminContratarServicio = ({ returnPath = '/admin/servicios-contrata
         const loadData = async () => {
             try {
                 const [serviciosRes, reservasRes] = await Promise.all([
-                    ServicioService.getServiciosDisponibles(),
+                    ServicioService.getServiciosDisponibles({ size: 100 }),
                     ReservaService.getReservas({ size: 200, sort: 'fechaInicio,desc' })
                 ]);
 
-                // Filtrar solo servicios de pago (no gratuitos)
-                const serviciosPago = serviciosRes.data.filter(s => s.tipo === TipoServicio.PAGO);
-                setServicios(serviciosPago);
+                // Mostrar todos los servicios disponibles (no filtrar solo pagos, ya que el usuario ya eligió uno)
+                setServicios(serviciosRes.data);
                 setAllReservas(reservasRes.data);
             } catch (error) {
                 console.error('Error loading data:', error);
@@ -88,6 +88,38 @@ export const AdminContratarServicio = ({ returnPath = '/admin/servicios-contrata
         };
         loadData();
     }, []);
+
+    // Effect to handle pre-selections from other pages (e.g. ServicesCarousel)
+    useEffect(() => {
+        if (servicios.length > 0 && allReservas.length > 0 && location.state) {
+            const state = location.state as any;
+            let updated = false;
+
+            if (state.preSelectedService) {
+                const s = servicios.find(srv => srv.id === state.preSelectedService.id);
+                if (s) {
+                    setSelectedServicio(s);
+                    form.setValue('servicioId', String(s.id));
+                    updated = true;
+                }
+            }
+
+            if (state.preSelectedReserva) {
+                const r = allReservas.find(re => re.id === state.preSelectedReserva.id);
+                if (r) {
+                    setSelectedReserva(r);
+                    form.setValue('reservaId', String(r.id));
+                    updated = true;
+                }
+            }
+
+            if (updated) {
+                // Clean state to avoid loops, but maybe keep it for reference? 
+                // Standard is to replace history state
+                navigate(location.pathname, { replace: true, state: {} });
+            }
+        }
+    }, [servicios, allReservas, location.state, navigate, form]);
 
     const handlePaymentSuccess = async () => {
         try {
@@ -157,9 +189,14 @@ export const AdminContratarServicio = ({ returnPath = '/admin/servicios-contrata
             toast.success('Servicios registrados. Proceda al pago.');
             setIsPaymentModalOpen(true);
 
-        } catch (error) {
+        } catch (error: any) {
             console.error(error);
-            toast.error('Error al contratar servicio.');
+            const problem = error.response?.data;
+            if (problem?.message === 'error.reservanotactive' || problem?.title === 'Reservation is not confirmed or checked-in') {
+                toast.error('No se puede contratar servicios. La reserva debe estar confirmada o en check-in.');
+            } else {
+                toast.error('Error al contratar servicio.');
+            }
         }
     };
 
@@ -322,6 +359,7 @@ export const AdminContratarServicio = ({ returnPath = '/admin/servicios-contrata
                                             onQuotaAvailable={setMaxCupo}
                                             selectedFechas={fechas}
                                             selectedHora={hora}
+                                            adminMode={true}
                                         />
                                     </div>
                                 )}
@@ -369,7 +407,15 @@ export const AdminContratarServicio = ({ returnPath = '/admin/servicios-contrata
                                         <FormItem>
                                             <FormLabel className="text-sm font-bold text-foreground">Observaciones</FormLabel>
                                             <FormControl>
-                                                <Input placeholder="Comentarios adicionales..." {...field} />
+                                                <div className="relative">
+                                                    <Input placeholder="Comentarios adicionales..." maxLength={500} {...field} />
+                                                    <div className="flex justify-end gap-2 mt-1">
+                                                        <span className={cn("text-[10px]", (field.value?.length || 0) >= 500 ? "text-red-500 font-bold" : "text-muted-foreground")}>
+                                                            {(field.value?.length || 0) >= 500 ? '¡Límite alcanzado! ' : ''}
+                                                            {field.value?.length || 0}/500
+                                                        </span>
+                                                    </div>
+                                                </div>
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>

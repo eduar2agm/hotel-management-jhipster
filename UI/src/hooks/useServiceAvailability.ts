@@ -10,6 +10,7 @@ interface UseServiceAvailabilityProps {
     servicioId: number;
     reserva?: ReservaDTO | null;
     clienteId?: number | null; // Para validar reservas existentes del cliente
+    adminMode?: boolean; // Para mostrar todas las fechas incluso sin cupos
 }
 
 interface AvailabilitySlot extends ServicioDisponibilidadConCuposDTO {
@@ -26,7 +27,7 @@ interface AvailabilitySlot extends ServicioDisponibilidadConCuposDTO {
  * - Cupos disponibles
  * - Servicios ya contratados por el cliente (evita duplicados)
  */
-export const useServiceAvailability = ({ servicioId, reserva, clienteId }: UseServiceAvailabilityProps) => {
+export const useServiceAvailability = ({ servicioId, reserva, clienteId, adminMode = false }: UseServiceAvailabilityProps) => {
     const [loading, setLoading] = useState(false);
     const [disponibilidades, setDisponibilidades] = useState<ServicioDisponibilidadConCuposDTO[]>([]);
     const [serviciosContratados, setServiciosContratados] = useState<ServicioContratadoDTO[]>([]);
@@ -149,9 +150,8 @@ export const useServiceAvailability = ({ servicioId, reserva, clienteId }: UseSe
 
             // Verificar si la fecha está en el pasado
             if (!isAlreadyBooked && disp.fecha) {
-                const dispDate = new Date(disp.fecha);
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
+                const dispDate = startOfDay(new Date(disp.fecha));
+                const today = startOfDay(new Date());
 
                 if (dispDate < today) {
                     isAvailable = false;
@@ -185,12 +185,13 @@ export const useServiceAvailability = ({ servicioId, reserva, clienteId }: UseSe
     }, [availableSlots]);
 
     // Obtener fechas disponibles (con al menos un slot disponible)
+    // En modo admin, mostrar todas las fechas incluso sin cupos
     const availableDates = useMemo(() => {
         return Object.entries(slotsByDate)
-            .filter(([_, slots]) => slots.some(s => s.isAvailable))
+            .filter(([_, slots]) => adminMode ? true : slots.some(s => s.isAvailable))
             .map(([date]) => date)
             .sort();
-    }, [slotsByDate]);
+    }, [slotsByDate, adminMode]);
 
     // Verificar si un día específico tiene disponibilidad
     const isDayAvailable = (date: string): boolean => {

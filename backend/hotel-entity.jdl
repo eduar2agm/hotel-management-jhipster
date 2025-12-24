@@ -1,53 +1,92 @@
-// -------------------- ENUMS --------------------
-
-enum Remitente {
-  CLIENTE,
-  ADMINISTRATIVO,
-  SISTEMA
+enum CategoriaHabitacionNombre { 
+  SENCILLA, 
+  DOBLE, 
+  SUITE 
 }
 
-enum TipoIdentificacion { DNI, PASAPORTE, RUC }
-enum EstadoReserva { PENDIENTE, CONFIRMADA, CANCELADA }
-enum EstadoCheckInCheckOut { PENDIENTE, REALIZADO, RETRASADO }
-enum MetodoPago { TARJETA, EFECTIVO }
-enum EstadoPago { PENDIENTE, COMPLETADO, RECHAZADO, REEMBOLSADO }
-enum CategoriaHabitacionNombre { SENCILLA, DOBLE, SUITE }
-enum EstadoHabitacionNombre { DISPONIBLE, OCUPADA, MANTENIMIENTO, LIMPIEZA }
+enum DiaSemana {
+  LUNES,
+  MARTES,
+  MIERCOLES,
+  JUEVES,
+  VIERNES,
+  SABADO,
+  DOMINGO
+}
 
-// -------------------- ENTIDADES --------------------
+enum EstadoCheckInCheckOut { 
+  PENDIENTE, 
+  REALIZADO, 
+  RETRASADO 
+}
 
-entity Habitacion {
-  numero String required unique maxlength(10)
-  capacidad Integer required min(1)
-  descripcion String maxlength(1000)
-  imagen String maxlength(2000)
+enum EstadoHabitacionNombre { 
+  DISPONIBLE, 
+  OCUPADA, 
+  MANTENIMIENTO 
+}
+
+enum EstadoPago { 
+  PENDIENTE, 
+  COMPLETADO, 
+  RECHAZADO 
+}
+
+enum EstadoReserva { 
+  PENDIENTE, 
+  CONFIRMADA, 
+  CANCELADA,
+  CHECK_IN,
+  FINALIZADA
+}
+
+enum EstadoServicioContratado {
+  PENDIENTE,
+  CONFIRMADO,
+  CANCELADO,
+  COMPLETADO
+}
+
+enum MetodoPago { 
+  TARJETA, 
+  EFECTIVO 
+}
+
+enum TipoConfiguracion {
+  TEXT,
+  NUMBER,
+  BOOLEAN,
+  IMAGE,
+  TEXTO,
+  MENSAJE
+}
+
+enum TipoIdentificacion { 
+  DNI, 
+  PASAPORTE, 
+  RUC,
+  CEDULA,
+  PASAPORTE_EXT,
+  CEDULA_RESIDENCIA,
+  INSS
+}
+
+enum TipoServicio {
+  GRATUITO,
+  PAGO
+}
+
+entity CarouselItem {
+  titulo String maxlength(150)
+  descripcion String maxlength(500)
+  orden Integer required
   activo Boolean required
 }
 
-entity Cliente {
-  nombre String required maxlength(50)
-  apellido String required maxlength(50)
-  correo String required unique pattern(/^[^@\s]+@[^@\s]+\.[^@\s]+$/)
-  telefono String required maxlength(20)
-  direccion String maxlength(100)
-  tipoIdentificacion TipoIdentificacion required
-  numeroIdentificacion String required maxlength(20)
-  keycloakId String required
-  activo Boolean required
-}
-
-entity Reserva {
-  fechaReserva Instant required
-  fechaInicio Instant required
-  fechaFin Instant required
-  estado EstadoReserva required
-  totalCalculado BigDecimal required
-  activo Boolean required
-}
-
-entity ReservaDetalle {
-  nota String maxlength(500)
-  precioUnitario BigDecimal required
+entity CategoriaHabitacion {
+  nombre CategoriaHabitacionNombre required
+  descripcion String
+  precioBase BigDecimal required
   activo Boolean required
 }
 
@@ -55,25 +94,30 @@ entity CheckInCheckOut {
   fechaHoraCheckIn ZonedDateTime required
   fechaHoraCheckOut ZonedDateTime
   estado EstadoCheckInCheckOut required
-  comentarios String maxlength(500)
   activo Boolean required
 }
 
-entity Pago {
-  fechaPago Instant required
-  monto BigDecimal required
-  metodoPago MetodoPago required
-  estado EstadoPago required
-  // INTEGRACIÓN STRIPE: Vital para rastrear el dinero
-  plataformaPagoId String unique
+entity Cliente {
+  nombre String required maxlength(255)
+  apellido String required
+  correo String required unique
+  telefono String required
+  direccion String
+  tipoIdentificacion TipoIdentificacion
+  numeroIdentificacion String
+  keycloakId String
   activo Boolean required
+  fechaNacimiento LocalDate
 }
 
-entity CategoriaHabitacion {
-  nombre CategoriaHabitacionNombre required
+entity ConfiguracionSistema {
+  clave String required unique maxlength(100)
+  valor String maxlength(2000)
+  tipo TipoConfiguracion required
+  categoria String maxlength(50)
   descripcion String maxlength(500)
-  precioBase BigDecimal required min(0)
   activo Boolean required
+  fechaModificacion Instant
 }
 
 entity EstadoHabitacion {
@@ -82,31 +126,164 @@ entity EstadoHabitacion {
   activo Boolean required
 }
 
-// ===== MENSAJES DE SOPORTE =====
+entity Habitacion {
+  numero String required unique
+  capacidad Integer required
+  descripcion String
+  imagen String
+  activo Boolean required
+}
+
+entity Imagen {
+  nombre String required
+  descripcion String maxlength(500)
+  fichero ImageBlob required
+  nombreArchivo String
+  activo Boolean required
+  fechaCreacion Instant
+}
+
 entity MensajeSoporte {
-  mensaje String required maxlength(2000)
+  mensaje String required maxlength(4096)
   fechaMensaje Instant required
-  remitente Remitente required // Cliente o Administrativo
+  userId String required
+  userName String
   leido Boolean required
   activo Boolean required
-  // Eliminamos userId/userName redundantes, usamos la relación con Reserva->Cliente
+  remitente String
+  destinatarioId String
+  destinatarioName String
 }
 
-// -------------------- RELACIONES --------------------
+entity Pago {
+  fechaPago Instant required
+  monto BigDecimal required
+  metodoPago MetodoPago required
+  estado EstadoPago required
+  activo Boolean required
+  transactionId String
+}
+
+entity RedSocial {
+  nombre String required maxlength(50)
+  urlEnlace String required maxlength(255)
+  iconoUrl String required maxlength(500)
+  colorHex String maxlength(7)
+  activo Boolean required
+}
+
+entity RedSociallanding {
+  nombre String required maxlength(50)
+  urlEnlace String required maxlength(255)
+  iconoUrl String required maxlength(500)
+  colorHex String maxlength(7)
+  activo Boolean required
+}
+
+entity Reserva {
+  fechaReserva Instant required
+  fechaInicio Instant required
+  fechaFin Instant required
+  estado EstadoReserva required
+  activo Boolean required
+}
+
+entity ReservaDetalle {
+  nota String
+  activo Boolean required
+}
+
+entity SeccionContacto {
+  titulo String required maxlength(255)
+  descripcion String required maxlength(5000)
+  imagenFondoUrl String required maxlength(500)
+  correo String maxlength(255)
+  activo Boolean required
+}
+
+entity SeccionHero {
+  titulo String required maxlength(100)
+  descripcion String maxlength(5000)
+  imagenFondoUrl String required maxlength(500)
+  textoBoton String maxlength(50)
+  enlaceBoton String maxlength(255)
+  orden Integer required
+  activo Boolean required
+}
+
+entity Servicio {
+  nombre String required maxlength(100)
+  descripcion String maxlength(1000)
+  tipo TipoServicio required
+  precio BigDecimal required min(0)
+  disponible Boolean required
+  urlImage String maxlength(255)
+}
+
+entity ServicioContratado {
+  fechaContratacion Instant required
+  fechaServicio ZonedDateTime required
+  numeroPersonas Integer required min(1)
+  cantidad Integer required min(1)
+  precioUnitario BigDecimal required min(0)
+  estado EstadoServicioContratado required
+  observaciones String maxlength(500)
+}
+
+entity ServicioDisponibilidad {
+  diaSemana DiaSemana required
+  horaInicio LocalTime required
+  horaFin LocalTime
+  cupoMaximo Integer required min(1)
+  horaFija Boolean required
+  activo Boolean required
+}
+
+entity Telefono {
+  numeroTel String required maxlength(20)
+  activo Boolean required
+}
+
+entity Ubicacion {
+  latitud Double required
+  longitud Double required
+  nombre String required
+  direccion String
+  googleMapsUrl String
+  activo Boolean
+}
+
 relationship ManyToOne {
-  Habitacion{categoriaHabitacion(nombre)} to CategoriaHabitacion
-  Habitacion{estadoHabitacion(nombre)} to EstadoHabitacion
-  Reserva{cliente(nombre)} to Cliente
-  ReservaDetalle{reserva} to Reserva
-  ReservaDetalle{habitacion(numero)} to Habitacion
+  CarouselItem{imagen(nombre)} to Imagen
+  CarouselItem{configuracion} to ConfiguracionSistema
+  
   CheckInCheckOut{reservaDetalle} to ReservaDetalle
+  
+  ConfiguracionSistema{imagen} to Imagen
+  
+  Habitacion{categoriaHabitacion} to CategoriaHabitacion
+  Habitacion{estadoHabitacion} to EstadoHabitacion
+  
+  Imagen{habitacion} to Habitacion
+  Imagen{servicio} to Servicio
+  
+  MensajeSoporte{reserva} to Reserva
+  
   Pago{reserva} to Reserva
-
-  // Relacionamos el mensaje con la reserva para dar contexto
-  MensajeSoporte{reserva(numero)} to Reserva
+  
+  Reserva{cliente} to Cliente
+  
+  ReservaDetalle{reserva} to Reserva
+  ReservaDetalle{habitacion} to Habitacion
+  
+  ServicioContratado{servicio} to Servicio
+  ServicioContratado{reserva} to Reserva
+  ServicioContratado{cliente} to Cliente
+  ServicioContratado{pago} to Pago
+  
+  ServicioDisponibilidad{servicio} to Servicio
 }
 
-// -------------------- CONFIGURACIÓN --------------------
 paginate * with pagination
 dto * with mapstruct
 service * with serviceImpl

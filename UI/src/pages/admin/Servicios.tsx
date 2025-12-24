@@ -29,11 +29,14 @@ import { Switch } from '@/components/ui/switch';
 import { ServiceCard } from '@/components/ui/ServiceCard';
 import { ActiveFilter } from '@/components/ui/ActiveFilter';
 import { PaginationControl } from '@/components/common/PaginationControl';
+import { MultiImageUpload } from '../../components/common/MultiImageUpload';
+import type { ImagenDTO } from '../../types/api/Imagen';
+import { DetailsImageGallery } from '../../components/common/DetailsImageGallery';
 
 const servicioSchema = z.object({
     id: z.number().optional(),
-    nombre: z.string().min(1, 'Nombre es requerido'),
-    descripcion: z.string().optional().or(z.literal('')),
+    nombre: z.string().min(1, 'Nombre es requerido').max(100, 'Máximo 100 caracteres'),
+    descripcion: z.string().max(1000, 'Máximo 1000 caracteres').optional().or(z.literal('')),
     tipo: z.nativeEnum(TipoServicio).default(TipoServicio.PAGO),
     precio: z.coerce.number().min(0, 'Precio no puede ser negativo'),
     disponible: z.boolean().default(true),
@@ -59,9 +62,31 @@ export const ServiciosList = ({ readOnly = false }: { readOnly?: boolean }) => {
 
     const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
     const [selectedServiceForDetails, setSelectedServiceForDetails] = useState<ServicioDTO | null>(null);
+    const [detailsImages, setDetailsImages] = useState<ImagenDTO[]>([]);
 
     const [isAvailabilityDialogOpen, setIsAvailabilityDialogOpen] = useState(false);
     const [selectedService, setSelectedService] = useState<ServicioDTO | null>(null);
+    const [galleryImages, setGalleryImages] = useState<ImagenDTO[]>([]);
+
+    const fetchGallery = async () => {
+        const currentId = form.getValues('id');
+        if (currentId) {
+            try {
+                const res = await ImagenService.getImagens({ 'servicioId.equals': currentId });
+                setGalleryImages(res.data);
+            } catch (e) {
+                console.error(e);
+            }
+        } else {
+            setGalleryImages([]);
+        }
+    };
+
+    useEffect(() => {
+        if (isDialogOpen) {
+            fetchGallery();
+        }
+    }, [isDialogOpen]);
 
     const form = useForm<ServicioFormValues>({
         resolver: zodResolver(servicioSchema) as any,
@@ -221,6 +246,13 @@ export const ServiciosList = ({ readOnly = false }: { readOnly?: boolean }) => {
     const handleViewDetails = (servicio: ServicioDTO) => {
         setSelectedServiceForDetails(servicio);
         setIsDetailsDialogOpen(true);
+        if (servicio.id) {
+            ImagenService.getImagens({ 'servicioId.equals': servicio.id })
+                .then(res => setDetailsImages(res.data))
+                .catch(e => console.error(e));
+        } else {
+            setDetailsImages([]);
+        }
     };
 
     const filteredServicios = servicios.filter(s => {
@@ -346,7 +378,15 @@ export const ServiciosList = ({ readOnly = false }: { readOnly?: boolean }) => {
                                                 <FormItem>
                                                     <FormLabel className="text-xs font-bold text-gray-500 uppercase tracking-widest">Nombre</FormLabel>
                                                     <FormControl>
-                                                        <Input placeholder="Ej: Spa Completo" className="h-9" {...field} />
+                                                        <div className="relative">
+                                                            <Input placeholder="Ej: Spa Completo" className="h-9" maxLength={100} {...field} />
+                                                            <div className="flex justify-end gap-2 mt-1">
+                                                                <span className={cn("text-[10px]", (field.value?.length || 0) >= 100 ? "text-red-500 font-bold" : "text-muted-foreground")}>
+                                                                    {(field.value?.length || 0) >= 100 ? '¡Límite alcanzado! ' : ''}
+                                                                    {field.value?.length || 0}/100
+                                                                </span>
+                                                            </div>
+                                                        </div>
                                                     </FormControl>
                                                     <FormMessage />
                                                 </FormItem>
@@ -360,11 +400,20 @@ export const ServiciosList = ({ readOnly = false }: { readOnly?: boolean }) => {
                                                 <FormItem>
                                                     <FormLabel className="text-xs font-bold text-gray-500 uppercase tracking-widest">Descripción</FormLabel>
                                                     <FormControl>
-                                                        <Textarea
-                                                            placeholder="Detalles del servicio..."
-                                                            className="resize-none h-20"
-                                                            {...field}
-                                                        />
+                                                        <div className="relative">
+                                                            <Textarea
+                                                                placeholder="Detalles del servicio..."
+                                                                className="resize-none h-20"
+                                                                maxLength={1000}
+                                                                {...field}
+                                                            />
+                                                            <div className="flex justify-end gap-2 mt-1">
+                                                                <span className={cn("text-[10px]", (field.value?.length || 0) >= 1000 ? "text-red-500 font-bold" : "text-muted-foreground")}>
+                                                                    {(field.value?.length || 0) >= 1000 ? '¡Límite alcanzado! ' : ''}
+                                                                    {field.value?.length || 0}/1000
+                                                                </span>
+                                                            </div>
+                                                        </div>
                                                     </FormControl>
                                                     <FormMessage />
                                                 </FormItem>
@@ -511,6 +560,15 @@ export const ServiciosList = ({ readOnly = false }: { readOnly?: boolean }) => {
                                                 </FormItem>
                                             )}
                                         />
+                                        <div className="space-y-2 pt-4 border-t border-border">
+                                            <FormLabel className="text-xs font-bold text-gray-500 uppercase tracking-widest">Galería Adicional</FormLabel>
+                                            <MultiImageUpload
+                                                parentId={form.getValues('id')}
+                                                parentType="servicio"
+                                                images={galleryImages}
+                                                onUpdate={fetchGallery}
+                                            />
+                                        </div>
 
                                         <div className="pt-4 flex justify-end gap-3 border-t">
                                             <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)} className="h-10">Cancelar</Button>
@@ -526,8 +584,8 @@ export const ServiciosList = ({ readOnly = false }: { readOnly?: boolean }) => {
                 )}
 
                 <Dialog open={isAvailabilityDialogOpen} onOpenChange={setIsAvailabilityDialogOpen}>
-                    <DialogContent className="max-w-4xl p-0 overflow-hidden border-0 shadow-2xl">
-                        <DialogHeader className="bg-[#0F172A] text-white p-6">
+                    <DialogContent className="max-w-2xl max-h-[85vh] w-full flex flex-col p-0 overflow-hidden border-0 shadow-2xl">
+                        <DialogHeader className="bg-[#0F172A] text-white p-6 shrink-0">
                             <DialogTitle className="text-xl font-bold flex items-center gap-2">
                                 <Clock className="h-5 w-5 text-yellow-500" />
                                 Gestión de Disponibilidad
@@ -536,10 +594,10 @@ export const ServiciosList = ({ readOnly = false }: { readOnly?: boolean }) => {
                                 {selectedService?.nombre} - Configure los horarios y cupos.
                             </DialogDescription>
                         </DialogHeader>
-                        <div className="p-6 bg-background overflow-y-auto max-h-[80vh]">
+                        <div className="p-6 bg-background overflow-y-auto min-h-0 flex-1">
                             {selectedService && <ServicioDisponibilidadManager servicio={selectedService} />}
                         </div>
-                        <div className="p-4 bg-muted border-t flex justify-end">
+                        <div className="p-4 bg-muted/30 border-t border-border flex justify-end shrink-0">
                             <Button variant="outline" onClick={() => setIsAvailabilityDialogOpen(false)}>Cerrar</Button>
                         </div>
                     </DialogContent>
@@ -561,18 +619,13 @@ export const ServiciosList = ({ readOnly = false }: { readOnly?: boolean }) => {
                             <div className="p-6 space-y-6 lg:border-r border-border">
                                 {selectedServiceForDetails && (
                                     <>
-                                        <div className="aspect-video w-full rounded-lg overflow-hidden border border-border bg-card shadow-sm">
-                                            {selectedServiceForDetails.urlImage ? (
-                                                <img
-                                                    src={getImageUrl(selectedServiceForDetails.urlImage)}
-                                                    alt={selectedServiceForDetails.nombre}
-                                                    className="w-full h-full object-cover"
-                                                />
-                                            ) : (
-                                                <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                                                    <ImageIcon className="w-12 h-12" />
-                                                </div>
-                                            )}
+                                        <div className="aspect-video w-full rounded-lg overflow-hidden border border-border bg-card shadow-sm main-video-container">
+                                            <DetailsImageGallery
+                                                mainImage={selectedServiceForDetails.urlImage}
+                                                extraImages={detailsImages}
+                                                className="w-full h-full"
+                                                autoPlay={true}
+                                            />
                                         </div>
                                         <div>
                                             <h3 className="text-xl font-bold text-foreground mb-2">{selectedServiceForDetails.nombre}</h3>
@@ -612,6 +665,7 @@ export const ServiciosList = ({ readOnly = false }: { readOnly?: boolean }) => {
                                             servicioId={selectedServiceForDetails.id}
                                             onSelect={() => { }} // No-op, solo visualización
                                             reserva={null}
+                                            adminMode={true}
                                         // No pasamos fechas seleccionadas para que el usuario pueda explorar libremente
                                         />
                                     </div>

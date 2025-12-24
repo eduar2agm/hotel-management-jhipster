@@ -17,7 +17,7 @@ import { ShieldCheck, Contact, Hotel, Save, Loader2 } from 'lucide-react';
 import type { NewClienteDTO } from '../../types/api';
 
 export const ProfileCompletionModal = () => {
-    const { user, isAuthenticated, isLoading: authLoading, isClient } = useAuth();
+    const { user, isAuthenticated, isLoading: authLoading, isClient, isAdmin, isEmployee } = useAuth();
     const [isOpen, setIsOpen] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [idError, setIdError] = useState<string | null>(null);
@@ -37,6 +37,12 @@ export const ProfileCompletionModal = () => {
         const checkClientRecord = async () => {
             // EVITAR EN HOME: Si el usuario está en la página principal, no molestamos con el modal.
             const isHomePage = window.location.pathname === '/' || window.location.pathname === '/HomePage';
+
+            // SKIP FOR STAFF: Admins and Employees don't need "Cliente" profile
+            if (isAdmin() || isEmployee()) {
+                setIsOpen(false);
+                return;
+            }
 
             if (isAuthenticated && isClient() && user?.email && !isHomePage) {
                 try {
@@ -68,7 +74,7 @@ export const ProfileCompletionModal = () => {
         if (!authLoading && user) {
             checkClientRecord();
         }
-    }, [isAuthenticated, isClient, user, authLoading, window.location.pathname]);
+    }, [isAuthenticated, isClient, isAdmin, isEmployee, user, authLoading, window.location.pathname]);
 
     // Bloquear scroll del body cuando el modal esté abierto
     useEffect(() => {
@@ -82,8 +88,8 @@ export const ProfileCompletionModal = () => {
 
 
 
-    // GUARDIA ABSOLUTA: Si no hay login, el componente es invisible.
-    if (authLoading || !isAuthenticated || !isClient() || !user) {
+    // GUARDIA ABSOLUTA: Si no hay login, o es Staff, el componente es invisible.
+    if (authLoading || !isAuthenticated || !isClient() || !user || isAdmin() || isEmployee()) {
         return null;
     }
 
@@ -172,15 +178,15 @@ export const ProfileCompletionModal = () => {
 
     return (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/90 backdrop-blur-xl p-4 overflow-y-auto">
-            <div className="bg-white w-full max-w-xl rounded-sm shadow-2xl border-t-8 border-yellow-600 animate-in fade-in zoom-in duration-300 my-8">
+            <div className="bg-white dark:bg-slate-900 w-full max-w-xl rounded-sm shadow-2xl border-t-8 border-yellow-600 animate-in fade-in zoom-in duration-300 my-8">
 
                 {/* Header del Modal */}
-                <div className="p-6 border-b border-gray-100 flex flex-col items-center text-center relative">
-                    <div className="bg-yellow-50 p-3 rounded-full mb-3">
-                        <Hotel className="h-8 w-8 text-yellow-600" />
+                <div className="p-6 border-b border-gray-100 dark:border-slate-800 flex flex-col items-center text-center relative">
+                    <div className="bg-yellow-50 dark:bg-yellow-900/20 p-3 rounded-full mb-3">
+                        <Hotel className="h-8 w-8 text-yellow-600 dark:text-yellow-500" />
                     </div>
-                    <h2 className="text-2xl font-black text-gray-900 font-serif lowercase"><span className="uppercase">C</span>ompletar <span className="uppercase">R</span>egistro</h2>
-                    <p className="text-gray-400 mt-1 text-xs font-light max-w-md italic">
+                    <h2 className="text-2xl font-black text-gray-900 dark:text-white font-serif lowercase"><span className="uppercase">C</span>ompletar <span className="uppercase">R</span>egistro</h2>
+                    <p className="text-gray-400 dark:text-gray-500 mt-1 text-xs font-light max-w-md italic">
                         Paso obligatorio para acceder a nuestra plataforma de reservas.
                     </p>
                 </div>
@@ -190,81 +196,81 @@ export const ProfileCompletionModal = () => {
                     {/* Sección: Información Básica (Read-only from Keycloak) */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-1.5">
-                            <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">Nombre completo</Label>
-                            <div className="h-9 px-3 flex items-center bg-gray-50 border border-gray-100 text-gray-500 text-xs font-medium">
+                            <Label className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em]">Nombre completo</Label>
+                            <div className="h-9 px-3 flex items-center bg-gray-50 dark:bg-slate-800 border border-gray-100 dark:border-slate-700 text-gray-500 dark:text-gray-300 text-xs font-medium">
                                 {formData.nombre} {formData.apellido}
                             </div>
                         </div>
                         <div className="space-y-1.5">
-                            <Label className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">Correo electrónico</Label>
-                            <div className="h-9 px-3 flex items-center bg-gray-50 border border-gray-100 text-gray-500 text-xs font-medium">
+                            <Label className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em]">Correo electrónico</Label>
+                            <div className="h-9 px-3 flex items-center bg-gray-50 dark:bg-slate-800 border border-gray-100 dark:border-slate-700 text-gray-500 dark:text-gray-300 text-xs font-medium">
                                 {formData.correo}
                             </div>
                         </div>
                     </div>
 
-                    <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent w-full"></div>
+                    <div className="h-px bg-gradient-to-r from-transparent via-gray-200 dark:via-slate-700 to-transparent w-full"></div>
 
                     {/* Sección: Datos de Negocio */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
                         <div className="space-y-4">
-                            <div className="flex items-center gap-2 mb-1 font-bold text-gray-900 text-xs uppercase tracking-wider">
-                                <Contact className="h-3.5 w-3.5 text-yellow-600" /> Contacto
+                            <div className="flex items-center gap-2 mb-1 font-bold text-gray-900 dark:text-white text-xs uppercase tracking-wider">
+                                <Contact className="h-3.5 w-3.5 text-yellow-600 dark:text-yellow-500" /> Contacto
                             </div>
                             <div className="space-y-1.5">
-                                <Label className="text-[10px] font-bold text-gray-500 uppercase">Teléfono móvil</Label>
+                                <Label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase">Teléfono móvil</Label>
                                 <Input
                                     required
                                     placeholder="+505 0000 0000"
-                                    className="h-10 text-sm border-gray-200 focus:border-yellow-600 focus:ring-yellow-600/20"
+                                    className="h-10 text-sm border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:border-yellow-600 dark:focus:border-yellow-500 focus:ring-yellow-600/20"
                                     value={formData.telefono}
                                     onChange={e => setFormData({ ...formData, telefono: e.target.value })}
                                 />
                             </div>
                             <div className="space-y-1.5">
-                                <Label className="text-[10px] font-bold text-gray-500 uppercase">Dirección de domicilio</Label>
+                                <Label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase">Dirección de domicilio</Label>
                                 <Input
-                                    className="h-10 text-sm border-gray-200 focus:border-yellow-600 focus:ring-yellow-600/20"
+                                    className="h-10 text-sm border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:border-yellow-600 dark:focus:border-yellow-500 focus:ring-yellow-600/20"
                                     placeholder="Ciudad, departamento..."
                                     value={formData.direccion}
                                     onChange={e => setFormData({ ...formData, direccion: e.target.value })}
                                 />
                             </div>
                             <div className="space-y-1.5">
-                                <Label className="text-[10px] font-bold text-gray-500 uppercase">Fecha de Nacimiento</Label>
+                                <Label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase">Fecha de Nacimiento</Label>
                                 <Input
                                     type="date"
                                     required
-                                    className="h-10 text-sm border-gray-200 focus:border-yellow-600 focus:ring-yellow-600/20"
+                                    className="h-10 text-sm border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:border-yellow-600 dark:focus:border-yellow-500 focus:ring-yellow-600/20 dark:[color-scheme:dark]"
                                     value={formData.fechaNacimiento}
                                     onChange={e => setFormData({ ...formData, fechaNacimiento: e.target.value })}
                                 />
                             </div>
                         </div>
                         <div className="space-y-4">
-                            <div className="flex items-center gap-2 mb-1 font-bold text-gray-900 text-xs uppercase tracking-wider">
-                                <ShieldCheck className="h-3.5 w-3.5 text-yellow-600" /> Identificación
+                            <div className="flex items-center gap-2 mb-1 font-bold text-gray-900 dark:text-white text-xs uppercase tracking-wider">
+                                <ShieldCheck className="h-3.5 w-3.5 text-yellow-600 dark:text-yellow-500" /> Identificación
                             </div>
                             <div className="space-y-1.5">
-                                <Label className="text-[10px] font-bold text-gray-500 uppercase">Tipo de documento</Label>
+                                <Label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase">Tipo de documento</Label>
                                 <Select value={formData.tipoIdentificacion} onValueChange={handleTypeChange}>
-                                    <SelectTrigger className="h-10 text-sm border-gray-200 focus:ring-yellow-600/20">
+                                    <SelectTrigger className="h-10 text-sm border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-yellow-600/20">
                                         <SelectValue placeholder="Seleccione tipo" />
                                     </SelectTrigger>
-                                    <SelectContent className="z-[99999]">
+                                    <SelectContent className="z-[99999] bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700">
                                         {IDENTIFICATION_TYPES.map(type => (
-                                            <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
+                                            <SelectItem key={type.value} value={type.value} className="text-gray-900 dark:text-white focus:bg-slate-100 dark:focus:bg-slate-700">{type.label}</SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
                             </div>
                             <div className="space-y-1.5">
-                                <Label className="text-[10px] font-bold text-gray-500 uppercase">Número de documento</Label>
+                                <Label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase">Número de documento</Label>
                                 <div className="relative">
                                     <Input
                                         required
-                                        className={`h-10 text-sm ${idError ? "border-red-500 focus:border-red-500" : "border-gray-200 focus:border-yellow-600"}`}
+                                        className={`h-10 text-sm bg-white dark:bg-slate-800 text-gray-900 dark:text-white ${idError ? "border-red-500 focus:border-red-500" : "border-gray-200 dark:border-slate-700 focus:border-yellow-600 dark:focus:border-yellow-500"}`}
                                         placeholder={IDENTIFICATION_PLACEHOLDERS[formData.tipoIdentificacion] || 'Ingrese número'}
                                         value={formData.numeroIdentificacion}
                                         onChange={e => handleIdChange(e.target.value)}
@@ -280,7 +286,7 @@ export const ProfileCompletionModal = () => {
                         <Button
                             type="submit"
                             disabled={isSaving || !!idError}
-                            className="w-full h-11 bg-gray-900 hover:bg-gray-800 text-white rounded-none uppercase text-xs tracking-widest font-black transition-all shadow-xl disabled:opacity-50"
+                            className="w-full h-11 bg-gray-900 hover:bg-gray-800 dark:bg-yellow-600 dark:hover:bg-yellow-500 text-white rounded-none uppercase text-xs tracking-widest font-black transition-all shadow-xl disabled:opacity-50"
                         >
                             {isSaving ? (
                                 <span className="flex items-center gap-2">
@@ -292,7 +298,7 @@ export const ProfileCompletionModal = () => {
                                 </span>
                             )}
                         </Button>
-                        <p className="text-[10px] text-gray-400 text-center italic">
+                        <p className="text-[10px] text-gray-400 dark:text-gray-500 text-center italic">
                             * Al finalizar, su cuenta quedará vinculada permanentemente a nuestro sistema de gestión.
                         </p>
                     </div>

@@ -1,13 +1,21 @@
-import type { HabitacionDTO } from '../../types/api';
+import type { HabitacionDTO, ReservaDetalleDTO } from '../../types/api';
+import { ReservaDetalleService } from '../../services/reserva-detalle.service';
+import { ReservaService } from '../../services/reserva.service';
+import { CheckInCheckOutService } from '../../services/check-in-check-out.service';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import { BedDouble, DollarSign, Image as ImageIcon, Pencil, Trash2, Eye, Info, CheckCircle2, XCircle } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import { getImageUrl } from '../../utils/imageUtils';
+import { ImagenService } from '../../services/imagen.service';
+import type { ImagenDTO } from '../../types/api/Imagen';
+import { DetailsImageGallery } from '../common/DetailsImageGallery';
 
 interface RoomCardProps {
     habitacion: HabitacionDTO;
@@ -18,34 +26,84 @@ interface RoomCardProps {
 
 export const RoomCard = ({ habitacion: h, onEdit, onDelete, onToggleActive }: RoomCardProps) => {
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+    const [reservas, setReservas] = useState<(ReservaDetalleDTO & { isOccupying?: boolean })[]>([]);
+    const [loadingReservations, setLoadingReservations] = useState(false);
+    const [extraImages, setExtraImages] = useState<ImagenDTO[]>([]);
+
+    useEffect(() => {
+        if (h.id) {
+            // Fetch extra images for the card carousel
+            ImagenService.getImagens({ 'habitacionId.equals': h.id })
+                .then(res => setExtraImages(res.data))
+                .catch(err => console.error("Error fetching images", err));
+        }
+
+        if (isDetailsOpen && h.id) {
+            setLoadingReservations(true);
+            const fetchReservas = async () => {
+                try {
+                    const res = await ReservaDetalleService.getReservaDetalles({
+                        'habitacionId.equals': h.id,
+                        sort: ['id,desc'],
+                        size: 50
+                    });
+
+                    const detalles = res.data;
+
+                    // Fetch full reservation data and check-in status
+                    const enrichedReservas = await Promise.all(detalles.map(async (item) => {
+                        let enrichedItem: ReservaDetalleDTO & { isOccupying?: boolean } = { ...item };
+
+                        // Fetch Check-In Status
+                        try {
+                            if (item.id) {
+                                const checkInRes = await CheckInCheckOutService.getAll({ 'reservaDetalleId.equals': item.id });
+                                const activeCheckIn = checkInRes.data.find(c => c.fechaHoraCheckIn && !c.fechaHoraCheckOut && c.activo);
+                                if (activeCheckIn) {
+                                    enrichedItem.isOccupying = true;
+                                }
+                            }
+                        } catch (e) {
+                            console.error(`Error fetching check-in for details ${item.id}`, e);
+                        }
+
+                        // Fetch Reserva Data if missing dates or client
+                        if (item.reserva?.id && (!item.reserva.fechaInicio || !item.reserva.cliente)) {
+                            try {
+                                const reservaRes = await ReservaService.getReserva(item.reserva.id);
+                                enrichedItem.reserva = reservaRes.data;
+                            } catch (e) {
+                                console.error(`Error fetching reserva ${item.reserva.id}`, e);
+                            }
+                        }
+
+                        return enrichedItem;
+                    }));
+
+                    setReservas(enrichedReservas);
+                } catch (err) {
+                    console.error("Error fetching reservations:", err);
+                } finally {
+                    setLoadingReservations(false);
+                }
+            };
+
+            fetchReservas();
+        }
+    }, [isDetailsOpen, h.id]);
 
     return (
         <>
             <Card className="overflow-hidden hover:shadow-xl hover:border-primary/50 transition-all group border-border bg-card dark:bg-card/50">
                 <div className="relative h-48 w-full bg-gray-200 overflow-hidden">
-                    {h.imagen ? (
-                        <img
-                            src={getImageUrl(h.imagen)}
-                            alt={`Habitación ${h.numero}`}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
-                    ) : (
-                        <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground bg-muted">
-                            <ImageIcon className="h-12 w-12 mb-2 opacity-50" />
-                            <span className="text-xs font-semibold">Sin Imagen</span>
-                        </div>
-                    )}
-                    <div className="absolute top-3 left-3 flex gap-2">
-                        <Badge className={cn(
-                            "shadow-sm",
-                            h.estadoHabitacion?.nombre === 'DISPONIBLE' ? "bg-green-500 hover:bg-green-600" :
-                                h.estadoHabitacion?.nombre === 'OCUPADA' ? "bg-rose-500 hover:bg-rose-600" :
-                                    "bg-gray-500"
-                        )}>
-                            {h.estadoHabitacion?.nombre}
-                        </Badge>
-                    </div>
-                    <div className="absolute top-3 right-3">
+                    <DetailsImageGallery
+                        mainImage={h.imagen}
+                        extraImages={extraImages}
+                        className="h-full w-full rounded-none"
+                        autoPlay={false} // Default to no auto-play in grid to avoid noise, user can navigate manually
+                    />
+
+                    <div className="absolute top-3 right-3 pointer-events-none">
                         <Badge variant="secondary" className="bg-background/90 text-foreground shadow-sm backdrop-blur-sm">
                             #{h.numero}
                         </Badge>
@@ -125,7 +183,7 @@ export const RoomCard = ({ habitacion: h, onEdit, onDelete, onToggleActive }: Ro
             </Card>
 
             <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-                <DialogContent className="max-w-md">
+                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle className="text-xl font-bold flex items-center gap-2">
                             <Info className="h-5 w-5 text-blue-500" />
@@ -136,15 +194,12 @@ export const RoomCard = ({ habitacion: h, onEdit, onDelete, onToggleActive }: Ro
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4">
-                        <div className="relative h-56 w-full rounded-lg overflow-hidden bg-muted">
-                            {h.imagen ? (
-                                <img src={getImageUrl(h.imagen)} alt={`Full ${h.numero}`} className="w-full h-full object-cover" />
-                            ) : (
-                                <div className="flex items-center justify-center h-full text-muted-foreground">
-                                    <ImageIcon className="h-12 w-12" />
-                                </div>
-                            )}
-                        </div>
+                        <DetailsImageGallery
+                            mainImage={h.imagen}
+                            extraImages={extraImages}
+                            className="h-64 w-full rounded-lg shadow-sm border border-border"
+                            autoPlay={true}
+                        />
                         <div className="grid grid-cols-2 gap-4 text-sm">
                             <div>
                                 <span className="font-semibold text-muted-foreground block">Categoría</span>
@@ -161,8 +216,8 @@ export const RoomCard = ({ habitacion: h, onEdit, onDelete, onToggleActive }: Ro
                             <div>
                                 <span className="font-semibold text-muted-foreground block">Estado Actual</span>
                                 <Badge variant="outline" className={cn(
-                                    h.estadoHabitacion?.nombre === 'DISPONIBLE' ? 'text-green-600 border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/30' : 
-                                    'text-red-600 border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/30'
+                                    h.estadoHabitacion?.nombre === 'DISPONIBLE' ? 'text-green-600 border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/30' :
+                                        'text-red-600 border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/30'
                                 )}>
                                     {h.estadoHabitacion?.nombre}
                                 </Badge>
@@ -174,6 +229,56 @@ export const RoomCard = ({ habitacion: h, onEdit, onDelete, onToggleActive }: Ro
                                 {h.descripcion || 'No hay descripción disponible para esta habitación.'}
                             </p>
                         </div>
+                    </div>
+
+                    <div className="border-t pt-4 mt-4">
+                        <h4 className="font-bold text-lg mb-3">Historial de Reservas</h4>
+                        {loadingReservations ? (
+                            <div className="text-center py-4 text-muted-foreground">Cargando reservas...</div>
+                        ) : reservas.length === 0 ? (
+                            <div className="text-center py-4 text-muted-foreground italic bg-muted/30 rounded-md">
+                                No hay reservas registradas para esta habitación.
+                            </div>
+                        ) : (
+                            <div className="space-y-3">
+                                {reservas.map((rd) => (
+                                    <div key={rd.id} className="flex flex-col md:flex-row justify-between items-start md:items-center p-4 rounded-lg border border-border bg-card text-sm gap-4 shadow-sm">
+                                        <div className="flex-1">
+                                            <div className="font-bold text-lg text-foreground mb-1">
+                                                {rd.reserva?.cliente?.nombre || 'Cliente'} {rd.reserva?.cliente?.apellido || 'Desconocido'}
+                                            </div>
+                                            <div className="flex items-center gap-3">
+                                                <div className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded border border-input">
+                                                    ID: #{rd.reserva?.id}
+                                                </div>
+                                                <div className={cn(
+                                                    "text-xs font-bold px-3 py-0.5 rounded-full border uppercase tracking-wider",
+                                                    rd.reserva?.estado === 'CONFIRMADA' ? "bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800" :
+                                                        rd.reserva?.estado === 'PENDIENTE' ? "bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-800" :
+                                                            rd.reserva?.estado === 'CANCELADA' ? "bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800" :
+                                                                "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800"
+                                                )}>
+                                                    {rd.reserva?.estado}
+                                                </div>
+                                                {rd.isOccupying && (
+                                                    <div className="text-xs font-bold px-3 py-0.5 rounded-full border border-blue-200 bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800 uppercase tracking-wider animate-pulse">
+                                                        OCUPANDO
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <div className="md:text-right w-full md:w-auto mt-2 md:mt-0 bg-muted/30 p-2 rounded-md border border-border/50">
+                                            <div className="text-[10px] uppercase font-bold text-muted-foreground mb-1 tracking-widest text-center md:text-right">Periodo Reservado</div>
+                                            <div className="font-mono font-bold text-base text-foreground whitespace-nowrap">
+                                                {rd.reserva?.fechaInicio ? format(new Date(rd.reserva.fechaInicio), 'dd/MM/yyyy') : 'N/A'}
+                                                <span className="mx-2 text-muted-foreground">-</span>
+                                                {rd.reserva?.fechaFin ? format(new Date(rd.reserva.fechaFin), 'dd/MM/yyyy') : 'N/A'}
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </DialogContent>
             </Dialog>

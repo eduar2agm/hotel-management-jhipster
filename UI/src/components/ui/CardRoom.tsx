@@ -5,9 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
-import { BedDouble, Image as ImageIcon, Info, Wifi, Tv, Coffee, Check, X } from 'lucide-react';
-import { useState } from 'react';
-import { getImageUrl } from '../../utils/imageUtils';
+import { BedDouble, Info, Wifi, Tv, Coffee, Check, X } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { DetailsImageGallery } from '../common/DetailsImageGallery';
+import type { ImagenDTO } from '../../types/api/Imagen';
+import { ImagenService } from '../../services/imagen.service';
 
 interface CardRoomProps {
     habitacion: HabitacionDTO;
@@ -27,6 +29,15 @@ export const CardRoom = ({
     services = []
 }: CardRoomProps) => {
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+    const [extraImages, setExtraImages] = useState<ImagenDTO[]>([]);
+
+    useEffect(() => {
+        if (h.id) {
+            ImagenService.getImagens({ 'habitacionId.equals': h.id })
+                .then(res => setExtraImages(res.data))
+                .catch(err => console.error("Error fetching images", err));
+        }
+    }, [h.id]);
 
     const precioBase = Number(h.categoriaHabitacion?.precioBase || 0).toFixed(2);
     const nombreCategoria = h.categoriaHabitacion?.nombre || 'Estándar';
@@ -43,41 +54,23 @@ export const CardRoom = ({
             )}>
                 {/* Image Section */}
                 <div className="relative h-64 w-full overflow-hidden bg-gray-100">
-                    {h.imagen ? (
-                        <img
-                            src={getImageUrl(h.imagen)}
-                            alt={`Habitación ${h.numero}`}
-                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                        />
-                    ) : (
-                        <div className="flex h-full w-full flex-col items-center justify-center bg-muted text-muted-foreground">
-                            <ImageIcon className="h-12 w-12 opacity-20" />
-                            <span className="mt-2 text-xs font-medium uppercase tracking-wider">No Imagen</span>
-                        </div>
-                    )}
+                    <DetailsImageGallery
+                        mainImage={h.imagen}
+                        extraImages={extraImages}
+                        className="h-full w-full"
+                        autoPlay={false}
+                    />
 
                     {/* Selection Overlay */}
                     {isSelected && (
-                        <div className="absolute inset-0 bg-yellow-900/40 flex items-center justify-center backdrop-blur-[2px] animate-in fade-in">
+                        <div className="absolute inset-0 bg-yellow-900/40 flex items-center justify-center backdrop-blur-[2px] animate-in fade-in z-10 pointer-events-none">
                             <div className="bg-white text-yellow-700 px-4 py-2 rounded-full font-bold shadow-lg flex items-center gap-2">
                                 <Check className="w-5 h-5" /> Seleccionada
                             </div>
                         </div>
                     )}
 
-                    {/* Badges Overlay */}
-                    <div className="absolute top-4 left-4 flex gap-2">
-                        <Badge className={cn(
-                            "px-3 py-1 text-xs font-bold uppercase tracking-wider shadow-sm backdrop-blur-md",
-                            isDisponible
-                                ? "bg-green-500/90 hover:bg-green-600 text-white"
-                                : "bg-gray-800/90 text-white"
-                        )}>
-                            {estado}
-                        </Badge>
-                    </div>
-
-                    <div className="absolute top-4 right-4">
+                    <div className="absolute top-4 right-4 z-10 pointer-events-none">
                         <Badge variant="secondary" className="bg-white/90 text-gray-900 font-bold shadow-sm backdrop-blur-sm">
                             #{h.numero}
                         </Badge>
@@ -169,15 +162,16 @@ export const CardRoom = ({
                 <DialogContent className="max-w-2xl overflow-hidden p-0 gap-0 border-0 rounded-2xl">
                     <div className="grid md:grid-cols-2">
                         {/* Image Side */}
+
+                        {/* Image Side with Carousel */}
                         <div className="relative h-64 md:h-full bg-gray-100">
-                            {h.imagen ? (
-                                <img src={getImageUrl(h.imagen)} alt={h.numero} className="h-full w-full object-cover" />
-                            ) : (
-                                <div className="flex h-full items-center justify-center">
-                                    <ImageIcon className="h-16 w-16 text-gray-300" />
-                                </div>
-                            )}
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-6 md:hidden">
+                            <DetailsImageGallery
+                                mainImage={h.imagen}
+                                extraImages={extraImages}
+                                className="h-full w-full"
+                                autoPlay={true}
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-6 md:hidden pointer-events-none">
                                 <h2 className="text-white text-2xl font-bold">{nombreCategoria}</h2>
                             </div>
                         </div>

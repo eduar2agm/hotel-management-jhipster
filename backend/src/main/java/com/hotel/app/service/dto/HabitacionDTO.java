@@ -29,6 +29,8 @@ public class HabitacionDTO implements Serializable {
 
     private EstadoHabitacionDTO estadoHabitacion;
 
+    private java.util.List<ImagenDTO> imagenes;
+
     public Long getId() {
         return id;
     }
@@ -93,6 +95,14 @@ public class HabitacionDTO implements Serializable {
         this.estadoHabitacion = estadoHabitacion;
     }
 
+    public java.util.List<ImagenDTO> getImagenes() {
+        return imagenes;
+    }
+
+    public void setImagenes(java.util.List<ImagenDTO> imagenes) {
+        this.imagenes = imagenes;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -118,14 +128,14 @@ public class HabitacionDTO implements Serializable {
     @Override
     public String toString() {
         return "HabitacionDTO{" +
-            "id=" + getId() +
-            ", numero='" + getNumero() + "'" +
-            ", capacidad=" + getCapacidad() +
-            ", descripcion='" + getDescripcion() + "'" +
-            ", imagen='" + getImagen() + "'" +
-            ", activo='" + getActivo() + "'" +
-            ", categoriaHabitacion=" + getCategoriaHabitacion() +
-            ", estadoHabitacion=" + getEstadoHabitacion() +
-            "}";
+                "id=" + getId() +
+                ", numero='" + getNumero() + "'" +
+                ", capacidad=" + getCapacidad() +
+                ", descripcion='" + getDescripcion() + "'" +
+                ", imagen='" + getImagen() + "'" +
+                ", activo='" + getActivo() + "'" +
+                ", categoriaHabitacion=" + getCategoriaHabitacion() +
+                ", estadoHabitacion=" + getEstadoHabitacion() +
+                "}";
     }
 }

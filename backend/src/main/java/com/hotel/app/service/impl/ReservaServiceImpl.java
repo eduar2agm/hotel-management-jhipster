@@ -13,6 +13,15 @@ import com.hotel.app.service.ServicioContratadoService;
 import com.hotel.app.service.dto.ServicioContratadoDTO;
 import com.hotel.app.service.dto.MensajeSoporteDTO;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
 import com.hotel.app.service.mapper.ReservaMapper;
 import com.hotel.app.web.rest.errors.BadRequestAlertException;
 import java.util.List;
@@ -62,8 +71,33 @@ public class ReservaServiceImpl implements ReservaService {
     @Override
     public ReservaDTO save(ReservaDTO reservaDTO) {
         LOG.debug("Request to save Reserva : {}", reservaDTO);
+
+        boolean isNewReserva = reservaDTO.getId() == null;
+        if (isNewReserva && reservaDTO.getFechaReserva() == null) {
+            reservaDTO.setFechaReserva(Instant.now());
+        }
+
+        // If this is an update (ID exists), check status transition
+        if (reservaDTO.getId() != null) {
+            reservaRepository.findById(reservaDTO.getId()).ifPresent(existingReserva -> {
+                // Check for Canceled - Cascade services
+                if (existingReserva.getEstado() != EstadoReserva.CANCELADA
+                        && reservaDTO.getEstado() == EstadoReserva.CANCELADA) {
+                    cancelAssociatedServices(existingReserva);
+                    sendCanceladaMessage(existingReserva);
+                }
+            });
+        }
+
         Reserva reserva = reservaMapper.toEntity(reservaDTO);
         reserva = reservaRepository.save(reserva);
+
+        // Send notification for new reservations
+        if (isNewReserva && reserva.getCliente() != null) {
+            sendWelcomeMessage(reserva);
+            sendReservaCreatedMessage(reserva);
+        }
+
         return reservaMapper.toDto(reserva);
     }
 
@@ -310,7 +344,7 @@ public class ReservaServiceImpl implements ReservaService {
     }
 
     private void sendWelcomeMessage(Reserva reserva) {
-        if (reserva.getCliente() != null) {
+        if (reserva.getCliente() != null && reserva.getCliente().getKeycloakId() != null) {
             String msgText = "👋 ¡Bienvenido a nuestro servicio de soporte!\n\nEstamos aquí para ayudarle con cualquier consulta o necesidad durante su estancia.\n\nNormalmente respondemos en pocos minutos.";
 
             // Try to fetch custom welcome message template
@@ -343,7 +377,7 @@ public class ReservaServiceImpl implements ReservaService {
         List<ServicioContratadoDTO> servicios = servicioContratadoService.findByReservaId(reserva.getId());
         for (ServicioContratadoDTO servicio : servicios) {
             if (servicio.getEstado() != com.hotel.app.domain.enumeration.EstadoServicioContratado.CANCELADO) {
-                servicioContratadoService.cancelar(servicio.getId());
+                servicioContratadoService.cancelar(servicio.getId(), "MSG_SERVICE_AUTO_CANCEL_RESERVA");
 
                 // Optional: Send notification for service cancellation (if not covered by other
                 // flows)
@@ -363,5 +397,139 @@ public class ReservaServiceImpl implements ReservaService {
                 servicioContratadoService.completar(servicio.getId(), "MSG_SERVICE_AUTO_COMPLETED_CHECKOUT");
             }
         }
+    }
+
+    private void sendReservaCreatedMessage(Reserva reserva) {
+        if (reserva.getCliente() == null || reserva.getCliente().getKeycloakId() == null) {
+            return;
+        }
+
+        try {
+            String msgText = "¡Hola "
+                    + (reserva.getCliente().getNombre() != null ? reserva.getCliente().getNombre() : "Cliente")
+                    + "! Su reserva #" + reserva.getId() + " ha sido creada exitosamente. Estado: PENDIENTE DE PAGO.";
+
+            try {
+                var configOpt = configuracionSistemaService.findByClave("MSG_RESERVA_CREADA");
+                if (configOpt.isPresent() && configOpt.get().getValor() != null) {
+                    msgText = configOpt.get().getValor()
+                            .replace("{clienteNombre}",
+                                    reserva.getCliente().getNombre() != null ? reserva.getCliente().getNombre()
+                                            : "Cliente")
+                            .replace("{reservaId}", reserva.getId().toString())
+                            .replace("{fechaInicio}",
+                                    reserva.getFechaInicio() != null ? reserva.getFechaInicio().toString() : "")
+                            .replace("{fechaFin}",
+                                    reserva.getFechaFin() != null ? reserva.getFechaFin().toString() : "");
+                }
+            } catch (Exception e) {
+                LOG.debug("Using default creation message");
+            }
+
+            MensajeSoporteDTO mensaje = new MensajeSoporteDTO();
+            mensaje.setMensaje(msgText);
+            mensaje.setFechaMensaje(Instant.now());
+            mensaje.setUserId(reserva.getCliente().getKeycloakId());
+            mensaje.setUserName((reserva.getCliente().getNombre() != null ? reserva.getCliente().getNombre() : "") + " "
+                    + (reserva.getCliente().getApellido() != null ? reserva.getCliente().getApellido() : "").trim());
+            mensaje.setLeido(false);
+            mensaje.setActivo(true);
+            mensaje.setRemitente("SISTEMA");
+
+            mensajeSoporteService.save(mensaje);
+        } catch (Exception e) {
+            LOG.error("Error sending reservation created message", e);
+        }
+    }
+
+    private void sendCanceladaMessage(Reserva reserva) {
+        if (reserva.getCliente() == null || reserva.getCliente().getKeycloakId() == null) {
+            return;
+        }
+
+        try {
+            String msgText = "Su reserva #" + reserva.getId()
+                    + " ha sido cancelada. Si tiene alguna pregunta, no dude en contactarnos.";
+
+            try {
+                var configOpt = configuracionSistemaService.findByClave("MSG_RESERVA_CANCELADA");
+                if (configOpt.isPresent() && configOpt.get().getValor() != null) {
+                    msgText = configOpt.get().getValor()
+                            .replace("{reservaId}", reserva.getId().toString())
+                            .replace("{clienteNombre}",
+                                    reserva.getCliente().getNombre() != null ? reserva.getCliente().getNombre()
+                                            : "Cliente");
+                }
+            } catch (Exception e) {
+                LOG.debug("Using default cancellation message");
+            }
+
+            MensajeSoporteDTO mensaje = new MensajeSoporteDTO();
+            mensaje.setMensaje(msgText);
+            mensaje.setFechaMensaje(Instant.now());
+            mensaje.setUserId(reserva.getCliente().getKeycloakId());
+            mensaje.setUserName((reserva.getCliente().getNombre() != null ? reserva.getCliente().getNombre() : "") + " "
+                    + (reserva.getCliente().getApellido() != null ? reserva.getCliente().getApellido() : "").trim());
+            mensaje.setLeido(false);
+            mensaje.setActivo(true);
+            mensaje.setRemitente("SISTEMA");
+
+            mensajeSoporteService.save(mensaje);
+        } catch (Exception e) {
+            LOG.error("Error sending cancellation message", e);
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> obtenerEstadisticasGrafico(String periodo) {
+        LocalDate today = LocalDate.now();
+        LocalDate startDate;
+        LocalDate endDate = today.plusDays(1); // Include today fully by going to tomorrow
+
+        if ("mes".equalsIgnoreCase(periodo)) {
+            startDate = today.withDayOfMonth(1);
+        } else {
+            // Default to week (last 7 days including today)
+            startDate = today.minusDays(6); 
+        }
+
+        // Initialize map with all dates in range to fill gaps
+        Map<String, Map<String, Object>> statsMap = new LinkedHashMap<>();
+        long daysBetween = ChronoUnit.DAYS.between(startDate, endDate); // endDate is exclusive in stream usually, but let's iterate
+
+        for (int i = 0; i < daysBetween; i++) {
+            LocalDate date = startDate.plusDays(i);
+            String label = date.format(DateTimeFormatter.ofPattern("dd/MM"));
+            Map<String, Object> dailyStats = new HashMap<>();
+            dailyStats.put("name", label);
+            dailyStats.put("PENDIENTE", 0);
+            dailyStats.put("CONFIRMADA", 0);
+            dailyStats.put("CANCELADA", 0);
+            dailyStats.put("FINALIZADA", 0);
+            statsMap.put(label, dailyStats);
+        }
+
+        // Fetch from DB using UTC instants corresponding to the local dates
+        Instant startInstant = startDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
+        Instant endInstant = endDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
+
+        List<Reserva> reservas = reservaRepository.findAllByFechaReservaBetween(startInstant, endInstant);
+
+        for (Reserva reserva : reservas) {
+            if (reserva.getFechaReserva() != null) {
+                // Convert UTC Instant to Local Date
+                LocalDate resDate = reserva.getFechaReserva().atZone(ZoneId.systemDefault()).toLocalDate();
+                String label = resDate.format(DateTimeFormatter.ofPattern("dd/MM"));
+
+                if (statsMap.containsKey(label)) {
+                    String estado = reserva.getEstado().name();
+                    Map<String, Object> dayStats = statsMap.get(label);
+                    dayStats.put(estado, (int) dayStats.getOrDefault(estado, 0) + 1);
+                }
+            }
+        }
+
+        return new ArrayList<>(statsMap.values());
     }
 }

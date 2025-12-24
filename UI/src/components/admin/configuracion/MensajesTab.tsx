@@ -26,21 +26,41 @@ import { ConfiguracionSistemaService } from '../../../services/configuracion-sis
 import { type ConfiguracionSistemaDTO, type NewConfiguracionSistemaDTO } from '../../../types/api/ConfiguracionSistema';
 
 const PREDEFINED_KEYS = [
+    // Reservas
+    { key: 'MSG_RESERVA_CREADA', label: 'Reserva Creada', description: 'Mensaje cuando se crea una nueva reserva. Variables: {clienteNombre}, {reservaId}, {fechaInicio}, {fechaFin}' },
+    { key: 'MSG_RESERVA_CONFIRMADA', label: 'Reserva Confirmada', description: 'Mensaje cuando se confirma una reserva tras el pago. Variables: {reservaId}, {fechaInicio}' },
+    { key: 'MSG_RESERVA_CANCELADA', label: 'Reserva Cancelada', description: 'Mensaje cuando se cancela una reserva. Variables: {reservaId}, {clienteNombre}' },
     { key: 'MSG_CANCEL_REQUEST', label: 'Solicitud Cancelación (Cliente)', description: 'Mensaje del cliente al solicitar cancelación. Variables: {reservaId}, {details}' },
     { key: 'MSG_ADMIN_CANCEL', label: 'Notificación Cancelación (Admin)', description: 'Mensaje del admin al cliente cuando cancela reserva. Variables: {clienteNombre}, {reservaId}, {fechaInicio}, {fechaFin}' },
     { key: 'MSG_ADMIN_FINALIZE', label: 'Notificación Finalización (Admin)', description: 'Mensaje del admin al cliente cuando finaliza reserva. Variables: {clienteNombre}, {reservaId}, {fechaInicio}, {fechaFin}' },
+    { key: 'MSG_ADMIN_FORCED_FINALIZE', label: 'Admin Forced Finalize', description: 'Notificación cuando admin fuerza finalización. Variables: {reservaId}, {clienteNombre}' },
+    { key: 'MSG_RESERVA_AUTO_CHECKOUT', label: 'Auto Checkout', description: 'Mensaje de checkout automático. Variables: {reservaId}, {clienteNombre}' },
     { key: 'MSG_WELCOME_CHAT', label: 'Bienvenida Chat', description: 'Mensaje inicial al abrir el chat (Opcional)' },
 
+    // Check-In / Check-Out
+    { key: 'MSG_CHECK_IN_REALIZADO', label: 'Check-In Realizado', description: 'Mensaje cuando se realiza el check-in. Variables: {clienteNombre}, {habitaciones}' },
+    { key: 'MSG_CHECK_OUT_REALIZADO', label: 'Check-Out Realizado', description: 'Mensaje cuando se realiza el check-out. Variables: {clienteNombre}' },
+
+    // Recordatorios
+    { key: 'MSG_RECORDATORIO_CHECK_IN', label: 'Recordatorio Check-In', description: 'Recordatorio enviado 1 día antes del check-in. Variables: {fechaInicio}, {reservaId}' },
+    { key: 'MSG_RECORDATORIO_SERVICIO', label: 'Recordatorio Servicio', description: 'Recordatorio enviado 1 día antes del servicio. Variables: {servicioNombre}, {horaServicio}' },
+
     // Servicios
-    { key: 'MSG_SERVICE_CONFIRMADO', label: 'Confirmación Servicio', description: 'Confirmación tras pago. Variables: {servicioNombre}, {fechaServicio}, {total}' },
+    { key: 'MSG_SERVICIO_CONTRATADO', label: 'Servicio Contratado', description: 'Mensaje cuando se contrata un servicio. Variables: {servicioNombre}, { fechaServicio}' },
+    { key: 'MSG_SERVICE_CONFIRMADO', label: 'Confirmación Servicio', description: 'Confirmación tras pago. Variables: {servicioNombre}, { fechaServicio}, {total}' },
     { key: 'MSG_SERVICE_PAGO_EXITOSO', label: 'Pago Exitoso Servicio', description: 'Confirmación de pago. Variables: {servicioNombre}' },
     { key: 'MSG_SERVICE_COMPLETADO', label: 'Servicio Completado', description: 'Notificación de servicio finalizado. Variables: {servicioNombre}' },
     { key: 'MSG_SERVICE_CANCELADO', label: 'Cancelación Servicio', description: 'Notificación de cancelación. Variables: {servicioNombre}, {fechaServicio}' },
     { key: 'MSG_SERVICE_SOLICITUD_CANCELACION', label: 'Solicitud Cancelación Servicio', description: 'Confirmación de solicitud de cancelación. Variables: {servicioNombre}' },
     { key: 'MSG_SERVICE_AUTO_CANCEL_RESERVA', label: 'Cancelación Auto por Reserva', description: 'Cancelación automática al cancelar reserva. Variables: {reservaId}' },
-    { key: 'MSG_ADMIN_FORCED_FINALIZE', label: 'Admin Forced Finalize', description: 'Notificación cuando admin fuerza finalización. Variables: {reservaId}, {clienteNombre}' },
     { key: 'MSG_SERVICE_AUTO_COMPLETED_CHECKOUT', label: 'Servicio Auto-Completado (Checkout)', description: 'Notificación cuando servicio se completa por checkout. Variables: {servicioNombre}' },
     { key: 'MSG_SERVICE_ADMIN_FORCED_COMPLETION', label: 'Servicio Completado Manual (Admin)', description: 'Notificación cuando admin completa servicio manualmente. Variables: {servicioNombre}' },
+
+    // Pagos
+    { key: 'MSG_PAGO_EXITOSO_RESERVA', label: 'Pago Exitoso - Reserva', description: 'Mensaje cuando el pago de una reserva es exitoso. Variables: {monto}, {reservaId}' },
+    { key: 'MSG_PAGO_EXITOSO_SERVICIO', label: 'Pago Exitoso - Servicio', description: 'Mensaje cuando el pago de un servicio es exitoso. Variables: {monto}, {servicioNombre}' },
+    { key: 'MSG_PAGO_FALLIDO', label: 'Pago Fallido', description: 'Mensaje cuando falla un pago. Sin variables' },
+    { key: 'MSG_PAGO_PENDIENTE', label: 'Pago Pendiente', description: 'Mensaje recordatorio de pago pendiente. Sin variables' },
 ];
 
 export const MensajesTab = () => {

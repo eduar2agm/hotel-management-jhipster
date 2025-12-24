@@ -25,10 +25,13 @@ public class ServicioServiceImpl implements ServicioService {
     private final ServicioRepository servicioRepository;
 
     private final ServicioMapper servicioMapper;
+    private final com.hotel.app.service.ImagenService imagenService;
 
-    public ServicioServiceImpl(ServicioRepository servicioRepository, ServicioMapper servicioMapper) {
+    public ServicioServiceImpl(ServicioRepository servicioRepository, ServicioMapper servicioMapper,
+            com.hotel.app.service.ImagenService imagenService) {
         this.servicioRepository = servicioRepository;
         this.servicioMapper = servicioMapper;
+        this.imagenService = imagenService;
     }
 
     @Override
@@ -73,12 +76,16 @@ public class ServicioServiceImpl implements ServicioService {
     @Transactional(readOnly = true)
     public Optional<ServicioDTO> findOne(Long id) {
         LOG.debug("Request to get Servicio : {}", id);
-        return servicioRepository.findById(id).map(servicioMapper::toDto);
+        return servicioRepository.findById(id).map(servicioMapper::toDto).map(dto -> {
+            dto.setImagenes(imagenService.findByServicioId(id));
+            return dto;
+        });
     }
 
     @Override
     public void delete(Long id) {
         LOG.debug("Request to delete Servicio : {}", id);
+        imagenService.deleteByServicioId(id);
         servicioRepository.deleteById(id);
     }
 

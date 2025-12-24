@@ -13,12 +13,14 @@ import {
   Settings,
   Mail,
   User,
-  KeyRound
+  KeyRound,
+  UserCog
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { useUnreadSupport } from '../../hooks/useUnreadSupport';
 import logo from '../../assets/logoN.png';
 import { ModeToggle } from '../mode-toggle';
+import { NotificationPanel } from './NotificationPanel';
 
 export const Navbar = () => {
   const { isAuthenticated, login, logout, user, isClient, isEmployee, isAdmin } = useAuth();
@@ -52,10 +54,9 @@ export const Navbar = () => {
 
   return (
     <nav className="absolute top-0 left-0 w-full z-[1000] flex bg-black/50 backdrop-blur-sm justify-between items-center px-10 py-6 text-white">
-
       <div className="text-xl font-bold tracking-wide flex items-center gap-3">
-        <img src={logo} alt="Logo" title="Hotel Management" className="w-10 h-10" />
-        <span>Hotel Management</span>
+        <NavLink to="/"><img src={logo} alt="Logo" title="Hotel" className="w-10 h-10" /></NavLink>
+        <span>Hotel</span>
       </div>
 
       {/* Menú Central */}
@@ -79,10 +80,12 @@ export const Navbar = () => {
           <>
             <NavItem to="/" end icon={Home}>Home</NavItem>
             <NavItem to="/employee/dashboard" icon={LayoutDashboard}>Dashboard</NavItem>
+            <NavItem to="/employee/habitaciones" icon={BedDouble}>Habitaciones</NavItem>
             <NavItem to="/employee/clientes" icon={Users}>Clientes</NavItem>
             <NavItem to="/employee/checkin" icon={KeyRound}>Check-in</NavItem>
             <NavItem to="/employee/reservas" icon={CalendarCheck}>Reservas</NavItem>
-            <NavItem to="/employee/servicios-contratados" icon={ClipboardList}>Servicios</NavItem>
+            <NavItem to="/employee/servicios" icon={HandPlatter}>Catálogo</NavItem>
+            <NavItem to="/employee/servicios-contratados" icon={ClipboardList}>Solicitudes</NavItem>
             <div className="relative inline-block">
               <NavItem to="/employee/soporte" icon={Headset}>Soporte</NavItem>
               <Badge count={unreadCount} />
@@ -96,6 +99,8 @@ export const Navbar = () => {
             <NavItem to="/admin/dashboard" icon={LayoutDashboard}>Dashboard</NavItem>
             <NavItem to="/admin/habitaciones" icon={BedDouble}>Habitaciones</NavItem>
             <NavItem to="/admin/clientes" icon={Users}>Clientes</NavItem>
+            <NavItem to="/admin/empleados" icon={UserCog}>Empleados</NavItem>
+            <NavItem to="/admin/checkin" icon={KeyRound}>Check-in</NavItem>
             <NavItem to="/admin/reservas" icon={CalendarCheck}>Reservas</NavItem>
             <NavItem to="/admin/servicios" icon={HandPlatter}>Servicios</NavItem>
             <NavItem to="/admin/servicios-contratados" icon={ClipboardList}>Solicitudes</NavItem>
@@ -112,6 +117,7 @@ export const Navbar = () => {
 
       {/* Botón Login / Logout + Dark Mode */}
       <div className="flex items-center gap-4">
+        {isAuthenticated && <NotificationPanel />}
         <ModeToggle />
         {isAuthenticated ? (
           <div className="flex items-center gap-4">

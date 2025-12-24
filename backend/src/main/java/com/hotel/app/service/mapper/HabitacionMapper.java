@@ -15,6 +15,7 @@ import org.mapstruct.*;
 public interface HabitacionMapper extends EntityMapper<HabitacionDTO, Habitacion> {
     @Mapping(target = "categoriaHabitacion", source = "categoriaHabitacion", qualifiedByName = "categoriaHabitacionId")
     @Mapping(target = "estadoHabitacion", source = "estadoHabitacion", qualifiedByName = "estadoHabitacionId")
+    @Mapping(target = "imagenes", ignore = true)
     HabitacionDTO toDto(Habitacion s);
 
     @Named("categoriaHabitacionId")

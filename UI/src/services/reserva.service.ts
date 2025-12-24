@@ -13,4 +13,5 @@ export const ReservaService = {
     updateReserva: (id: number, dto: ReservaDTO) => apiClient.put<ReservaDTO>(`${base}/${id}`, dto),
     partialUpdateReserva: (id: number, dto: Partial<ReservaDTO>) => apiClient.patch<ReservaDTO>(`${base}/${id}`, dto),
     deleteReserva: (id: number) => apiClient.delete<void>(`${base}/${id}`),
+    getStatsGrafico: (periodo: string) => apiClient.get<any[]>(`${base}/stats-grafico`, { params: { periodo } }),
 };

@@ -9,7 +9,7 @@ export interface ReservaDTO {
     totalCalculado?: number | null;
     total?: number | null; // Added to support frontend usage
     activo?: boolean | null;
-    cliente?: ClienteDTO | { id: number; nombre?: string; apellido?: string } | null;
+    cliente?: ClienteDTO | { id: number; nombre?: string; apellido?: string; numeroIdentificacion?: string } | null;
     habitacion?: { id: number; numero?: string } | null;
     // Helper fields if needed, but backend expects objects
     clienteId?: number | null;

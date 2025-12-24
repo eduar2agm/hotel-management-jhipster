@@ -105,4 +105,12 @@ public interface ReservaService {
      * @param id the id of the entity.
      */
     void deactivate(Long id);
+
+    /**
+     * Get reservation statistics for chart.
+     *
+     * @param periodo "semana" or "mes"
+     * @return List of stats
+     */
+    java.util.List<java.util.Map<String, Object>> obtenerEstadisticasGrafico(String periodo);
 }

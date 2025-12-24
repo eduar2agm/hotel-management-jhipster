@@ -85,9 +85,11 @@ public class ImagenServiceImpl implements ImagenService {
                 Long habId = imagen.getHabitacion().getId();
                 if (habId != null) {
                     habitacionRepository.findById(habId).ifPresent(h -> {
-                        // DELETE OLD FILE if it exists
-                        if (h.getImagen() != null && !h.getImagen().isEmpty()) {
-                            deleteFileFromLocal(h.getImagen());
+                        // LOGIC CHANGED: Do NOT delete old file automatically, as we want to support
+                        // multiple images.
+                        // Only set as main image if none exists.
+                        if (h.getImagen() == null || h.getImagen().isEmpty()) {
+                            // This will be set later in step 5
                         }
                         imagen.setHabitacion(h); // LINK: Sets the foreign key for the Imagen table
                     });
@@ -99,9 +101,9 @@ public class ImagenServiceImpl implements ImagenService {
                 Long servId = imagen.getServicio().getId();
                 if (servId != null) {
                     servicioRepository.findById(servId).ifPresent(s -> {
-                        // DELETE OLD FILE if it exists
-                        if (s.getUrlImage() != null && !s.getUrlImage().isEmpty()) {
-                            deleteFileFromLocal(s.getUrlImage());
+                        // LOGIC CHANGED: Do NOT delete old file automatically.
+                        if (s.getUrlImage() == null || s.getUrlImage().isEmpty()) {
+                            // This will be set later in step 5
                         }
                         imagen.setServicio(s); // LINK: Sets the foreign key for the Imagen table
                     });
@@ -127,13 +129,21 @@ public class ImagenServiceImpl implements ImagenService {
             String relativePath = subFolder + "/" + fileName;
             imagen.setNombreArchivo(relativePath);
 
-            // 5. Update the parent's path field if it exists
+            // 5. Update the parent's path field ONLY if it is empty (First image becomes
+            // main)
+            // Or if we want to explicitly support "setting main image", we'd need another
+            // flag.
+            // For now, first come, first serve as main.
             if (imagen.getHabitacion() != null) {
-                imagen.getHabitacion().setImagen(relativePath);
-                habitacionRepository.save(imagen.getHabitacion());
+                if (imagen.getHabitacion().getImagen() == null || imagen.getHabitacion().getImagen().isEmpty()) {
+                    imagen.getHabitacion().setImagen(relativePath);
+                    habitacionRepository.save(imagen.getHabitacion());
+                }
             } else if (imagen.getServicio() != null) {
-                imagen.getServicio().setUrlImage(relativePath);
-                servicioRepository.save(imagen.getServicio());
+                if (imagen.getServicio().getUrlImage() == null || imagen.getServicio().getUrlImage().isEmpty()) {
+                    imagen.getServicio().setUrlImage(relativePath);
+                    servicioRepository.save(imagen.getServicio());
+                }
             }
 
             LOG.debug("File saved and relationship established: {}", targetPath);
@@ -214,5 +224,19 @@ public class ImagenServiceImpl implements ImagenService {
         imagenRepository.findByServicioId(servicioId).forEach(imagen -> {
             delete(imagen.getId());
         });
+    }
+
+    @Override
+    public java.util.List<ImagenDTO> findByHabitacionId(Long habitacionId) {
+        return imagenRepository.findByHabitacionId(habitacionId).stream()
+                .map(imagenMapper::toDto)
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    @Override
+    public java.util.List<ImagenDTO> findByServicioId(Long servicioId) {
+        return imagenRepository.findByServicioId(servicioId).stream()
+                .map(imagenMapper::toDto)
+                .collect(java.util.stream.Collectors.toList());
     }
 }

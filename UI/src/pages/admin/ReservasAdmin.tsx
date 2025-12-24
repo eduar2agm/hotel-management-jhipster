@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import {
     Table,
@@ -28,6 +28,7 @@ import {
     Search,
     Calendar
 } from 'lucide-react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { PaymentModal } from '../../components/modals/PaymentModal';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -65,6 +66,39 @@ export const AdminReservas = () => {
     // Filter State
     const [searchTerm, setSearchTerm] = useState('');
     const [showInactive, setShowInactive] = useState(false);
+
+    const location = useLocation();
+    const navigate = useNavigate();
+    const hasProcessedState = useRef(false);
+
+    // --- HANDLE REDIRECTION FROM HOMEPAGE (RoomInfoModal) ---
+    useEffect(() => {
+        const state = location.state as {
+            preSelectedRoom?: any;
+            startDate?: string;
+            endDate?: string;
+            preSelectedCliente?: any;
+        };
+
+        if (state?.preSelectedRoom && !hasProcessedState.current) {
+            hasProcessedState.current = true;
+
+            // Synthesize a dummy reservation object to trigger the form with pre-filled data
+            const prefilledData = {
+                fechaInicio: state.startDate,
+                fechaFin: state.endDate,
+                clienteId: state.preSelectedCliente?.id,
+                cliente: state.preSelectedCliente,
+                roomIds: [state.preSelectedRoom.id] // Custom prop for our form
+            };
+
+            setSelectedReserva(prefilledData as any);
+            setIsDialogOpen(true);
+
+            // Clean state
+            navigate(location.pathname, { replace: true, state: {} });
+        }
+    }, [location.state, location.pathname, navigate]);
 
     const loadData = useCallback(async () => {
         try {
@@ -333,7 +367,7 @@ export const AdminReservas = () => {
                                             </TableCell>
                                             <TableCell>
                                                 <div className="flex items-center gap-3">
-                                                     <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground font-bold text-xs ring-2 ring-background shadow-sm">
+                                                    <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground font-bold text-xs ring-2 ring-background shadow-sm">
                                                         {reserva.cliente?.nombre ? reserva.cliente.nombre.charAt(0).toUpperCase() : <User className="h-4 w-4" />}
                                                     </div>
                                                     <div className="flex flex-col">
@@ -388,9 +422,9 @@ export const AdminReservas = () => {
                                                         variant="ghost"
                                                         size="sm"
                                                         onClick={() => handleOpenPayment(reserva)}
-                                                        disabled={!reserva.activo}
-                                                        className="h-8 w-8 p-0 text-muted-foreground rounded-full transition-colors hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-600"
-                                                        title="Gestionar Pago"
+                                                        disabled={!reserva.activo || ['CONFIRMADA', 'CANCELADA', 'FINALIZADA'].includes(reserva.estado || '')}
+                                                        className="h-8 w-8 p-0 text-muted-foreground rounded-full transition-colors hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                        title={['CONFIRMADA', 'CANCELADA', 'FINALIZADA'].includes(reserva.estado || '') ? `Pago no disponible (${reserva.estado})` : "Gestionar Pago"}
                                                     >
                                                         <CreditCard className="h-4 w-4" />
                                                     </Button>

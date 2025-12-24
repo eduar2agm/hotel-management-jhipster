@@ -19,7 +19,7 @@ import org.mapstruct.*;
  */
 @Mapper(componentModel = "spring", uses = { ReservaMapper.class })
 public interface ReservaDetalleMapper extends EntityMapper<ReservaDetalleDTO, ReservaDetalle> {
-    @Mapping(target = "reserva", source = "reserva", qualifiedByName = "reservaId")
+    @Mapping(target = "reserva", source = "reserva")
     @Mapping(target = "habitacion", source = "habitacion", qualifiedByName = "habitacionNumero")
     ReservaDetalleDTO toDto(ReservaDetalle s);
 

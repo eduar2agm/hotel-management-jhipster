@@ -28,6 +28,8 @@ export const CheckIn = () => {
     const [checkIns, setCheckIns] = useState<CheckInCheckOutDTO[]>([]);
     const [loading, setLoading] = useState(false);
 
+    const [hasSearched, setHasSearched] = useState(false);
+
     // Dialog State
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [actionType, setActionType] = useState<'CHECK_IN' | 'CHECK_OUT' | null>(null);
@@ -38,6 +40,7 @@ export const CheckIn = () => {
     const handleSearch = async () => {
         if (!searchTerm) return;
         setLoading(true);
+        setHasSearched(true);
         setSelectedReserva(null);
         setDetalles([]);
         setCheckIns([]);
@@ -155,6 +158,102 @@ export const CheckIn = () => {
         }
     };
 
+    // Bulk Check-In for all rooms
+    const executeCheckInAll = async () => {
+        if (!selectedReserva || !canCheckIn) {
+            toast.error('No se puede realizar check-in masivo en este momento');
+            return;
+        }
+
+        const pendingDetails = detalles.filter(det => {
+            const status = det.id ? getStatusForDetalle(det.id) : 'UNKNOWN';
+            return status === 'PENDIENTE';
+        });
+
+        if (pendingDetails.length === 0) {
+            toast.info('No hay habitaciones pendientes de check-in');
+            return;
+        }
+
+        try {
+            const estadosRes = await EstadoHabitacionService.getEstados();
+            const estados = estadosRes.data;
+            const estadoOcupada = estados.find(e => e.nombre === 'OCUPADA');
+
+            for (const det of pendingDetails) {
+                await CheckInCheckOutService.create({
+                    fechaHoraCheckIn: new Date().toISOString(),
+                    estado: EstadoCheckInCheckOut.REALIZADO,
+                    comentarios: 'Check-in masivo',
+                    activo: true,
+                    reservaDetalle: det
+                });
+
+                if (estadoOcupada && det.habitacion?.id) {
+                    await HabitacionService.partialUpdateHabitacion(det.habitacion.id, {
+                        id: det.habitacion.id,
+                        estadoHabitacion: estadoOcupada
+                    });
+                }
+            }
+
+            toast.success(`Check-In realizado en ${pendingDetails.length} habitaciones`);
+            handleSelectReserva(selectedReserva);
+        } catch (error) {
+            console.error(error);
+            toast.error('Error al realizar check-in masivo');
+        }
+    };
+
+    // Bulk Check-Out for all rooms
+    const executeCheckOutAll = async () => {
+        if (!selectedReserva) {
+            toast.error('No se puede realizar check-out masivo');
+            return;
+        }
+
+        const checkedInDetails = detalles.filter(det => {
+            const status = det.id ? getStatusForDetalle(det.id) : 'UNKNOWN';
+            return status === 'CHECKED_IN';
+        });
+
+        if (checkedInDetails.length === 0) {
+            toast.info('No hay habitaciones activas para check-out');
+            return;
+        }
+
+        try {
+            const estadosRes = await EstadoHabitacionService.getEstados();
+            const estados = estadosRes.data;
+            const estadoLimpieza = estados.find(e => e.nombre === 'LIMPIEZA') ?? estados.find(e => e.nombre === 'DISPONIBLE');
+
+            for (const det of checkedInDetails) {
+                const existing = checkIns.find(c => c.reservaDetalle?.id === det.id);
+                if (existing && existing.id) {
+                    await CheckInCheckOutService.partialUpdate(existing.id, {
+                        id: existing.id,
+                        fechaHoraCheckOut: new Date().toISOString(),
+                        estado: EstadoCheckInCheckOut.REALIZADO,
+                        comentarios: existing.comentarios + ' | Checkout masivo'
+                    });
+
+                    if (estadoLimpieza && det.habitacion?.id) {
+                        await HabitacionService.partialUpdateHabitacion(det.habitacion.id, {
+                            id: det.habitacion.id,
+                            estadoHabitacion: estadoLimpieza
+                        });
+                    }
+                }
+            }
+
+            toast.success(`Check-Out realizado en ${checkedInDetails.length} habitaciones`);
+            handleSelectReserva(selectedReserva);
+        } catch (error) {
+            console.error(error);
+            toast.error('Error al realizar check-out masivo');
+        }
+    };
+
     const getStatusForDetalle = (detalleId: number) => {
         const checkIn = checkIns.find(c => c.reservaDetalle?.id === detalleId);
         if (!checkIn) return 'PENDIENTE';
@@ -162,6 +261,16 @@ export const CheckIn = () => {
         if (checkIn.fechaHoraCheckOut) return 'CHECKED_OUT';
         return 'UNKNOWN';
     };
+
+    const isSameDay = (d1: Date, d2: Date) => {
+        return d1.getFullYear() === d2.getFullYear() &&
+            d1.getMonth() === d2.getMonth() &&
+            d1.getDate() === d2.getDate();
+    };
+
+    const canCheckInDate = selectedReserva?.fechaInicio ? isSameDay(new Date(), new Date(selectedReserva.fechaInicio)) : false;
+    const isConfirmed = selectedReserva?.estado === 'CONFIRMADA';
+    const canCheckIn = canCheckInDate && isConfirmed;
 
     return (
         <div className="font-sans text-foreground bg-background min-h-screen flex flex-col">
@@ -199,13 +308,16 @@ export const CheckIn = () => {
                                             className="pl-9 h-12 bg-background border-input focus:border-yellow-500 focus:ring-yellow-500/20 text-foreground"
                                             placeholder="Ej. 1045 o Juan Pérez..."
                                             value={searchTerm}
-                                            onChange={(e) => setSearchTerm(e.target.value)}
+                                            onChange={(e) => {
+                                                setSearchTerm(e.target.value);
+                                                setHasSearched(false);
+                                            }}
                                             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                                         />
                                     </div>
                                 </div>
-                                <Button 
-                                    onClick={handleSearch} 
+                                <Button
+                                    onClick={handleSearch}
                                     disabled={loading}
                                     className="h-12 px-8 bg-yellow-600 hover:bg-yellow-700 text-white font-bold tracking-wide transition-all shadow-md"
                                 >
@@ -219,8 +331,8 @@ export const CheckIn = () => {
                                     <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-4">Resultados Encontrados ({reservas.length})</h3>
                                     <div className="grid gap-3">
                                         {reservas.map(r => (
-                                            <div 
-                                                key={r.id} 
+                                            <div
+                                                key={r.id}
                                                 onClick={() => handleSelectReserva(r)}
                                                 className="group p-4 rounded-lg border border-border bg-card hover:border-yellow-400 hover:shadow-md cursor-pointer transition-all flex items-center justify-between"
                                             >
@@ -246,7 +358,7 @@ export const CheckIn = () => {
                                 </div>
                             )}
 
-                            {reservas.length === 0 && searchTerm && !loading && (
+                            {reservas.length === 0 && searchTerm && hasSearched && !loading && (
                                 <div className="mt-8 p-8 text-center bg-muted/30 rounded-lg border border-dashed border-border">
                                     <XCircle className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
                                     <p className="text-muted-foreground font-medium">No se encontraron reservas con ese criterio.</p>
@@ -257,7 +369,7 @@ export const CheckIn = () => {
 
                     {/* --- DETAILS & ACTIONS SECTION --- */}
                     {selectedReserva && (
-                         <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
+                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
                             <div className="bg-slate-900 text-white p-6 rounded-t-sm shadow-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                                 <div>
                                     <div className="flex items-center gap-3 mb-2">
@@ -291,6 +403,46 @@ export const CheckIn = () => {
                                             <BedDouble className="w-4 h-4" /> Habitaciones Asignadas
                                         </h3>
                                     </div>
+
+                                    {/* Bulk Action Buttons - Only show when multiple rooms */}
+                                    {detalles.length > 1 && (
+                                        <div className="bg-blue-50 dark:bg-blue-950/20 px-6 py-4 border-b border-border flex flex-col sm:flex-row gap-3 items-center justify-between">
+                                            <div className="flex items-center gap-2 text-sm text-blue-800 dark:text-blue-300">
+                                                <AlertCircle className="w-4 h-4" />
+                                                <span className="font-medium">Esta reserva tiene {detalles.length} habitaciones</span>
+                                            </div>
+                                            <div className="flex gap-2">
+                                                {detalles.some(d => {
+                                                    const status = d.id ? getStatusForDetalle(d.id) : 'UNKNOWN';
+                                                    return status === 'PENDIENTE';
+                                                }) && (
+                                                        <Button
+                                                            onClick={executeCheckInAll}
+                                                            disabled={!canCheckIn}
+                                                            size="sm"
+                                                            className="bg-green-600 hover:bg-green-700 text-white font-bold shadow-md disabled:bg-gray-300 disabled:text-gray-500"
+                                                        >
+                                                            <LogIn className="mr-2 h-4 w-4" />
+                                                            Check-In en Todas
+                                                        </Button>
+                                                    )}
+                                                {detalles.some(d => {
+                                                    const status = d.id ? getStatusForDetalle(d.id) : 'UNKNOWN';
+                                                    return status === 'CHECKED_IN';
+                                                }) && (
+                                                        <Button
+                                                            onClick={executeCheckOutAll}
+                                                            size="sm"
+                                                            variant="destructive"
+                                                            className="font-bold shadow-md"
+                                                        >
+                                                            <LogOut className="mr-2 h-4 w-4" />
+                                                            Check-Out en Todas
+                                                        </Button>
+                                                    )}
+                                            </div>
+                                        </div>
+                                    )}
                                     <div className="divide-y divide-border">
                                         {detalles.map(det => {
                                             const status = det.id ? getStatusForDetalle(det.id) : 'UNKNOWN';
@@ -325,15 +477,24 @@ export const CheckIn = () => {
 
                                                         <div className="flex gap-2">
                                                             {status === 'PENDIENTE' && (
-                                                                <Button 
-                                                                    onClick={() => initiateAction('CHECK_IN', det)}
-                                                                    className="bg-yellow-600 hover:bg-yellow-700 text-white font-bold shadow-md"
-                                                                >
-                                                                    <LogIn className="mr-2 h-4 w-4" /> REALIZAR CHECK-IN
-                                                                </Button>
+                                                                <div className="flex flex-col items-end gap-1">
+                                                                    <Button
+                                                                        onClick={() => initiateAction('CHECK_IN', det)}
+                                                                        disabled={!canCheckIn}
+                                                                        className="bg-yellow-600 hover:bg-yellow-700 text-white font-bold shadow-md disabled:bg-gray-300 disabled:text-gray-500 disabled:shadow-none"
+                                                                    >
+                                                                        <LogIn className="mr-2 h-4 w-4" /> REALIZAR CHECK-IN
+                                                                    </Button>
+                                                                    {!canCheckIn && (
+                                                                        <p className="text-[10px] text-red-600 font-bold flex items-center gap-1 animate-pulse">
+                                                                            <AlertCircle className="w-3 h-3" />
+                                                                            {!isConfirmed ? 'Reserva no confirmada (Pendiente Pago)' : 'Solo permitido en fecha de entrada'}
+                                                                        </p>
+                                                                    )}
+                                                                </div>
                                                             )}
                                                             {status === 'CHECKED_IN' && (
-                                                                <Button 
+                                                                <Button
                                                                     variant="destructive"
                                                                     onClick={() => initiateAction('CHECK_OUT', det)}
                                                                     className="font-bold shadow-md"
@@ -355,7 +516,7 @@ export const CheckIn = () => {
                                     </div>
                                 </CardContent>
                             </Card>
-                         </div>
+                        </div>
                     )}
                 </div>
             </main>
@@ -368,10 +529,10 @@ export const CheckIn = () => {
                             Confirmar {actionType === 'CHECK_IN' ? 'Check-In' : 'Check-Out'}
                         </DialogTitle>
                         <div className="text-sm text-gray-500 mt-2">
-                             {actionType === 'CHECK_IN' 
-                                ? 'Está a punto de registrar la entrada del huésped. Asegúrese de haber verificado su identidad.' 
+                            {actionType === 'CHECK_IN'
+                                ? 'Está a punto de registrar la entrada del huésped. Asegúrese de haber verificado su identidad.'
                                 : 'Está a punto de registrar la salida. Verifique que la habitación se encuentre en buen estado.'
-                             }
+                            }
                         </div>
                     </DialogHeader>
                     <div className="grid gap-4 py-4">
@@ -389,7 +550,7 @@ export const CheckIn = () => {
                     </div>
                     <DialogFooter className="flex gap-2 sm:justify-end">
                         <Button variant="outline" onClick={() => setIsDialogOpen(false)} className="border-gray-300">Cancelar</Button>
-                        <Button 
+                        <Button
                             onClick={executeAction}
                             className={`${actionType === 'CHECK_IN' ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-red-600 hover:bg-red-700'} text-white font-bold`}
                         >
