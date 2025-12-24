@@ -42,7 +42,7 @@ export const ImageCarousel = () => {
     const displayRooms = [...rooms, ...rooms];
 
     return (
-        <div className="w-full bg-gray-900 border-y border-gray-800 overflow-hidden py-8">
+        <div className="w-full bg-muted border-y border-border overflow-hidden py-8">
             <style>
                 {`
                 @keyframes scroll-rtl {
@@ -60,8 +60,8 @@ export const ImageCarousel = () => {
 
             <div className="relative w-full max-w-[1920px] mx-auto">
                 {/* Gradient Masks for fade effect */}
-                <div className="absolute left-0 top-0 bottom-0 w-20 z-10 bg-gradient-to-r from-gray-900 to-transparent pointer-events-none"></div>
-                <div className="absolute right-0 top-0 bottom-0 w-20 z-10 bg-gradient-to-l from-gray-900 to-transparent pointer-events-none"></div>
+                <div className="absolute left-0 top-0 bottom-0 w-20 z-10 bg-gradient-to-r from-muted to-transparent pointer-events-none"></div>
+                <div className="absolute right-0 top-0 bottom-0 w-20 z-10 bg-gradient-to-l from-muted to-transparent pointer-events-none"></div>
 
                 <div
                     className="flex gap-6 w-max animate-scroll-rooms"

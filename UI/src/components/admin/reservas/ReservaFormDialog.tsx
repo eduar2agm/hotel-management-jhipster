@@ -329,7 +329,7 @@ export const ReservaFormDialog = ({
                     <DialogTitle className="text-2xl font-bold flex items-center gap-2">
                         {isEditing ? <Pencil className="h-5 w-5 text-green-600" /> : <Plus className="h-5 w-5 text-green-600" />}
                         {isEditing ? 'Editar Reserva' : 'Nueva Reserva'}
-                        {isReadOnly && <span className="text-sm font-normal text-red-500 bg-red-50 border border-red-200 px-2 py-0.5 rounded ml-auto flex items-center"><AlertTriangle className="w-3 h-3 mr-1" /> Solo Lectura (Finalizada/Cancelada)</span>}
+                        {isReadOnly && <span className="text-sm font-normal text-red-500 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/50 px-2 py-0.5 rounded ml-auto flex items-center"><AlertTriangle className="w-3 h-3 mr-1" /> Solo Lectura (Finalizada/Cancelada)</span>}
                     </DialogTitle>
                 </DialogHeader>
 
@@ -342,7 +342,7 @@ export const ReservaFormDialog = ({
                                 name="clienteId"
                                 render={({ field }) => (
                                     <FormItem className="flex flex-col">
-                                        <FormLabel className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                                        <FormLabel className="text-sm font-semibold text-foreground flex items-center gap-2">
                                             <User className="h-4 w-4" />
                                             Cliente
                                         </FormLabel>
@@ -354,7 +354,7 @@ export const ReservaFormDialog = ({
                                                         role="combobox"
                                                         aria-expanded={openClientCombo}
                                                         className={cn(
-                                                            "w-full justify-between h-11 bg-white border-gray-300",
+                                                            "w-full justify-between h-11 bg-background border-input",
                                                             !field.value && "text-muted-foreground"
                                                         )}
                                                         disabled={isReadOnly}
@@ -378,7 +378,7 @@ export const ReservaFormDialog = ({
                                                             {clientes.map((cliente) => (
                                                                 <CommandItem
                                                                     key={cliente.id}
-                                                                    value={`${cliente.nombre} ${cliente.apellido} ${cliente.numeroIdentificacion || ''}`}
+                                                                    value={`${cliente.nombre} ${cliente.apellido} ${cliente.numeroIdentificacion || ''} ${cliente.correo}`}
                                                                     onSelect={() => {
                                                                         form.setValue("clienteId", cliente.id!);
                                                                         setOpenClientCombo(false);
@@ -392,9 +392,10 @@ export const ReservaFormDialog = ({
                                                                     />
                                                                     <div className="flex flex-col">
                                                                         <span className="font-medium">{cliente.nombre} {cliente.apellido}</span>
-                                                                        {cliente.numeroIdentificacion && (
-                                                                            <span className="text-xs text-gray-500">ID: {cliente.numeroIdentificacion}</span>
-                                                                        )}
+                                                                        <div className="flex flex-col text-xs text-gray-500">
+                                                                            {cliente.numeroIdentificacion && <span>ID: {cliente.numeroIdentificacion}</span>}
+                                                                            <span>{cliente.correo}</span>
+                                                                        </div>
                                                                     </div>
                                                                 </CommandItem>
                                                             ))}
@@ -409,16 +410,16 @@ export const ReservaFormDialog = ({
                             />
 
                             {/* --- DATES --- */}
-                            <div className="bg-gray-50 p-4 rounded-lg border">
+                            <div className="bg-muted/50 p-4 rounded-lg border border-border">
                                 <div className="grid grid-cols-2 gap-4">
                                     <FormField
                                         control={form.control}
                                         name="fechaInicio"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel className="text-xs font-semibold text-gray-600 uppercase">Fecha Entrada</FormLabel>
+                                                <FormLabel className="text-xs font-semibold text-muted-foreground uppercase">Fecha Entrada</FormLabel>
                                                 <FormControl>
-                                                    <Input type="date" className="h-11" {...field} disabled={isReadOnly} />
+                                                    <Input type="date" className="h-11 bg-background" {...field} disabled={isReadOnly} />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -429,9 +430,9 @@ export const ReservaFormDialog = ({
                                         name="fechaFin"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel className="text-xs font-semibold text-gray-600 uppercase">Fecha Salida</FormLabel>
+                                                <FormLabel className="text-xs font-semibold text-muted-foreground uppercase">Fecha Salida</FormLabel>
                                                 <FormControl>
-                                                    <Input type="date" className="h-11" {...field} disabled={isReadOnly} />
+                                                    <Input type="date" className="h-11 bg-background" {...field} disabled={isReadOnly} />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -447,17 +448,17 @@ export const ReservaFormDialog = ({
                                 render={() => (
                                     <FormItem>
                                         <div className="mb-3">
-                                            <FormLabel className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                                            <FormLabel className="text-sm font-semibold text-foreground flex items-center gap-2">
                                                 <Calendar className="h-4 w-4" />
                                                 Habitaciones {isEditing ? '(Mostrando todas)' : '(Disponibles)'}
                                             </FormLabel>
-                                            <FormDescription className="text-xs text-gray-500 mt-1">
+                                            <FormDescription className="text-xs text-muted-foreground mt-1">
                                                 Seleccione una o más habitaciones para esta reserva.
                                             </FormDescription>
                                         </div>
 
-                                        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6">
-                                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest text-center block mb-4">Rango de Precio</label>
+                                        <div className="bg-muted/30 p-4 rounded-lg border border-border mb-6">
+                                            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest text-center block mb-4">Rango de Precio</label>
                                             <PriceRangeFilter
                                                 minPrice={minPrecio}
                                                 maxPrice={maxPrecio}
@@ -472,7 +473,7 @@ export const ReservaFormDialog = ({
                                             />
                                         </div>
 
-                                        <div className="border rounded-lg p-4 max-h-64 overflow-y-auto bg-gray-50">
+                                        <div className="border border-border rounded-lg p-4 max-h-64 overflow-y-auto bg-muted/30">
                                             <div className="grid grid-cols-2 gap-3">
                                                 {/* ... existing code ... */}
                                                 {habitaciones
@@ -495,8 +496,8 @@ export const ReservaFormDialog = ({
                                                                         className={cn(
                                                                             "flex flex-row items-start space-x-3 space-y-0 p-3 rounded-md border-2 transition-all cursor-pointer",
                                                                             isChecked
-                                                                                ? "bg-white border-green-500 shadow-sm"
-                                                                                : "bg-white border-gray-200 hover:border-gray-300",
+                                                                                ? "bg-card border-green-500 shadow-sm"
+                                                                                : "bg-card border-border hover:border-input",
                                                                             isReadOnly && "opacity-60 cursor-not-allowed"
                                                                         )}
                                                                     >
@@ -517,12 +518,12 @@ export const ReservaFormDialog = ({
                                                                             />
                                                                         </FormControl>
                                                                         <div className="flex-1 space-y-1">
-                                                                            <FormLabel className="font-semibold text-sm cursor-pointer text-gray-900">
+                                                                            <FormLabel className="font-semibold text-sm cursor-pointer text-foreground">
                                                                                 Habitación {hab.numero}
                                                                             </FormLabel>
-                                                                            <div className="text-xs text-gray-600 space-y-0.5">
+                                                                            <div className="text-xs text-muted-foreground space-y-0.5">
                                                                                 <div>{hab.categoriaHabitacion?.nombre || 'Sin categoría'}</div>
-                                                                                <div className="font-medium text-gray-900">
+                                                                                <div className="font-medium text-foreground">
                                                                                     ${hab.categoriaHabitacion?.precioBase || '0'}
                                                                                 </div>
                                                                             </div>
@@ -546,7 +547,7 @@ export const ReservaFormDialog = ({
                                 name="estado"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel className="text-sm font-semibold text-gray-700">Estado de Reserva</FormLabel>
+                                        <FormLabel className="text-sm font-semibold text-foreground">Estado de Reserva</FormLabel>
                                         <Select
                                             onValueChange={field.onChange}
                                             defaultValue={field.value}
@@ -583,7 +584,7 @@ export const ReservaFormDialog = ({
                                 {!isReadOnly && (
                                     <Button
                                         type="submit"
-                                        className="bg-slate-900 hover:bg-slate-800 text-white h-11 px-8"
+                                        className="bg-primary hover:bg-primary/90 text-primary-foreground h-11 px-8"
                                     >
                                         {isEditing ? 'Guardar' : 'Crear y Pagar'}
                                     </Button>

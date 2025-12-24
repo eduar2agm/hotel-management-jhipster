@@ -12,7 +12,7 @@
         Los archivos físicos ya existen en backend/images/
     -->
     
-    <changeSet id="20251223020000-insert-imagenes-habitaciones-ref" author="system">
+    <changeSet id="20251223020000-insert-imagenes-habitaciones-ref" author="eduardo">
         <!-- Referencias a imágenes de Habitaciones -->
         <insert tableName="imagen">
             <column name="id" valueNumeric="1"/>

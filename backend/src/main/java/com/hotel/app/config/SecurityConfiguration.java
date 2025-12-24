@@ -58,6 +58,8 @@ public class SecurityConfiguration {
                             .requestMatchers(mvc.pattern("/api/seccion-heroes/**")).permitAll()
                             .requestMatchers(mvc.pattern("/api/red-socials/**")).permitAll()
                             .requestMatchers(mvc.pattern("/api/seccion-contactos/**")).permitAll()
+                            .requestMatchers(mvc.pattern(org.springframework.http.HttpMethod.POST, "/api/reservas"))
+                            .permitAll()
                             .requestMatchers(new AntPathRequestMatcher("/images/**")).permitAll()
                             .requestMatchers(new AntPathRequestMatcher("/error/**")).permitAll()
                             .requestMatchers(mvc.pattern("/api/red-socials/**")).permitAll()

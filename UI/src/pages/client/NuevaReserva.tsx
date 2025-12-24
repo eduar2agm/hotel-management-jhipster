@@ -60,6 +60,15 @@ const searchSchema = z.object({
 
 type SearchFormValues = z.infer<typeof searchSchema>;
 
+const guestSchema = z.object({
+    nombre: z.string().min(1, 'El nombre es obligatorio'),
+    apellido: z.string().min(1, 'El apellido es obligatorio'),
+    correo: z.string().email('Correo inválido'),
+    telefono: z.string().min(1, 'El teléfono es obligatorio'),
+});
+
+type GuestValues = z.infer<typeof guestSchema>;
+
 export const NuevaReserva = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
@@ -81,6 +90,16 @@ export const NuevaReserva = () => {
         defaultValues: {
             start: '',
             end: ''
+        }
+    });
+
+    const guestForm = useForm<GuestValues>({
+        resolver: zodResolver(guestSchema),
+        defaultValues: {
+            nombre: '',
+            apellido: '',
+            correo: '',
+            telefono: ''
         }
     });
 
@@ -215,10 +234,21 @@ export const NuevaReserva = () => {
     }, [selectedRooms, calculateNights]);
 
     const confirmReservation = useCallback(async () => {
-        if (!clienteId) {
-            toast.error("Inicie sesión como cliente para reservar");
-            return;
+        // Validation check
+        let finalClientePayload: any = null;
+
+        if (user && clienteId) {
+            finalClientePayload = { id: clienteId };
+        } else {
+            // Validate Guest Form
+            const valid = await guestForm.trigger();
+            if (!valid) {
+                toast.error("Por favor complete los datos del huésped");
+                return;
+            }
+            finalClientePayload = guestForm.getValues();
         }
+
         if (selectedRooms.length === 0) return;
         if (!confirm(`¿Confirmar reserva por ${selectedRooms.length} habitaciones?`)) return;
 
@@ -236,7 +266,7 @@ export const NuevaReserva = () => {
                 fechaFin: endDateLocal.toISOString(),
                 estado: 'PENDIENTE',
                 activo: true,
-                cliente: { id: clienteId! },
+                cliente: finalClientePayload,
             };
 
             const res = await ReservaService.createReserva(newReserva);
@@ -262,7 +292,7 @@ export const NuevaReserva = () => {
         } finally {
             setIsSubmitting(false);
         }
-    }, [clienteId, selectedRooms, form, navigate]);
+    }, [clienteId, selectedRooms, form, navigate, user, guestForm]);
 
     // Date formatter for display that respects the string value without timezone shift
     const formatDisplayDate = (dateStr: string) => {
@@ -272,7 +302,7 @@ export const NuevaReserva = () => {
     };
 
     return (
-        <div className="font-sans text-gray-900 bg-gray-50 min-h-screen flex flex-col">
+        <div className="font-sans text-foreground bg-background min-h-screen flex flex-col">
 
             {/* --- HERO SECTION ---  */}
             <PageHeader
@@ -288,14 +318,14 @@ export const NuevaReserva = () => {
 
                     {step === 1 && (
                         <div className="max-w-2xl mx-auto">
-                            <div className="bg-white shadow-2xl rounded-sm overflow-hidden">
+                            <div className="bg-card shadow-2xl rounded-sm overflow-hidden border border-border">
                                 {/* Header del Widget */}
-                                <div className="bg-white p-8 border-b border-gray-100 text-center">
+                                <div className="bg-card p-8 border-b border-border text-center">
                                     <span className="text-yellow-600 font-bold tracking-widest uppercase text-xs mb-2 block">
                                         Planifique su Estancia
                                     </span>
-                                    <h2 className="text-3xl font-black text-gray-900 font-serif">Consultar Disponibilidad</h2>
-                                    <p className="text-gray-500 mt-2 font-light">Seleccione sus fechas para encontrar su refugio perfecto.</p>
+                                    <h2 className="text-3xl font-black text-foreground font-serif">Consultar Disponibilidad</h2>
+                                    <p className="text-muted-foreground mt-2 font-light">Seleccione sus fechas para encontrar su refugio perfecto.</p>
                                 </div>
 
                                 <div className="p-8 md:p-10">
@@ -307,15 +337,15 @@ export const NuevaReserva = () => {
                                                     name="start"
                                                     render={({ field }) => (
                                                         <FormItem className="space-y-3">
-                                                            <FormLabel className="text-xs font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
-                                                                <CalendarDays className="w-4 h-4 text-yellow-600" /> Llegada
+                                                            <FormLabel className="text-xs font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
+                                                                <CalendarDays className="w-4 h-4 text-muted-foreground text-yellow-600" /> Llegada
                                                             </FormLabel>
                                                             <FormControl>
                                                                 <Input
                                                                     type="date"
                                                                     min={getLocalTodayStr()}
                                                                     {...field}
-                                                                    className="h-12 border-gray-200 focus:border-yellow-600 focus:ring-yellow-600/20 bg-gray-50/50"
+                                                                    className="h-12 border-input focus:border-yellow-600 focus:ring-yellow-600/20 bg-background text-muted-foreground dark:[color-scheme:dark]"
                                                                 />
                                                             </FormControl>
                                                             <FormMessage />
@@ -327,15 +357,15 @@ export const NuevaReserva = () => {
                                                     name="end"
                                                     render={({ field }) => (
                                                         <FormItem className="space-y-3">
-                                                            <FormLabel className="text-xs font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
-                                                                <CalendarDays className="w-4 h-4 text-yellow-600" /> Salida
+                                                            <FormLabel className="text-xs font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
+                                                                <CalendarDays className="w-4 h-4 text-muted-foreground text-yellow-600" /> Salida
                                                             </FormLabel>
                                                             <FormControl>
                                                                 <Input
                                                                     type="date"
                                                                     min={form.getValues('start') || getLocalTodayStr()}
                                                                     {...field}
-                                                                    className="h-12 border-gray-200 focus:border-yellow-600 focus:ring-yellow-600/20 bg-gray-50/50"
+                                                                    className="h-12 border-input focus:border-yellow-600 focus:ring-yellow-600/20 bg-background text-muted-foreground dark:[color-scheme:dark]"
                                                                 />
                                                             </FormControl>
                                                             <FormMessage />
@@ -373,10 +403,10 @@ export const NuevaReserva = () => {
                                 {/* --- LEFT: RESULTS GRID --- */}
                                 <div className="lg:col-span-8 order-2 lg:order-1">
                                     {/* Header de Resultados */}
-                                    <div className="bg-white p-6 rounded-sm shadow-md flex flex-col md:flex-row justify-between items-center border-t-4 border-yellow-600 mb-8">
+                                    <div className="bg-card p-6 rounded-sm shadow-md flex flex-col md:flex-row justify-between items-center border-t-4 border-yellow-600 mb-8 border border-border">
                                         <div>
-                                            <h2 className="text-2xl font-bold text-gray-900 font-serif">Habitaciones Disponibles</h2>
-                                            <p className="text-gray-500 text-sm mt-1">
+                                            <h2 className="text-2xl font-bold text-foreground font-serif">Habitaciones Disponibles</h2>
+                                            <p className="text-muted-foreground text-sm mt-1">
                                                 Para las fechas: <span className="font-semibold">{formatDisplayDate(form.getValues('start'))}</span> - <span className="font-semibold">{formatDisplayDate(form.getValues('end'))}</span>
                                             </p>
                                         </div>
@@ -395,17 +425,17 @@ export const NuevaReserva = () => {
                                             maxPrice={maxPrecio}
                                             onMinChange={setMinPrecio}
                                             onMaxChange={setMaxPrecio}
-                                            className="bg-gray-50/50 border-gray-200"
+                                            className="bg-muted/30 border-border"
                                         />
                                     </div>
 
                                     {availableRooms.length === 0 ? (
-                                        <div className="bg-white p-16 text-center shadow-sm border border-gray-200 rounded-sm">
-                                            <div className="bg-gray-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
-                                                <Search className="h-8 w-8 text-gray-400" />
+                                        <div className="bg-card p-16 text-center shadow-sm border border-border rounded-sm">
+                                            <div className="bg-muted w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+                                                <Search className="h-8 w-8 text-muted-foreground" />
                                             </div>
-                                            <h3 className="text-xl font-bold text-gray-900 mb-2">Lo sentimos</h3>
-                                            <p className="text-gray-500">No hay habitaciones disponibles para estas fechas. Por favor intente con otro rango de días.</p>
+                                            <h3 className="text-xl font-bold text-foreground mb-2">Lo sentimos</h3>
+                                            <p className="text-muted-foreground">No hay habitaciones disponibles para estas fechas. Por favor intente con otro rango de días.</p>
                                         </div>
                                     ) : (
                                         <div className="grid gap-6 md:grid-cols-2">
@@ -431,12 +461,75 @@ export const NuevaReserva = () => {
                                                 })}
                                         </div>
                                     )}
+                                    {/* --- GUEST FORM (If not logged in) --- */}
+                                    {!user && selectedRooms.length > 0 && (
+                                        <div className="bg-white p-6 rounded-sm shadow-md border-t-4 border-gray-900 mb-8 mt-8">
+                                            <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                                                <div className="bg-gray-900 text-white p-1 rounded-full"><span className="w-4 h-4 block" /></div>
+                                                Datos del Huésped
+                                            </h2>
+                                            <p className="text-sm text-gray-500 mb-6">Complete sus datos para continuar con la reserva sin registrarse.</p>
+
+                                            <Form {...(guestForm as any)}>
+                                                <form className="space-y-4">
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                        <FormField
+                                                            control={guestForm.control as any}
+                                                            name="nombre"
+                                                            render={({ field }) => (
+                                                                <FormItem>
+                                                                    <FormLabel>Nombre</FormLabel>
+                                                                    <FormControl><Input {...field} /></FormControl>
+                                                                    <FormMessage />
+                                                                </FormItem>
+                                                            )}
+                                                        />
+                                                        <FormField
+                                                            control={guestForm.control as any}
+                                                            name="apellido"
+                                                            render={({ field }) => (
+                                                                <FormItem>
+                                                                    <FormLabel>Apellido</FormLabel>
+                                                                    <FormControl><Input {...field} /></FormControl>
+                                                                    <FormMessage />
+                                                                </FormItem>
+                                                            )}
+                                                        />
+                                                    </div>
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                        <FormField
+                                                            control={guestForm.control as any}
+                                                            name="correo"
+                                                            render={({ field }) => (
+                                                                <FormItem>
+                                                                    <FormLabel>Correo Electrónico</FormLabel>
+                                                                    <FormControl><Input {...field} /></FormControl>
+                                                                    <FormMessage />
+                                                                </FormItem>
+                                                            )}
+                                                        />
+                                                        <FormField
+                                                            control={guestForm.control as any}
+                                                            name="telefono"
+                                                            render={({ field }) => (
+                                                                <FormItem>
+                                                                    <FormLabel>Teléfono</FormLabel>
+                                                                    <FormControl><Input {...field} /></FormControl>
+                                                                    <FormMessage />
+                                                                </FormItem>
+                                                            )}
+                                                        />
+                                                    </div>
+                                                </form>
+                                            </Form>
+                                        </div>
+                                    )}
                                 </div>
 
                                 {/* --- RIGHT: FLOATING SUMMARY CARD --- */}
                                 <div className="lg:col-span-4 order-1 lg:order-2 lg:sticky lg:top-1">
-                                    <div className="bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden">
-                                        <div className="bg-slate-900 p-6 text-white">
+                                    <div className="bg-card rounded-xl shadow-2xl border border-border overflow-hidden">
+                                        <div className="bg-slate-950 p-6 text-white border-b border-white/10">
                                             <div className="flex items-center gap-3 mb-2">
                                                 <div className="bg-yellow-500 p-2 rounded-lg text-slate-900">
                                                     <ShoppingBag className="w-5 h-5" />
@@ -448,26 +541,26 @@ export const NuevaReserva = () => {
 
                                         <div className="p-6">
                                             {/* Fechas */}
-                                            <div className="space-y-4 mb-6 pb-6 border-b border-gray-100">
+                                            <div className="space-y-4 mb-6 pb-6 border-b border-border">
                                                 <div className="flex justify-between items-center text-sm">
-                                                    <span className="text-gray-500">Total Noches</span>
-                                                    <span className="font-bold text-gray-900 bg-gray-100 px-2 py-1 rounded">{calculateNights()} noches</span>
+                                                    <span className="text-muted-foreground">Total Noches</span>
+                                                    <span className="font-bold text-foreground bg-muted px-2 py-1 rounded">{calculateNights()} noches</span>
                                                 </div>
                                                 <div className="flex gap-2">
-                                                    <div className="flex-1 bg-gray-50 p-2 rounded border border-gray-100 text-center">
-                                                        <span className="text-[10px] uppercase text-gray-400 font-bold block">Entrada</span>
-                                                        <span className="font-semibold text-gray-800 text-sm">{formatDisplayDate(form.getValues('start'))}</span>
+                                                    <div className="flex-1 bg-muted/40 p-2 rounded border border-border text-center">
+                                                        <span className="text-[10px] uppercase text-muted-foreground font-bold block">Entrada</span>
+                                                        <span className="font-semibold text-foreground text-sm">{formatDisplayDate(form.getValues('start'))}</span>
                                                     </div>
-                                                    <div className="flex-1 bg-gray-50 p-2 rounded border border-gray-100 text-center">
-                                                        <span className="text-[10px] uppercase text-gray-400 font-bold block">Salida</span>
-                                                        <span className="font-semibold text-gray-800 text-sm">{formatDisplayDate(form.getValues('end'))}</span>
+                                                    <div className="flex-1 bg-muted/40 p-2 rounded border border-border text-center">
+                                                        <span className="text-[10px] uppercase text-muted-foreground font-bold block">Salida</span>
+                                                        <span className="font-semibold text-foreground text-sm">{formatDisplayDate(form.getValues('end'))}</span>
                                                     </div>
                                                 </div>
                                             </div>
 
                                             {/* Items Seleccionados */}
                                             <div className="mb-6">
-                                                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 flex justify-between items-center">
+                                                <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3 flex justify-between items-center">
                                                     Habitaciones ({selectedRooms.length})
                                                     {selectedRooms.length > 0 && (
                                                         <button
@@ -480,19 +573,19 @@ export const NuevaReserva = () => {
                                                 </h4>
 
                                                 {selectedRooms.length === 0 ? (
-                                                    <div className="text-center py-8 text-gray-400 bg-gray-50 rounded-lg border border-dashed border-gray-200">
+                                                    <div className="text-center py-8 text-muted-foreground bg-muted/20 rounded-lg border border-dashed border-border">
                                                         <p className="text-sm italic">Ninguna habitación seleccionada.</p>
                                                     </div>
                                                 ) : (
                                                     <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
                                                         {selectedRooms.map((room) => (
-                                                            <div key={room.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg group hover:bg-gray-100 transition-colors">
+                                                            <div key={room.id} className="flex justify-between items-center p-3 bg-muted/40 rounded-lg group hover:bg-muted/60 transition-colors">
                                                                 <div className="text-sm">
-                                                                    <div className="font-bold text-gray-900">Habitación {room.numero}</div>
-                                                                    <div className="text-xs text-gray-500">{room.categoriaHabitacion?.nombre}</div>
+                                                                    <div className="font-bold text-foreground">Habitación {room.numero}</div>
+                                                                    <div className="text-xs text-muted-foreground">{room.categoriaHabitacion?.nombre}</div>
                                                                 </div>
                                                                 <div className="text-right">
-                                                                    <div className="font-bold text-gray-900">
+                                                                    <div className="font-bold text-foreground">
                                                                         ${((room.categoriaHabitacion?.precioBase || 0) * calculateNights()).toFixed(2)}
                                                                     </div>
                                                                     <button
@@ -509,10 +602,10 @@ export const NuevaReserva = () => {
                                             </div>
 
                                             {/* Totales */}
-                                            <div className="border-t border-gray-100 pt-4">
+                                            <div className="border-t border-border pt-4">
                                                 <div className="flex justify-between items-baseline mb-6">
-                                                    <span className="text-gray-500 font-medium">Total Estimado</span>
-                                                    <span className="text-3xl font-black text-gray-900 tracking-tight">
+                                                    <span className="text-muted-foreground font-medium">Total Estimado</span>
+                                                    <span className="text-3xl font-black text-foreground tracking-tight">
                                                         ${calculateTotal().toFixed(2)}
                                                     </span>
                                                 </div>

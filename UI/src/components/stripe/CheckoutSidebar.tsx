@@ -6,6 +6,7 @@ import { apiClient } from '../../api/axios-instance';
 import { StripePaymentForm } from './StripePaymentForm';
 import { toast } from 'sonner';
 import { X, ShoppingBag, CreditCard, ShieldCheck } from 'lucide-react';
+import { useTheme } from '@/components/theme-provider';
 
 // Initialize Stripe Key
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
@@ -18,6 +19,7 @@ interface Props {
 }
 
 export const CheckoutSidebar = ({ reserva, details, onClose, onPaymentSuccess }: Props) => {
+  const { theme } = useTheme();
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [loadingSecret, setLoadingSecret] = useState(false);
 
@@ -28,12 +30,12 @@ export const CheckoutSidebar = ({ reserva, details, onClose, onPaymentSuccess }:
 
   if (!reserva) {
     return (
-        <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-8 text-center sticky top-32">
-            <div className="bg-gray-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <ShoppingBag className="text-gray-300 w-8 h-8" />
+        <div className="bg-card rounded-xl shadow-lg border border-border p-8 text-center sticky top-32">
+            <div className="bg-muted w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <ShoppingBag className="text-muted-foreground w-8 h-8" />
             </div>
-            <h3 className="text-gray-900 font-bold mb-2">Resumen de Pago</h3>
-            <p className="text-gray-400 text-sm">Selecciona una reserva pendiente para proceder al pago.</p>
+            <h3 className="text-foreground font-bold mb-2">Resumen de Pago</h3>
+            <p className="text-muted-foreground text-sm">Selecciona una reserva pendiente para proceder al pago.</p>
         </div>
     );
   }
@@ -59,10 +61,10 @@ export const CheckoutSidebar = ({ reserva, details, onClose, onPaymentSuccess }:
   };
 
   const appearance = {
-    theme: 'stripe' as const,
+    theme: (theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) ? 'night' as const : 'stripe' as const,
     variables: {
-        colorPrimary: '#ca8a04', // yellow-600
-        colorText: '#1f2937',
+        colorPrimary: '#04ca0bff', // yellow-600
+        colorText: theme === 'dark' ? '#f3f4f6' : '#1f2937',
     },
   };
 
@@ -72,7 +74,7 @@ export const CheckoutSidebar = ({ reserva, details, onClose, onPaymentSuccess }:
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden sticky top-32 animate-in slide-in-from-right duration-300">
+    <div className="bg-card rounded-xl shadow-2xl border border-border overflow-hidden sticky top-32 animate-in slide-in-from-right duration-300">
         {/* Header */}
         <div className="bg-slate-900 text-white p-6 flex justify-between items-start">
             <div>
@@ -88,8 +90,8 @@ export const CheckoutSidebar = ({ reserva, details, onClose, onPaymentSuccess }:
             {/* Summary Details */}
             <div className="space-y-4 mb-8">
                 <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">Cantidad de Habitaciones</span>
-                    <span className="font-medium text-gray-900">{details.length}</span>
+                    <span className="text-muted-foreground">Cantidad de Habitaciones</span>
+                    <span className="font-medium text-foreground">{details.length}</span>
                 </div>
                 
                 <div className="border-t border-gray-100 my-4"></div>
@@ -112,27 +114,27 @@ export const CheckoutSidebar = ({ reserva, details, onClose, onPaymentSuccess }:
                     return (
                         <div key={idx} className="flex justify-between items-start text-sm">
                             <div className="flex flex-col">
-                                <span className="text-gray-900 font-medium">
+                                <span className="text-foreground font-medium">
                                      Habitación {detail.habitacion?.numero}
                                 </span>
-                                <span className="text-xs text-gray-500">
+                                <span className="text-xs text-muted-foreground">
                                     {detail.habitacion?.categoriaHabitacion?.nombre}
                                 </span>
-                                <span className="text-xs text-gray-400 mt-0.5">
+                                <span className="text-xs text-muted-foreground mt-0.5">
                                     ${price.toFixed(2)} x {nights} noches
                                 </span>
                             </div>
-                            <span className="font-bold text-gray-900">
+                            <span className="font-bold text-muted-foreground">
                                 ${roomTotal.toFixed(2)}
                             </span>
                         </div>
                     );
                 })}
                  
-                 <div className="border-t border-gray-100 my-4"></div>
+                 <div className="  my-4"></div>
 
                  <div className="flex justify-between items-center text-lg">
-                    <span className="font-bold text-gray-900">Total a Pagar</span>
+                    <span className="font-bold text-muted-foreground">Total a Pagar</span>
                     <span className="font-bold text-yellow-600 text-2xl">${(reserva.total ?? 0).toFixed(2)}</span>
                  </div>
             </div>
@@ -140,17 +142,17 @@ export const CheckoutSidebar = ({ reserva, details, onClose, onPaymentSuccess }:
             {/* Payment Section */}
             {!clientSecret ? (
                 <div className="space-y-4">
-                    <div className="bg-blue-50 p-4 rounded-lg flex items-start gap-3">
-                         <ShieldCheck className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                         <p className="text-sm text-blue-800">
+                    <div className="bg-blue-900/20 p-4 rounded-lg flex items-start gap-3">
+                         <ShieldCheck className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
+                         <p className="text-sm text-blue-200">
                              Su pago será procesado de forma segura a través de Stripe. No almacenamos los datos de su tarjeta.
                          </p>
                     </div>
                     
-                    <button 
+                    <button
                         onClick={handleInitiatePayment}
                         disabled={loadingSecret}
-                        className="w-full bg-slate-900 text-white py-4 rounded-lg font-bold hover:bg-slate-800 transition-all shadow-lg hover:shadow-xl disabled:opacity-70 flex justify-center items-center gap-2"
+                        className="w-full bg-yellow-600 text-white py-4 rounded-lg font-bold hover:bg-yellow-700 transition-all shadow-lg hover:shadow-xl disabled:opacity-70 flex justify-center items-center gap-2"
                     >
                         {loadingSecret ? (
                              <span className="flex items-center gap-2">

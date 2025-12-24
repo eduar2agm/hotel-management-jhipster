@@ -36,10 +36,10 @@ export const CardRoom = ({
     return (
         <>
             <Card className={cn(
-                "group overflow-hidden rounded-xl border bg-white shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col h-full",
+                "group overflow-hidden rounded-xl border bg-card shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col h-full",
                 isSelected
-                    ? "border-yellow-500 ring-2 ring-yellow-500 ring-offset-2"
-                    : "border-gray-100"
+                    ? "border-gray-500 ring-2 ring-gray-500 ring-offset-2"
+                    : "border-border"
             )}>
                 {/* Image Section */}
                 <div className="relative h-64 w-full overflow-hidden bg-gray-100">
@@ -97,27 +97,27 @@ export const CardRoom = ({
                             <span className="text-xs font-semibold uppercase tracking-widest text-yellow-600">
                                 {nombreCategoria}
                             </span>
-                            <div className="flex items-center gap-1 text-gray-500">
+                            <div className="flex items-center gap-1 text-muted-foreground">
                                 <BedDouble className="h-4 w-4" />
                                 <span className="text-sm font-medium">{h.capacidad} pax</span>
                             </div>
                         </div>
-                        <h3 className="text-2xl font-bold text-gray-900 group-hover:text-yellow-600 transition-colors">
+                        <h3 className="text-2xl font-bold text-foreground group-hover:text-yellow-600 transition-colors">
                             {nombreCategoria}
                         </h3>
                     </div>
 
                     <div className="mb-6 flex-1">
-                        <p className="text-sm leading-relaxed text-gray-500 line-clamp-3">
+                        <p className="text-sm leading-relaxed text-muted-foreground line-clamp-3">
                             {h.descripcion || "Disfruta de una experiencia única con todas las comodidades que necesitas para tu descanso."}
                         </p>
                     </div>
 
                     <div className="mt-auto space-y-4">
                         {/* Price */}
-                        <div className="flex items-end gap-1 border-t border-gray-100 pt-4">
-                            <span className="text-2xl font-black text-gray-900">${precioBase}</span>
-                            <span className="mb-1 text-sm font-medium text-gray-400">/ noche</span>
+                        <div className="flex items-end gap-1 border-t border-border pt-4">
+                            <span className="text-2xl font-black text-foreground">${precioBase}</span>
+                            <span className="mb-1 text-sm font-medium text-muted-foreground">/ noche</span>
                         </div>
 
                         {/* Actions */}
@@ -195,7 +195,7 @@ export const CardRoom = ({
                         </div>
 
                         {/* Info Side */}
-                        <div className="p-6 md:p-8 bg-white overflow-y-auto max-h-[80vh]">
+                        <div className="p-6 md:p-8 bg-card overflow-y-auto max-h-[80vh]">
                             <DialogHeader className="mb-6 text-left">
                                 <Badge variant="outline" className="w-fit mb-2 border-yellow-500 text-yellow-600 bg-yellow-50">
                                     {h.categoriaHabitacion?.nombre}

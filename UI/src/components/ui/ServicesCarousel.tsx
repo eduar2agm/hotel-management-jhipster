@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ServicioService } from '../../services';
 import { getImageUrl } from '../../utils/imageUtils';
-import type { ServicioDTO } from '../../types/api/Servicio';
+import { TipoServicio, type ServicioDTO } from '../../types/api/Servicio';
 import {
     Dialog,
     DialogContent,
@@ -155,7 +155,7 @@ export const ServicesCarousel = () => {
     const displayServices = [...servicios, ...servicios];
 
     return (
-        <div className="w-full bg-gray-900 border-y border-gray-800 overflow-hidden py-8">
+        <div className="w-full bg-muted border-y border-border overflow-hidden py-8">
             <style>
                 {`
                 @keyframes scroll-ltr {
@@ -233,12 +233,14 @@ export const ServicesCarousel = () => {
                             {selectedService?.descripcion || "Sin descripción disponible."}
                         </p>
 
-                        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-100">
-                            <span className="font-bold text-gray-600">Precio</span>
-                            <span className="text-2xl font-bold text-yellow-600">
-                                ${selectedService?.precio !== undefined ? selectedService.precio : '0.00'}
-                            </span>
-                        </div>
+                        {selectedService?.tipo === TipoServicio.PAGO && (
+                            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-100">
+                                <span className="font-bold text-gray-600">Precio</span>
+                                <span className="text-2xl font-bold text-yellow-600">
+                                    ${selectedService?.precio !== undefined ? selectedService.precio : '0.00'}
+                                </span>
+                            </div>
+                        )}
 
                         {loadingDetails ? (
                             <div className="flex justify-center p-4">
@@ -248,25 +250,43 @@ export const ServicesCarousel = () => {
                             <ServiceAvailabilityInfo disponibilidades={disponibilidades} />
                         )}
 
-                        <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4 mt-4">
-                            <div className="flex">
-                                <div className="flex-shrink-0">
-                                    <Info className="h-5 w-5 text-yellow-500" aria-hidden="true" />
-                                </div>
-                                <div className="ml-3">
-                                    <p className="text-sm text-yellow-700">
-                                        Nota: Solo puedes contratar servicios para clientes con una reserva activa.
-                                    </p>
+
+                        {selectedService?.tipo === TipoServicio.PAGO ? (
+                            <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4 mt-4">
+                                <div className="flex">
+                                    <div className="flex-shrink-0">
+                                        <Info className="h-5 w-5 text-yellow-500" aria-hidden="true" />
+                                    </div>
+                                    <div className="ml-3">
+                                        <p className="text-sm text-yellow-700">
+                                            Nota: Solo puedes contratar servicios para clientes con una reserva activa.
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        ) : selectedService?.tipo === TipoServicio.GRATUITO ? (
+                            <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mt-4">
+                                <div className="flex">
+                                    <div className="flex-shrink-0">
+                                        <Info className="h-5 w-5 text-blue-500" aria-hidden="true" />
+                                    </div>
+                                    <div className="ml-3">
+                                        <p className="text-sm text-blue-700">
+                                            Con tu reserva ya viene este servicio incluido de manera gratuita.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        ) : null}
                     </div>
 
                     <DialogFooter className="gap-2 sm:gap-0">
                         <Button variant="outline" onClick={() => setIsServiceDetailOpen(false)}>Cerrar</Button>
-                        <Button onClick={handleContratar} className="bg-yellow-600 hover:bg-yellow-700 text-white font-bold">
-                            {isAdmin() || isEmployee() ? 'Gestionar Contratación' : 'Ir a Contratar'} <ExternalLink className="ml-2 w-4 h-4" />
-                        </Button>
+                        {selectedService?.tipo === TipoServicio.PAGO && (
+                            <Button onClick={handleContratar} className="bg-yellow-600 hover:bg-yellow-700 text-white font-bold">
+                                {isAdmin() || isEmployee() ? 'Gestionar Contratación' : 'Ir a Contratar'} <ExternalLink className="ml-2 w-4 h-4" />
+                            </Button>
+                        )}
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

@@ -288,7 +288,7 @@ export const AdminReservas = () => {
     };
 
     return (
-        <div className="font-sans text-gray-900 bg-gray-50 min-h-screen flex flex-col">
+        <div className="font-sans text-foreground bg-background min-h-screen flex flex-col">
 
             <PageHeader
                 title="Gestión de Reservas"
@@ -306,20 +306,20 @@ export const AdminReservas = () => {
             </PageHeader>
 
             <main className="flex-grow py-5 px-4 md:px-8 lg:px-20 -mt-10 relative z-10">
-                <Card className="max-w-7xl mx-auto border-t-4 border-yellow-600 shadow-xl bg-white">
-                    <CardHeader className="border-b bg-gray-50/50 pb-6">
+                <Card className="max-w-7xl mx-auto border-t-4 border-gray-600 shadow-xl bg-card">
+                    <CardHeader className="border-b bg-muted/30 pb-6">
                         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
                             <div>
-                                <CardTitle className="text-xl font-bold text-gray-800">Listado de Reservas</CardTitle>
+                                <CardTitle className="text-xl font-bold text-foreground">Listado de Reservas</CardTitle>
                                 <CardDescription>Total Registros: {totalItems}</CardDescription>
                             </div>
                             <div className="relative w-full md:w-96 group">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-yellow-600 transition-colors" />
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-yellow-600 transition-colors" />
                                 <Input
                                     placeholder="Buscar por cliente, ID o estado..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="pl-10 border-gray-200 focus:border-yellow-600 focus:ring-yellow-600/20 h-11 transition-all"
+                                    className="pl-10 border-input focus:border-yellow-600 focus:ring-yellow-600/20 h-11 transition-all bg-background"
                                 />
                             </div>
                             <ActiveFilter
@@ -334,13 +334,13 @@ export const AdminReservas = () => {
                     <div className="overflow-x-auto p-10">
                         <Table>
                             <TableHeader>
-                                <TableRow className="bg-gray-50 hover:bg-gray-50 border-b border-gray-100">
-                                    <TableHead className="text-xs font-bold uppercase tracking-wider text-gray-500 w-[80px]">ID</TableHead>
-                                    <TableHead className="text-xs font-bold uppercase tracking-wider text-gray-500">Cliente</TableHead>
-                                    <TableHead className="text-xs font-bold uppercase tracking-wider text-gray-500">Habitaciones</TableHead>
-                                    <TableHead className="text-xs font-bold uppercase tracking-wider text-gray-500">Fechas</TableHead>
-                                    <TableHead className="text-xs font-bold uppercase tracking-wider text-gray-500">Estado</TableHead>
-                                    <TableHead className="text-right text-xs font-bold uppercase tracking-wider text-gray-500 p-4">Acciones</TableHead>
+                                <TableRow className="bg-muted/50 hover:bg-muted/50 border-b border-border">
+                                    <TableHead className="text-xs font-bold uppercase tracking-wider text-muted-foreground w-[80px]">ID</TableHead>
+                                    <TableHead className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Cliente</TableHead>
+                                    <TableHead className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Habitaciones</TableHead>
+                                    <TableHead className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Fechas</TableHead>
+                                    <TableHead className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Estado</TableHead>
+                                    <TableHead className="text-right text-xs font-bold uppercase tracking-wider text-muted-foreground p-4">Acciones</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -361,17 +361,17 @@ export const AdminReservas = () => {
                                     </TableRow>
                                 ) : (
                                     filteredReservas.map((reserva) => (
-                                        <TableRow key={reserva.id} className="hover:bg-slate-50/80 transition-colors group">
-                                            <TableCell className="font-mono text-xs font-bold text-gray-500">
+                                        <TableRow key={reserva.id} className="hover:bg-muted/50 transition-colors group border-border">
+                                            <TableCell className="font-mono text-xs font-bold text-muted-foreground">
                                                 #{reserva.id}
                                             </TableCell>
                                             <TableCell>
                                                 <div className="flex items-center gap-3">
-                                                    <div className="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold text-xs ring-2 ring-white shadow-sm">
+                                                     <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground font-bold text-xs ring-2 ring-background shadow-sm">
                                                         {reserva.cliente?.nombre ? reserva.cliente.nombre.charAt(0).toUpperCase() : <User className="h-4 w-4" />}
                                                     </div>
                                                     <div className="flex flex-col">
-                                                        <span className="text-sm font-semibold text-gray-900">
+                                                        <span className="text-sm font-semibold text-foreground">
                                                             {reserva.cliente
                                                                 ? `${reserva.cliente.nombre || ''} ${reserva.cliente.apellido || ''}`.trim() || 'Desconocido'
                                                                 : getClienteName(reserva.clienteId)
@@ -381,17 +381,17 @@ export const AdminReservas = () => {
                                                 </div>
                                             </TableCell>
                                             <TableCell>
-                                                <div className="text-sm text-gray-600 flex items-center gap-1.5 max-w-[200px] truncate" title={mapReservaHabitaciones[reserva.id!]}>
+                                                <div className="text-sm text-foreground flex items-center gap-1.5 max-w-[200px] truncate" title={mapReservaHabitaciones[reserva.id!]}>
                                                     <div className="h-1.5 w-1.5 rounded-full bg-yellow-500 flex-shrink-0"></div>
-                                                    {mapReservaHabitaciones[reserva.id!] || <span className="text-gray-400 italic">Sin asignar</span>}
+                                                    {mapReservaHabitaciones[reserva.id!] || <span className="text-muted-foreground italic">Sin asignar</span>}
                                                 </div>
                                             </TableCell>
                                             <TableCell>
                                                 <div className="flex flex-col text-sm">
-                                                    <span className="font-medium text-gray-700 flex items-center gap-1.5">
+                                                    <span className="font-medium text-foreground flex items-center gap-1.5">
                                                         {new Date(reserva.fechaInicio!).toLocaleDateString()}
                                                     </span>
-                                                    <span className="text-xs text-gray-400 pl-4 border-l-2 border-gray-100 ml-1">
+                                                    <span className="text-xs text-muted-foreground pl-4 border-l-2 border-border ml-1">
                                                         {new Date(reserva.fechaFin!).toLocaleDateString()}
                                                     </span>
                                                 </div>
@@ -399,10 +399,10 @@ export const AdminReservas = () => {
                                             <TableCell>
                                                 <Badge className={cn(
                                                     "shadow-sm border-0 px-2 py-0.5",
-                                                    reserva.estado === 'CONFIRMADA' ? "bg-green-100 text-green-700 hover:bg-green-200" :
-                                                        reserva.estado === 'CANCELADA' ? "bg-red-100 text-red-700 hover:bg-red-200" :
-                                                            reserva.estado === 'FINALIZADA' ? "bg-blue-100 text-blue-700 hover:bg-blue-200" :
-                                                                "bg-yellow-100 text-yellow-700 hover:bg-yellow-200"
+                                                    reserva.estado === 'CONFIRMADA' ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 hover:bg-green-200" :
+                                                        reserva.estado === 'CANCELADA' ? "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 hover:bg-red-200" :
+                                                            reserva.estado === 'FINALIZADA' ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 hover:bg-blue-200" :
+                                                                "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 hover:bg-yellow-200"
                                                 )}>
                                                     {reserva.estado === 'CONFIRMADA' && <Check className="h-3 w-3 mr-1" />}
                                                     {reserva.estado === 'CANCELADA' && <AlertCircle className="h-3 w-3 mr-1" />}
@@ -423,7 +423,7 @@ export const AdminReservas = () => {
                                                         size="sm"
                                                         onClick={() => handleOpenPayment(reserva)}
                                                         disabled={!reserva.activo}
-                                                        className="h-8 w-8 p-0 text-gray-400 rounded-full transition-colors hover:bg-green-50 hover:text-green-600"
+                                                        className="h-8 w-8 p-0 text-muted-foreground rounded-full transition-colors hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-600"
                                                         title="Gestionar Pago"
                                                     >
                                                         <CreditCard className="h-4 w-4" />
@@ -436,7 +436,7 @@ export const AdminReservas = () => {
                                                         disabled={!reserva.activo}
                                                         className={cn(
                                                             "h-8 w-8 p-0 rounded-full transition-colors",
-                                                            !reserva.activo ? "text-gray-200 cursor-not-allowed" : "text-gray-400 hover:text-blue-600 hover:bg-blue-50"
+                                                            !reserva.activo ? "text-muted-foreground/50 cursor-not-allowed" : "text-muted-foreground hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20"
                                                         )}
                                                         title="Ver detalles"
                                                     >
@@ -449,7 +449,7 @@ export const AdminReservas = () => {
                                                         disabled={!reserva.activo}
                                                         className={cn(
                                                             "h-8 w-8 p-0 rounded-full transition-colors",
-                                                            !reserva.activo ? "text-gray-200 cursor-not-allowed" : "text-gray-400 hover:text-yellow-600 hover:bg-yellow-50"
+                                                            !reserva.activo ? "text-muted-foreground/50 cursor-not-allowed" : "text-muted-foreground hover:text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-900/20"
                                                         )}
                                                     >
                                                         <Pencil className="h-4 w-4" />
@@ -458,7 +458,7 @@ export const AdminReservas = () => {
                                                         variant="ghost"
                                                         size="sm"
                                                         onClick={() => reserva.id && handleDelete(reserva.id)}
-                                                        className="h-8 w-8 p-0 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
+                                                        className="h-8 w-8 p-0 text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-colors"
                                                     >
                                                         <Trash2 className="h-4 w-4" />
                                                     </Button>
@@ -467,7 +467,7 @@ export const AdminReservas = () => {
                                                             variant="ghost"
                                                             size="sm"
                                                             onClick={() => reserva.id && handleDesactivarReserva(reserva.id)}
-                                                            className="h-8 w-8 p-0 text-gray-400 hover:text-orange-600 hover:bg-orange-50 rounded-full transition-colors"
+                                                            className="h-8 w-8 p-0 text-muted-foreground hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-full transition-colors"
                                                             title="Desactivar"
                                                         >
                                                             <XCircle className="h-4 w-4" />
@@ -477,7 +477,7 @@ export const AdminReservas = () => {
                                                             variant="ghost"
                                                             size="sm"
                                                             onClick={() => reserva.id && handleActivarReserva(reserva.id)}
-                                                            className="h-8 w-8 p-0 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-full transition-colors"
+                                                            className="h-8 w-8 p-0 text-muted-foreground hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-full transition-colors"
                                                             title="Reactivar"
                                                         >
                                                             <CheckCircle2 className="h-4 w-4" />

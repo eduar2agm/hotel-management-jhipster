@@ -119,7 +119,7 @@ export const AdminImagenes = () => {
     };
 
     return (
-        <div className="font-sans text-gray-900 bg-gray-50 min-h-screen flex flex-col">
+        <div className="font-sans text-foreground bg-background min-h-screen flex flex-col">
 
             <div className="bg-[#0F172A] pt-32 pb-20 px-4 md:px-8 lg:px-20 relative overflow-hidden shadow-xl">
                 <div className="absolute top-0 right-0 p-12 opacity-5 scale-150 pointer-events-none">
@@ -138,11 +138,11 @@ export const AdminImagenes = () => {
 
             <main className="flex-grow py-5 px-4 md:px-8 lg:px-20 -mt-10 relative z-10">
                 <div className="max-w-7xl mx-auto space-y-6">
-                    <Card className="bg-white border-0 shadow-xl overflow-hidden rounded-2xl">
-                        <CardHeader className="border-b border-gray-100 bg-white p-6 flex flex-row items-center justify-between">
+                    <Card className="bg-card border-border shadow-xl overflow-hidden rounded-2xl">
+                        <CardHeader className="border-b border-border bg-card p-6 flex flex-row items-center justify-between">
                             <div>
-                                <CardTitle className="text-2xl font-bold text-gray-800">Catálogo de Imágenes</CardTitle>
-                                <p className="text-gray-500 text-sm mt-1">Gestión de archivos, asociaciones y almacenamiento local.</p>
+                                <CardTitle className="text-2xl font-bold text-foreground">Catálogo de Imágenes</CardTitle>
+                                <p className="text-muted-foreground text-sm mt-1">Gestión de archivos, asociaciones y almacenamiento local.</p>
                             </div>
                             <Button
                                 onClick={() => { setCurrentImg({ activo: true }); setIsDialogOpen(true); }}
@@ -153,13 +153,13 @@ export const AdminImagenes = () => {
                         </CardHeader>
                         <CardContent className="p-0">
                             <Table>
-                                <TableHeader className="bg-gray-50">
-                                    <TableRow>
-                                        <TableHead className="font-bold text-gray-600 py-5 pl-8">VISTA PREVIA</TableHead>
-                                        <TableHead className="font-bold text-gray-600 py-5">NOMBRE</TableHead>
-                                        <TableHead className="font-bold text-gray-600 py-5">VINCULADO A</TableHead>
-                                        <TableHead className="font-bold text-gray-600 py-5">RUTA ARCHIVO</TableHead>
-                                        <TableHead className="font-bold text-gray-600 py-5 text-right pr-8">ACCIONES</TableHead>
+                                <TableHeader className="bg-muted/50">
+                                    <TableRow className="border-border">
+                                        <TableHead className="font-bold text-muted-foreground py-5 pl-8">VISTA PREVIA</TableHead>
+                                        <TableHead className="font-bold text-muted-foreground py-5">NOMBRE</TableHead>
+                                        <TableHead className="font-bold text-muted-foreground py-5">VINCULADO A</TableHead>
+                                        <TableHead className="font-bold text-muted-foreground py-5">RUTA ARCHIVO</TableHead>
+                                        <TableHead className="font-bold text-muted-foreground py-5 text-right pr-8">ACCIONES</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -169,9 +169,9 @@ export const AdminImagenes = () => {
                                         <TableRow><TableCell colSpan={5} className="h-32 text-center text-gray-500">No hay imágenes registradas.</TableCell></TableRow>
                                     ) : (
                                         imagenes.map(img => (
-                                            <TableRow key={img.id} className="hover:bg-gray-50/80 transition-colors border-b border-gray-100">
+                                            <TableRow key={img.id} className="hover:bg-muted/50 transition-colors border-b border-border">
                                                 <TableCell className="py-5 pl-8">
-                                                    <div className="h-16 w-24 rounded-lg overflow-hidden bg-gray-100 border border-gray-200">
+                                                    <div className="h-16 w-24 rounded-lg overflow-hidden bg-muted border border-border">
                                                         {img.nombreArchivo ? (
                                                             <img
                                                                 src={getImageUrl(img.nombreArchivo)}
@@ -179,42 +179,42 @@ export const AdminImagenes = () => {
                                                                 className="h-full w-full object-cover"
                                                             />
                                                         ) : (
-                                                            <div className="flex items-center justify-center h-full text-gray-400">
+                                                            <div className="flex items-center justify-center h-full text-muted-foreground">
                                                                 <ImageIcon size={20} />
                                                             </div>
                                                         )}
                                                     </div>
                                                 </TableCell>
                                                 <TableCell className="py-5">
-                                                    <div className="font-bold text-gray-800">{img.nombre}</div>
-                                                    <div className="text-xs text-gray-400">{img.descripcion || 'Sin descripción'}</div>
+                                                    <div className="font-bold text-foreground">{img.nombre}</div>
+                                                    <div className="text-xs text-muted-foreground">{img.descripcion || 'Sin descripción'}</div>
                                                 </TableCell>
                                                 <TableCell className="py-5">
                                                     {img.habitacion && (
-                                                        <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold">
+                                                        <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-full text-xs font-bold border border-blue-200 dark:border-blue-800">
                                                             Hab: {img.habitacion.numero}
                                                         </span>
                                                     )}
                                                     {img.servicio && (
-                                                        <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs font-bold">
+                                                        <span className="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-3 py-1 rounded-full text-xs font-bold border border-purple-200 dark:border-purple-800">
                                                             Serv: {img.servicio.nombre}
                                                         </span>
                                                     )}
                                                     {!img.habitacion && !img.servicio && (
-                                                        <span className="bg-gray-100 text-gray-500 px-3 py-1 rounded-full text-xs font-bold">
+                                                        <span className="bg-muted text-muted-foreground px-3 py-1 rounded-full text-xs font-bold border border-border">
                                                             Carrusel / General
                                                         </span>
                                                     )}
                                                 </TableCell>
-                                                <TableCell className="py-5 font-mono text-[10px] text-gray-400">
+                                                <TableCell className="py-5 font-mono text-[10px] text-muted-foreground">
                                                     {img.nombreArchivo || 'Pendiente de guardado'}
                                                 </TableCell>
                                                 <TableCell className="py-5 text-right pr-8">
                                                     <div className="flex justify-end gap-2">
-                                                        <Button variant="ghost" size="icon" className="h-10 w-10 hover:bg-indigo-50 hover:text-indigo-600 rounded-full" onClick={() => { setCurrentImg(img); setIsDialogOpen(true); }}>
+                                                        <Button variant="ghost" size="icon" className="h-10 w-10 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-full" onClick={() => { setCurrentImg(img); setIsDialogOpen(true); }}>
                                                             <Pencil className="h-5 w-5" />
                                                         </Button>
-                                                        <Button variant="ghost" size="icon" className="h-10 w-10 text-gray-400 hover:bg-red-50 hover:text-red-600 rounded-full" onClick={() => handleDelete(img.id!)}>
+                                                        <Button variant="ghost" size="icon" className="h-10 w-10 text-muted-foreground hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400 rounded-full" onClick={() => handleDelete(img.id!)}>
                                                             <Trash2 className="h-5 w-5" />
                                                         </Button>
                                                     </div>
@@ -227,7 +227,7 @@ export const AdminImagenes = () => {
                         </CardContent>
                     </Card>
 
-                    <div className="bg-white/50 rounded-xl px-6 pb-6 pt-4">
+                    <div className="bg-muted/20 border border-border rounded-xl px-6 pb-6 pt-4">
                         <PaginationControl
                             currentPage={currentPage}
                             totalItems={totalItems}
@@ -303,11 +303,11 @@ export const AdminImagenes = () => {
                                 <Label>Archivo de Imagen</Label>
                                 <div className="flex flex-col gap-4">
                                     <div className="flex items-center justify-center w-full">
-                                        <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
+                                        <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-border rounded-lg cursor-pointer bg-muted/20 hover:bg-muted/50 transition-colors">
                                             <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                                                <FileUp className="w-8 h-8 mb-3 text-gray-400" />
-                                                <p className="mb-2 text-sm text-gray-500 font-semibold">Haz clic para subir</p>
-                                                <p className="text-xs text-gray-400">JPG, PNG, GIF o WEBP</p>
+                                                <FileUp className="w-8 h-8 mb-3 text-muted-foreground" />
+                                                <p className="mb-2 text-sm text-foreground font-semibold">Haz clic para subir</p>
+                                                <p className="text-xs text-muted-foreground">JPG, PNG, GIF o WEBP</p>
                                             </div>
                                             <input type="file" className="hidden" accept="image/*" onChange={handleFileChange} />
                                         </label>

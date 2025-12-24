@@ -98,16 +98,16 @@ export const ChatDialog = ({ open, onOpenChange, conversation, onMessageSent }: 
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[700px] p-0 overflow-hidden flex flex-col h-[600px] gap-0">
                 {/* Header */}
-                <DialogHeader className="p-4 bg-white border-b border-gray-100 flex-shrink-0 z-10 shadow-sm flex-row items-center justify-between space-y-0">
+                <DialogHeader className="p-4 bg-muted/30 border-b border-border flex-shrink-0 z-10 shadow-sm flex-row items-center justify-between space-y-0">
                     <div className="flex items-center gap-3">
-                        <div className="bg-blue-50 p-2 rounded-full text-blue-600">
+                        <div className="bg-blue-100 dark:bg-blue-900/30 p-2 rounded-full text-blue-600 dark:text-blue-400">
                             <User className="h-5 w-5" />
                         </div>
                         <div className="flex flex-col">
-                            <span className="text-lg font-bold text-slate-900 leading-tight">
+                            <span className="text-lg font-bold text-foreground leading-tight">
                                 {conversation.otherPartyName}
                             </span>
-                            <span className="text-xs text-slate-500">
+                            <span className="text-xs text-muted-foreground">
                                 Historial de conversación
                             </span>
                         </div>
@@ -115,7 +115,7 @@ export const ChatDialog = ({ open, onOpenChange, conversation, onMessageSent }: 
                 </DialogHeader>
 
                 {/* Chat Messages */}
-                <div className="flex-1 overflow-y-auto p-6 bg-slate-50 space-y-4">
+                <div className="flex-1 overflow-y-auto p-6 bg-background space-y-4">
                     {conversation.messages.map((msg, idx) => {
                         const isAdminOrSystem = msg.remitente === Remitente.ADMINISTRATIVO || msg.remitente === Remitente.SISTEMA;
                         const isSystem = msg.remitente === Remitente.SISTEMA;
@@ -124,11 +124,11 @@ export const ChatDialog = ({ open, onOpenChange, conversation, onMessageSent }: 
                                 <div className={`max-w-[80%] rounded-2xl p-3 px-4 text-sm shadow-sm ${isAdminOrSystem
                                     ? isSystem
                                         ? 'bg-purple-600 text-white rounded-tr-none'
-                                        : 'bg-blue-600 text-white rounded-tr-none'
-                                    : 'bg-white text-slate-800 border border-gray-100 rounded-tl-none'
+                                        : 'bg-primary text-primary-foreground rounded-tr-none'
+                                    : 'bg-muted text-foreground border border-border rounded-tl-none'
                                     }`}>
                                     <p className="whitespace-pre-wrap leading-relaxed">{msg.mensaje}</p>
-                                    <div className={`flex items-center gap-1 mt-1 text-[10px] ${isAdminOrSystem ? 'text-blue-200 justify-end' : 'text-gray-400'}`}>
+                                    <div className={`flex items-center gap-1 mt-1 text-[10px] ${isAdminOrSystem ? 'text-primary-foreground/80 justify-end' : 'text-muted-foreground'}`}>
                                         {new Date(msg.fechaMensaje!).toLocaleDateString()} {new Date(msg.fechaMensaje!).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                         {isAdminOrSystem && msg.leido && <CheckCircle2 className="h-3 w-3 ml-1" />}
                                     </div>
@@ -141,13 +141,13 @@ export const ChatDialog = ({ open, onOpenChange, conversation, onMessageSent }: 
                 </div>
 
                 {/* Reply Area */}
-                <div className="p-4 bg-white border-t border-gray-100 flex-shrink-0">
+                <div className="p-4 bg-card border-t border-border flex-shrink-0">
                     <div className="flex gap-2 items-center mb-3">
                         <Button
                             onClick={handleSendWelcome}
                             variant="outline"
                             size="sm"
-                            className="text-xs border-purple-200 text-purple-700 hover:bg-purple-50"
+                            className="text-xs border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20"
                         >
                             <Sparkles className="h-3 w-3 mr-1" /> Enviar Bienvenida
                         </Button>
@@ -156,7 +156,7 @@ export const ChatDialog = ({ open, onOpenChange, conversation, onMessageSent }: 
                         <Textarea
                             value={replyText}
                             onChange={(e) => setReplyText(e.target.value)}
-                            className="min-h-[50px] max-h-[120px] bg-gray-50 border-gray-200 resize-none focus:bg-white transition-all"
+                            className="min-h-[50px] max-h-[120px] bg-muted/50 border-input resize-none focus:bg-background transition-all"
                             placeholder="Escribe una respuesta como Administrador..."
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter' && !e.shiftKey) {
@@ -168,7 +168,7 @@ export const ChatDialog = ({ open, onOpenChange, conversation, onMessageSent }: 
                         <Button
                             onClick={handleSendReply}
                             size="icon"
-                            className="h-11 w-11 bg-slate-900 hover:bg-slate-800 text-white rounded-lg flex-shrink-0"
+                            className="h-11 w-11 flex-shrink-0"
                             disabled={!replyText.trim()}
                         >
                             <Send className="h-5 w-5" />

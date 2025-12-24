@@ -86,7 +86,7 @@ export const EmployeeDashboard = () => {
     }, []);
 
     return (
-        <div className="font-sans text-gray-900 bg-gray-50 min-h-screen flex flex-col">
+        <div className="font-sans text-foreground bg-background min-h-screen flex flex-col">
 
             {/* --- HERO SECTION --- */}
             <PageHeader

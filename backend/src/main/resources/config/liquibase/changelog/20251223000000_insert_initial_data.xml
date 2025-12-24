@@ -6,7 +6,7 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd
                         http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog-ext/dbchangelog-ext.xsd">
 
-    <changeSet id="20251223000000-insert-categoria-habitacion" author="system">
+    <changeSet id="20251223000000-insert-categoria-habitacion" author="eduardo">
         <insert tableName="categoria_habitacion">
             <column name="id" valueNumeric="1"/>
             <column name="nombre" value="SENCILLA"/>
@@ -30,7 +30,7 @@
         </insert>
     </changeSet>
 
-    <changeSet id="20251223000000-insert-estado-habitacion" author="system">
+    <changeSet id="20251223000000-insert-estado-habitacion" author="eduardo">
         <insert tableName="estado_habitacion">
             <column name="id" valueNumeric="1"/>
             <column name="nombre" value="DISPONIBLE"/>
@@ -51,7 +51,7 @@
         </insert>
     </changeSet>
 
-    <changeSet id="20251223000000-insert-clientes" author="system">
+    <changeSet id="20251223000000-insert-clientes" author="eduardo">
         <insert tableName="cliente">
             <column name="id" valueNumeric="1"/>
             <column name="nombre" value="Juan Carlos"/>
@@ -93,7 +93,7 @@
         </insert>
     </changeSet>
 
-    <changeSet id="20251223000000-insert-habitaciones" author="system">
+    <changeSet id="20251223000000-insert-habitaciones" author="eduardo">
         <insert tableName="habitacion">
             <column name="id" valueNumeric="1"/>
             <column name="numero" value="101"/>
@@ -156,7 +156,7 @@
         </insert>
     </changeSet>
 
-    <changeSet id="20251223000000-insert-reservas" author="system">
+    <changeSet id="20251223000000-insert-reservas" author="eduardo">
         <insert tableName="reserva">
             <column name="id" valueNumeric="1"/>
             <column name="fecha_reserva" value="2025-12-15T10:30:00Z"/>
@@ -186,7 +186,7 @@
         </insert>
     </changeSet>
 
-    <changeSet id="20251223000000-insert-reserva-detalles" author="system">
+    <changeSet id="20251223000000-insert-reserva-detalles" author="eduardo">
         <insert tableName="reserva_detalle">
             <column name="id" valueNumeric="1"/>
             <column name="nota" value="Cliente prefiere planta alta"/>
@@ -210,7 +210,7 @@
         </insert>
     </changeSet>
 
-    <changeSet id="20251223000000-insert-servicios" author="system">
+    <changeSet id="20251223000000-insert-servicios" author="eduardo">
         <insert tableName="servicio">
             <column name="id" valueNumeric="1"/>
             <column name="nombre" value="Masaje Relajante"/>
@@ -249,7 +249,7 @@
         </insert>
     </changeSet>
 
-    <changeSet id="20251223000000-insert-servicio-disponibilidad" author="system">
+    <changeSet id="20251223000000-insert-servicio-disponibilidad" author="eduardo">
         <insert tableName="servicio_disponibilidad">
             <column name="id" valueNumeric="1"/>
             <column name="dia_semana" value="LUNES"/>
@@ -300,7 +300,7 @@
         </insert>
     </changeSet>
 
-    <changeSet id="20251223000000-insert-servicios-contratados" author="system">
+    <changeSet id="20251223000000-insert-servicios-contratados" author="eduardo">
         <insert tableName="servicio_contratado">
             <column name="id" valueNumeric="1"/>
             <column name="fecha_contratacion" value="2025-12-20T14:30:00Z"/>
@@ -328,7 +328,7 @@
         </insert>
     </changeSet>
 
-    <changeSet id="20251223000000-insert-seccion-hero" author="system">
+    <changeSet id="20251223000000-insert-seccion-hero" author="eduardo">
         <insert tableName="seccion_hero">
             <column name="id" valueNumeric="1"/>
             <column name="titulo" value="Bienvenido al Hotel Paradise"/>
@@ -352,7 +352,7 @@
     </changeSet>
 
 
-    <changeSet id="20251223000000-insert-configuracion-sistema" author="system">
+    <changeSet id="20251223000000-insert-configuracion-sistema" author="eduardo">
         <insert tableName="configuracion_sistema">
             <column name="id" valueNumeric="1"/>
             <column name="clave" value="hotel.nombre"/>
@@ -405,7 +405,7 @@
         </insert>
     </changeSet>
 
-    <changeSet id="20251223000000-insert-seccion-contacto" author="system">
+    <changeSet id="20251223000000-insert-seccion-contacto" author="eduardo">
         <insert tableName="seccion_contacto">
             <column name="id" valueNumeric="1"/>
             <column name="titulo" value="Contáctanos"/>
@@ -416,7 +416,7 @@
         </insert>
     </changeSet>
 
-    <changeSet id="20251223000000-insert-telefonos" author="system">
+    <changeSet id="20251223000000-insert-telefonos" author="eduardo">
         <insert tableName="telefono">
             <column name="id" valueNumeric="1"/>
             <column name="numero_tel" value="+505 8888-8888"/>
@@ -429,7 +429,7 @@
         </insert>
     </changeSet>
 
-    <changeSet id="20251223000000-insert-redes-sociales" author="system">
+    <changeSet id="20251223000000-insert-redes-sociales" author="eduardo">
         <insert tableName="red_social">
             <column name="id" valueNumeric="1"/>
             <column name="nombre" value="Facebook"/>
@@ -449,7 +449,7 @@
     </changeSet>
 
 
-    <changeSet id="20251223000000-insert-mensajes-soporte" author="system">
+    <changeSet id="20251223000000-insert-mensajes-soporte" author="eduardo">
         <insert tableName="mensaje_soporte">
             <column name="id" valueNumeric="1"/>
             <column name="mensaje" value="Hola, tengo una pregunta sobre mi reserva"/>

@@ -19,8 +19,8 @@ interface ServiceCardProps {
 
 export const ServiceCard = ({ servicio, onEdit, onDelete, onToggleActive, onManageAvailability, onViewDetails, readOnly = false }: ServiceCardProps) => {
     return (
-        <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300 group border-gray-200">
-            <div className="relative h-48 bg-gray-100 overflow-hidden">
+        <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300 group border-border">
+            <div className="relative h-48 bg-muted overflow-hidden">
                 {servicio.urlImage ? (
                     <img
                         src={getImageUrl(servicio.urlImage)}
@@ -28,7 +28,7 @@ export const ServiceCard = ({ servicio, onEdit, onDelete, onToggleActive, onMana
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                 ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-300">
+                    <div className="w-full h-full flex items-center justify-center text-muted-foreground/30">
                         <ImageIcon className="w-12 h-12" />
                     </div>
                 )}
@@ -46,7 +46,7 @@ export const ServiceCard = ({ servicio, onEdit, onDelete, onToggleActive, onMana
 
             <CardHeader className="p-4 pb-2">
                 <div className="flex justify-between items-start mb-1">
-                    <h3 className="font-bold text-lg text-gray-800 line-clamp-1" title={servicio.nombre}>
+                    <h3 className="font-bold text-lg text-card-foreground line-clamp-1" title={servicio.nombre}>
                         {servicio.nombre}
                     </h3>
                 </div>
@@ -54,19 +54,19 @@ export const ServiceCard = ({ servicio, onEdit, onDelete, onToggleActive, onMana
                     <span className="text-2xl font-bold text-yellow-600">
                         ${servicio.precio}
                     </span>
-                    {servicio.tipo === TipoServicio.PAGO && <span className="text-sm text-gray-500">/ unidad</span>}
+                    {servicio.tipo === TipoServicio.PAGO && <span className="text-sm text-muted-foreground">/ unidad</span>}
                 </div>
             </CardHeader>
 
             <CardContent className="p-4 pt-0 flex-grow">
-                <p className="text-sm text-gray-600 line-clamp-2 h-10">
+                <p className="text-sm text-muted-foreground line-clamp-2 h-10">
                     {servicio.descripcion || 'Sin descripción disponible.'}
                 </p>
             </CardContent>
 
             {/* Render footer if not readOnly OR if viewDetails is available */}
             {(!readOnly || onViewDetails) && (
-                <CardFooter className="p-4 bg-gray-50 border-t gap-2 flex justify-end">
+                <CardFooter className="p-4 bg-muted/30 border-t border-border gap-2 flex justify-end">
                     {onToggleActive && !readOnly && (
                         <div className="mr-auto flex items-center gap-2">
                             <Switch
@@ -74,7 +74,7 @@ export const ServiceCard = ({ servicio, onEdit, onDelete, onToggleActive, onMana
                                 onCheckedChange={() => onToggleActive(servicio.id, !servicio.disponible)}
                                 className="scale-90"
                             />
-                            <span className="text-xs text-gray-500 font-medium">
+                            <span className="text-xs text-muted-foreground font-medium">
                                 {servicio.disponible ? 'Activo' : 'Inactivo'}
                             </span>
                         </div>
@@ -82,9 +82,9 @@ export const ServiceCard = ({ servicio, onEdit, onDelete, onToggleActive, onMana
 
                     {onViewDetails && (
                         <Button
-                            variant="outline"
+                            variant="ghost"
                             size="icon"
-                            className="h-8 w-8 text-slate-600 hover:text-slate-700 hover:bg-slate-50 border-slate-200"
+                            className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted"
                             onClick={() => onViewDetails(servicio)}
                             title="Ver Detalles"
                         >
@@ -96,9 +96,9 @@ export const ServiceCard = ({ servicio, onEdit, onDelete, onToggleActive, onMana
                         <>
                             {onEdit && (
                                 <Button
-                                    variant="outline"
+                                    variant="ghost"
                                     size="icon"
-                                    className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 border-blue-200"
+                                    className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-500/10"
                                     onClick={() => onEdit(servicio)}
                                 >
                                     <Pencil className="h-4 w-4" />
@@ -106,9 +106,9 @@ export const ServiceCard = ({ servicio, onEdit, onDelete, onToggleActive, onMana
                             )}
                             {onManageAvailability && servicio.tipo === TipoServicio.PAGO && (
                                 <Button
-                                    variant="outline"
+                                    variant="ghost"
                                     size="icon"
-                                    className="h-8 w-8 text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50 border-yellow-200"
+                                    className="h-8 w-8 text-yellow-600 hover:text-yellow-700 hover:bg-yellow-500/10"
                                     onClick={() => onManageAvailability(servicio)}
                                     title="Gestionar Disponibilidad"
                                 >
@@ -120,9 +120,9 @@ export const ServiceCard = ({ servicio, onEdit, onDelete, onToggleActive, onMana
                             )}
                             {onDelete && (
                                 <Button
-                                    variant="outline"
+                                    variant="ghost"
                                     size="icon"
-                                    className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                                    className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-500/10"
                                     onClick={() => onDelete(servicio.id)}
                                 >
                                     <Trash2 className="h-4 w-4" />

@@ -72,8 +72,8 @@ public class ClienteResource {
             throw new BadRequestAlertException("A new cliente cannot already have an ID", ENTITY_NAME, "idexists");
         }
 
-        // Create Keycloak user if not linked
-        if (clienteDTO.getKeycloakId() == null || "not-linked".equals(clienteDTO.getKeycloakId())) {
+        // Create Keycloak user ONLY if explicitly requested via "not-linked"
+        if ("not-linked".equals(clienteDTO.getKeycloakId())) {
             String keycloakId = keycloakService.createUser(
                     clienteDTO.getCorreo(),
                     clienteDTO.getNombre(),
@@ -129,6 +129,20 @@ public class ClienteResource {
                 throw new BadRequestAlertException("Cannot update inactive entity", ENTITY_NAME, "inactive");
             }
         });
+
+        // Create Keycloak user if explicitly requested via "not-linked" (Conversion
+        // Flow)
+        if ("not-linked".equals(clienteDTO.getKeycloakId())) {
+            String keycloakId = keycloakService.createUser(
+                    clienteDTO.getCorreo(),
+                    clienteDTO.getNombre(),
+                    clienteDTO.getApellido());
+            if (keycloakId != null) {
+                clienteDTO.setKeycloakId(keycloakId);
+            } else {
+                throw new BadRequestAlertException("Could not create Keycloak user", ENTITY_NAME, "keycloakerror");
+            }
+        }
 
         clienteDTO = clienteService.update(clienteDTO);
         return ResponseEntity.ok()
@@ -293,14 +307,24 @@ public class ClienteResource {
     }
 
     private void validateCliente(ClienteDTO clienteDTO) {
-        if (clienteDTO.getFechaNacimiento() == null) {
-            throw new BadRequestAlertException("Fecha de nacimiento is mandatory", ENTITY_NAME, "fechaNacimientoNull");
+        // Validate Age >= 18 ONLY if DOB available
+        if (clienteDTO.getFechaNacimiento() != null) {
+            if (java.time.Period.between(clienteDTO.getFechaNacimiento(), java.time.LocalDate.now()).getYears() < 18) {
+                throw new BadRequestAlertException("User must be at least 18 years old", ENTITY_NAME,
+                        "fechaNacimientoInvalid");
+            }
         }
 
-        // Validate Age >= 18
-        if (java.time.Period.between(clienteDTO.getFechaNacimiento(), java.time.LocalDate.now()).getYears() < 18) {
-            throw new BadRequestAlertException("User must be at least 18 years old", ENTITY_NAME,
-                    "fechaNacimientoInvalid");
+        // Validate Unique NumeroIdentificacion
+        if (clienteDTO.getNumeroIdentificacion() != null && !clienteDTO.getNumeroIdentificacion().isEmpty()) {
+            Optional<com.hotel.app.domain.Cliente> existing = clienteRepository
+                    .findOneByNumeroIdentificacion(clienteDTO.getNumeroIdentificacion());
+            if (existing.isPresent()) {
+                if (clienteDTO.getId() == null || !existing.get().getId().equals(clienteDTO.getId())) {
+                    throw new BadRequestAlertException("A client with this document ID already exists", ENTITY_NAME,
+                            "documentexists");
+                }
+            }
         }
 
         // Validate Cedula matches DOB (Nicaragua format: XXX-DDMMYY-XXXXL)
@@ -323,7 +347,8 @@ public class ClienteResource {
                     datePart = cedula.substring(3, 9);
                 }
 
-                if (datePart != null && datePart.length() == 6 && datePart.matches("\\d+")) {
+                if (datePart != null && datePart.length() == 6 && datePart.matches("\\d+")
+                        && clienteDTO.getFechaNacimiento() != null) {
                     String dobFormatted = clienteDTO.getFechaNacimiento()
                             .format(java.time.format.DateTimeFormatter.ofPattern("ddMMyy"));
                     if (!datePart.equals(dobFormatted)) {

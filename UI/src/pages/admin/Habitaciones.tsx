@@ -141,7 +141,7 @@ export const AdminHabitaciones = () => {
     });
 
     return (
-        <div className="font-sans text-gray-900 bg-gray-50 min-h-screen flex flex-col">
+        <div className="font-sans text-foreground bg-background min-h-screen flex flex-col">
 
             <PageHeader
                 title="Gestión de Habitaciones"
@@ -162,28 +162,28 @@ export const AdminHabitaciones = () => {
             <main className="flex-grow py-5 px-4 md:px-8 lg:px-20 -mt-10 relative z-10 w-full">
                 <div className="max-w-7xl mx-auto">
                     {/* --- MAIN CONTENT --- */}
-                    <Card className="border-t-4 border-yellow-600 shadow-xl bg-white">
-                        <CardHeader className="border-b bg-gray-50/50 pb-6 px-6 md:px-10">
+                    <Card className="border-t-4 border-gray-600 shadow-xl bg-card">
+                        <CardHeader className="border-b bg-muted/30 pb-6 px-6 md:px-10">
                             <div className="flex flex-col xl:flex-row justify-between xl:items-center gap-6">
                                 <div>
-                                    <CardTitle className="text-xl font-bold text-gray-800">Inventario de Habitaciones</CardTitle>
+                                    <CardTitle className="text-xl font-bold text-foreground">Inventario de Habitaciones</CardTitle>
                                     <CardDescription>Visualizando {filteredHabitaciones.length} de {totalItems} unidades</CardDescription>
                                 </div>
 
                                 <div className="flex flex-col md:flex-row items-center gap-4">
                                     {/* Búsqueda rápida */}
                                     <div className="relative group w-full md:w-64">
-                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-yellow-600 transition-colors" />
+                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-yellow-600 transition-colors" />
                                         <Input
                                             placeholder="Búsqueda rápida..."
                                             value={searchFilter}
                                             onChange={(e) => setSearchFilter(e.target.value)}
-                                            className="pl-10 border-gray-200 focus:border-yellow-600 focus:ring-yellow-600/20 h-10 transition-all bg-white"
+                                            className="pl-10 border-input focus:border-yellow-600 focus:ring-yellow-600/20 h-10 transition-all bg-background"
                                         />
                                     </div>
 
                                     {/* Estado Filter */}
-                                    <div className="flex items-center gap-2 bg-white border border-gray-200 p-1 rounded-md h-10">
+                                    <div className="flex items-center gap-2 bg-background border border-border p-1 rounded-md h-10">
                                         <ActiveFilter
                                             showInactive={showInactive}
                                             onChange={(val) => { setShowInactive(val); setCurrentPage(0); }}
@@ -193,7 +193,7 @@ export const AdminHabitaciones = () => {
                                     {/* Price Filter Popover */}
                                     <Popover>
                                         <PopoverTrigger asChild>
-                                            <Button variant="outline" className="h-10 gap-2 border-gray-200 hover:bg-gray-50 text-gray-700">
+                                            <Button variant="outline" className="h-10 gap-2 border-border hover:bg-muted text-foreground">
                                                 <Filter className="h-4 w-4" />
                                                 <span>Filtro</span>
                                                 {(appliedMin || appliedMax) && (
@@ -221,12 +221,12 @@ export const AdminHabitaciones = () => {
                         <CardContent className="p-6 md:p-10">
                             <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-3 gap-8">
                                 {loading ? (
-                                    <div className="col-span-full h-32 flex flex-col items-center justify-center text-gray-500">
+                                    <div className="col-span-full h-32 flex flex-col items-center justify-center text-muted-foreground">
                                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-600 mb-2"></div>
                                         <span>Cargando inventario...</span>
                                     </div>
                                 ) : filteredHabitaciones.length === 0 ? (
-                                    <div className="col-span-full h-32 flex items-center justify-center text-gray-500 border-2 border-dashed rounded-lg">
+                                    <div className="col-span-full h-32 flex items-center justify-center text-muted-foreground border-2 border-dashed border-border rounded-lg">
                                         No se encontraron habitaciones para los filtros seleccionados
                                     </div>
                                 ) : (
