@@ -584,8 +584,8 @@ export const ServiciosList = ({ readOnly = false }: { readOnly?: boolean }) => {
                 )}
 
                 <Dialog open={isAvailabilityDialogOpen} onOpenChange={setIsAvailabilityDialogOpen}>
-                    <DialogContent className="max-w-4xl p-0 overflow-hidden border-0 shadow-2xl">
-                        <DialogHeader className="bg-[#0F172A] text-white p-6">
+                    <DialogContent className="max-w-2xl max-h-[85vh] w-full flex flex-col p-0 overflow-hidden border-0 shadow-2xl">
+                        <DialogHeader className="bg-[#0F172A] text-white p-6 shrink-0">
                             <DialogTitle className="text-xl font-bold flex items-center gap-2">
                                 <Clock className="h-5 w-5 text-yellow-500" />
                                 Gestión de Disponibilidad
@@ -594,10 +594,10 @@ export const ServiciosList = ({ readOnly = false }: { readOnly?: boolean }) => {
                                 {selectedService?.nombre} - Configure los horarios y cupos.
                             </DialogDescription>
                         </DialogHeader>
-                        <div className="p-6 bg-background overflow-y-auto max-h-[80vh]">
+                        <div className="p-6 bg-background overflow-y-auto min-h-0 flex-1">
                             {selectedService && <ServicioDisponibilidadManager servicio={selectedService} />}
                         </div>
-                        <div className="p-4 bg-muted border-t flex justify-end">
+                        <div className="p-4 bg-muted/30 border-t border-border flex justify-end shrink-0">
                             <Button variant="outline" onClick={() => setIsAvailabilityDialogOpen(false)}>Cerrar</Button>
                         </div>
                     </DialogContent>

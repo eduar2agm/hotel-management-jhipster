@@ -278,7 +278,7 @@ export const ServicesCarousel = () => {
 
             {/* ADMIN/EMPLOYEE CLIENT SELECTION DIALOG */}
             <Dialog open={isClientSelectOpen} onOpenChange={setIsClientSelectOpen}>
-                <DialogContent className="sm:max-w-[500px] bg-white text-gray-900">
+                <DialogContent className="sm:max-w-[500px] bg-background text-foreground">
                     <DialogHeader>
                         <DialogTitle>Seleccionar Cliente</DialogTitle>
                         <DialogDescription>
@@ -287,7 +287,7 @@ export const ServicesCarousel = () => {
                     </DialogHeader>
 
                     <div className="py-4">
-                        <label className="text-sm font-bold text-gray-700 block mb-2">Buscar por ID de reserva</label>
+                        <label className="text-sm font-bold text-foreground block mb-2">Buscar por ID de reserva</label>
                         <Popover open={openReservaCombobox} onOpenChange={setOpenReservaCombobox}>
                             <PopoverTrigger asChild>
                                 <Button
