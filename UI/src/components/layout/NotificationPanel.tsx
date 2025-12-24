@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Bell, X, Check, CheckCheck, Trash2, MessageCircle } from 'lucide-react';
 import { useMessageNotifications } from '../../hooks/useMessageNotifications';
-import { NotificationData } from '../../services/notification.service';
+import type { NotificationData } from '../../services/notification.service';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -145,12 +145,12 @@ export const NotificationPanel: React.FC = () => {
                                     <div className="flex gap-3">
                                         {/* Icon */}
                                         <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${notification.type === 'system'
-                                                ? 'bg-purple-100 dark:bg-purple-900/30'
-                                                : 'bg-blue-100 dark:bg-blue-900/30'
+                                            ? 'bg-purple-100 dark:bg-purple-900/30'
+                                            : 'bg-blue-100 dark:bg-blue-900/30'
                                             }`}>
                                             <MessageCircle className={`w-5 h-5 ${notification.type === 'system'
-                                                    ? 'text-purple-600 dark:text-purple-400'
-                                                    : 'text-blue-600 dark:text-blue-400'
+                                                ? 'text-purple-600 dark:text-purple-400'
+                                                : 'text-blue-600 dark:text-blue-400'
                                                 }`} />
                                         </div>
 
@@ -158,8 +158,8 @@ export const NotificationPanel: React.FC = () => {
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-start justify-between gap-2 mb-1">
                                                 <p className={`text-sm font-semibold ${!notification.read
-                                                        ? 'text-gray-900 dark:text-gray-100'
-                                                        : 'text-gray-700 dark:text-gray-300'
+                                                    ? 'text-gray-900 dark:text-gray-100'
+                                                    : 'text-gray-700 dark:text-gray-300'
                                                     }`}>
                                                     {notification.title}
                                                 </p>
