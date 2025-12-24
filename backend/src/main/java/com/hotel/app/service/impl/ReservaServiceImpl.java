@@ -355,7 +355,7 @@ public class ReservaServiceImpl implements ReservaService {
         List<ServicioContratadoDTO> servicios = servicioContratadoService.findByReservaId(reserva.getId());
         for (ServicioContratadoDTO servicio : servicios) {
             if (servicio.getEstado() != com.hotel.app.domain.enumeration.EstadoServicioContratado.CANCELADO) {
-                servicioContratadoService.cancelar(servicio.getId());
+                servicioContratadoService.cancelar(servicio.getId(), "MSG_SERVICE_AUTO_CANCEL_RESERVA");
 
                 // Optional: Send notification for service cancellation (if not covered by other
                 // flows)

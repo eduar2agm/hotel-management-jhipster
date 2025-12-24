@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="20251224000000-1" author="system">
+        <comment>Inserción de mensaje predefinido para Auto Checkout</comment>
+
+        <!-- MSG_RESERVA_AUTO_CHECKOUT -->
+        <insert tableName="configuracion_sistema">
+            <column name="id" valueComputed="nextval('sequence_generator')"/>
+            <column name="clave" value="MSG_RESERVA_AUTO_CHECKOUT"/>
+            <column name="valor" value="🛎️ Su estancia ha concluido. El Check-Out de su reserva #{reservaId} se ha realizado automáticamente. ¡Esperamos verle pronto!"/>
+            <column name="tipo" value="TEXT"/>
+            <column name="categoria" value="MENSAJES"/>
+            <column name="descripcion" value="Notificación automática de Check-Out"/>
+            <column name="activo" valueBoolean="true"/>
+        </insert>
+        
+    </changeSet>
+
+</databaseChangeLog>
