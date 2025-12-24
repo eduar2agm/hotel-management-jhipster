@@ -57,6 +57,10 @@ public interface ImagenService {
      */
     Optional<ImagenDTO> findOne(Long id);
 
+    java.util.List<ImagenDTO> findByHabitacionId(Long habitacionId);
+
+    java.util.List<ImagenDTO> findByServicioId(Long servicioId);
+
     /**
      * Delete the "id" imagen.
      *
