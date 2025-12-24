@@ -8,7 +8,7 @@ import { Remitente } from '../../types/enums';
 import { useLocation } from 'react-router-dom';
 
 export const ClientMensajesSoporte = () => {
-    const { messages, loading, sendMessage, sending, user } = useClientChat();
+    const { messages, loading, sendMessage, sending } = useClientChat();
     const [inputText, setInputText] = useState('');
     const containerRef = useRef<HTMLDivElement>(null);
     const prevMessagesLen = useRef(0);
@@ -130,8 +130,10 @@ export const ClientMensajesSoporte = () => {
                             </div>
                         ) : (
                             messages.map((msg, idx) => {
-                                // Check for exact enum match, legacy "CLIENT" string, or matching User ID
-                                const isMe = msg.remitente === Remitente.CLIENTE || msg.remitente === 'CLIENT' || msg.userId === user?.id;
+                                // Check for exact enum match or legacy "CLIENT" string.
+                                // We DO NOT check msg.userId === user?.id because userId usually stores the conversation owner (the client),
+                                // so checks against it would return true even for system messages sent TO this client.
+                                const isMe = msg.remitente === Remitente.CLIENTE || msg.remitente === 'CLIENT';
 
                                 return (
                                     <div
