@@ -31,7 +31,6 @@ export function MultiImageUpload({ parentId, parentType, images, onUpdate }: Mul
                 // Construct DTO
                 const newImage: any = {
                     nombre: file.name,
-                    nombreArchivo: file.name,
                     fichero: base64,
                     ficheroContentType: file.type,
                     activo: true,
