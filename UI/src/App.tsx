@@ -17,6 +17,7 @@ import { AdminServiciosContratados } from './pages/admin/ServiciosContratados';
 import { AdminContratarServicio } from './pages/admin/ContratarServicio';
 import { AdminImagenes } from './pages/admin/Imagenes';
 import { EmployeeDashboard } from './pages/employee/EmployeeDashboard';
+import { AdminEmpleados } from './pages/admin/Empleados';
 import { CheckIn } from './pages/employee/CheckIn';
 import { EmployeeReservas } from './pages/employee/ReservasEmployee';
 import { EmployeeMensajesSoporte } from './pages/employee/MensajesSoporte';
@@ -58,6 +59,7 @@ function App() {
           <Route element={<MainLayout />}>
             {/* Admin Routes */}
             <Route path="/admin/dashboard" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN']}><AdminDashboard /></ProtectedRoute>} />
+            <Route path="/admin/empleados" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN']}><AdminEmpleados /></ProtectedRoute>} />
             <Route path="/admin/habitaciones" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN']}><AdminHabitaciones /></ProtectedRoute>} />
             <Route path="/admin/clientes" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN']}><AdminClientes /></ProtectedRoute>} />
             <Route path="/admin/reservas" element={<ProtectedRoute requiredRoles={['ROLE_ADMIN']}><AdminReservas /></ProtectedRoute>} />
