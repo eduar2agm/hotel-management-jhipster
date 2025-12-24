@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Navbar } from '../../components/layout/Navbar';
 import { Footer } from '../../components/layout/Footer';
-import { Sparkles, Utensils, Info, ServerCog, HardDriveUpload, HandHeart } from 'lucide-react';
+import { Sparkles, Utensils, Info, HandHeart } from 'lucide-react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { ServicioService } from '../../services/servicio.service';
 import { ServicioDisponibilidadService } from '../../services/servicio-disponibilidad.service';
@@ -12,6 +12,9 @@ import { TipoServicio } from '../../types/api/Servicio';
 import type { ReservaDTO } from '../../types/api/Reserva';
 import type { ServicioDisponibilidadDTO } from '../../types/api/ServicioDisponibilidad';
 import { EstadoServicioContratado } from '../../types/api/ServicioContratado';
+import { DetailsImageGallery } from '../../components/common/DetailsImageGallery';
+import type { ImagenDTO } from '../../types/api/Imagen';
+import { ImagenService } from '../../services/imagen.service';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -40,6 +43,70 @@ import { getImageUrl } from '../../utils/imageUtils';
 import { PageHeader } from '../../components/common/PageHeader';
 import { ServiceAvailabilityInfo } from '../../components/services/ServiceAvailabilityInfo';
 import { ServiceScheduleSelector } from '../../components/services/ServiceScheduleSelector';
+
+// Internal component to handle individual service state (images)
+const ServiceItemCard = ({
+  servicio,
+  onClickInfo,
+  onClickContratar
+}: {
+  servicio: ServicioDTO;
+  onClickInfo: (s: ServicioDTO) => void;
+  onClickContratar: (s: ServicioDTO) => void;
+}) => {
+  const [extraImages, setExtraImages] = useState<ImagenDTO[]>([]);
+
+  useEffect(() => {
+    if (servicio.id) {
+      ImagenService.getImagens({ 'servicioId.equals': servicio.id })
+        .then(res => setExtraImages(res.data))
+        .catch(err => console.error("Error fetching service images", err));
+    }
+  }, [servicio.id]);
+
+  return (
+    <Card className="overflow-hidden border border-border shadow-lg group hover:shadow-xl transition-all duration-300 flex flex-col h-full bg-card">
+      <div className="relative h-64 overflow-hidden bg-gray-100">
+        <DetailsImageGallery
+          mainImage={servicio.urlImage}
+          extraImages={extraImages}
+          className="h-full w-full"
+          autoPlay={false}
+        />
+        <div className="absolute top-4 right-4 z-10 pointer-events-none">
+          <Badge className="bg-yellow-500 text-white border-0 text-md px-3 py-1 shadow-sm">
+            ${typeof servicio.precio === 'number' ? servicio.precio.toFixed(2) : servicio.precio}
+          </Badge>
+        </div>
+      </div>
+      <CardHeader>
+        <CardTitle className="text-2xl font-bold text-foreground">{servicio.nombre}</CardTitle>
+        <CardDescription>{servicio.disponible ? "Disponible" : "No disponible temporalmente"}</CardDescription>
+      </CardHeader>
+      <CardContent className="flex-grow">
+        <p className="text-muted-foreground leading-relaxed line-clamp-3">
+          {servicio.descripcion || "Disfruta de este servicio exclusivo diseñado para ti."}
+        </p>
+      </CardContent>
+      <CardFooter className="flex gap-2">
+        <Button
+          variant="outline"
+          onClick={() => onClickInfo(servicio)}
+          className="flex-1 text-muted-foreground dark:hover:bg-gray-800 border-gray-800 hover:bg-gray-100 transition-colors"
+        >
+          <Info size={16} className="mr-2 text-muted-foreground" />
+          Info
+        </Button>
+        <Button
+          onClick={() => onClickContratar(servicio)}
+          className="flex-1 bg-gray-900 hover:bg-yellow-600 text-white transition-colors uppercase tracking-wider font-bold"
+        >
+          Contratar
+        </Button>
+      </CardFooter>
+    </Card>
+  );
+};
 
 export const Servicios = () => {
   const navigate = useNavigate();
@@ -106,16 +173,27 @@ export const Servicios = () => {
   const gratuitos = servicios.filter(s => s.tipo === TipoServicio.GRATUITO);
   const pagos = servicios.filter(s => s.tipo === TipoServicio.PAGO);
 
+  // ... inside component ...
+  const [serviceImages, setServiceImages] = useState<ImagenDTO[]>([]);
+
   // Handler para mostrar información del servicio
   const handleInfoClick = async (servicio: ServicioDTO) => {
     setInfoService(servicio);
     setLoadingDisponibilidades(true);
+    setServiceImages([]); // Reset images
+
     try {
-      const response = await ServicioDisponibilidadService.getByServicio(servicio.id);
-      setServiceDisponibilidades(response.data);
+      const [dispoRes, imgRes] = await Promise.all([
+        ServicioDisponibilidadService.getByServicio(servicio.id),
+        ImagenService.getImagens({ 'servicioId.equals': servicio.id })
+      ]);
+
+      setServiceDisponibilidades(dispoRes.data);
+      setServiceImages(imgRes.data);
+
     } catch (error) {
-      console.error('Error loading disponibilidades:', error);
-      toast.error('No se pudo cargar la información de disponibilidad');
+      console.error('Error loading details:', error);
+      toast.error('No se pudo cargar la información completa');
     } finally {
       setLoadingDisponibilidades(false);
     }
@@ -248,45 +326,12 @@ export const Servicios = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {pagos.map((servicio) => (
-              <Card key={servicio.id} className="overflow-hidden border border-border shadow-lg group hover:shadow-xl transition-all duration-300 flex flex-col h-full bg-card">
-                <div className="relative h-64 overflow-hidden">
-                  <img
-                    src={servicio.urlImage ? getImageUrl(servicio.urlImage) : "https://images.unsplash.com/photo-1540555700478-4be289fbecef?q=80&w=2000&auto=format&fit=crop"} // Fallback image
-                    alt={servicio.nombre}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                  <div className="absolute top-4 right-4">
-                    <Badge className="bg-yellow-500 text-white border-0 text-md px-3 py-1">
-                      ${typeof servicio.precio === 'number' ? servicio.precio.toFixed(2) : servicio.precio}
-                    </Badge>
-                  </div>
-                </div>
-                <CardHeader>
-                  <CardTitle className="text-2xl font-bold text-foreground">{servicio.nombre}</CardTitle>
-                  <CardDescription>{servicio.disponible ? "Disponible" : "No disponible temporalmente"}</CardDescription>
-                </CardHeader>
-                <CardContent className="flex-grow">
-                  <p className="text-muted-foreground leading-relaxed">
-                    {servicio.descripcion || "Disfruta de este servicio exclusivo diseñado para ti."}
-                  </p>
-                </CardContent>
-                <CardFooter className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => handleInfoClick(servicio)}
-                    className="flex-1 text-muted-foreground dark:hover:bg-gray-800 border-gray-800 hover:bg-gray-100 transition-colors"
-                  >
-                    <Info size={16} className="mr-2 text-muted-foreground" />
-                    Info
-                  </Button>
-                  <Button
-                    onClick={() => handleContratarClick(servicio)}
-                    className="flex-1 bg-gray-900 hover:bg-yellow-600 text-white transition-colors uppercase tracking-wider font-bold"
-                  >
-                    Contratar
-                  </Button>
-                </CardFooter>
-              </Card>
+              <ServiceItemCard
+                key={servicio.id}
+                servicio={servicio}
+                onClickInfo={handleInfoClick}
+                onClickContratar={handleContratarClick}
+              />
             ))}
           </div>
         )}
@@ -464,6 +509,12 @@ export const Servicios = () => {
           </DialogHeader>
 
           <div className="space-y-4">
+            <DetailsImageGallery
+              mainImage={infoService?.urlImage}
+              extraImages={serviceImages}
+              className="h-64 w-full rounded-lg overflow-hidden shadow-sm"
+            />
+
             {infoService?.descripcion && (
               <div>
                 <h4 className="font-semibold text-foreground mb-2">Descripción</h4>

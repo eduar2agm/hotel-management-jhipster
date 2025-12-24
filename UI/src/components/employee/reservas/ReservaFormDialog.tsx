@@ -117,7 +117,7 @@ export const ReservaFormDialog = ({
 
                         form.reset({
                             id: reservaToEdit.id,
-                            clienteId: reservaToEdit.clienteId || 0,
+                            clienteId: reservaToEdit.clienteId || reservaToEdit.cliente?.id || 0,
                             roomIds: roomIds,
                             fechaInicio: reservaToEdit.fechaInicio ? new Date(reservaToEdit.fechaInicio).toISOString().split('T')[0] : '',
                             fechaFin: reservaToEdit.fechaFin ? new Date(reservaToEdit.fechaFin).toISOString().split('T')[0] : '',

@@ -18,6 +18,7 @@ interface ServiceScheduleSelectorProps {
     selectedFechas?: string[];
     selectedHora?: string;
     onQuotaAvailable?: (quota: number) => void;
+    adminMode?: boolean; // Para mostrar todas las fechas incluso sin cupos
 }
 
 /**
@@ -35,15 +36,14 @@ export const ServiceScheduleSelector = ({
     selectedFechas = [],
     selectedHora,
     onQuotaAvailable,
+    adminMode = false,
 }: ServiceScheduleSelectorProps) => {
     const {
         loading,
         error,
         availableDates,
         getSlotsForDate,
-        isDayAvailable,
-        dateRange,
-    } = useServiceAvailability({ servicioId, reserva, clienteId });
+    } = useServiceAvailability({ servicioId, reserva, clienteId, adminMode });
 
     const [localSelectedDates, setLocalSelectedDates] = useState<string[]>(selectedFechas);
     const [localSelectedTime, setLocalSelectedTime] = useState<string>(selectedHora || '');
@@ -78,8 +78,6 @@ export const ServiceScheduleSelector = ({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [localSelectedDates, localSelectedTime]); // onSelect and onQuotaAvailable omitted intentionally
 
-    // Obtener slots para todos los días seleccionados
-    const allSelectedSlots = localSelectedDates.flatMap(date => getSlotsForDate(date)).filter(s => s.isAvailable);
     // Para mostrar horarios, usar el primer día seleccionado o cualquier día si no hay selección
     const displayDate = localSelectedDates[0] || availableDates[0] || '';
     const displaySlots = displayDate ? getSlotsForDate(displayDate).filter(s => s.isAvailable) : [];
@@ -147,7 +145,7 @@ export const ServiceScheduleSelector = ({
                         const dateObj = parseISO(date);
                         const isSelected = localSelectedDates.includes(date);
                         const slots = getSlotsForDate(date);
-                        const availableCount = slots.filter(s => s.isAvailable).length;
+                        const hasAvailableSlots = slots.some(s => s.isAvailable);
                         const totalCupos = slots.reduce((sum, s) => sum + (s.cuposDisponibles || 0), 0);
 
                         return (
@@ -157,16 +155,22 @@ export const ServiceScheduleSelector = ({
                                 variant={isSelected ? 'default' : 'outline'}
                                 className={`flex flex-col h-auto py-2 px-3 relative ${isSelected
                                     ? 'bg-yellow-600 hover:bg-yellow-700 text-white'
-                                    : 'hover:bg-gray-100'
+                                    : !hasAvailableSlots && adminMode
+                                        ? 'bg-gray-200 hover:bg-gray-300 text-gray-500 opacity-60 cursor-not-allowed'
+                                        : 'hover:bg-gray-100'
                                     }`}
                                 onClick={() => {
-                                    setLocalSelectedDates(prev =>
-                                        isSelected
-                                            ? prev.filter(d => d !== date)
-                                            : [...prev, date]
-                                    );
-                                    // No resetear hora cuando se selecciona/deselecciona
+                                    // Solo permitir selección si tiene cupos disponibles o no es modo admin
+                                    if (!adminMode || hasAvailableSlots) {
+                                        setLocalSelectedDates(prev =>
+                                            isSelected
+                                                ? prev.filter(d => d !== date)
+                                                : [...prev, date]
+                                        );
+                                    }
                                 }}
+                                disabled={adminMode && !hasAvailableSlots}
+                                title={!hasAvailableSlots && adminMode ? '0 cupos disponibles' : ''}
                             >
                                 {isSelected && (
                                     <div className="absolute top-1 right-1">
@@ -182,14 +186,21 @@ export const ServiceScheduleSelector = ({
                                 <div className="text-xs opacity-80">
                                     {format(dateObj, 'MMM', { locale: es })}
                                 </div>
-                                {totalCupos <= 3 && totalCupos > 0 && (
+                                {totalCupos === 0 && adminMode ? (
+                                    <Badge
+                                        variant="secondary"
+                                        className="text-xs mt-1 bg-red-100 text-red-700"
+                                    >
+                                        0 cupos
+                                    </Badge>
+                                ) : totalCupos <= 3 && totalCupos > 0 ? (
                                     <Badge
                                         variant="secondary"
                                         className="text-xs mt-1 bg-orange-100 text-orange-700"
                                     >
                                         {totalCupos} cupos
                                     </Badge>
-                                )}
+                                ) : null}
                             </Button>
                         );
                     })}

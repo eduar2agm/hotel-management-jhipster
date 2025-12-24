@@ -25,6 +25,17 @@ export const ClientReservationCard = ({
     const isPending = reserva.estado === 'PENDIENTE';
     const isConfirmed = reserva.estado === 'CONFIRMADA';
 
+    // Disallow cancellation if reservation is active/checked-in or if today is/after check-in date
+    const checkInDate = reserva.fechaInicio ? new Date(reserva.fechaInicio) : new Date();
+    const today = new Date();
+    // Reset time to compare dates only
+    checkInDate.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
+
+    const isPastCancellationValues = today >= checkInDate;
+    const canCancel = isConfirmed && !isPastCancellationValues;
+    const isCheckedIn = reserva.estado === 'CHECK_IN';
+
     const getStatusColor = (status?: string | null) => {
         switch (status) {
             case 'CONFIRMADA': return 'bg-emerald-600 border-emerald-500 text-white';
@@ -82,7 +93,7 @@ export const ClientReservationCard = ({
                         </Button>
                     )}
 
-                    {isConfirmed && (
+                    {canCancel && (
                         <Button
                             onClick={() => onCancelClick(reserva.id!)}
                             className="ml-4 bg-red-400 hover:bg-red-700 text-white text-xs font-bold  tracking-wider py-1 h-8 shadow-md shadow-red-200 transition-all hover:-translate-y-0.5"

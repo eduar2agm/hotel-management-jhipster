@@ -13,6 +13,9 @@ import { BedDouble, DollarSign, Image as ImageIcon, Pencil, Trash2, Eye, Info, C
 import { useState, useEffect } from 'react';
 
 import { getImageUrl } from '../../utils/imageUtils';
+import { ImagenService } from '../../services/imagen.service';
+import type { ImagenDTO } from '../../types/api/Imagen';
+import { DetailsImageGallery } from '../common/DetailsImageGallery';
 
 interface RoomCardProps {
     habitacion: HabitacionDTO;
@@ -25,8 +28,16 @@ export const RoomCard = ({ habitacion: h, onEdit, onDelete, onToggleActive }: Ro
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
     const [reservas, setReservas] = useState<(ReservaDetalleDTO & { isOccupying?: boolean })[]>([]);
     const [loadingReservations, setLoadingReservations] = useState(false);
+    const [extraImages, setExtraImages] = useState<ImagenDTO[]>([]);
 
     useEffect(() => {
+        if (h.id) {
+            // Fetch extra images for the card carousel
+            ImagenService.getImagens({ 'habitacionId.equals': h.id })
+                .then(res => setExtraImages(res.data))
+                .catch(err => console.error("Error fetching images", err));
+        }
+
         if (isDetailsOpen && h.id) {
             setLoadingReservations(true);
             const fetchReservas = async () => {
@@ -85,20 +96,14 @@ export const RoomCard = ({ habitacion: h, onEdit, onDelete, onToggleActive }: Ro
         <>
             <Card className="overflow-hidden hover:shadow-xl hover:border-primary/50 transition-all group border-border bg-card dark:bg-card/50">
                 <div className="relative h-48 w-full bg-gray-200 overflow-hidden">
-                    {h.imagen ? (
-                        <img
-                            src={getImageUrl(h.imagen)}
-                            alt={`Habitación ${h.numero}`}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
-                    ) : (
-                        <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground bg-muted">
-                            <ImageIcon className="h-12 w-12 mb-2 opacity-50" />
-                            <span className="text-xs font-semibold">Sin Imagen</span>
-                        </div>
-                    )}
+                    <DetailsImageGallery
+                        mainImage={h.imagen}
+                        extraImages={extraImages}
+                        className="h-full w-full rounded-none"
+                        autoPlay={false} // Default to no auto-play in grid to avoid noise, user can navigate manually
+                    />
 
-                    <div className="absolute top-3 right-3">
+                    <div className="absolute top-3 right-3 pointer-events-none">
                         <Badge variant="secondary" className="bg-background/90 text-foreground shadow-sm backdrop-blur-sm">
                             #{h.numero}
                         </Badge>
@@ -189,15 +194,12 @@ export const RoomCard = ({ habitacion: h, onEdit, onDelete, onToggleActive }: Ro
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4">
-                        <div className="relative h-56 w-full rounded-lg overflow-hidden bg-muted">
-                            {h.imagen ? (
-                                <img src={getImageUrl(h.imagen)} alt={`Full ${h.numero}`} className="w-full h-full object-cover" />
-                            ) : (
-                                <div className="flex items-center justify-center h-full text-muted-foreground">
-                                    <ImageIcon className="h-12 w-12" />
-                                </div>
-                            )}
-                        </div>
+                        <DetailsImageGallery
+                            mainImage={h.imagen}
+                            extraImages={extraImages}
+                            className="h-64 w-full rounded-lg shadow-sm border border-border"
+                            autoPlay={true}
+                        />
                         <div className="grid grid-cols-2 gap-4 text-sm">
                             <div>
                                 <span className="font-semibold text-muted-foreground block">Categoría</span>

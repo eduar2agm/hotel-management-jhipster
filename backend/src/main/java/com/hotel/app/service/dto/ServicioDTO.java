@@ -34,6 +34,8 @@ public class ServicioDTO implements Serializable {
     @Size(max = 255)
     private String urlImage;
 
+    private java.util.List<ImagenDTO> imagenes;
+
     public Long getId() {
         return id;
     }
@@ -90,6 +92,14 @@ public class ServicioDTO implements Serializable {
         this.urlImage = urlImage;
     }
 
+    public java.util.List<ImagenDTO> getImagenes() {
+        return imagenes;
+    }
+
+    public void setImagenes(java.util.List<ImagenDTO> imagenes) {
+        this.imagenes = imagenes;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -115,13 +125,13 @@ public class ServicioDTO implements Serializable {
     @Override
     public String toString() {
         return "ServicioDTO{" +
-            "id=" + getId() +
-            ", nombre='" + getNombre() + "'" +
-            ", descripcion='" + getDescripcion() + "'" +
-            ", tipo='" + getTipo() + "'" +
-            ", precio=" + getPrecio() +
-            ", disponible='" + getDisponible() + "'" +
-            ", urlImage='" + getUrlImage() + "'" +
-            "}";
+                "id=" + getId() +
+                ", nombre='" + getNombre() + "'" +
+                ", descripcion='" + getDescripcion() + "'" +
+                ", tipo='" + getTipo() + "'" +
+                ", precio=" + getPrecio() +
+                ", disponible='" + getDisponible() + "'" +
+                ", urlImage='" + getUrlImage() + "'" +
+                "}";
     }
 }

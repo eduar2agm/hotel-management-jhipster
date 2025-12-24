@@ -90,7 +90,10 @@ public class HabitacionServiceImpl implements HabitacionService {
     @Transactional(readOnly = true)
     public Optional<HabitacionDTO> findOne(Long id) {
         LOG.debug("Request to get Habitacion : {}", id);
-        return habitacionRepository.findById(id).map(habitacionMapper::toDto);
+        return habitacionRepository.findById(id).map(habitacionMapper::toDto).map(dto -> {
+            dto.setImagenes(imagenService.findByHabitacionId(id));
+            return dto;
+        });
     }
 
     @Override

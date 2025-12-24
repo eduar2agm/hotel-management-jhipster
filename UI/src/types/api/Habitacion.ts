@@ -10,6 +10,7 @@ export interface HabitacionDTO {
     activo?: boolean;
     categoriaHabitacion?: CategoriaHabitacionDTO | null;
     estadoHabitacion?: EstadoHabitacionDTO | null;
+    imagenes?: import('./Imagen').ImagenDTO[] | null;
 }
 
 export type NewHabitacionDTO = Omit<HabitacionDTO, 'id'> & { id?: null };

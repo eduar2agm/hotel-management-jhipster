@@ -63,6 +63,8 @@ public class ReservaServiceImpl implements ReservaService {
     public ReservaDTO save(ReservaDTO reservaDTO) {
         LOG.debug("Request to save Reserva : {}", reservaDTO);
 
+        boolean isNewReserva = reservaDTO.getId() == null;
+
         // If this is an update (ID exists), check status transition
         if (reservaDTO.getId() != null) {
             reservaRepository.findById(reservaDTO.getId()).ifPresent(existingReserva -> {
@@ -70,12 +72,20 @@ public class ReservaServiceImpl implements ReservaService {
                 if (existingReserva.getEstado() != EstadoReserva.CANCELADA
                         && reservaDTO.getEstado() == EstadoReserva.CANCELADA) {
                     cancelAssociatedServices(existingReserva);
+                    sendCanceladaMessage(existingReserva);
                 }
             });
         }
 
         Reserva reserva = reservaMapper.toEntity(reservaDTO);
         reserva = reservaRepository.save(reserva);
+
+        // Send notification for new reservations
+        if (isNewReserva && reserva.getCliente() != null) {
+            sendWelcomeMessage(reserva);
+            sendReservaCreatedMessage(reserva);
+        }
+
         return reservaMapper.toDto(reserva);
     }
 
@@ -374,6 +384,87 @@ public class ReservaServiceImpl implements ReservaService {
 
                 servicioContratadoService.completar(servicio.getId(), "MSG_SERVICE_AUTO_COMPLETED_CHECKOUT");
             }
+        }
+    }
+
+    private void sendReservaCreatedMessage(Reserva reserva) {
+        if (reserva.getCliente() == null || reserva.getCliente().getKeycloakId() == null) {
+            return;
+        }
+
+        try {
+            String msgText = "¡Hola "
+                    + (reserva.getCliente().getNombre() != null ? reserva.getCliente().getNombre() : "Cliente")
+                    + "! Su reserva #" + reserva.getId() + " ha sido creada exitosamente. Estado: PENDIENTE DE PAGO.";
+
+            try {
+                var configOpt = configuracionSistemaService.findByClave("MSG_RESERVA_CREADA");
+                if (configOpt.isPresent() && configOpt.get().getValor() != null) {
+                    msgText = configOpt.get().getValor()
+                            .replace("{clienteNombre}",
+                                    reserva.getCliente().getNombre() != null ? reserva.getCliente().getNombre()
+                                            : "Cliente")
+                            .replace("{reservaId}", reserva.getId().toString())
+                            .replace("{fechaInicio}",
+                                    reserva.getFechaInicio() != null ? reserva.getFechaInicio().toString() : "")
+                            .replace("{fechaFin}",
+                                    reserva.getFechaFin() != null ? reserva.getFechaFin().toString() : "");
+                }
+            } catch (Exception e) {
+                LOG.debug("Using default creation message");
+            }
+
+            MensajeSoporteDTO mensaje = new MensajeSoporteDTO();
+            mensaje.setMensaje(msgText);
+            mensaje.setFechaMensaje(Instant.now());
+            mensaje.setUserId(reserva.getCliente().getKeycloakId());
+            mensaje.setUserName((reserva.getCliente().getNombre() != null ? reserva.getCliente().getNombre() : "") + " "
+                    + (reserva.getCliente().getApellido() != null ? reserva.getCliente().getApellido() : "").trim());
+            mensaje.setLeido(false);
+            mensaje.setActivo(true);
+            mensaje.setRemitente("SISTEMA");
+
+            mensajeSoporteService.save(mensaje);
+        } catch (Exception e) {
+            LOG.error("Error sending reservation created message", e);
+        }
+    }
+
+    private void sendCanceladaMessage(Reserva reserva) {
+        if (reserva.getCliente() == null || reserva.getCliente().getKeycloakId() == null) {
+            return;
+        }
+
+        try {
+            String msgText = "Su reserva #" + reserva.getId()
+                    + " ha sido cancelada. Si tiene alguna pregunta, no dude en contactarnos.";
+
+            try {
+                var configOpt = configuracionSistemaService.findByClave("MSG_RESERVA_CANCELADA");
+                if (configOpt.isPresent() && configOpt.get().getValor() != null) {
+                    msgText = configOpt.get().getValor()
+                            .replace("{reservaId}", reserva.getId().toString())
+                            .replace("{clienteNombre}",
+                                    reserva.getCliente().getNombre() != null ? reserva.getCliente().getNombre()
+                                            : "Cliente");
+                }
+            } catch (Exception e) {
+                LOG.debug("Using default cancellation message");
+            }
+
+            MensajeSoporteDTO mensaje = new MensajeSoporteDTO();
+            mensaje.setMensaje(msgText);
+            mensaje.setFechaMensaje(Instant.now());
+            mensaje.setUserId(reserva.getCliente().getKeycloakId());
+            mensaje.setUserName((reserva.getCliente().getNombre() != null ? reserva.getCliente().getNombre() : "") + " "
+                    + (reserva.getCliente().getApellido() != null ? reserva.getCliente().getApellido() : "").trim());
+            mensaje.setLeido(false);
+            mensaje.setActivo(true);
+            mensaje.setRemitente("SISTEMA");
+
+            mensajeSoporteService.save(mensaje);
+        } catch (Exception e) {
+            LOG.error("Error sending cancellation message", e);
         }
     }
 }

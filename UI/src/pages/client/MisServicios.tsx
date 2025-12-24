@@ -65,9 +65,43 @@ export const MisServicios = () => {
 
         if (redirectStatus && confirmServicioId) {
             if (redirectStatus === 'succeeded') {
-                toast.success('Pago de servicio completado.');
-                // Optimistically update status or reload
-                loadData();
+                toast.success('Pago de servicio completado. Verificando estado...');
+
+                // Polling logic for redirect
+                let attempts = 0;
+                const maxAttempts = 20;
+                const serviceId = Number(confirmServicioId);
+
+                const poll = async () => {
+                    const reservasRes = await ReservaService.getReservas({ size: 100 });
+                    const reservas = reservasRes.data;
+                    const validReservas = reservas.filter(r => r.id !== undefined && r.id !== null);
+                    const promises = validReservas.map(r => ServicioContratadoService.getByReservaId(r.id!));
+                    const results = await Promise.all(promises);
+                    const allServices = results.flatMap(r => r.data);
+
+                    const updated = allServices.find(s => s.id === serviceId);
+
+                    if (updated && updated.estado === EstadoServicioContratado.CONFIRMADO) {
+                        allServices.sort((a, b) => new Date(b.fechaContratacion || '').getTime() - new Date(a.fechaContratacion || '').getTime());
+                        setItems(allServices);
+                        toast.success('Estado actualizado: Servicio confirmado');
+                        return true;
+                    }
+                    return false;
+                };
+
+                const executePoll = async () => {
+                    while (attempts < maxAttempts) {
+                        if (await poll()) break;
+                        attempts++;
+                        await new Promise(r => setTimeout(r, 1000));
+                    }
+                    if (attempts >= maxAttempts) loadData(); // Final fallback
+                };
+
+                executePoll();
+
             } else if (redirectStatus === 'failed') {
                 toast.error('El pago ha fallado.');
             }
@@ -238,7 +272,7 @@ export const MisServicios = () => {
                                                     const canPay = item.estado === EstadoServicioContratado.PENDIENTE && Number(total) > 0;
 
                                                     return (
-                                                    
+
                                                         <TableRow key={item.id} className={`hover:bg-muted/50 transition-colors ${activeService?.id === item.id ? 'bg-yellow-500/10 border-l-4 border-yellow-600' : 'border-l-4 border-transparent'}`}>
                                                             <TableCell className="font-medium text-blue-400">
                                                                 {item.servicio?.nombre}
