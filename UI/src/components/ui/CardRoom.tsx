@@ -6,8 +6,11 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import { BedDouble, Image as ImageIcon, Info, Wifi, Tv, Coffee, Check, X } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { getImageUrl } from '../../utils/imageUtils';
+import { DetailsImageGallery } from '../common/DetailsImageGallery';
+import type { ImagenDTO } from '../../types/api/Imagen';
+import { ImagenService } from '../../services/imagen.service';
 
 interface CardRoomProps {
     habitacion: HabitacionDTO;
@@ -27,6 +30,15 @@ export const CardRoom = ({
     services = []
 }: CardRoomProps) => {
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+    const [extraImages, setExtraImages] = useState<ImagenDTO[]>([]);
+
+    useEffect(() => {
+        if (isDetailsOpen && h.id) {
+            ImagenService.getImagens({ 'habitacionId.equals': h.id })
+                .then(res => setExtraImages(res.data))
+                .catch(err => console.error("Error fetching images", err));
+        }
+    }, [isDetailsOpen, h.id]);
 
     const precioBase = Number(h.categoriaHabitacion?.precioBase || 0).toFixed(2);
     const nombreCategoria = h.categoriaHabitacion?.nombre || 'Estándar';
@@ -165,21 +177,16 @@ export const CardRoom = ({
                 <DialogContent className="max-w-2xl overflow-hidden p-0 gap-0 border-0 rounded-2xl">
                     <div className="grid md:grid-cols-2">
                         {/* Image Side */}
+
+                        {/* Image Side with Carousel */}
                         <div className="relative h-64 md:h-full bg-gray-100">
-                            <img
-                                src={h.imagen ? getImageUrl(h.imagen) : '/placeholder-room.jpg'}
-                                alt={h.numero}
-                                className="h-full w-full object-cover"
-                                onError={(e) => {
-                                    e.currentTarget.src = '/placeholder-room.jpg';
-                                }}
+                            <DetailsImageGallery
+                                mainImage={h.imagen}
+                                extraImages={extraImages}
+                                className="h-full w-full"
+                                autoPlay={true}
                             />
-                            {!h.imagen && (
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                    <ImageIcon className="h-16 w-16 text-gray-300" />
-                                </div>
-                            )}
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-6 md:hidden">
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-6 md:hidden pointer-events-none">
                                 <h2 className="text-white text-2xl font-bold">{nombreCategoria}</h2>
                             </div>
                         </div>

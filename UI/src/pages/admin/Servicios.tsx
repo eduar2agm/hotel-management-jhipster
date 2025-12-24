@@ -29,6 +29,9 @@ import { Switch } from '@/components/ui/switch';
 import { ServiceCard } from '@/components/ui/ServiceCard';
 import { ActiveFilter } from '@/components/ui/ActiveFilter';
 import { PaginationControl } from '@/components/common/PaginationControl';
+import { MultiImageUpload } from '../../components/common/MultiImageUpload';
+import type { ImagenDTO } from '../../types/api/Imagen';
+import { DetailsImageGallery } from '../../components/common/DetailsImageGallery';
 
 const servicioSchema = z.object({
     id: z.number().optional(),
@@ -59,9 +62,31 @@ export const ServiciosList = ({ readOnly = false }: { readOnly?: boolean }) => {
 
     const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
     const [selectedServiceForDetails, setSelectedServiceForDetails] = useState<ServicioDTO | null>(null);
+    const [detailsImages, setDetailsImages] = useState<ImagenDTO[]>([]);
 
     const [isAvailabilityDialogOpen, setIsAvailabilityDialogOpen] = useState(false);
     const [selectedService, setSelectedService] = useState<ServicioDTO | null>(null);
+    const [galleryImages, setGalleryImages] = useState<ImagenDTO[]>([]);
+
+    const fetchGallery = async () => {
+        const currentId = form.getValues('id');
+        if (currentId) {
+            try {
+                const res = await ImagenService.getImagens({ 'servicioId.equals': currentId });
+                setGalleryImages(res.data);
+            } catch (e) {
+                console.error(e);
+            }
+        } else {
+            setGalleryImages([]);
+        }
+    };
+
+    useEffect(() => {
+        if (isDialogOpen) {
+            fetchGallery();
+        }
+    }, [isDialogOpen]);
 
     const form = useForm<ServicioFormValues>({
         resolver: zodResolver(servicioSchema) as any,
@@ -221,6 +246,13 @@ export const ServiciosList = ({ readOnly = false }: { readOnly?: boolean }) => {
     const handleViewDetails = (servicio: ServicioDTO) => {
         setSelectedServiceForDetails(servicio);
         setIsDetailsDialogOpen(true);
+        if (servicio.id) {
+            ImagenService.getImagens({ 'servicioId.equals': servicio.id })
+                .then(res => setDetailsImages(res.data))
+                .catch(e => console.error(e));
+        } else {
+            setDetailsImages([]);
+        }
     };
 
     const filteredServicios = servicios.filter(s => {
@@ -511,6 +543,15 @@ export const ServiciosList = ({ readOnly = false }: { readOnly?: boolean }) => {
                                                 </FormItem>
                                             )}
                                         />
+                                        <div className="space-y-2 pt-4 border-t border-border">
+                                            <FormLabel className="text-xs font-bold text-gray-500 uppercase tracking-widest">Galería Adicional</FormLabel>
+                                            <MultiImageUpload
+                                                parentId={form.getValues('id')}
+                                                parentType="servicio"
+                                                images={galleryImages}
+                                                onUpdate={fetchGallery}
+                                            />
+                                        </div>
 
                                         <div className="pt-4 flex justify-end gap-3 border-t">
                                             <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)} className="h-10">Cancelar</Button>
@@ -561,18 +602,13 @@ export const ServiciosList = ({ readOnly = false }: { readOnly?: boolean }) => {
                             <div className="p-6 space-y-6 lg:border-r border-border">
                                 {selectedServiceForDetails && (
                                     <>
-                                        <div className="aspect-video w-full rounded-lg overflow-hidden border border-border bg-card shadow-sm">
-                                            {selectedServiceForDetails.urlImage ? (
-                                                <img
-                                                    src={getImageUrl(selectedServiceForDetails.urlImage)}
-                                                    alt={selectedServiceForDetails.nombre}
-                                                    className="w-full h-full object-cover"
-                                                />
-                                            ) : (
-                                                <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                                                    <ImageIcon className="w-12 h-12" />
-                                                </div>
-                                            )}
+                                        <div className="aspect-video w-full rounded-lg overflow-hidden border border-border bg-card shadow-sm main-video-container">
+                                            <DetailsImageGallery
+                                                mainImage={selectedServiceForDetails.urlImage}
+                                                extraImages={detailsImages}
+                                                className="w-full h-full"
+                                                autoPlay={true}
+                                            />
                                         </div>
                                         <div>
                                             <h3 className="text-xl font-bold text-foreground mb-2">{selectedServiceForDetails.nombre}</h3>

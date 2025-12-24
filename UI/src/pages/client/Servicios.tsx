@@ -12,6 +12,9 @@ import { TipoServicio } from '../../types/api/Servicio';
 import type { ReservaDTO } from '../../types/api/Reserva';
 import type { ServicioDisponibilidadDTO } from '../../types/api/ServicioDisponibilidad';
 import { EstadoServicioContratado } from '../../types/api/ServicioContratado';
+import { DetailsImageGallery } from '../../components/common/DetailsImageGallery';
+import type { ImagenDTO } from '../../types/api/Imagen';
+import { ImagenService } from '../../services/imagen.service';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -106,16 +109,27 @@ export const Servicios = () => {
   const gratuitos = servicios.filter(s => s.tipo === TipoServicio.GRATUITO);
   const pagos = servicios.filter(s => s.tipo === TipoServicio.PAGO);
 
+  // ... inside component ...
+  const [serviceImages, setServiceImages] = useState<ImagenDTO[]>([]);
+
   // Handler para mostrar información del servicio
   const handleInfoClick = async (servicio: ServicioDTO) => {
     setInfoService(servicio);
     setLoadingDisponibilidades(true);
+    setServiceImages([]); // Reset images
+
     try {
-      const response = await ServicioDisponibilidadService.getByServicio(servicio.id);
-      setServiceDisponibilidades(response.data);
+      const [dispoRes, imgRes] = await Promise.all([
+        ServicioDisponibilidadService.getByServicio(servicio.id),
+        ImagenService.getImagens({ 'servicioId.equals': servicio.id })
+      ]);
+
+      setServiceDisponibilidades(dispoRes.data);
+      setServiceImages(imgRes.data);
+
     } catch (error) {
-      console.error('Error loading disponibilidades:', error);
-      toast.error('No se pudo cargar la información de disponibilidad');
+      console.error('Error loading details:', error);
+      toast.error('No se pudo cargar la información completa');
     } finally {
       setLoadingDisponibilidades(false);
     }
@@ -464,6 +478,12 @@ export const Servicios = () => {
           </DialogHeader>
 
           <div className="space-y-4">
+            <DetailsImageGallery
+              mainImage={infoService?.urlImage}
+              extraImages={serviceImages}
+              className="h-64 w-full rounded-lg overflow-hidden shadow-sm"
+            />
+
             {infoService?.descripcion && (
               <div>
                 <h4 className="font-semibold text-foreground mb-2">Descripción</h4>
